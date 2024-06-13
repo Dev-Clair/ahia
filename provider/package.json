@@ -1,0 +1,28 @@
+{
+  "name": "provider-api",
+  "version": "1.0.0",
+  "main": "handler.js",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "remove": "serverless remove"
+  },
+  "keywords": [
+    "ahia",
+    "provider",
+    "api",
+    "microservice"
+  ],
+  "author": "Aniogbu  Samuel",
+  "license": "ISC",
+  "description": "Provider API for ahia Marketplace",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "helmet": "^7.1.0",
+    "hpp": "^0.2.3",
+    "joi": "^17.13.1",
+    "mongoose": "^8.4.0",
+    "serverless-http": "^3.2.0"
+  }
+}
