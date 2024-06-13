@@ -6,7 +6,7 @@ let retryDelay = 5000;
 
 const maxRetries = 5;
 
-const Connection = async (connectionUri) => {
+const Connection = async (connectionUri: string) => {
   try {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(connectionUri, {
