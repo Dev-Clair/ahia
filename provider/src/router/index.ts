@@ -1,10 +1,8 @@
 import { Request, Response, Router, NextFunction } from "express";
+import routerV1 from "./v1/providerRouter";
+import routerV2 from "./v2/providerRouter";
 
 const router = Router();
-
-const routerV1 = require("./v1/provider");
-
-const routerV2 = require("./v2/provider");
 
 router.use("/v1/providers", routerV1);
 
