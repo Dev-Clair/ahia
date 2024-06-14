@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const providerSchema = new Schema({
+const IAMSchema = new Schema({
   type: {
     type: String,
     enum: ["individual", "corporate"],
@@ -45,6 +45,6 @@ const providerSchema = new Schema({
   },
 });
 
-const providerModel = mongoose.model("providerModel", providerSchema);
+const IAM = mongoose.model("IAM", IAMSchema);
 
-export default providerModel;
+export default IAM;
