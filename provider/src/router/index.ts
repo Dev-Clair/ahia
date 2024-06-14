@@ -1,12 +1,12 @@
 import { Request, Response, Router, NextFunction } from "express";
-import routerV1 from "./v1/providerRouter";
-import routerV2 from "./v2/providerRouter";
+import routerV1 from "./v1/iamRouter";
+import routerV2 from "./v2/iamRouter";
 
 const router = Router();
 
-router.use("/v1/providers", routerV1);
+router.use("/v1/iam", routerV1);
 
-router.use("/v2/providers", routerV2);
+router.use("/v2/iam", routerV2);
 
 router.all("*", (req: Request, res: Response, next: NextFunction) => {
   return res.status(404).json({
