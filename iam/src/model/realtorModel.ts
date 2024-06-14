@@ -4,19 +4,6 @@ import IAM from "./iamModel";
 const Schema = mongoose.Schema;
 
 const RealtorSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
   status: {
     type: String,
     enum: ["in_waiting", "available", "booked"],
@@ -30,15 +17,18 @@ const RealtorSchema = new Schema({
     {
       tourId: {
         type: String,
+        trim: true,
         required: true,
       },
       customerId: {
         type: String,
+        trim: true,
         required: true,
       },
       listingIds: [
         {
           type: String,
+          trim: true,
           required: true,
         },
       ],
@@ -53,14 +43,8 @@ const RealtorSchema = new Schema({
       },
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
 });
 
-module.exports = mongoose.model("Realtor", RealtorSchema);
+const Realtor = IAM.discriminator("Realtor", RealtorSchema);
+
+export default Realtor;

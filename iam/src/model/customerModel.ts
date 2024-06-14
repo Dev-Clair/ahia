@@ -4,57 +4,28 @@ import IAM from "./iamModel";
 const Schema = mongoose.Schema;
 
 const CustomerSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
-  passwordHash: {
-    type: String,
-    required: true,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-  cart: [
-    {
-      listingId: {
-        type: String,
-        required: true,
-      },
-      addedAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
   bookedTours: [
     {
       tourId: {
         type: String,
+        trim: true,
         required: true,
       },
       listingIds: [
         {
           type: String,
+          trim: true,
           required: true,
         },
       ],
       zone: {
         type: String,
+        trim: true,
         required: true,
       },
       countyLGA: {
         type: String,
+        trim: true,
         required: true,
       },
       scheduledDate: {
@@ -72,6 +43,7 @@ const CustomerSchema = new Schema({
     {
       paymentId: {
         type: String,
+        trim: true,
         required: true,
       },
       amount: {
@@ -89,14 +61,8 @@ const CustomerSchema = new Schema({
       },
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
 });
 
-module.exports = mongoose.model("Customer", CustomerSchema);
+const Customer = IAM.discriminator("Customer", CustomerSchema);
+
+export default Customer;

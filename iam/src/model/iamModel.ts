@@ -1,54 +1,67 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const Schema = mongoose.Schema;
 
-const options = {};
+const IamOptions = {
+  discriminatorKey: "iamType",
+  collection: "iam",
+};
 
-const IAMSchema = new Schema({
-  type: {
-    type: String,
-    enum: ["individual", "corporate"],
-    required: true,
-  },
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
-    type: String,
-    required: true,
-  },
-  contactInformation: {
-    email: {
+const IAMSchema = new Schema(
+  {
+    firstName: {
       type: String,
+      trim: true,
       required: true,
     },
-    phone: {
+    lastName: {
       type: String,
+      trim: true,
       required: true,
     },
-    address: {
+    passwordHash: {
       type: String,
+      trim: true,
+      select: false,
       required: true,
     },
-  },
-  verified: {
-    type: Boolean,
-    default: false,
-  },
-  listings: [
-    {
-      type: String,
+    contactInformation: {
+      email: {
+        type: String,
+        trim: true,
+        required: true,
+      },
+      phone: {
+        type: String,
+        trim: true,
+        required: true,
+      },
     },
-  ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
+  IamOptions
+);
+
+IAMSchema.pre("save", async function (next) {
+  if (!this.isModified("passwordHash")) {
+    return next();
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 const IAM = mongoose.model("IAM", IAMSchema);

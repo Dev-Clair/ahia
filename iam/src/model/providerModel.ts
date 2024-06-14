@@ -4,48 +4,49 @@ import IAM from "./iamModel";
 const Schema = mongoose.Schema;
 
 const ProviderSchema = new Schema({
-  type: {
+  providerType: {
     type: String,
     enum: ["individual", "corporate"],
     required: true,
   },
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
-    type: String,
-    required: true,
-  },
-  contactInformation: {
-    email: {
+  companyInformation: {
+    companyName: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    companyEmail: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    companyPhone: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
+    companyAddress: {
       type: String,
       required: true,
     },
-    phone: {
+    companyRegNo: {
       type: String,
       required: true,
     },
-    address: {
+    companyRegCert: {
       type: String,
       required: true,
     },
-  },
-  verified: {
-    type: Boolean,
-    default: false,
   },
   listings: [
     {
       type: String,
+      trim: true,
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
 });
+
+const Provider = IAM.discriminator("Provider", ProviderSchema);
+
+export default Provider;
