@@ -1,5 +1,5 @@
 {
-  "name": "provider-api",
+  "name": "iam_service",
   "version": "1.0.0",
   "main": "handler.js",
   "scripts": {
@@ -8,13 +8,12 @@
   },
   "keywords": [
     "ahia",
-    "provider",
-    "api",
+    "iam",
     "microservice"
   ],
   "author": "Aniogbu  Samuel",
   "license": "ISC",
-  "description": "Provider API for ahia Marketplace",
+  "description": "IAM service for ahia marketplace",
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
