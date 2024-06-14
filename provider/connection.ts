@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-let currentRetries = 0;
+let currentRetries: number = 0;
 
-let retryDelay = 5000;
+let retryDelay: number = 5000;
 
-const maxRetries = 5;
+const maxRetries: number = 5;
 
 const Connection = async (connectionUri: string) => {
   try {
