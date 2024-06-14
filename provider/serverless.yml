@@ -2,9 +2,7 @@ org: clair99
 
 app: ahia
 
-service: provider
-
-frameworkVersion: "4"
+service: iam_service
 
 useDotenv: true
 
@@ -15,8 +13,8 @@ provider:
   memorySize: 512
 
 functions:
-  ahia-provider-api:
-    handler: handler.provider
+  ahia-iam-service:
+    handler: handler.iam
     events:
       - httpApi: "*"
     environment:
