@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
+import IAM from "./iamModel";
 
 const Schema = mongoose.Schema;
 
-const options = {};
-
-const IAMSchema = new Schema({
+const ProviderSchema = new Schema({
   type: {
     type: String,
     enum: ["individual", "corporate"],
@@ -50,7 +49,3 @@ const IAMSchema = new Schema({
     default: Date.now,
   },
 });
-
-const IAM = mongoose.model("IAM", IAMSchema);
-
-export default IAM;
