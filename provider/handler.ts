@@ -12,5 +12,5 @@ if (Config.NODE_ENV === "development") {
     );
   });
 } else {
-  exports.provider = serverless(app);
+  exports.iam = serverless(app);
 }
