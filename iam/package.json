@@ -1,8 +1,9 @@
 {
   "name": "iam_service",
   "version": "1.0.0",
-  "main": "handler.js",
+  "main": "handler.ts",
   "scripts": {
+    "start": "ts-node handler.ts",
     "deploy": "serverless deploy",
     "remove": "serverless remove"
   },
@@ -24,6 +25,7 @@
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.0",
-    "serverless-http": "^3.2.0"
+    "serverless-http": "^3.2.0",
+    "ts-node": "^10.9.2"
   }
 }
