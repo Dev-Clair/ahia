@@ -63,6 +63,12 @@ const CustomerSchema = new Schema({
   ],
 });
 
+CustomerSchema.virtual("completedTours").get(function () {
+  return this.bookedTours.filter(
+    (bookedTour) => bookedTour.status === "completed"
+  ).length;
+});
+
 const Customer = IAM.discriminator("Customer", CustomerSchema);
 
 export default Customer;

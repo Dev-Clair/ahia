@@ -45,6 +45,15 @@ const ProviderSchema = new Schema({
       trim: true,
     },
   ],
+  identity: {
+    type: String,
+    enum: ["driver-license", "passport", "other"],
+    required: false,
+  },
+});
+
+ProviderSchema.virtual("numberOfListings").get(function () {
+  return this.listings.length;
 });
 
 const Provider = IAM.discriminator("Provider", ProviderSchema);
