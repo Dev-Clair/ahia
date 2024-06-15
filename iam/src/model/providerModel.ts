@@ -10,31 +10,31 @@ const ProviderSchema = new Schema({
     required: true,
   },
   companyInformation: {
-    companyName: {
+    name: {
       type: String,
       trim: true,
       required: true,
     },
-    companyEmail: {
+    email: {
       type: String,
       trim: true,
       required: true,
     },
-    companyPhone: [
+    phone: [
       {
         type: String,
         required: true,
       },
     ],
-    companyAddress: {
+    address: {
       type: String,
       required: true,
     },
-    companyRegNo: {
+    regNo: {
       type: String,
       required: true,
     },
-    companyRegCert: {
+    regCert: {
       type: String,
       required: true,
     },
@@ -45,11 +45,23 @@ const ProviderSchema = new Schema({
       trim: true,
     },
   ],
-  identity: {
-    type: String,
-    enum: ["driver-license", "passport", "other"],
-    required: false,
-  },
+  security: [
+    {
+      identityType: {
+        type: String,
+        enum: ["driver-license", "passport", "other"],
+        required: false,
+      },
+      identityNo: {
+        type: String,
+        required: false,
+      },
+      identityDoc: {
+        type: String,
+        required: false,
+      },
+    },
+  ],
 });
 
 ProviderSchema.virtual("numberOfListings").get(function () {

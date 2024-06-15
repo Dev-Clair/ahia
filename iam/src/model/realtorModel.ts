@@ -40,11 +40,23 @@ const RealtorSchema = new Schema(
         },
       },
     ],
-    identity: {
-      type: String,
-      enum: ["driver-license", "passport", "other"],
-      required: false,
-    },
+    security: [
+      {
+        identityType: {
+          type: String,
+          enum: ["driver-license", "passport", "other"],
+          required: false,
+        },
+        identityNo: {
+          type: String,
+          required: false,
+        },
+        identityDoc: {
+          type: String,
+          required: false,
+        },
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
