@@ -1,9 +1,8 @@
-import mongoose from "mongoose";
+import { Schema } from "mongoose";
 import IAM from "./iamModel";
+import ProviderInterface from "../interface/providerInterface";
 
-const Schema = mongoose.Schema;
-
-const ProviderSchema = new Schema({
+const ProviderSchema: Schema<ProviderInterface> = new Schema({
   providerType: {
     type: String,
     enum: ["individual", "corporate"],

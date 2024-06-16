@@ -1,9 +1,8 @@
-import mongoose from "mongoose";
+import { Schema } from "mongoose";
 import IAM from "./iamModel";
+import CustomerInterface from "../interface/customerInterface";
 
-const Schema = mongoose.Schema;
-
-const CustomerSchema = new Schema({
+const CustomerSchema: Schema<CustomerInterface> = new Schema({
   bookedTours: [
     {
       tourId: {
@@ -11,62 +10,17 @@ const CustomerSchema = new Schema({
         trim: true,
         required: true,
       },
-      listingIds: [
-        {
-          type: String,
-          trim: true,
-          required: true,
-        },
-      ],
-      zone: {
-        type: String,
-        trim: true,
-        required: true,
-      },
-      countyLGA: {
-        type: String,
-        trim: true,
-        required: true,
-      },
-      scheduledDate: {
-        type: Date,
-        required: true,
-      },
-      status: {
-        type: String,
-        enum: ["pending", "completed"],
-        default: "pending",
-      },
     },
   ],
-  paymentHistory: [
+  paymentRecords: [
     {
       paymentId: {
         type: String,
         trim: true,
         required: true,
       },
-      amount: {
-        type: Number,
-        required: true,
-      },
-      status: {
-        type: String,
-        enum: ["successful", "failed"],
-        required: true,
-      },
-      paymentDate: {
-        type: Date,
-        default: Date.now,
-      },
     },
   ],
-});
-
-CustomerSchema.virtual("completedTours").get(function () {
-  return this.bookedTours.filter(
-    (bookedTour) => bookedTour.status === "completed"
-  ).length;
 });
 
 const Customer = IAM.discriminator("Customer", CustomerSchema);
