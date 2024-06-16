@@ -4,9 +4,9 @@ import routerV2 from "./v2/iamRouter";
 
 const router = Router();
 
-router.use("/v1/iam", routerV1);
+router.use("/v1/account", routerV1);
 
-router.use("/v2/iam", routerV2);
+router.use("/v2/account", routerV2);
 
 router.all("*", (req: Request, res: Response, next: NextFunction) => {
   return res.status(404).json({
