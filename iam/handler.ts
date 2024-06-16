@@ -12,5 +12,7 @@ if (Config.NODE_ENV === "development") {
     );
   });
 } else {
-  exports.iam = serverless(app);
+  const iam = serverless(app);
+
+  // export default iam;
 }
