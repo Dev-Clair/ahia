@@ -2,7 +2,7 @@ org: clair99
 
 app: ahia
 
-service: tour_service
+service: tours_service
 
 useDotenv: true
 
