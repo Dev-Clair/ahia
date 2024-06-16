@@ -12,7 +12,7 @@ if (Config.NODE_ENV === "development") {
     );
   });
 } else {
-  const iam = serverless(app);
+  const tour = serverless(app);
 
-  // export default iam;
+  // export default tour;
 }

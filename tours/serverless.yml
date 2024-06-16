@@ -2,14 +2,21 @@ org: clair99
 
 app: ahia
 
-service: tours
+service: tour_service
+
+useDotenv: true
 
 provider:
   name: aws
   runtime: nodejs20.x
+  region: ${env:AWS_REGION}
+  memorySize: 512
 
 functions:
-  api:
-    handler: handler.handler
+  ahia-tour-service:
+    handler: handler.tour
     events:
       - httpApi: "*"
+    environment:
+      NODE_ENV: ${env:NODE_ENV}
+      MONGO_URI: ${env:MONGO_URI}
