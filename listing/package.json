@@ -1,5 +1,5 @@
 {
-  "name": "listing_service",
+  "name": "listing",
   "version": "1.0.0",
   "main": "handler.ts",
   "scripts": {
