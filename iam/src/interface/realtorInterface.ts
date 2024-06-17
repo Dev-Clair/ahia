@@ -1,7 +1,7 @@
-import { Document } from "mongoose";
+import IAMInterface from "./iamInterface";
 
-export default interface RealtorInterface extends Document {
-  status: "in_waiting" | "available" | "booked";
+export default interface RealtorInterface extends IAMInterface {
+  status: "in_waiting" | "available";
   assignedTours: {
     tourId: string;
   }[];

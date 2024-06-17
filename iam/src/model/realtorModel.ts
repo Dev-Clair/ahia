@@ -5,7 +5,7 @@ import RealtorInterface from "../interface/realtorInterface";
 const RealtorSchema: Schema<RealtorInterface> = new Schema({
   status: {
     type: String,
-    enum: ["in_waiting", "available", "booked"],
+    enum: ["in_waiting", "available"],
     default: "in_waiting",
   },
   assignedTours: [
@@ -13,7 +13,7 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
       tourId: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
       },
     },
   ],
