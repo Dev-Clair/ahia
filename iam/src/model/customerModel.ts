@@ -8,7 +8,7 @@ const CustomerSchema: Schema<CustomerInterface> = new Schema({
       tourId: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
       },
     },
   ],
@@ -17,7 +17,7 @@ const CustomerSchema: Schema<CustomerInterface> = new Schema({
       paymentId: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
       },
     },
   ],

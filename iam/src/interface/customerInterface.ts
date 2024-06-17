@@ -1,6 +1,6 @@
-import { Document } from "mongoose";
+import IAMInterface from "./iamInterface";
 
-export default interface CustomerInterface extends Document {
+export default interface CustomerInterface extends IAMInterface {
   bookedTours: {
     tourId: string;
   }[];
