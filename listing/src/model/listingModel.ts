@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import ListingInterface from "../interface/listingInterface";
 
-const ListingSchema = new Schema({
+const ListingSchema: Schema<ListingInterface> = new Schema({
   name: {
     type: String,
     required: true,
@@ -78,6 +78,7 @@ const ListingSchema = new Schema({
   attachments: [
     {
       type: String,
+      required: true,
     },
   ],
   provider: {
