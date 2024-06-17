@@ -1,24 +1,23 @@
 *** Service Responsibilities, Permissions, Communication and Events
 
 1. iam service
-   - Responsibilities: Manage account creation and permissions, authentication/authorizationfor other services.
+   - Responsibilities: Manage account creation and permissions, authentication/authorization for other services.
 
    - Communication:
     - Synchronous
         - n/a
     - Asynchronous
-        - Emits user creation events to an event bus.
-        - Emits realtor status change event to availability service via event bus
-        - Listens to events from listing, scheduling and payment services.
-        - Listens to notifications from scheduling service.
+        - Emits user insertion or update events to the event bus.
+        - Listens to events from listing service.
+        - Listens to events from payment service.
+        - Listens to events from tours service.
 
    - Events:
     - Publish
-        - IAM Change Streams (Created, Replace and Update Events).
+        - IAM Change Streams (Insert, Replace and Update Events).
     - Consume
-        - Tour Change Streams (Update Events - realtor assignment notification).
+        - Tour Change Streams (Update Events - realtor tour assignment and customer tour booking and booking).
         - Listing Change Streams (Insert, Replace, Update and Delete Events).
-        - Schedule Change Streams (Insert and Replace Events).
         - Payment Change Streams (Payment Status Events).
 
 2. listing service
@@ -39,19 +38,19 @@
     - Publish
         - Listing Change Streams (Insert, Replace and Delete Events).
     - Consume
-        - Iam Change Streams (Iam -provider- Verified and Account Status Events).
+        - Iam Change Streams (Verified and Account Status Update Events).
 
 3. tour service
    - Responsibilities: Manage the booking of tour appointments.
    
    - Permissions:
-        - Only users with role -customer- can perform command operations.\
+        - Only users with role -customer- can perform command operations.
 
    - Communication:
     - Synchronous
         - n/a
     - Asynchronous
-        - Emits tour created or updated events to an event bus.
+        - Emits tour created or updated events to the event bus.
         - Listens to payment service events to create a tour.
         - Listens to assignment service to assign realtors to tour appointments.
         - Listens to scheduling service to schedule tour appointments.
@@ -72,16 +71,17 @@
 
    - Communication:
     - Synchronous
-        - Provides realtor's and availability status to assignment service based on booked tour location.
-        - Receives updated realtor's availability status from assignment service based on booked tours.
+        - Provides realtor's availability status to assignment service based on booked tour location.
     - Asynchronous
         - Listens to iam service realtor status updates from the event bus.
+        - Listens to assignment service to update realtor's availability status based on booked tours.
 
    - Events:
     - Publish
         - n/a
     - Consume
-        - Iam Change Streams (realtor's Status).
+        - Iam Change Streams.
+        - Assignment Change Streams.
 
 5. assignment service
    - Responsibilities: Fetches and assign realtors to tours based on availability and location.
@@ -92,11 +92,10 @@
    - Communication:
     - Synchronous
         - Interact with availability service to fetch available realtors based on booked tour location.
-        - Interact with availability service to update available/booked realtors based on booked tours.
 
     - Asynchronous
         - Listens to events from tour service.
-        - Emit assignment events to event bus: tour service is notified about assigned realtor.
+        - Emit assignment events to the event bus: tour and availability services subscribe to this event for further processing.
 
    - Events:
     - Publish
@@ -132,8 +131,10 @@
 
    - Communication:
     - Synchronous
-     - Interacts with listing service to fetch listing details.
-     - Provides cart details to payment service.
+        - Interacts with listing service to fetch listing details.
+        - Provides cart details to payment service.
+    - Asynchronous
+        - n/a
 
    - Events:
     - Publish
@@ -149,14 +150,16 @@
 
    - Communication:
     - Synchronous
-     - Listens to cart service for payment requests.
+        - Available to cart service for payment requests.
 
     - Asynchronous
-     - Emits payment success events to tour and iam services.
+        - Emits payment success events to tour and iam services.
 
    - Events:
     - Publish
         - Payment Change Streams.
+    - Consume
+        - n/a
 
 
 *** Communication Flow
@@ -192,10 +195,14 @@
 *** Implementation Logic
 
 1. Event Bus Implementation
-   - A message broker i.e. RabbitMQ, or AWS SNS/SQS/Eventbridge for asynchronous communication.
-   - Services should be able to publish and subscribe to relevant events.
+   - Utilizes AWS SQS/Eventbridge for asynchronous communication and lambda for asynchronous processing.
+   - Utilizes eventbridge pipes to either transform, enrich or filter events.
 
-2. Realtor Availability, Assignment and Appointment Scheduling
-   - availability service maintains a cache of realtor statuses using Redis or another in-memory store.
-   - tour service calls availability service to get real-time status.
-   - scheduling service uses this information to schedule tours and update statuses.
+2. Availability, Assignment and Scheduling
+   - availability service maintains a cache of realtor statuses -available and booked- based on location using Redis or any suitable in-memory store.
+   - tour service emits a tour created event to the bus.
+        - assignment service listens and calls availability service to fetch available realtors based on location.
+        - on successful assignment, an event is emitted to update the available pool in the availability service and tour service.
+        - scheduling service uses this information from the tour event to schedule tours and update statuses.
+   - tour service listens to assignment and scheduling services to get real-time events on realtor assignment and tour scheduling.
+   - tour service emits event on successful assignment and scheduling.
