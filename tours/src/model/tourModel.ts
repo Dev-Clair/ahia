@@ -30,7 +30,7 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
   scheduledDate: {
     type: Date,
-    required: true,
+    required: false,
   },
   status: {
     type: String,

@@ -7,7 +7,7 @@ export default interface TourInterface extends Document {
   zone: string;
   countyLGA: string;
   country: string;
-  scheduledDate: Date;
+  scheduledDate?: Date;
   status: "pending" | "completed" | "cancelled";
   createdAt: Date;
 }
