@@ -15,7 +15,7 @@ const Connection = async (
         serverSelectionTimeoutMS: 10000,
       });
     }
-  } catch (err) {
+  } catch (err: any) {
     if (currentRetries < maxRetries) {
       console.log(`Attempting reconnection to database`);
 
