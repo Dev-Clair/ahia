@@ -67,6 +67,9 @@ ProviderSchema.virtual("numberOfListings").get(function () {
   return this.listingsId.length;
 });
 
-const Provider = IAM.discriminator("Provider", ProviderSchema);
+const Provider = IAM.discriminator<ProviderInterface>(
+  "Provider",
+  ProviderSchema
+);
 
 export default Provider;

@@ -9,7 +9,8 @@ export default interface IAMInterface extends Document {
     email: string;
     phone: string;
   };
-  verified: boolean;
   role: "Customer" | "Realtor" | "Provider";
+  verified: boolean;
+  accountStatus: "active" | "inactive" | "suspended";
   createdAt: Date;
 }

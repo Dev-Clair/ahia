@@ -37,14 +37,20 @@ const IAMSchema: Schema<IAMInterface> = new Schema(
         required: true,
       },
     },
+    role: {
+      type: String,
+      enum: ["Customer", "Realtor", "Provider"],
+      required: true,
+    },
     verified: {
       type: Boolean,
       default: false,
     },
-    role: {
+    accountStatus: {
       type: String,
+      enum: ["active", "inactive", "suspended"],
+      default: "active",
       required: true,
-      enum: ["Customer", "Realtor", "Provider"],
     },
     createdAt: {
       type: Date,

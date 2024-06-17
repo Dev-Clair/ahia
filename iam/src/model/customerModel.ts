@@ -23,6 +23,9 @@ const CustomerSchema: Schema<CustomerInterface> = new Schema({
   ],
 });
 
-const Customer = IAM.discriminator("Customer", CustomerSchema);
+const Customer = IAM.discriminator<CustomerInterface>(
+  "Customer",
+  CustomerSchema
+);
 
 export default Customer;

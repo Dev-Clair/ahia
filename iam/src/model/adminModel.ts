@@ -12,6 +12,6 @@ const AdminSchema: Schema<AdminInterface> = new Schema({
   ],
 });
 
-const Admin = IAM.discriminator("Admin", AdminSchema);
+const Admin = IAM.discriminator<AdminInterface>("Admin", AdminSchema);
 
 export default Admin;

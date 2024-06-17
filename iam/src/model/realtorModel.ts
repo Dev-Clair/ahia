@@ -7,6 +7,7 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
     type: String,
     enum: ["in_waiting", "available"],
     default: "in_waiting",
+    required: true,
   },
   assignedTours: [
     {
@@ -36,6 +37,6 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
   ],
 });
 
-const Realtor = IAM.discriminator("Realtor", RealtorSchema);
+const Realtor = IAM.discriminator<RealtorInterface>("Realtor", RealtorSchema);
 
 export default Realtor;
