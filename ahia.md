@@ -60,7 +60,6 @@
 
      - Emits tour created or updated events to the event bus.
      - Listens to payment service events to create a tour.
-     - Listens to assignment service to assign realtors to tour appointments.
      - Listens to scheduling service to schedule tour appointments.
 
    - Events:
@@ -68,7 +67,6 @@
      - Tour Change Streams (Insert and Update Events).
    - Consume
      - Payment Change Streams (Payment Status Events).
-     - Assignment Change Streams.
      - Scheduling Change Streams.
 
 4. availability service
@@ -110,13 +108,14 @@
    - Asynchronous
 
      - Listens to events from tour service.
-     - Emit assignment events to the event bus: tour and availability services subscribe to this event for further processing.
+     - Coordinates with scheduling service to complete tour schedule.
+     - Emit assignment events to the event bus: the availability service subscribe to this event for further processing.
 
    - Events:
    - Publish
      - Assignment Change Streams.
    - Consume
-     - Tour Change Streams.
+     - Scheduling Change Streams
 
 6. scheduling service
 
@@ -134,13 +133,14 @@
    - Asynchronous
 
      - Listens to tour creation events.
-     - Emit schedule events to event bus: tour service is notified about scheduled or rescheduled dates.
+     - Coordinates with assignment service to complete tour appointments.
+     - Emit schedule events to event bus: tour service is notified about scheduled or rescheduled tour appointments.
 
    - Events:
    - Publish
      - Schedule Change Streams.
    - Consume
-     - Tour Change Streams.
+     - Assignment Change Streams.
 
 7. cart service
 
@@ -208,16 +208,16 @@
    - Customer adds listings to the cart using cart service.
    - Customer proceeds to payment via payment service.
    - Upon successful payment, payment service emits a payment success event.
-   - Tour Service
-     - listens to this event to create a tour.
-     - emits new tour created event.
-     - assignment service fetches available realtors based on location via availability service.
-     - tour service notifies assignment service to assign a realtor.
-     - assignment service updates realtor status and notifies availability service.
-     - tour service notifies scheduling service to schedule the appointment.
-     - scheduling service finalizes the appointment and notifies the customer and realtor.
-   - Iam Service
-     - listens to this event and updates customers payment records.
+     - Tour Service
+       - listens to this event to create a tour.
+       - emits new tour created event.
+       - assignment service listens to assign a realtor and scheduling service listens to schedule the appointment.
+       - assignment service fetches available realtors based on location via availability service.
+       - assignment service updates realtor status and emits event to update available and booked realtors pools in the availability service.
+       - scheduling service uses this information to finalize the tour appointment and emits an event to update the tour service.
+       - tour service emits an event to notify and update the iam service (customer and realtor).
+     - Iam Service
+       - Listens to this event and updates customers payment records.
 
 ## Implementation Logic
 
@@ -227,10 +227,10 @@
    - Utilizes eventbridge pipes to either transform, enrich or filter events.
 
 2. Availability, Assignment and Scheduling
-   - availability service maintains a cache of realtor statuses -available and booked- based on location using Redis or any suitable in-memory store.
+   - availability service maintains a cache of realtor statuses -available and booked- based on location usingredis or any suitable in-memory store.
    - tour service emits a tour created event to the bus.
      - assignment service listens and calls availability service to fetch available realtors based on location.
-     - on successful assignment, an event is emitted to update the available pool in the availability service and tour service.
-     - scheduling service uses this information from the tour event to schedule tours and update statuses.
-   - tour service listens to assignment and scheduling services to get real-time events on realtor assignment and tour scheduling.
-   - tour service emits event on successful assignment and scheduling.
+     - on successful assignment, an event is emitted to update the available and booked realtors pool in the availability service, and complete the tour appointment in the scheduling service.
+     - scheduling service uses the information from the assignment event to finalize the tour appointment.
+   - tour service listens to the scheduling service to get real-time events on realtor assignment and tour appointment scheduling.
+   - tour service emits event on successful tour appointment.
