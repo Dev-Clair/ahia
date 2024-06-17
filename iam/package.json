@@ -1,5 +1,5 @@
 {
-  "name": "iam_service",
+  "name": "iam",
   "version": "1.0.0",
   "main": "handler.ts",
   "scripts": {
@@ -27,7 +27,6 @@
     "helmet": "^7.1.0",
     "hpp": "^0.2.3",
     "joi": "^17.13.1",
-    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.0",
     "passport": "^0.7.0",
     "serverless-http": "^3.2.0",
