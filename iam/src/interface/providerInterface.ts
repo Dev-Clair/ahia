@@ -1,16 +1,16 @@
-import { Document } from "mongoose";
+import IAMInterface from "./iamInterface";
 
-export default interface ProviderInterface extends Document {
+export default interface ProviderInterface extends IAMInterface {
   providerType: "individual" | "corporate";
   companyInformation: {
-    name: string;
-    email: string;
-    phone: string[];
-    address: string;
-    regNo: string;
-    regCert: string;
+    name?: string;
+    email?: string;
+    phone?: string[];
+    address?: string;
+    regNo?: string;
+    regCert?: string;
   };
-  listings: string[];
+  listingsId: string[];
   security: {
     identityType?: "driver-license" | "passport" | "other";
     identityNo?: string;

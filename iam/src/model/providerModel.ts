@@ -38,7 +38,7 @@ const ProviderSchema: Schema<ProviderInterface> = new Schema({
       required: true,
     },
   },
-  listings: [
+  listingsId: [
     {
       type: String,
       trim: true,
@@ -64,7 +64,7 @@ const ProviderSchema: Schema<ProviderInterface> = new Schema({
 });
 
 ProviderSchema.virtual("numberOfListings").get(function () {
-  return this.listings.length;
+  return this.listingsId.length;
 });
 
 const Provider = IAM.discriminator("Provider", ProviderSchema);
