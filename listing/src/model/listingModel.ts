@@ -21,20 +21,21 @@ const ListingSchema = new Schema({
   },
   purpose: {
     type: String,
-    enum: ["Rent", "Sell"],
+    enum: ["rent", "sell"],
     required: true,
   },
-  listingType: {
+  type: {
     type: String,
-    enum: ["Developed", "Undeveloped"],
+    enum: ["developed", "undeveloped"],
     required: true,
   },
-  listingUseType: {
+  useType: {
     type: String,
     enum: [
       "single-room",
       "mini-flat",
-      "flats",
+      "2 bedroom flat",
+      "3 bedroom flat",
       "duplex",
       "semi-detached",
       "short-lets",
@@ -45,19 +46,18 @@ const ListingSchema = new Schema({
     ],
     required: true,
   },
-  listingFeatures: [
+  useCategory: {
+    type: String,
+    enum: ["residential", "commercial"],
+    required: true,
+  },
+  features: [
     {
       type: String,
-      enum: [
-        "water",
-        "power",
-        "access roads",
-        "security",
-        "proximity to landmark and essential services",
-      ],
+      required: true,
     },
   ],
-  listingLocation: {
+  location: {
     address: {
       type: String,
       required: true,
@@ -75,18 +75,12 @@ const ListingSchema = new Schema({
       required: true,
     },
   },
-  listingUseCategory: {
-    type: String,
-    enum: ["Residential", "Commercial"],
-    required: true,
-  },
-  listingImage: {
-    type: String,
-  },
-  listingVideo: {
-    type: String,
-  },
-  listingProvider: {
+  attachments: [
+    {
+      type: String,
+    },
+  ],
+  provider: {
     type: String,
     required: true,
   },
