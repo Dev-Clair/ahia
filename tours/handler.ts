@@ -12,20 +12,30 @@ app.listen(Config.SERVER_PORT, () => {
   );
 });
 
-// const tourAPI = serverless(app);
+const tourAPI = serverless(app);
 
-// const tour = async (event: any, context: any) => {
-//   if (event.source && event["detail-type"]) {
-//     let payload;
+const tour = async (event: any, context: any) => {
+  if (event.source && event["detail-type"]) {
+    let payload;
 
-//     payload = JSON.parse(event.detail);
+    payload = JSON.parse(event.detail);
 
-//     const { fullDocument: payment } = payload;
+    const { fullDocument: payment } = payload;
 
-//     tourCommand(payment);
-//   } else {
-//     return tourAPI(event, context);
-//   }
-// };
+    const { customerId: customerId, listingsId: listingIds } = payment;
 
-// export default tour;
+    const command: {
+      customerId: string;
+      listingIds: {}[];
+    } = {
+      customerId: customerId,
+      listingIds: listingIds,
+    };
+
+    tourCommand(command);
+  } else {
+    return tourAPI(event, context);
+  }
+};
+
+export default tour;
