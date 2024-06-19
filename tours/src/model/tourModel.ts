@@ -8,7 +8,7 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
   customerId: {
     type: String,
-    required: true,
+    required: false,
   },
   listingIds: [
     {
@@ -16,18 +16,6 @@ const TourSchema: Schema<TourInterface> = new Schema({
       required: true,
     },
   ],
-  zone: {
-    type: String,
-    required: true,
-  },
-  countyLGA: {
-    type: String,
-    required: true,
-  },
-  country: {
-    type: String,
-    required: true,
-  },
   scheduledDate: {
     type: Date,
     required: false,
