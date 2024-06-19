@@ -11,8 +11,8 @@
     - Provides authentication for other services.
 
       - APIs:
-        - POST /iam/accounts/login
-        - POST /iam/accounts/register
+        - POST /iam/login
+        - POST /iam/register
 
   - Asynchronous
 
@@ -36,7 +36,7 @@
 - Permissions:
 
   - Only users with role -provider- can perform command operations.
-  - Other users -admin, realtors, customers- can only perform query operations.
+  - Other users -admin, realtor, customer- can only perform query operations.
 
 - Communication:
 
@@ -97,7 +97,7 @@
     - Provides realtor's availability status to assignment service based on booked tour location.
 
       - APIs:
-        - GET /realtors
+        - GET /availability
 
   - Asynchronous
 
@@ -133,7 +133,7 @@
     - Interact with availability service to fetch available realtors based on booked tour location.
 
       - APIs:
-        - PUT /realtors/:id
+        - PATCH /availability/:id
 
   - Asynchronous
 
