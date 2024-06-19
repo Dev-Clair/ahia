@@ -39,7 +39,7 @@ const IAMSchema: Schema<IAMInterface> = new Schema(
     },
     role: {
       type: String,
-      enum: ["Customer", "Realtor", "Provider"],
+      enum: ["Customer", "Realtor", "Provider", "Admin"],
       required: true,
     },
     verified: {
