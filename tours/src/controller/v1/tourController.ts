@@ -24,7 +24,7 @@ const retrieveToursSearch = async (
       count: tours.length,
       tours: tours,
     });
-  } catch (err) {
+  } catch (err: any) {
     next(err);
   }
 };
@@ -47,7 +47,7 @@ const retrieveTourItem = async (
     }
 
     return res.status(200).json({ tour: tour });
-  } catch (err) {
+  } catch (err: any) {
     next(err);
   }
 };
@@ -174,6 +174,7 @@ export default {
   retrieveTourItem,
   replaceTour,
   updateTour,
+  completeTour,
   cancelTour,
   operationNotAllowed,
 };
