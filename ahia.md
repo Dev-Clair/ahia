@@ -1,28 +1,35 @@
 # Service Responsibilities, Permissions, Communication and Events
 
-1. ## iam service
+## 1. iam service
 
 - Responsibilities: Manage account creation and permissions, authentication/authorization for other services.
 
 - Communication:
 
   - Synchronous
-    - n/a
+
+    - Provides authentication for other services.
+
+      - APIs:
+        - POST /iam/accounts/login
+        - POST /iam/accounts/register
+
   - Asynchronous
+
     - Emits user insertion or update events to the event bus.
     - Listens to events from listing service.
     - Listens to events from payment service.
     - Listens to events from appointment service.
 
-- Events:
-  - Publish
-    - IAM Change Streams (Insert, Replace and Update Events).
-  - Consume
-    - Apppointment Change Streams (Update Events - appointment scheduling).
-    - Listing Change Streams (Insert, Replace, Update and Delete Events).
-    - Payment Change Streams (Payment Status Events).
+      - Events:
+        - Publish
+          - IAM Change Streams (Insert, Replace and Update Events).
+        - Consume
+          - Apppointment Change Streams (Update Events - appointment scheduling).
+          - Listing Change Streams (Insert, Replace, Update and Delete Events).
+          - Payment Change Streams (Payment Status Events).
 
-2.  ## listing service
+## 2. listing service
 
 - Responsibilities: Handle creation, updating, and deletion of property listings.
 
@@ -34,18 +41,25 @@
 - Communication:
 
   - Synchronous
+
     - Provides listing details to cart service
+
+      - APIs:
+        - GET /listings
+        - GET /listings/:id
+
   - Asynchronous
+
     - Emits listing events (Created, Updated, Deleted) to an event bus.
     - Notifies iam -providers- service about listing changes.
 
-- Events:
-  - Publish
-    - Listing Change Streams (Insert, Replace and Delete Events).
-  - Consume
-    - Iam Change Streams (Verified and Account Status Update Events).
+      - Events:
+        - Publish
+          - Listing Change Streams (Insert, Replace and Delete Events).
+        - Consume
+          - Iam Change Streams (Verified and Account Status Update Events).
 
-3.  ## tour service
+## 3. tour service
 
 - Responsibilities: Manages creation of tours.
 
@@ -55,21 +69,20 @@
 
 - Communication:
 
-  - Synchronous
-    - n/a
   - Asynchronous
+
     - Emits tour created or updated events to the event bus.
     - Listens to payment service events to create a tour.
     - Listens to appointment service to update tour information.
 
-- Events:
-  - Publish
-    - Tour Change Streams (Insert and Update Events).
-  - Consume
-    - Payment Change Streams (Payment Status Events).
-    - Appointment Change Streams.
+      - Events:
+        - Publish
+          - Tour Change Streams (Insert and Update Events).
+        - Consume
+          - Payment Change Streams (Payment Status Events).
+          - Appointment Change Streams.
 
-4. ## availability service
+## 4. availability service
 
 - Responsibilities: Maintains and provides realtor availability status from an in-memory store like amazon elastic cache for redis.
 
@@ -80,21 +93,32 @@
 - Communication:
 
   - Synchronous
+
     - Provides realtor's availability status to assignment service based on booked tour location.
+
+      - APIs:
+        - GET /realtors
+
   - Asynchronous
+
     - Listens to iam service realtor status updates from the event bus.
     - Listens to appointment service to update realtor's availability status based on booked tours.
 
-- Events:
-  - Publish
-    - n/a
-  - Consume
-    - Iam Change Streams.
-    - Appointment Change Streams.
+      - Events:
+        - Publish
+          - n/a
+        - Consume
+          - Iam Change Streams.
+          - Appointment Change Streams.
 
-5. ## appointment service
+## 5. appointment service
 
 ### 5.1. realtor assignment and scheduling service
+
+- Permissions:
+
+  - Only users with role -realtor or customer- can perform command operations.
+  - Only users with role -admin- can review commands and perform query operations.
 
 - Responsibilities
 
@@ -102,24 +126,25 @@
   - Filters list based on customer's scheduled time.
   - Assign realtor to tour.
 
-- Permissions:
-
-  - Only users with role -realtor or customer- can perform command operations.
-  - Only users with role -admin- can review commands and perform query operations.
-
 - Communication:
 
   - Synchronous
+
     - Interact with availability service to fetch available realtors based on booked tour location.
+
+      - APIs:
+        - PUT /realtors/:id
+
   - Asynchronous
+
     - Listens to events from the tour service.
     - Emit assignment events to the event bus: the availability service subscribe to this event for further processing.
 
-- Events:
-  - Publish
-    - Appointment Change Streams.
-  - Consume
-    - Tour Change Streams
+      - Events:
+        - Publish
+          - Appointment Change Streams.
+        - Consume
+          - Tour Change Streams
 
 ### 5.2. notification service
 
@@ -128,14 +153,15 @@
 - Communication:
 
   - Asynchronous
+
     - Listens to tour service for changes in appointment schedules.
     - Emit (re)schedule events to topic: iam service is notified about scheduled or rescheduled tour appointments.
 
-- Events:
-  - Publish
-    - Notification Events.
+      - Events:
+        - Publish
+          - Notification Events.
 
-6.  ## cart service
+## 6. cart service
 
 - Responsibilities: Manage customer carts and list of selected listings.
 
@@ -146,18 +172,15 @@
 - Communication:
 
   - Synchronous
+
     - Interacts with listing service to fetch listing details.
     - Provides cart details to payment service.
-  - Asynchronous
-    - n/a
 
-- Events:
-  - Publish
-    - n/a
-  - Consume
-    - n/a
+      - APIs:
+        - GET /cart
+        - POST /cart/checkout
 
-7. ## payment service
+## 7. payment service
 
 - Responsibilities: Handle payment processing and confirmation via payment gateway channels.
 
@@ -168,15 +191,21 @@
 - Communication:
 
   - Synchronous
-    - Available to cart service for payment requests.
+
+    - Available to cart service for processing payment requests.
+
+      - APIs:
+        - POST /payments
+
   - Asynchronous
+
     - Emits payment success events to tour and iam services.
 
-- Events:
-  - Publish
-    - Payment Change Streams.
-  - Consume
-    - n/a
+      - Events:
+        - Publish
+          - Payment Change Streams.
+        - Consume
+          - n/a
 
 # Communication Flow
 
