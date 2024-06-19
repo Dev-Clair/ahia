@@ -8,7 +8,7 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
   customerId: {
     type: String,
-    required: false,
+    required: true,
   },
   listingIds: [
     {
@@ -31,4 +31,6 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
 });
 
-module.exports = mongoose.model<TourInterface>("Tour", TourSchema);
+const Tour = mongoose.model<TourInterface>("Tour", TourSchema);
+
+export default Tour;
