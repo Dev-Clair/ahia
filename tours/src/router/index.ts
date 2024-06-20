@@ -1,6 +1,11 @@
 import { Request, Response, Router, NextFunction } from "express";
 import routerV1 from "./v1/tourRouter";
 import routerV2 from "./v2/tourRouter";
+import NotFoundError from "../error/notfoundError";
+import BadRequestError from "../error/badrequestError";
+import InternalServerError from "../error/internalserverError";
+import APIError from "../error/apiError";
+import globalErrorHandler from "../middleware/globalErrorHandlingMiddleware.ts";
 
 const router = Router();
 
@@ -9,29 +14,19 @@ router.use("/v1/tours", routerV1);
 router.use("/v2/tours", routerV2);
 
 router.all("*", (req: Request, res: Response, next: NextFunction) => {
-  return res.status(404).json({
-    message: `No resource or route defined for ${req.originalUrl}`,
-  });
+  throw new NotFoundError(
+    `No resource or route defined for ${req.originalUrl}`
+  );
 });
 
 router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SyntaxError) {
-    console.error({ message: `${err.message}` });
-
-    return res.status(400).json({ message: "Bad JSON" });
+    throw new BadRequestError("Bad JSON");
   }
-
-  next(err);
 });
 
-router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.message);
-
-  if (!res.headersSent) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-
-  return;
+router.use((err: APIError, req: Request, res: Response, next: NextFunction) => {
+  new globalErrorHandler(err, req, res, next);
 });
 
 export default router;
