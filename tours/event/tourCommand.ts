@@ -1,4 +1,4 @@
-import Tour from "./api/src/model/tourModel";
+import Tour from "../src/model/tourModel";
 
 const tourCommand = async (command: Object) => {
   await createTour(command);
