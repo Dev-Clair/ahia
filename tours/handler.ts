@@ -6,11 +6,11 @@ import tourCommand from "./tourCommand";
 
 Connection(Config.MONGO_URI);
 
-app.listen(Config.SERVER_PORT, () => {
-  console.log(
-    `Server process started, listening on port ${Config.SERVER_PORT}`
-  );
-});
+// app.listen(Config.SERVER_PORT, () => {
+//   console.log(
+//     `Server process started, listening on port ${Config.SERVER_PORT}`
+//   );
+// });
 
 const tourAPI = serverless(app);
 
@@ -20,13 +20,13 @@ const tour = async (event: any, context: any) => {
 
     payload = JSON.parse(event.detail);
 
-    const { fullDocument: payment } = payload;
+    const { fullDocument: paymentDetails } = payload;
 
-    const { customerId: customerId, listingsId: listingIds } = payment;
+    const { customerId: customerId, listingsId: listingIds } = paymentDetails;
 
     const command: {
       customerId: string;
-      listingIds: {}[];
+      listingIds: string[];
     } = {
       customerId: customerId,
       listingIds: listingIds,
