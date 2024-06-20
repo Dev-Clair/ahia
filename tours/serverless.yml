@@ -17,6 +17,11 @@ functions:
     handler: handler.tour
     events:
       - httpApi: "*"
+      - eventBridge:
+          eventBus: ${env:AHIA_EVENT_BUS}
+          pattern:
+            source:
+              - AtlasCluster
     environment:
       NODE_ENV: ${env:NODE_ENV}
       MONGO_URI: ${env:MONGO_URI}
