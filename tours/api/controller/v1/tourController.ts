@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import AsyncHandler from "../../utils/asyncHandler";
 import NotFoundError from "../../error/notfoundError";
-import Tour from "../../../src/model/tourModel";
+import TourModel from "../../../src/model/tourModel";
 
 /**
  * Retrieve collection of tours.
@@ -13,7 +13,7 @@ const retrieveTourCollection = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.find()
+    await TourModel.find()
       .then((tours) => {
         if (!tours) {
           throw new NotFoundError(
@@ -42,7 +42,7 @@ const retrieveTourSearch = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.find({
+    await TourModel.find({
       // $text: { $search: req.query.q, $caseSensitive: false },
     })
       .then((tours) => {
@@ -73,7 +73,7 @@ const retrieveTourItem = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.findById({ _id: req.params.id })
+    await TourModel.findById({ _id: req.params.id })
       .then((tour) => {
         if (!tour) {
           throw new NotFoundError(
@@ -99,7 +99,7 @@ const replaceTourItem = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.findOneAndReplace({ _id: req.params._id }, req.body, {
+    await TourModel.findOneAndReplace({ _id: req.params._id }, req.body, {
       new: true,
     })
       .then((tour) => {
@@ -127,7 +127,7 @@ const updateTourItem = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.findOneAndUpdate({ _id: req.params._id }, req.body, {
+    await TourModel.findOneAndUpdate({ _id: req.params._id }, req.body, {
       new: true,
     })
       .then((tour) => {
@@ -155,7 +155,7 @@ const completeTourItem = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.findOneAndUpdate(
+    await TourModel.findOneAndUpdate(
       { _id: req.params._id },
       { status: "completed", isClosed: true },
       {
@@ -189,7 +189,7 @@ const cancelTourItem = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.findOneAndUpdate(
+    await TourModel.findOneAndUpdate(
       { _id: req.params._id },
       { status: "cancelled", isClosed: true },
       {
@@ -222,7 +222,7 @@ const reopenTourItem = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.findOneAndUpdate(
+  await TourModel.findOneAndUpdate(
     { _id: req.params._id, status: "cancelled" },
     { isClosed: false },
     {
@@ -255,7 +255,7 @@ const deleteTourItem = AsyncHandler(
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    await Tour.findOneAndUpdate({ _id: req.params._id })
+    await TourModel.findOneAndUpdate({ _id: req.params._id })
       .then((tour) => {
         if (!tour) {
           throw new NotFoundError(
