@@ -1,14 +1,24 @@
 import HttpStatusCode from "../enum/HttpStatusCode";
-import BaseError from "./baseError";
 
-class APIError extends BaseError {
+abstract class APIError extends Error {
+  public readonly name: string;
+  public readonly httpStatusCode: number | HttpStatusCode;
+  public readonly isOperational: Boolean;
+
   constructor(
     name: string,
-    httpStatusCode: HttpStatusCode,
+    httpStatusCode: number | HttpStatusCode,
     isOperational: Boolean,
     message: string
   ) {
-    super(name, httpStatusCode, isOperational, message);
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+
+    this.name = name;
+    this.httpStatusCode = httpStatusCode;
+    this.isOperational = isOperational;
+
+    Error.captureStackTrace(this);
   }
 }
 
