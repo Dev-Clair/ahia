@@ -6,6 +6,13 @@ import tourCommand from "./event/command/tourCommand";
 
 Connection(Config.MONGO_URI);
 
+// if (Config.NODE_ENV === "development") {
+//   App.listen(Config.SERVER_PORT, () => {
+//     console.log(
+//       `Server process started, listening on port ${Config.SERVER_PORT}`
+//     );
+//   });
+// } else {
 const tourAPI = serverless(App);
 
 const tour = async (event: any, context: any) => {
@@ -37,3 +44,4 @@ const tour = async (event: any, context: any) => {
 };
 
 export default tour;
+// }
