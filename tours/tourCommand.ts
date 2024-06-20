@@ -1,11 +1,11 @@
 import Tour from "./src/model/tourModel";
 
-const tourCommand = (command: Object) => {
-  createTour(command);
+const tourCommand = async (command: Object) => {
+  await createTour(command);
 };
 
-const createTour = (command: Object) => {
-  Tour.create(command)
+const createTour = async (command: Object) => {
+  await Tour.create(command)
     .then((newTour) => {
       console.log(
         `CREATE: Success | TOUR ID: ${newTour._id} | CUSTOMER ID: ${newTour.customerId}.`
