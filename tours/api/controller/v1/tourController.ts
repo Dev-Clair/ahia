@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import AsyncHandler from "../../utils/asyncHandler";
 import NotFoundError from "../../error/notfoundError";
-import Tour from "../../model/tourModel";
+import Tour from "../../../src/model/tourModel";
 
 /**
  * Retrieve collection of tours.
