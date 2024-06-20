@@ -65,13 +65,14 @@
 
 - Permissions:
 
-  - Only users with role -customer- can perform command operations.
+  - Only users with role -admin, realtor or customer- can perform command operations.
 
 - Communication:
 
   - Synchronous
 
-    - Provides endpoints to retrieve and update tours
+    - Provides endpoints to search, retrieve and modify tours
+
       - APIs:
         - GET /tours
         - GET|PUT|PATCH|DELETE /tours/:id
