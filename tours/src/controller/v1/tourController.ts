@@ -2,16 +2,42 @@ import { NextFunction, Request, Response } from "express";
 import Tour from "../../model/tourModel";
 
 /**
+ * Retrieve collection of tours.
+ */
+const retrieveTourCollection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const tours = await Tour.find();
+
+    if (!tours) {
+      return res
+        .status(404)
+        .json({ message: `No tours found for query: ${req.query.q}` });
+    }
+
+    return res.status(200).json({
+      count: tours.length,
+      tours: tours,
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+/**
  * Retrieve collection of tours based on search parameter.
  */
-const retrieveToursSearch = async (
+const retrieveTourSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const tours = await Tour.find({
-      //   $text: { $search: req.query.q, $caseSensitive: false },
+      // $text: { $search: req.query.q, $caseSensitive: false },
     });
 
     if (!tours) {
@@ -43,7 +69,7 @@ const retrieveTourItem = async (
     if (!tour) {
       return res
         .status(404)
-        .json({ message: `No item found for tour id: ${req.params.id}` });
+        .json({ message: `No record found for id: ${req.params.id}` });
     }
 
     return res.status(200).json({ tour: tour });
@@ -55,7 +81,11 @@ const retrieveTourItem = async (
 /**
  * Replace a tour item using its :id.
  */
-const replaceTour = async (req: Request, res: Response, next: NextFunction) => {
+const replaceTourItem = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const tour = await Tour.findOneAndReplace(
       { _id: req.params._id },
@@ -67,7 +97,7 @@ const replaceTour = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!tour) {
       return res.status(404).json({
-        message: `No item found for tour id: ${req.params.id}`,
+        message: `No record found for id: ${req.params.id}`,
       });
     }
 
@@ -80,7 +110,11 @@ const replaceTour = async (req: Request, res: Response, next: NextFunction) => {
 /**
  * Updates a tour item using its :id.
  */
-const updateTour = async (req: Request, res: Response, next: NextFunction) => {
+const updateTourItem = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const tour = await Tour.findOneAndUpdate(
       { _id: req.params._id },
@@ -92,7 +126,7 @@ const updateTour = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!tour) {
       return res.status(404).json({
-        message: `No item found for tour id: ${req.params.id}`,
+        message: `No record found for id: ${req.params.id}`,
       });
     }
 
@@ -105,7 +139,7 @@ const updateTour = async (req: Request, res: Response, next: NextFunction) => {
 /**
  * Complete a tour item using its :id.
  */
-const completeTour = async (
+const completeTourItem = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -113,7 +147,7 @@ const completeTour = async (
   try {
     const tour = await Tour.findOneAndUpdate(
       { _id: req.params._id },
-      { status: "completed" },
+      { status: "completed", isClosed: true },
       {
         new: true,
       }
@@ -121,11 +155,13 @@ const completeTour = async (
 
     if (!tour) {
       return res.status(404).json({
-        message: `No item found for tour id: ${req.params.id}`,
+        message: `No record found for id: ${req.params.id}`,
       });
     }
 
-    return res.status(204).json(null);
+    return res
+      .status(200)
+      .json("Congrats! Your tour has been successfully completed");
   } catch (err: any) {
     next(err);
   }
@@ -134,11 +170,15 @@ const completeTour = async (
 /**
  * Cancels a tour item using its :id.
  */
-const cancelTour = async (req: Request, res: Response, next: NextFunction) => {
+const cancelTourItem = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const tour = await Tour.findOneAndUpdate(
       { _id: req.params._id },
-      { status: "cancelled" },
+      { status: "cancelled", isClosed: true },
       {
         new: true,
       }
@@ -146,7 +186,59 @@ const cancelTour = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!tour) {
       return res.status(404).json({
-        message: `No item found for tour id: ${req.params.id}`,
+        message: `No record found for id: ${req.params.id}`,
+      });
+    }
+
+    return res.status(200).json("Your tour has been successfully cancelled");
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+/**
+ * reopens a cancelled tour using its :id.
+ */
+const reopenTourItem = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const tour = await Tour.findOneAndUpdate(
+      { _id: req.params._id, status: "cancelled" },
+      { isClosed: false },
+      {
+        new: true,
+      }
+    );
+
+    if (!tour) {
+      return res.status(404).json({
+        message: `No cancelled tour found for id: ${req.params.id}`,
+      });
+    }
+
+    return res.status(200).json("Your tour has been successfully reopened");
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+/**
+ * Deletes a tour item using its :id.
+ */
+const deleteTourItem = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const tour = await Tour.findOneAndUpdate({ _id: req.params._id });
+
+    if (!tour) {
+      return res.status(404).json({
+        message: `No record found for id: ${req.params.id}`,
       });
     }
 
@@ -170,11 +262,13 @@ const operationNotAllowed = (
 };
 
 export default {
-  retrieveToursSearch,
+  retrieveTourCollection,
+  retrieveTourSearch,
   retrieveTourItem,
-  replaceTour,
-  updateTour,
-  completeTour,
-  cancelTour,
+  replaceTourItem,
+  updateTourItem,
+  completeTourItem,
+  cancelTourItem,
+  reopenTourItem,
   operationNotAllowed,
 };
