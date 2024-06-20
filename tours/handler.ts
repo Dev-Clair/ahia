@@ -1,8 +1,8 @@
 import serverless from "serverless-http";
-import app from "./app";
+import app from "./api/app";
 import Config from "./config";
 import Connection from "./connection";
-import tourCommand from "./tourCommand";
+import tourCommand from "./event/tourCommand";
 
 Connection(Config.MONGO_URI);
 
