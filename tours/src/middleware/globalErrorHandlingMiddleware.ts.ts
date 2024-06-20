@@ -1,4 +1,4 @@
-import BaseError from "../error/baseError";
+import APIError from "../error/apiError";
 
 class GlobalErrorHandlingMiddleware {
   public async handleAPIError(err: Error): Promise<void> {
@@ -9,7 +9,7 @@ class GlobalErrorHandlingMiddleware {
   }
 
   public isTrustedError(err: Error): Boolean {
-    if (err instanceof BaseError) {
+    if (err instanceof APIError) {
       return err.isOperational;
     }
 
@@ -17,6 +17,6 @@ class GlobalErrorHandlingMiddleware {
   }
 }
 
-const globalErrorHandler = GlobalErrorHandlingMiddleware;
+const globalErrorHandler = new GlobalErrorHandlingMiddleware();
 
-export default new globalErrorHandler();
+export default globalErrorHandler;
