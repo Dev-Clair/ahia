@@ -6,5 +6,6 @@ export default interface TourInterface extends Document {
   listingIds: string[];
   scheduledDate?: Date;
   status: "pending" | "completed" | "cancelled";
+  isClosed?: boolean;
   createdAt: Date;
 }

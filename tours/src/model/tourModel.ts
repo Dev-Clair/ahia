@@ -8,12 +8,12 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
   customerId: {
     type: String,
-    required: true,
+    required: [true, "A new tour must have a customerId"],
   },
   listingIds: [
     {
       type: String,
-      required: true,
+      required: [true, "A new tour must have a a collection of listings"],
     },
   ],
   scheduledDate: {
@@ -24,6 +24,10 @@ const TourSchema: Schema<TourInterface> = new Schema({
     type: String,
     enum: ["pending", "completed", "cancelled"],
     default: "pending",
+  },
+  isClosed: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,
