@@ -1,10 +1,10 @@
 import { Request, Response, Router, NextFunction } from "express";
 import routerV1 from "./v1/tourRouter";
 import routerV2 from "./v2/tourRouter";
+import BaseError from "../error/baseError";
 import NotFoundError from "../error/notfoundError";
 import BadRequestError from "../error/badrequestError";
 import InternalServerError from "../error/internalserverError";
-import APIError from "../error/apiError";
 import globalErrorHandler from "../middleware/globalErrorHandlingMiddleware.ts";
 
 const router = Router();
@@ -25,8 +25,16 @@ router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.use((err: APIError, req: Request, res: Response, next: NextFunction) => {
-  new globalErrorHandler(err, req, res, next);
-});
+router.use(
+  (err: BaseError, req: Request, res: Response, next: NextFunction) => {
+    if (globalErrorHandler.isTrustedError(err)) {
+      return res
+        .status(err.errorCode)
+        .json({ error: err.name, message: err.message });
+    }
+
+    globalErrorHandler.handleAPIError(err);
+  }
+);
 
 export default router;
