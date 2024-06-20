@@ -1,5 +1,5 @@
 import serverless from "serverless-http";
-import app from "./api/app";
+import App from "./api/app";
 import Config from "./config";
 import Connection from "./connection";
 import tourCommand from "./event/tourCommand";
@@ -7,13 +7,13 @@ import tourCommand from "./event/tourCommand";
 Connection(Config.MONGO_URI);
 
 if (Config.NODE_ENV === "development") {
-  app.listen(Config.SERVER_PORT, () => {
+  App.listen(Config.SERVER_PORT, () => {
     console.log(
       `Server process started, listening on port ${Config.SERVER_PORT}`
     );
   });
 } else {
-  // const tourAPI = serverless(app);
+  // const tourAPI = serverless(App);
   // const tour = async (event: any, context: any) => {
   //   if (event.source && event["detail-type"]) {
   //     let payload;

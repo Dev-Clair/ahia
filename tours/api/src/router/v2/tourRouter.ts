@@ -1,5 +1,5 @@
 import { Router } from "express";
 
-const routerV2 = Router();
+const TourRouterV2 = Router();
 
-export default routerV2;
+export default TourRouterV2;

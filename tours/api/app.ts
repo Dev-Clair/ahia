@@ -2,20 +2,20 @@ import express from "express";
 import helmet from "helmet";
 import hpp from "hpp";
 import express_mongo_sanitize from "express-mongo-sanitize";
-import router from "./src/router/index";
+import TourRouter from "./src/router/index";
 
-const app = express();
+const App = express();
 
-app.use(express.json());
+App.use(express.json());
 
-app.use(express.urlencoded({ extended: true }));
+App.use(express.urlencoded({ extended: true }));
 
-app.use(helmet());
+App.use(helmet());
 
-app.use(hpp());
+App.use(hpp());
 
-app.use(express_mongo_sanitize());
+App.use(express_mongo_sanitize());
 
-app.use("/api", router);
+App.use("/api", TourRouter);
 
-export default app;
+export default App;

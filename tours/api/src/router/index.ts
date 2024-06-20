@@ -1,19 +1,19 @@
 import { Request, Response, Router, NextFunction } from "express";
-import routerV1 from "./v1/tourRouter";
-import routerV2 from "./v2/tourRouter";
+import TourRouterV1 from "./v1/tourRouter";
+import TourRouterV2 from "./v2/tourRouter";
 import HttpStatusCode from "../enum/httpStatusCode";
 import APIError from "../error/apiError";
 import NotFoundError from "../error/notfoundError";
 import BadRequestError from "../error/badrequestError";
 import GlobalErrorHandler from "../middleware/globalErrorHandlingMiddleware.ts";
 
-const router = Router();
+const TourRouter = Router();
 
-router.use("/v1/tours", routerV1);
+TourRouter.use("/v1/tours", TourRouterV1);
 
-router.use("/v2/tours", routerV2);
+TourRouter.use("/v2/tours", TourRouterV2);
 
-router.all("*", (req: Request, res: Response, next: NextFunction) => {
+TourRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(
     new NotFoundError(
       HttpStatusCode.NOT_FOUND,
@@ -22,28 +22,32 @@ router.all("*", (req: Request, res: Response, next: NextFunction) => {
   );
 });
 
-router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof SyntaxError) {
-    next(new BadRequestError(HttpStatusCode.BAD_REQUEST, "Bad JSON"));
+TourRouter.use(
+  (err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (err instanceof SyntaxError) {
+      next(new BadRequestError(HttpStatusCode.BAD_REQUEST, "Bad JSON"));
+    }
+
+    next(err);
   }
+);
 
-  next(err);
-});
+TourRouter.use(
+  (err: APIError, req: Request, res: Response, next: NextFunction) => {
+    if (GlobalErrorHandler.isTrustedError(err)) {
+      return res
+        .status(err.httpStatusCode)
+        .json({ error: err.name, message: err.message });
+    }
 
-router.use((err: APIError, req: Request, res: Response, next: NextFunction) => {
-  if (GlobalErrorHandler.isTrustedError(err)) {
-    return res
-      .status(err.httpStatusCode)
-      .json({ error: err.name, message: err.message });
+    GlobalErrorHandler.handleAPIError(err);
+
+    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      error: "INTERNAL SERVER ERROR",
+      message:
+        "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly.",
+    });
   }
+);
 
-  GlobalErrorHandler.handleAPIError(err);
-
-  res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-    error: "INTERNAL SERVER ERROR",
-    message:
-      "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly.",
-  });
-});
-
-export default router;
+export default TourRouter;

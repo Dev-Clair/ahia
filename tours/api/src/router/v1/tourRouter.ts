@@ -1,14 +1,13 @@
 import { Router } from "express";
 import tourController from "../../controller/v1/tourController";
 
-const routerV1 = Router();
+const TourRouterV1 = Router();
 
-routerV1.route("/").get(tourController.retrieveTourCollection);
+TourRouterV1.route("/").get(tourController.retrieveTourCollection);
 
-routerV1.route("/search").get(tourController.retrieveTourSearch);
+TourRouterV1.route("/search").get(tourController.retrieveTourSearch);
 
-routerV1
-  .route("/:id")
+TourRouterV1.route("/:id")
   .get(tourController.retrieveTourItem)
   .put(tourController.replaceTourItem)
   .patch(tourController.updateTourItem)
@@ -16,4 +15,4 @@ routerV1
   .patch(tourController.cancelTourItem)
   .patch(tourController.reopenTourItem);
 
-export default routerV1;
+export default TourRouterV1;
