@@ -8,7 +8,11 @@ import Tour from "../../model/tourModel";
  * Retrieve collection of tours.
  */
 const retrieveTourCollection = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.find()
       .then((tours) => {
         if (!tours) {
@@ -33,7 +37,11 @@ const retrieveTourCollection = AsyncHandler(
  * Retrieve collection of tours based on search parameter.
  */
 const retrieveTourSearch = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.find({
       // $text: { $search: req.query.q, $caseSensitive: false },
     })
@@ -60,7 +68,11 @@ const retrieveTourSearch = AsyncHandler(
  * Retrieve a tour item using its :id.
  */
 const retrieveTourItem = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.findById({ _id: req.params.id })
       .then((tour) => {
         if (!tour) {
@@ -82,7 +94,11 @@ const retrieveTourItem = AsyncHandler(
  * Replace a tour item using its :id.
  */
 const replaceTourItem = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.findOneAndReplace({ _id: req.params._id }, req.body, {
       new: true,
     })
@@ -106,7 +122,11 @@ const replaceTourItem = AsyncHandler(
  * Updates a tour item using its :id.
  */
 const updateTourItem = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.findOneAndUpdate({ _id: req.params._id }, req.body, {
       new: true,
     })
@@ -130,7 +150,11 @@ const updateTourItem = AsyncHandler(
  * Complete a tour item using its :id.
  */
 const completeTourItem = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.findOneAndUpdate(
       { _id: req.params._id },
       { status: "completed", isClosed: true },
@@ -160,7 +184,11 @@ const completeTourItem = AsyncHandler(
  * Cancels a tour item using its :id.
  */
 const cancelTourItem = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.findOneAndUpdate(
       { _id: req.params._id },
       { status: "cancelled", isClosed: true },
@@ -193,7 +221,7 @@ const reopenTourItem = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<Response | void> => {
   await Tour.findOneAndUpdate(
     { _id: req.params._id, status: "cancelled" },
     { isClosed: false },
@@ -222,7 +250,11 @@ const reopenTourItem = async (
  * Deletes a tour item using its :id.
  */
 const deleteTourItem = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     await Tour.findOneAndUpdate({ _id: req.params._id })
       .then((tour) => {
         if (!tour) {
@@ -247,7 +279,7 @@ const operationNotAllowed = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response => {
   return res.status(405).json({
     message: "operation not allowed",
   });
