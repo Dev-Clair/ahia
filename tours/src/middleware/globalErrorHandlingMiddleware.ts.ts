@@ -17,6 +17,6 @@ class GlobalErrorHandlingMiddleware {
   }
 }
 
-const globalErrorHandler = new GlobalErrorHandlingMiddleware();
+const GlobalErrorHandler = new GlobalErrorHandlingMiddleware();
 
-export default globalErrorHandler;
+export default GlobalErrorHandler;
