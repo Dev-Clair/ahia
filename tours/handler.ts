@@ -27,7 +27,7 @@ if (Config.NODE_ENV === "development") {
   //       customerId: customerId,
   //       listingIds: listingIds,
   //     };
-  //     tourCommand(command);
+  //     await tourCommand(command);
   //   } else {
   //     return tourAPI(event, context);
   //   }
