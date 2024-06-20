@@ -61,7 +61,7 @@
 
 ## 3. tour service
 
-- Responsibilities: Manages creation of tours.
+- Responsibilities: Manages creation and modification of tours.
 
 - Permissions:
 
@@ -69,18 +69,23 @@
 
 - Communication:
 
+  - Synchronous
+
+    - Provides endpoints to retrieve and update tours
+      - APIs:
+        - GET /tours
+        - GET|PUT|PATCH|DELETE /tours/:id
+
   - Asynchronous
 
-    - Emits tour created or updated events to the event bus.
     - Listens to payment service events to create a tour.
-    - Listens to appointment service to update tour information.
+    - Emits tour created events to the event bus.
 
       - Events:
         - Publish
           - Tour Change Streams (Insert and Update Events).
         - Consume
           - Payment Change Streams (Payment Status Events).
-          - Appointment Change Streams.
 
 ## 4. availability service
 
