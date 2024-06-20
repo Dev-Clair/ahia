@@ -1,20 +1,24 @@
 import { NextFunction, Request, Response } from "express";
-import asyncHandler from "../../utils/asyncHandler";
+import HttpStatusCode from "../../enum/httpStatusCode";
+import AsyncHandler from "../../utils/asyncHandler";
 import NotFoundError from "../../error/notfoundError";
 import Tour from "../../model/tourModel";
 
 /**
  * Retrieve collection of tours.
  */
-const retrieveTourCollection = asyncHandler(
+const retrieveTourCollection = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.find()
       .then((tours) => {
         if (!tours) {
-          throw new NotFoundError(`No tours found for query: ${req.query.q}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No tours found for query: ${req.query.q}`
+          );
         }
 
-        return res.status(200).json({
+        return res.status(HttpStatusCode.OK).json({
           count: tours.length,
           tours: tours,
         });
@@ -28,17 +32,20 @@ const retrieveTourCollection = asyncHandler(
 /**
  * Retrieve collection of tours based on search parameter.
  */
-const retrieveTourSearch = asyncHandler(
+const retrieveTourSearch = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.find({
       // $text: { $search: req.query.q, $caseSensitive: false },
     })
       .then((tours) => {
         if (!tours) {
-          throw new NotFoundError(`No tours found for query: ${req.query.q}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No tours found for query: ${req.query.q}`
+          );
         }
 
-        return res.status(200).json({
+        return res.status(HttpStatusCode.OK).json({
           count: tours.length,
           tours: tours,
         });
@@ -52,15 +59,18 @@ const retrieveTourSearch = asyncHandler(
 /**
  * Retrieve a tour item using its :id.
  */
-const retrieveTourItem = asyncHandler(
+const retrieveTourItem = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.findById({ _id: req.params.id })
       .then((tour) => {
         if (!tour) {
-          throw new NotFoundError(`No record found for id: ${req.params.id}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No record found for id: ${req.params.id}`
+          );
         }
 
-        return res.status(200).json({ tour: tour });
+        return res.status(HttpStatusCode.OK).json({ tour: tour });
       })
       .catch((err) => {
         next(err);
@@ -71,17 +81,20 @@ const retrieveTourItem = asyncHandler(
 /**
  * Replace a tour item using its :id.
  */
-const replaceTourItem = asyncHandler(
+const replaceTourItem = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.findOneAndReplace({ _id: req.params._id }, req.body, {
       new: true,
     })
       .then((tour) => {
         if (!tour) {
-          throw new NotFoundError(`No record found for id: ${req.params.id}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No record found for id: ${req.params.id}`
+          );
         }
 
-        return res.status(204).json(null);
+        return res.status(HttpStatusCode.MODIFIED).json(null);
       })
       .catch((err) => {
         next(err);
@@ -92,17 +105,20 @@ const replaceTourItem = asyncHandler(
 /**
  * Updates a tour item using its :id.
  */
-const updateTourItem = asyncHandler(
+const updateTourItem = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.findOneAndUpdate({ _id: req.params._id }, req.body, {
       new: true,
     })
       .then((tour) => {
         if (!tour) {
-          throw new NotFoundError(`No record found for id: ${req.params.id}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No record found for id: ${req.params.id}`
+          );
         }
 
-        return res.status(204).json(null);
+        return res.status(HttpStatusCode.MODIFIED).json(null);
       })
       .catch((err) => {
         next(err);
@@ -113,7 +129,7 @@ const updateTourItem = asyncHandler(
 /**
  * Complete a tour item using its :id.
  */
-const completeTourItem = asyncHandler(
+const completeTourItem = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.findOneAndUpdate(
       { _id: req.params._id },
@@ -124,11 +140,14 @@ const completeTourItem = asyncHandler(
     )
       .then((tour) => {
         if (!tour) {
-          throw new NotFoundError(`No record found for id: ${req.params.id}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No record found for id: ${req.params.id}`
+          );
         }
 
         return res
-          .status(200)
+          .status(HttpStatusCode.OK)
           .json("Congrats! Your tour has been successfully completed");
       })
       .catch((err) => {
@@ -140,7 +159,7 @@ const completeTourItem = asyncHandler(
 /**
  * Cancels a tour item using its :id.
  */
-const cancelTourItem = asyncHandler(
+const cancelTourItem = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.findOneAndUpdate(
       { _id: req.params._id },
@@ -151,11 +170,14 @@ const cancelTourItem = asyncHandler(
     )
       .then((tour) => {
         if (!tour) {
-          throw new NotFoundError(`No record found for id: ${req.params.id}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No record found for id: ${req.params.id}`
+          );
         }
 
         return res
-          .status(200)
+          .status(HttpStatusCode.OK)
           .json("Congrats! Your tour has been successfully cancelled");
       })
       .catch((err) => {
@@ -182,11 +204,14 @@ const reopenTourItem = async (
     .then((tour) => {
       if (!tour) {
         throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
           `No cancelled tour found for id: ${req.params.id}`
         );
       }
 
-      return res.status(200).json("Your tour has been successfully reopened");
+      return res
+        .status(HttpStatusCode.OK)
+        .json("Your tour has been successfully reopened");
     })
     .catch((err) => {
       next(err);
@@ -196,15 +221,18 @@ const reopenTourItem = async (
 /**
  * Deletes a tour item using its :id.
  */
-const deleteTourItem = asyncHandler(
+const deleteTourItem = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     await Tour.findOneAndUpdate({ _id: req.params._id })
       .then((tour) => {
         if (!tour) {
-          throw new NotFoundError(`No record found for id: ${req.params.id}`);
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No record found for id: ${req.params.id}`
+          );
         }
 
-        return res.status(204).json(null);
+        return res.status(HttpStatusCode.MODIFIED).json(null);
       })
       .catch((err) => {
         next(err);
