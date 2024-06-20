@@ -1,9 +1,9 @@
-import HttpStatusCode from "../enum/HttpStatusCode";
+import HttpStatusCode from "../enum/httpStatusCode";
 import APIError from "./apiError";
 
 class NotFoundError extends APIError {
-  constructor(message: string) {
-    super("NOT FOUND", HttpStatusCode.NOT_FOUND, true, message);
+  constructor(httpStatusCode: number | HttpStatusCode, message: string) {
+    super("NOT FOUND", httpStatusCode, true, message);
   }
 }
 

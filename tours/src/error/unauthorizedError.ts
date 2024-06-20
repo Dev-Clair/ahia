@@ -1,9 +1,9 @@
-import HttpStatusCode from "../enum/HttpStatusCode";
+import HttpStatusCode from "../enum/httpStatusCode";
 import APIError from "./apiError";
 
 class UnauthorisedError extends APIError {
-  constructor(message: string) {
-    super("UNAUTHORISED", HttpStatusCode.UNAUTHORISED, true, message);
+  constructor(httpStatusCode: number | HttpStatusCode, message: string) {
+    super("UNAUTHORISED", httpStatusCode, true, message);
   }
 }
 

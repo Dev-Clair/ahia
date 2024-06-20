@@ -1,4 +1,4 @@
-import HttpStatusCode from "../enum/HttpStatusCode";
+import HttpStatusCode from "../enum/httpStatusCode";
 
 abstract class APIError extends Error {
   public readonly name: string;

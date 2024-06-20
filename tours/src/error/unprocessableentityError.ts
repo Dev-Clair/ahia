@@ -1,14 +1,9 @@
-import HttpStatusCode from "../enum/HttpStatusCode";
+import HttpStatusCode from "../enum/httpStatusCode";
 import APIError from "./apiError";
 
 class UnprocessableEntityError extends APIError {
-  constructor(message: string) {
-    super(
-      "UNPROCESSABLE ENTITY",
-      HttpStatusCode.UNPROCESSABLE_ENTITY,
-      true,
-      message
-    );
+  constructor(httpStatusCode: number | HttpStatusCode, message: string) {
+    super("UNPROCESSABLE ENTITY", httpStatusCode, true, message);
   }
 }
 
