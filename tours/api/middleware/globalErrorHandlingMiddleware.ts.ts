@@ -5,7 +5,7 @@ class GlobalErrorHandlingMiddleware {
     console.log(err);
 
     // Send mail or sms notification to admin
-    // await sendErrorNotOperationalMail();
+    // await notifyAdmin();
   }
 
   public isTrustedError(err: Error): Boolean {
