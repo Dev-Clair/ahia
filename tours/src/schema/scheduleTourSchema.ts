@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import ScheduleQueueInterface from "../interface/scheduleQueueInterface";
+import ScheduleTourInterface from "../interface/scheduleTourInterface";
 
-const ScheduleQueueSchema: Schema<ScheduleQueueInterface> = new Schema({
+const ScheduleTourSchema: Schema<ScheduleTourInterface> = new Schema({
   tourId: {
     type: String,
     required: true,
@@ -25,10 +25,10 @@ const ScheduleQueueSchema: Schema<ScheduleQueueInterface> = new Schema({
   },
 });
 
-ScheduleQueueSchema.post("save", async (doc): Promise<void> => {
+ScheduleTourSchema.post("save", async (doc): Promise<void> => {
   if (doc.status === "accepted" || doc.status === "rejected") {
     await doc.deleteOne({ _id: doc._id });
   }
 });
 
-export default ScheduleQueueSchema;
+export default ScheduleTourSchema;
