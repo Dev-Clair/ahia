@@ -1,7 +1,7 @@
 import EventPayloadInterface from "./interface/eventPayloadInterface";
 import CastError from "./error/castError";
 import DuplicateEventError from "./error/duplicateEventError";
-import EventPayloadError from "./error/EventPayloadError";
+import EventPayloadError from "./error/eventPayloadError";
 import SchemaValidationError from "./error/schemaValidationError";
 import TourModel from "../src/model/tourModel";
 import TourIdempotencyModel from "../src/model/tourIdempotencyModel";
@@ -49,6 +49,9 @@ const TourCommand = async (event: any, context: any) => {
           `CREATE: Success | TOUR ID: ${tour._id} | CUSTOMER ID: ${tour.customerId}.`
         );
 
+        // Send mail or sms notification to customer to schedule tour date and time
+        // await notifyCustomer();
+
         await TourIdempotencyModel.create({
           key: transactionRef,
           response: { tourId: tour._id, customerId: tour.customerId },
@@ -73,7 +76,7 @@ const TourCommand = async (event: any, context: any) => {
         );
       });
   } catch (err: any) {
-    // Send mail or sms notification to admin
+    // Send mail or sms notification to admin about critical error
     // await notifyAdmin();
 
     console.error(
