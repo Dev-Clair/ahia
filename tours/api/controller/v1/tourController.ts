@@ -266,7 +266,7 @@ const scheduleTour = AsyncErrorWrapper(
 
     const { proposedDate, proposedTime } = req.body;
 
-    await TourModel.findById({ id: tourId })
+    await TourModel.findById({ _id: tourId })
       .then((tour) => {
         if (!tour) {
           throw new NotFoundError(
