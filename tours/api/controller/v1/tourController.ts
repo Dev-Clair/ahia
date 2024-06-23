@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
-import AsyncHandler from "../../utils/asyncHandler";
+import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
 import NotFoundError from "../../error/notfoundError";
 import TourModel from "../../../src/model/tourModel";
 
 /**
  * Retrieve collection of tours.
  */
-const retrieveTourCollection = AsyncHandler(
+const retrieveTourCollection = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
@@ -36,7 +36,7 @@ const retrieveTourCollection = AsyncHandler(
 /**
  * Retrieve collection of tours based on search parameter.
  */
-const retrieveTourSearch = AsyncHandler(
+const retrieveTourSearch = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
@@ -67,7 +67,7 @@ const retrieveTourSearch = AsyncHandler(
 /**
  * Retrieve a tour item using its :id.
  */
-const retrieveTourItem = AsyncHandler(
+const retrieveTourItem = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
@@ -93,7 +93,7 @@ const retrieveTourItem = AsyncHandler(
 /**
  * Replace a tour item using its :id.
  */
-const replaceTourItem = AsyncHandler(
+const replaceTourItem = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
@@ -121,7 +121,7 @@ const replaceTourItem = AsyncHandler(
 /**
  * Updates a tour item using its :id.
  */
-const updateTourItem = AsyncHandler(
+const updateTourItem = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
@@ -149,7 +149,7 @@ const updateTourItem = AsyncHandler(
 /**
  * Complete a tour item using its :id.
  */
-const completeTourItem = AsyncHandler(
+const completeTourItem = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
@@ -183,7 +183,7 @@ const completeTourItem = AsyncHandler(
 /**
  * Cancels a tour item using its :id.
  */
-const cancelTourItem = AsyncHandler(
+const cancelTourItem = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
@@ -249,7 +249,7 @@ const reopenTourItem = async (
 /**
  * Deletes a tour item using its :id.
  */
-const deleteTourItem = AsyncHandler(
+const deleteTourItem = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
