@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 
-const AsyncHandler =
+const AsyncErrorWrapper =
   (operation: Function) =>
   (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(operation(req, res, next)).catch(next);
   };
 
-export default AsyncHandler;
+export default AsyncErrorWrapper;
