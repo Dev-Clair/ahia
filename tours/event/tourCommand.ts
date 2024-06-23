@@ -4,7 +4,7 @@ import DuplicateEventError from "./error/duplicateEventError";
 import EventPayloadError from "./error/EventPayloadError";
 import SchemaValidationError from "./error/schemaValidationError";
 import TourModel from "../src/model/tourModel";
-import IdempotencyModel from "../src/model/idempotencyModel";
+import TourIdempotencyModel from "../src/model/tourIdempotencyModel";
 
 const TourCommand = async (event: any, context: any) => {
   try {
@@ -28,7 +28,7 @@ const TourCommand = async (event: any, context: any) => {
       transactionRef: transactionRef,
     } = paymentDetails;
 
-    const verifyTransactionRef = await IdempotencyModel.findOne({
+    const verifyTransactionRef = await TourIdempotencyModel.findOne({
       key: transactionRef,
     });
 
@@ -49,7 +49,7 @@ const TourCommand = async (event: any, context: any) => {
           `CREATE: Success | TOUR ID: ${tour._id} | CUSTOMER ID: ${tour.customerId}.`
         );
 
-        await IdempotencyModel.create({
+        await TourIdempotencyModel.create({
           key: transactionRef,
           response: { tourId: tour._id, customerId: tour.customerId },
         });

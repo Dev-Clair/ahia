@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import IdempotencyInterface from "../interface/idempotencyInterface";
+import TourIdempotencyInterface from "../interface/tourIdempotencyInterface";
 
-const IdempotencySchema: Schema<IdempotencyInterface> = new Schema({
+const TourIdempotencySchema: Schema<TourIdempotencyInterface> = new Schema({
   key: {
     type: String,
     required: true,
@@ -18,4 +18,4 @@ const IdempotencySchema: Schema<IdempotencyInterface> = new Schema({
   },
 });
 
-export default IdempotencySchema;
+export default TourIdempotencySchema;
