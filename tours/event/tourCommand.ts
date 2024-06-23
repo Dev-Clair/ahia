@@ -1,10 +1,10 @@
-import CommandInterface from "./interface/commandInterface";
+import EventPayloadInterface from "./interface/eventPayloadInterface";
 import CastError from "./error/castError";
-import ValidationError from "./error/validationError";
-import CommandError from "./error/commandError";
+import DuplicateEventError from "./error/duplicateEventError";
+import EventPayloadError from "./error/EventPayloadError";
+import SchemaValidationError from "./error/schemaValidationError";
 import TourModel from "../src/model/tourModel";
 import IdempotencyModel from "../src/model/idempotencyModel";
-import DuplicateEventError from "./error/duplicateEventError";
 
 const TourCommand = async (event: any, context: any) => {
   try {
@@ -20,7 +20,7 @@ const TourCommand = async (event: any, context: any) => {
       !paymentDetails.customerId ||
       !paymentDetails.listingIds
     ) {
-      throw new CommandError("Invalid event detail structure");
+      throw new EventPayloadError("Invalid event detail structure");
     }
     const {
       customerId: customerId,
@@ -38,7 +38,7 @@ const TourCommand = async (event: any, context: any) => {
       );
     }
 
-    const command: CommandInterface = {
+    const command: EventPayloadInterface = {
       customerId: customerId,
       listingIds: listingIds,
     };
@@ -56,7 +56,7 @@ const TourCommand = async (event: any, context: any) => {
       })
       .catch((err) => {
         if (err.name === "ValidationError") {
-          throw new ValidationError(
+          throw new SchemaValidationError(
             "CREATE: Failure | ERROR: Tour validation failed\n",
             err.errors
           );

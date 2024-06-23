@@ -1,11 +1,11 @@
-class ValidationError extends Error {
+class SchemaValidationError extends Error {
   public readonly isOperational: Boolean;
   public readonly errors: any;
 
   constructor(message: string, errors: any) {
     super(message);
 
-    this.name = "ValidationError";
+    this.name = "SchemaValidationError";
     this.isOperational = true;
     this.errors = errors;
 
@@ -13,4 +13,4 @@ class ValidationError extends Error {
   }
 }
 
-export default ValidationError;
+export default SchemaValidationError;
