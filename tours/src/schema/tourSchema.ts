@@ -22,7 +22,7 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "completed", "cancelled"],
+    enum: ["pending", "ongoing", "completed", "cancelled"],
     default: "pending",
   },
   isClosed: {
