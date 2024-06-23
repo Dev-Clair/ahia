@@ -12,12 +12,16 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
   listingIds: [
     {
-      type: String,
+      type: [String],
       required: [true, "A new tour must have a a collection of listings"],
     },
   ],
   scheduledDate: {
     type: Date,
+    required: false,
+  },
+  scheduledTime: {
+    type: String,
     required: false,
   },
   status: {
