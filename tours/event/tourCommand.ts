@@ -3,6 +3,8 @@ import CastError from "./error/castError";
 import ValidationError from "./error/validationError";
 import CommandError from "./error/commandError";
 import TourModel from "../src/model/tourModel";
+import IdempotencyModel from "../src/model/idempotencyModel";
+import DuplicateEventError from "./error/duplicateEventError";
 
 const TourCommand = async (event: any, context: any) => {
   try {
@@ -14,12 +16,27 @@ const TourCommand = async (event: any, context: any) => {
 
     if (
       !paymentDetails ||
+      !paymentDetails.transactionRef ||
       !paymentDetails.customerId ||
       !paymentDetails.listingIds
     ) {
       throw new CommandError("Invalid event detail structure");
     }
-    const { customerId: customerId, listingIds: listingIds } = paymentDetails;
+    const {
+      customerId: customerId,
+      listingIds: listingIds,
+      transactionRef: transactionRef,
+    } = paymentDetails;
+
+    const verifyTransactionRef = await IdempotencyModel.findOne({
+      key: transactionRef,
+    });
+
+    if (verifyTransactionRef) {
+      throw new DuplicateEventError(
+        `Duplicate event detected: ${transactionRef}`
+      );
+    }
 
     const command: CommandInterface = {
       customerId: customerId,
@@ -27,10 +44,15 @@ const TourCommand = async (event: any, context: any) => {
     };
 
     await TourModel.create(command)
-      .then((tour) => {
+      .then(async (tour) => {
         console.log(
           `CREATE: Success | TOUR ID: ${tour._id} | CUSTOMER ID: ${tour.customerId}.`
         );
+
+        await IdempotencyModel.create({
+          key: transactionRef,
+          response: { tourId: tour._id, customerId: tour.customerId },
+        });
       })
       .catch((err) => {
         if (err.name === "ValidationError") {
@@ -51,18 +73,11 @@ const TourCommand = async (event: any, context: any) => {
         );
       });
   } catch (err: any) {
-    if (
-      err instanceof CommandError ||
-      err instanceof ValidationError ||
-      err instanceof CastError
-    ) {
-      // Send mail or sms notification to admin
-      // await notifyAdmin();
-    } else {
-    }
+    // Send mail or sms notification to admin
+    // await notifyAdmin();
 
     console.error(
-      `Unknown Error:\n name: ${err.name}\nmessage:  ${err.message}`
+      `Unknown error:\n name: ${err.name}\nmessage:  ${err.message}`
     );
   }
 };
