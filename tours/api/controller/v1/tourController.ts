@@ -3,6 +3,8 @@ import HttpStatusCode from "../../enum/httpStatusCode";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
 import NotFoundError from "../../error/notfoundError";
 import TourModel from "../../../src/model/tourModel";
+import TourIdempotencyModel from "../../../src/model/tourIdempotencyModel";
+import TourScheduleModel from "../../../src/model/tourScheduleModel";
 
 /**
  * Retrieve collection of tours.
@@ -12,7 +14,7 @@ const retrieveTourCollection = AsyncErrorWrapper(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
+  ): Promise<typeof Response | void> => {
     await TourModel.find()
       .then((tours) => {
         if (!tours) {
@@ -24,12 +26,10 @@ const retrieveTourCollection = AsyncErrorWrapper(
 
         return res.status(HttpStatusCode.OK).json({
           count: tours.length,
-          tours: tours,
+          data: tours,
         });
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
   }
 );
 
@@ -41,7 +41,7 @@ const retrieveTourSearch = AsyncErrorWrapper(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
+  ): Promise<typeof Response | void> => {
     await TourModel.find({
       // $text: { $search: req.query.q, $caseSensitive: false },
     })
@@ -55,12 +55,10 @@ const retrieveTourSearch = AsyncErrorWrapper(
 
         return res.status(HttpStatusCode.OK).json({
           count: tours.length,
-          tours: tours,
+          data: tours,
         });
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
   }
 );
 
@@ -72,21 +70,19 @@ const retrieveTourItem = AsyncErrorWrapper(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
+  ): Promise<typeof Response | void> => {
     await TourModel.findById({ _id: req.params.id })
       .then((tour) => {
         if (!tour) {
           throw new NotFoundError(
             HttpStatusCode.NOT_FOUND,
-            `No record found for id: ${req.params.id}`
+            `No tour found for id: ${req.params.id}`
           );
         }
 
-        return res.status(HttpStatusCode.OK).json({ tour: tour });
+        return res.status(HttpStatusCode.OK).json({ data: tour });
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
   }
 );
 
@@ -98,7 +94,7 @@ const replaceTourItem = AsyncErrorWrapper(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
+  ): Promise<typeof Response | void> => {
     await TourModel.findOneAndReplace({ _id: req.params._id }, req.body, {
       new: true,
     })
@@ -106,15 +102,13 @@ const replaceTourItem = AsyncErrorWrapper(
         if (!tour) {
           throw new NotFoundError(
             HttpStatusCode.NOT_FOUND,
-            `No record found for id: ${req.params.id}`
+            `No tour found for id: ${req.params.id}`
           );
         }
 
         return res.status(HttpStatusCode.MODIFIED).json(null);
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
   }
 );
 
@@ -126,7 +120,7 @@ const updateTourItem = AsyncErrorWrapper(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
+  ): Promise<typeof Response | void> => {
     await TourModel.findOneAndUpdate({ _id: req.params._id }, req.body, {
       new: true,
     })
@@ -134,15 +128,37 @@ const updateTourItem = AsyncErrorWrapper(
         if (!tour) {
           throw new NotFoundError(
             HttpStatusCode.NOT_FOUND,
-            `No record found for id: ${req.params.id}`
+            `No tour found for id: ${req.params.id}`
           );
         }
 
         return res.status(HttpStatusCode.MODIFIED).json(null);
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
+  }
+);
+
+/**
+ * Deletes a tour item using its :id.
+ */
+const deleteTourItem = AsyncErrorWrapper(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<typeof Response | void> => {
+    await TourModel.findOneAndUpdate({ _id: req.params._id })
+      .then((tour) => {
+        if (!tour) {
+          throw new NotFoundError(
+            HttpStatusCode.NOT_FOUND,
+            `No tour found for id: ${req.params.id}`
+          );
+        }
+
+        return res.status(HttpStatusCode.MODIFIED).json(null);
+      })
+      .catch((err) => next(err));
   }
 );
 
@@ -154,7 +170,7 @@ const completeTourItem = AsyncErrorWrapper(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
+  ): Promise<typeof Response | void> => {
     await TourModel.findOneAndUpdate(
       { _id: req.params._id },
       { status: "completed", isClosed: true },
@@ -166,17 +182,15 @@ const completeTourItem = AsyncErrorWrapper(
         if (!tour) {
           throw new NotFoundError(
             HttpStatusCode.NOT_FOUND,
-            `No record found for id: ${req.params.id}`
+            `No tour found for id: ${req.params.id}`
           );
         }
 
         return res
           .status(HttpStatusCode.OK)
-          .json("Congrats! Your tour has been successfully completed");
+          .json("Your tour has been successfully completed");
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
   }
 );
 
@@ -188,7 +202,7 @@ const cancelTourItem = AsyncErrorWrapper(
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
+  ): Promise<typeof Response | void> => {
     await TourModel.findOneAndUpdate(
       { _id: req.params._id },
       { status: "cancelled", isClosed: true },
@@ -200,17 +214,15 @@ const cancelTourItem = AsyncErrorWrapper(
         if (!tour) {
           throw new NotFoundError(
             HttpStatusCode.NOT_FOUND,
-            `No record found for id: ${req.params.id}`
+            `No tour found for id: ${req.params.id}`
           );
         }
 
         return res
           .status(HttpStatusCode.OK)
-          .json("Congrats! Your tour has been successfully cancelled");
+          .json("Your tour has been successfully cancelled");
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
   }
 );
 
@@ -221,7 +233,7 @@ const reopenTourItem = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<Response | void> => {
+): Promise<typeof Response | void> => {
   await TourModel.findOneAndUpdate(
     { _id: req.params._id, status: "cancelled" },
     { isClosed: false },
@@ -241,34 +253,103 @@ const reopenTourItem = async (
         .status(HttpStatusCode.OK)
         .json("Your tour has been successfully reopened");
     })
-    .catch((err) => {
-      next(err);
-    });
+    .catch((err) => next(err));
 };
 
-/**
- * Deletes a tour item using its :id.
- */
-const deleteTourItem = AsyncErrorWrapper(
+const scheduleTour = AsyncErrorWrapper(
   async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response | void> => {
-    await TourModel.findOneAndUpdate({ _id: req.params._id })
+  ): Promise<typeof Response | void> => {
+    const tourId = req.params.id;
+
+    const { proposedDate, proposedTime } = req.body;
+
+    await TourModel.findById({ id: tourId })
       .then((tour) => {
         if (!tour) {
           throw new NotFoundError(
             HttpStatusCode.NOT_FOUND,
-            `No record found for id: ${req.params.id}`
+            `No tour found for id: ${req.params.id}`
           );
         }
-
-        return res.status(HttpStatusCode.MODIFIED).json(null);
       })
-      .catch((err) => {
-        next(err);
-      });
+      .catch((err) => next(err));
+
+    await TourScheduleModel.create({ tourId, proposedDate, proposedTime })
+      .then((schedule) => {
+        return res.status(HttpStatusCode.CREATED).json({
+          message:
+            "your availability schedule have been set. A realtor will be assigned to you shortly based on your proposed availability date and time.",
+          data: schedule,
+        });
+      })
+      .catch((err) => next(err));
+  }
+);
+
+const acceptProposedTourSchedule = AsyncErrorWrapper(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<typeof Response | void> => {
+    const tourId = req.params.id;
+
+    const tourScheduleId = req.params.rescheduleId;
+
+    const schedule = await TourScheduleModel.findByIdAndUpdate(
+      { _id: tourScheduleId },
+      { status: "accepted" },
+      { new: true }
+    );
+
+    if (!schedule || schedule.status !== "pending") {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        "schedule not found or already processed."
+      );
+    }
+
+    const tour = await TourModel.findByIdAndUpdate(
+      { _id: tourId },
+      {
+        scheduledDate: schedule.proposedDate,
+        scheduledTime: schedule.proposedTime,
+      },
+      { new: true }
+    );
+
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${req.params.id}`
+      );
+    }
+  }
+);
+
+const rejectProposedTourSchedule = AsyncErrorWrapper(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<typeof Response | void> => {
+    const tourScheduleId = req.params.rescheduleId;
+
+    const schedule = await TourScheduleModel.findByIdAndUpdate(
+      { _id: tourScheduleId },
+      { status: "rejected" },
+      { new: true }
+    );
+
+    if (!schedule || schedule.status !== "pending") {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        "schedule not found or already processed."
+      );
+    }
   }
 );
 
@@ -294,5 +375,8 @@ export default {
   completeTourItem,
   cancelTourItem,
   reopenTourItem,
+  scheduleTour,
+  acceptProposedTourSchedule,
+  rejectProposedTourSchedule,
   operationNotAllowed,
 };

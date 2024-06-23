@@ -15,4 +15,14 @@ TourRouterV1.route("/:id")
   .patch(tourController.cancelTourItem)
   .patch(tourController.reopenTourItem);
 
+TourRouterV1.route(":/id/schedule").post(tourController.scheduleTour);
+
+TourRouterV1.route(":/id/schedule/accept/:scheduleId").put(
+  tourController.acceptProposedTourSchedule
+);
+
+TourRouterV1.route(":/id/schedule/reject/:scheduleId").put(
+  tourController.rejectProposedTourSchedule
+);
+
 export default TourRouterV1;
