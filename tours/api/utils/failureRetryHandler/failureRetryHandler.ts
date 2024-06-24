@@ -2,22 +2,22 @@ import pRetry from "p-retry";
 import asyncRetry from "async-retry";
 
 const exponentialRetry = async (
-  operation: Function,
-  retries: number,
-  factor: number,
-  minTimeout: number
-) => {
+  operation: Promise<void>,
+  retries: number = 3,
+  factor: number = 2,
+  minTimeout: number = 5000
+): Promise<void> => {
   await pRetry(
     async () => {
-      await operation();
+      await operation;
     },
     {
       retries: retries,
       factor: factor,
       minTimeout: minTimeout,
       onFailedAttempt: (err) => {
-        console.log(
-          `Exponential retry attempt ${err.attemptNumber} failed. There are ${err.retriesLeft} retries left. Error: ${err.message}`
+        console.error(
+          `Exponential retry attempt ${err.attemptNumber} failed.\n There are ${err.retriesLeft} retries left.\n Error: ${err.message}`
         );
       },
     }
@@ -25,14 +25,14 @@ const exponentialRetry = async (
 };
 
 const linearJitterRetry = async (
-  operation: Function,
-  retries: number,
-  minTimeout: number,
-  jitterFactor: number
-) => {
+  operation: Promise<void>,
+  retries: number = 2,
+  minTimeout: number = 5000,
+  jitterFactor: number = 1000
+): Promise<void> => {
   await asyncRetry(
     async () => {
-      await operation();
+      await operation;
     },
     {
       retries: retries,
@@ -40,12 +40,12 @@ const linearJitterRetry = async (
       onRetry: (err, attempt) => {
         const jitter = Math.random() * jitterFactor;
 
-        console.log(
-          `Linear jitter retry attempt ${attempt} failed. Error: ${
+        console.error(
+          `Linear jitter retry attempt ${attempt} failed.\n Error: ${
             err.message
-          }. Next retry in ${5000 + jitter}ms`
+          }.\n Next retry in ${minTimeout + jitter}ms`
         );
-        return 5000 + jitter;
+        return minTimeout + jitter;
       },
     }
   );
