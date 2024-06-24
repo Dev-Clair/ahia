@@ -11,7 +11,7 @@ TourRouterV1.route("/search").get(tourController.retrieveTourSearch);
 TourRouterV1.route("/:id")
   .get(tourController.retrieveTourItem)
   .put(tourController.replaceTourItem)
-  .patch(tourController.updateTourItem);
+  .patch(tourMiddleWare.checkIdempotencyKey, tourController.updateTourItem);
 
 TourRouterV1.route("/:id/status/complete").patch(
   tourController.completeTourItem
