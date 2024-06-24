@@ -121,16 +121,31 @@ const updateTourItem = AsyncErrorWrapper(
     res: Response,
     next: NextFunction
   ): Promise<typeof Response | void> => {
+    const idempotencyKey = req.headers["idempotency-key"] as string;
+
+    const verifyOperationIdempotency = await TourIdempotencyModel.findOne({
+      key: idempotencyKey,
+    });
+
+    if (verifyOperationIdempotency) {
+      res.status(HttpStatusCode.OK).json(verifyOperationIdempotency.response);
+    }
+
     await TourModel.findOneAndUpdate({ _id: req.params._id }, req.body, {
       new: true,
     })
-      .then((tour) => {
+      .then(async (tour) => {
         if (!tour) {
           throw new NotFoundError(
             HttpStatusCode.NOT_FOUND,
             `No tour found for id: ${req.params.id}`
           );
         }
+
+        await TourIdempotencyModel.create({
+          key: idempotencyKey,
+          response: null,
+        });
 
         return res.status(HttpStatusCode.MODIFIED).json(null);
       })
