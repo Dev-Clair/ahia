@@ -1,33 +1,73 @@
 import mongoose from "mongoose";
+import pRetry from "p-retry";
+import asyncRetry from "async-retry";
 
-let currentRetries: number = 0;
+const establishConnection = async (connectionUri: string) => {
+  await mongoose.connect(connectionUri, {
+    serverSelectionTimeoutMS: 10000,
+  });
+};
 
-let retryDelay: number = 5000;
+const exponentialRetry = async (connectionUri: string) => {
+  await pRetry(
+    async () => {
+      if (mongoose.connection.readyState === 0) {
+        await establishConnection(connectionUri);
+      }
+    },
+    {
+      retries: 5,
+      factor: 2,
+      minTimeout: 5000,
+      onFailedAttempt: (err) => {
+        console.log(
+          `Exponential retry attempt ${err.attemptNumber} failed. There are ${err.retriesLeft} retries left. Error: ${err.message}`
+        );
+      },
+    }
+  );
+};
 
-const maxRetries: number = 5;
+const linearJitterRetry = async (connectionUri: string) => {
+  await asyncRetry(
+    async () => {
+      if (mongoose.connection.readyState === 0) {
+        await establishConnection(connectionUri);
+      }
+    },
+    {
+      retries: 5,
+      minTimeout: 5000,
+      onRetry: (err, attempt) => {
+        const jitter = Math.random() * 1000;
+
+        console.log(
+          `Linear jitter retry attempt ${attempt} failed. Error: ${
+            err.message
+          }. Next retry in ${5000 + jitter}ms`
+        );
+        return 5000 + jitter;
+      },
+    }
+  );
+};
 
 const Connection = async (
   connectionUri: string
 ): Promise<void | typeof import("mongoose")> => {
   try {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(connectionUri, {
-        serverSelectionTimeoutMS: 10000,
-      });
-    }
-  } catch (err: any) {
-    if (currentRetries < maxRetries) {
-      console.log(`Attempting reconnection to database`);
-
-      currentRetries++;
-
-      retryDelay *= 2;
-
-      setTimeout(() => Connection(connectionUri), retryDelay);
-    } else {
+    await exponentialRetry(connectionUri);
+  } catch (err1: any) {
+    console.log(
+      `Exponential retry strategy failed, switching to linear jitter backoff. Error: ${err1.message}`
+    );
+    try {
+      await linearJitterRetry(connectionUri);
+    } catch (err2: any) {
       console.log(
-        `Database connection error\nMax retries reached, Could not establish connection to database:\n${err.message}`
+        `Linear jitter retry strategy failed as well. Final error: ${err2.message}`
       );
+      // await notifyAdmin('Database Connection Failure', `Both exponential backoff and linear jitter backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`);
     }
   }
 };
