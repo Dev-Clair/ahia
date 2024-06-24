@@ -16,24 +16,26 @@ const TourSchema: Schema<TourInterface> = new Schema({
       required: [true, "A new tour must have a a collection of listings"],
     },
   ],
-  location: {
-    type: {
+  // location: {
+  //   type: {
+  //     type: String,
+  //     enum: ["Point"],
+  //     required: false,
+  //   },
+  //   coordinates: {
+  //     type: Number,
+  //     required: false,
+  //   },
+  // },
+  scheduled: {
+    date: {
+      type: Date,
+      required: false,
+    },
+    time: {
       type: String,
-      enum: ["Point"],
       required: false,
     },
-    coordinates: {
-      type: Number,
-      required: false,
-    },
-  },
-  scheduledDate: {
-    type: Date,
-    required: false,
-  },
-  scheduledTime: {
-    type: String,
-    required: false,
   },
   status: {
     type: String,
