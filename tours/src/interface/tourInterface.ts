@@ -8,10 +8,8 @@ export default interface TourInterface extends Document {
   //   type?: String;
   //   coordinates?: Number;
   // };
-  scheduled: {
-    date?: Date;
-    time?: String;
-  };
+  scheduledDate?: Date;
+  scheduledTime?: String;
   status: "pending" | "ongoing" | "completed" | "cancelled";
   isClosed?: Boolean;
   createdAt: Date;

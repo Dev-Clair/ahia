@@ -27,15 +27,13 @@ const TourSchema: Schema<TourInterface> = new Schema({
   //     required: false,
   //   },
   // },
-  scheduled: {
-    date: {
-      type: Date,
-      required: false,
-    },
-    time: {
-      type: String,
-      required: false,
-    },
+  scheduledDate: {
+    type: Date,
+    required: false,
+  },
+  scheduledTime: {
+    type: String,
+    required: false,
   },
   status: {
     type: String,
