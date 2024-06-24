@@ -266,6 +266,16 @@ const scheduleTour = AsyncErrorWrapper(
 
     const { proposedDate, proposedTime } = req.body;
 
+    const idempotencyKey = req.headers["idempotency-key"] as string;
+
+    const verifyOperationIdempotency = await TourIdempotencyModel.findOne({
+      key: idempotencyKey,
+    });
+
+    if (verifyOperationIdempotency) {
+      res.status(HttpStatusCode.OK).json(verifyOperationIdempotency.response);
+    }
+
     await TourModel.findById({ _id: tourId })
       .then((tour) => {
         if (!tour) {
@@ -278,12 +288,19 @@ const scheduleTour = AsyncErrorWrapper(
       .catch((err) => next(err));
 
     await TourScheduleModel.create({ tourId, proposedDate, proposedTime })
-      .then((schedule) => {
-        return res.status(HttpStatusCode.CREATED).json({
+      .then(async (schedule) => {
+        const response = {
           message:
             "your availability schedule have been set. A realtor will be assigned to you shortly based on your proposed availability date and time.",
           data: schedule,
+        };
+
+        await TourIdempotencyModel.create({
+          key: idempotencyKey,
+          response: response,
         });
+
+        return res.status(HttpStatusCode.CREATED).json(response);
       })
       .catch((err) => next(err));
   }

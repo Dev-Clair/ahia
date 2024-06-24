@@ -1,5 +1,6 @@
 import { Router } from "express";
 import tourController from "../../controller/v1/tourController";
+import tourMiddleWare from "../../middleware/v1/tourMiddleWare";
 
 const TourRouterV1 = Router();
 
@@ -20,13 +21,16 @@ TourRouterV1.route("/:id/status/cancel").patch(tourController.cancelTourItem);
 
 TourRouterV1.route("/:id/status/reopen").patch(tourController.reopenTourItem);
 
-TourRouterV1.route(":/id/schedule").post(tourController.scheduleTour);
+TourRouterV1.route("/:id/schedule").post(
+  tourMiddleWare.checkIdempotencyKey,
+  tourController.scheduleTour
+);
 
-TourRouterV1.route(":/id/schedule/accept/:scheduleId").put(
+TourRouterV1.route("/:id/schedule/accept/:scheduleId").put(
   tourController.acceptProposedTourSchedule
 );
 
-TourRouterV1.route(":/id/schedule/reject/:scheduleId").put(
+TourRouterV1.route("/:id/schedule/reject/:scheduleId").put(
   tourController.rejectProposedTourSchedule
 );
 
