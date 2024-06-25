@@ -1,4 +1,4 @@
-import App from "./api/app";
+import App from "./app";
 import Cron from "./cron/cron";
 import Config from "./config";
 import Connection from "./connection";
