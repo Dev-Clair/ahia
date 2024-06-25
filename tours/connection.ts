@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import retryHandler from "./api/utils/retryHandler/retryHandler";
+import notificationHandler from "./api/utils/notificationHandler/notificationHandler";
 
 const establishConnection = async (connectionUri: string): Promise<void> => {
   if (mongoose.connection.readyState === 0) {
@@ -24,7 +25,11 @@ const Connection = async (
       console.error(
         `Linear jitter retry strategy failed as well. Final error: ${err2.message}`
       );
-      // await notifyAdmin('Database Connection Failure', `Both exponential backoff and linear jitter backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`);
+      const subject = "Database Connection Failure";
+
+      const message = `Both exponential backoff and linear jitter backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`;
+
+      await notificationHandler.notifyAdmin();
     }
   }
 };
@@ -38,7 +43,7 @@ mongoose.connection.on("connected", () => {
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.log("Database connection failure");
+  console.error("Database connection failure");
 });
 
 mongoose.connection.on("reconnected", () => {
