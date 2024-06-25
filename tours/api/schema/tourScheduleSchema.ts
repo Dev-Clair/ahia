@@ -25,10 +25,12 @@ const TourScheduleSchema: Schema<TourScheduleInterface> = new Schema({
   },
 });
 
-TourScheduleSchema.post("save", async (doc): Promise<void> => {
+TourScheduleSchema.post("save", async (doc, next): Promise<void> => {
   if (doc.status === "accepted" || doc.status === "rejected") {
-    await doc.deleteOne({ _id: doc._id });
+    await doc.deleteOne({ _id: doc._id }).catch((err) => next(err));
   }
+
+  next();
 });
 
 export default TourScheduleSchema;

@@ -50,6 +50,6 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
 });
 
-TourSchema.index({ location: "2dsphere" });
+// TourSchema.index({ location: "2dsphere" });
 
 export default TourSchema;
