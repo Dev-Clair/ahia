@@ -1,11 +1,14 @@
 import APIError from "../error/apiError";
+import logger from "../../src/service/loggerService";
+import notificationHandler from "../utils/notificationHandler/notificationHandler";
 
 class GlobalErrorHandlingMiddleware {
   public async handleAPIError(err: Error): Promise<void> {
-    console.log(err);
+    console.log(err.name, err.message, err.stack);
 
-    // Send mail or sms notification to admin
-    // await notifyAdmin();
+    // logger.error(`name: ${err.name}\n message: ${err.message}`);
+
+    // await notificationHandler.notifyAdmin();
   }
 
   public isTrustedError(err: Error): Boolean {

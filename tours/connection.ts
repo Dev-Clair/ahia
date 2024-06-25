@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import logger from "./src/service/loggerService";
 import retryHandler from "./api/utils/retryHandler/retryHandler";
 import notificationHandler from "./api/utils/notificationHandler/notificationHandler";
 
@@ -29,7 +30,7 @@ const Connection = async (
 
       const message = `Both exponential backoff and linear jitter backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`;
 
-      await notificationHandler.notifyAdmin();
+      // await notificationHandler.notifyAdmin();
     }
   }
 };
