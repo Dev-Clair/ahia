@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
-import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
 import NotFoundError from "../../error/notfoundError";
 import TourModel from "../../model/tourModel";
 import TourIdempotencyModel from "../../model/tourIdempotencyModel";
 import TourScheduleModel from "../../model/tourScheduleModel";
+import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
 import retryHandler from "../../utils/retryHandler/retryHandler";
+import notificationHandler from "../../utils/notificationHandler/notificationHandler";
 
 /**
  * Retrieve collection of tours.
