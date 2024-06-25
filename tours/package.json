@@ -1,11 +1,9 @@
 {
   "name": "tours",
   "version": "1.0.0",
-  "main": "handler.ts",
+  "main": "index.ts",
   "scripts": {
-    "start": "ts-node handler.ts",
-    "deploy": "serverless deploy",
-    "remove": "serverless remove"
+    "start": "ts-node index.ts"
   },
   "keywords": [
     "ahia",
@@ -33,7 +31,6 @@
     "node-fetch": "^3.3.2",
     "p-retry": "^6.2.0",
     "passport": "^0.7.0",
-    "serverless-http": "^3.2.0",
     "ts-node": "^10.9.2",
     "winston": "^3.13.0"
   }
