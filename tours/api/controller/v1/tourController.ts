@@ -5,85 +5,95 @@ import NotFoundError from "../../error/notfoundError";
 import TourModel from "../../../src/model/tourModel";
 import TourIdempotencyModel from "../../../src/model/tourIdempotencyModel";
 import TourScheduleModel from "../../../src/model/tourScheduleModel";
+import retryHandler from "../../utils/retryHandler/retryHandler";
 
 /**
  * Retrieve collection of tours.
  */
 const retrieveTourCollection = AsyncErrorWrapper(
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<typeof Response | void> => {
-    await TourModel.find()
-      .then((tours) => {
-        if (!tours) {
-          throw new NotFoundError(
-            HttpStatusCode.NOT_FOUND,
-            `No tours found for query: ${req.query.q}`
-          );
-        }
+  retryHandler.LinearJitterRetry(
+    async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<typeof Response | void> => {
+      await TourModel.find()
+        .then((tours) => {
+          if (!tours) {
+            throw new NotFoundError(
+              HttpStatusCode.NOT_FOUND,
+              `No tours found for query: ${req.query.q}`
+            );
+          }
 
-        return res.status(HttpStatusCode.OK).json({
-          count: tours.length,
-          data: tours,
-        });
-      })
-      .catch((err) => next(err));
-  }
+          return res.status(HttpStatusCode.OK).json({
+            count: tours.length,
+            data: tours,
+          });
+        })
+        .catch((err) => next(err));
+    },
+    { retries: 2, jitterFactor: 1000, minTimeout: 5000 }
+  )
 );
 
 /**
  * Retrieve collection of tours based on search parameter.
  */
 const retrieveTourSearch = AsyncErrorWrapper(
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<typeof Response | void> => {
-    await TourModel.find({
-      // $text: { $search: req.query.q, $caseSensitive: false },
-    })
-      .then((tours) => {
-        if (!tours) {
-          throw new NotFoundError(
-            HttpStatusCode.NOT_FOUND,
-            `No tours found for query: ${req.query.q}`
-          );
-        }
-
-        return res.status(HttpStatusCode.OK).json({
-          count: tours.length,
-          data: tours,
-        });
+  retryHandler.LinearJitterRetry(
+    async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<typeof Response | void> => {
+      await TourModel.find({
+        // $text: { $search: req.query.q, $caseSensitive: false },
       })
-      .catch((err) => next(err));
-  }
+        .then((tours) => {
+          if (!tours) {
+            throw new NotFoundError(
+              HttpStatusCode.NOT_FOUND,
+              `No tours found for query: ${req.query.q}`
+            );
+          }
+
+          return res.status(HttpStatusCode.OK).json({
+            count: tours.length,
+            data: tours,
+          });
+        })
+        .catch((err) => next(err));
+    },
+    { retries: 2, jitterFactor: 1000, minTimeout: 5000 }
+  )
 );
 
 /**
  * Retrieve a tour item using its :id.
  */
 const retrieveTourItem = AsyncErrorWrapper(
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<typeof Response | void> => {
-    await TourModel.findById({ _id: req.params.id })
-      .then((tour) => {
-        if (!tour) {
-          throw new NotFoundError(
-            HttpStatusCode.NOT_FOUND,
-            `No tour found for id: ${req.params.id}`
-          );
-        }
+  retryHandler.LinearJitterRetry(
+    async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<typeof Response | void> => {
+      await TourModel.findById({ _id: req.params.id })
+        .then((tour) => {
+          if (!tour) {
+            throw new NotFoundError(
+              HttpStatusCode.NOT_FOUND,
+              `No tour found for id: ${req.params.id}`
+            );
+          }
 
-        return res.status(HttpStatusCode.OK).json({ data: tour });
-      })
-      .catch((err) => next(err));
-  }
+          return res.status(HttpStatusCode.OK).json({ data: tour });
+        })
+        .catch((err) => next(err));
+    },
+    { retries: 3, jitterFactor: 1000, minTimeout: 7500 }
+  )
 );
 
 /**
