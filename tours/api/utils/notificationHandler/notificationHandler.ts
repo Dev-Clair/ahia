@@ -1,9 +1,27 @@
 import SendEmail from "../../../src/service/mailService";
 
-const notifyAdmin = async () => {};
+const notifyAdmin = async (
+  subject: String,
+  body: String,
+  toAddresses: String,
+  ccAddresses?: String,
+  bccAddresses?: String
+) => {};
 
-const notifyRealtor = async () => {};
+const notifyRealtor = async (
+  subject: String,
+  body: String,
+  toAddresses: String,
+  ccAddresses?: String,
+  bccAddresses?: String
+) => {};
 
-const notifyCustomer = async () => {};
+const notifyCustomer = async (
+  subject: String,
+  body: String,
+  toAddresses: String,
+  ccAddresses?: String,
+  bccAddresses?: String
+) => {};
 
 export default { notifyAdmin, notifyRealtor, notifyCustomer };
