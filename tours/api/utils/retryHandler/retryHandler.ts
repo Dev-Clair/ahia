@@ -2,8 +2,8 @@ import pRetry from "p-retry";
 import asyncRetry from "async-retry";
 
 const ExponentialRetry = async (
-  operation: () => Promise<void>,
-  options: { retries: 3; factor: 2; minTimeout: 5000 }
+  operation: Function | any,
+  options = { retries: 3, factor: 2, minTimeout: 7500 }
 ): Promise<void> => {
   await pRetry(
     async () => {
@@ -23,8 +23,8 @@ const ExponentialRetry = async (
 };
 
 const LinearJitterRetry = async (
-  operation: () => Promise<void>,
-  options: { retries: 2; minTimeout: 5000; jitterFactor: 1000 }
+  operation: Function | any,
+  options = { retries: 2, minTimeout: 5000, jitterFactor: 1000 }
 ): Promise<void> => {
   await asyncRetry(
     async (bail, attempt) => {
