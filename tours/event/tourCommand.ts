@@ -3,8 +3,8 @@ import CastError from "./error/castError";
 import DuplicateEventError from "./error/duplicateEventError";
 import EventPayloadError from "./error/eventPayloadError";
 import SchemaValidationError from "./error/schemaValidationError";
-import TourModel from "../src/model/tourModel";
-import TourIdempotencyModel from "../src/model/tourIdempotencyModel";
+import TourModel from "../api/model/tourModel";
+import TourIdempotencyModel from "../api/model/tourIdempotencyModel";
 import notificationHandler from "../api/utils/notificationHandler/notificationHandler";
 
 const TourCommand = async (event: any, context: any) => {

@@ -1,5 +1,5 @@
 import APIError from "../error/apiError";
-import logger from "../../src/service/loggerService";
+import logger from "../service/loggerService";
 import notificationHandler from "../utils/notificationHandler/notificationHandler";
 
 class GlobalErrorHandlingMiddleware {

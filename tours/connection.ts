@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import logger from "./src/service/loggerService";
+import logger from "./api/service/loggerService";
 import retryHandler from "./api/utils/retryHandler/retryHandler";
 import notificationHandler from "./api/utils/notificationHandler/notificationHandler";
 

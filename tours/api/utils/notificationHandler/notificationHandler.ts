@@ -1,4 +1,4 @@
-import SendEmail from "../../../src/service/mailService";
+import SendEmail from "../../service/mailService";
 
 const notifyAdmin = async (
   subject: String,

@@ -2,9 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
 import NotFoundError from "../../error/notfoundError";
-import TourModel from "../../../src/model/tourModel";
-import TourIdempotencyModel from "../../../src/model/tourIdempotencyModel";
-import TourScheduleModel from "../../../src/model/tourScheduleModel";
+import TourModel from "../../model/tourModel";
+import TourIdempotencyModel from "../../model/tourIdempotencyModel";
+import TourScheduleModel from "../../model/tourScheduleModel";
 import retryHandler from "../../utils/retryHandler/retryHandler";
 
 /**

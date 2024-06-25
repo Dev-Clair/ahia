@@ -2,7 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import hpp from "hpp";
 import express_mongo_sanitize from "express-mongo-sanitize";
-import TourRouter from "./router";
+import TourRouter from "./api/router";
 
 const App = express();
 
