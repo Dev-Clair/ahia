@@ -5,6 +5,7 @@ import EventPayloadError from "./error/eventPayloadError";
 import SchemaValidationError from "./error/schemaValidationError";
 import TourModel from "../src/model/tourModel";
 import TourIdempotencyModel from "../src/model/tourIdempotencyModel";
+import notificationHandler from "../api/utils/notificationHandler/notificationHandler";
 
 const TourCommand = async (event: any, context: any) => {
   try {
@@ -49,8 +50,7 @@ const TourCommand = async (event: any, context: any) => {
           `CREATE: Success | TOUR ID: ${tour._id} | CUSTOMER ID: ${tour.customerId}.`
         );
 
-        // Send mail or sms notification to customer to schedule tour date and time
-        // await notifyCustomer();
+        await notificationHandler.notifyCustomer();
 
         await TourIdempotencyModel.create({
           key: transactionRef,
@@ -76,8 +76,7 @@ const TourCommand = async (event: any, context: any) => {
         );
       });
   } catch (err: any) {
-    // Send mail or sms notification to admin about critical error
-    // await notifyAdmin();
+    await notificationHandler.notifyAdmin();
 
     console.error(
       `Unknown error:\n name: ${err.name}\nmessage:  ${err.message}`
