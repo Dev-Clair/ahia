@@ -49,7 +49,7 @@ const LinearJitterRetry = async (
 
 const LinearRetry = async (
   operation: any,
-  options = { retries: 2, minTimeout: 7500 }
+  options = { retries: 5, minTimeout: 7500 }
 ) => {
   await asyncRetry(
     async (err, attempt) => {
