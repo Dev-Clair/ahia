@@ -47,4 +47,25 @@ const LinearJitterRetry = async (
   );
 };
 
-export { ExponentialRetry, LinearJitterRetry };
+const LinearRetry = async (
+  operation: any,
+  options = { retries: 2, minTimeout: 7500 }
+) => {
+  await asyncRetry(
+    async (err, attempt) => {
+      await operation();
+    },
+    {
+      retries: options.retries,
+      minTimeout: options.minTimeout,
+      onRetry: (err, attempt) => {
+        console.error(
+          `${__filename}: Linear retry attempt ${attempt} failed.\nError: ${err.message}.\nNext retry in ${options.minTimeout}ms`
+        );
+        return options.minTimeout;
+      },
+    }
+  );
+};
+
+export { ExponentialRetry, LinearJitterRetry, LinearRetry };
