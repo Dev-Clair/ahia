@@ -24,7 +24,7 @@ class MapCache<K, V> {
       if (Date.now() < entry.expiry) {
         return entry.value;
       } else {
-        this.map.delete(key);
+        this.delete(key);
       }
     }
 
@@ -52,7 +52,7 @@ class MapCache<K, V> {
 
     for (const [key, entry] of this.map.entries()) {
       if (now >= entry.expiry) {
-        this.map.delete(key);
+        this.delete(key);
       }
     }
   }
