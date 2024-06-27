@@ -1,9 +1,13 @@
 import mongoose from "mongoose";
+import {
+  ExponentialRetry,
+  LinearJitterRetry,
+} from "./api/utils/retryHandler/retryHandler";
 import logger from "./api/service/loggerService";
-import retryHandler from "./api/utils/retryHandler/retryHandler";
-import notificationHandler from "./api/utils/notificationHandler/notificationHandler";
 
-const establishConnection = async (connectionUri: string): Promise<void> => {
+const establishConnection = async (
+  connectionUri: string
+): Promise<void | typeof mongoose> => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(connectionUri, {
       serverSelectionTimeoutMS: 10000,
@@ -13,42 +17,44 @@ const establishConnection = async (connectionUri: string): Promise<void> => {
 
 const Connection = async (
   connectionUri: string
-): Promise<void | typeof import("mongoose")> => {
+): Promise<void | typeof mongoose> => {
   try {
-    retryHandler.ExponentialRetry(establishConnection(connectionUri));
+    ExponentialRetry(establishConnection(connectionUri));
   } catch (err1: any) {
     console.error(
-      `Exponential retry strategy failed, switching to linear jitter backoff. Error: ${err1.message}`
+      `${__filename}: Exponential retry strategy failed, switching to linear jitter backoff. Error: ${err1.message}`
     );
     try {
-      retryHandler.LinearJitterRetry(establishConnection(connectionUri));
+      LinearJitterRetry(establishConnection(connectionUri));
     } catch (err2: any) {
       console.error(
-        `Linear jitter retry strategy failed as well. Final error: ${err2.message}`
+        `${__filename}: Linear jitter retry strategy failed as well. Final error: ${err2.message}`
       );
       const subject = "Database Connection Failure";
 
-      const message = `Both exponential backoff and linear jitter backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`;
+      const message = `Backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`;
 
       // await notificationHandler.notifyAdmin();
+
+      // Restart system
     }
   }
 };
 
 mongoose.connection.on("connecting", () => {
-  console.log(`Attempting connection to database`);
+  console.log(`${__filename}: Attempting connection to database`);
 });
 
 mongoose.connection.on("connected", () => {
-  console.log("Database connection successful");
+  console.log(`${__filename}: Database connection successful`);
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.error("Database connection failure");
+  console.error(`${__filename}: Database connection failure`);
 });
 
 mongoose.connection.on("reconnected", () => {
-  console.log("Database reconnection successful");
+  console.log(`${__filename}: Database reconnection successful`);
 });
 
 export default Connection;
