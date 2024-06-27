@@ -1,5 +1,5 @@
-class MapCache<K, V> {
-  private map: Map<K, { value: V; expiry: number }>;
+class MapCache {
+  private map: Map<any, { value: any; expiry: number }>;
 
   private ttl: number;
 
@@ -9,7 +9,7 @@ class MapCache<K, V> {
     this.ttl = ttl;
   }
 
-  set(key: K, value: V): void {
+  set(key: any, value: any): void {
     const expiry = Date.now() + this.ttl;
 
     this.map.set(key, { value, expiry });
@@ -17,7 +17,7 @@ class MapCache<K, V> {
     this.cleanup();
   }
 
-  get(key: K): V | undefined {
+  get(key: any): any | undefined {
     const entry = this.map.get(key);
 
     if (entry) {
@@ -31,11 +31,11 @@ class MapCache<K, V> {
     return undefined;
   }
 
-  has(key: K): boolean {
+  has(key: any): boolean {
     return this.map.has(key);
   }
 
-  delete(key: K): boolean {
+  delete(key: any): boolean {
     return this.map.delete(key);
   }
 
