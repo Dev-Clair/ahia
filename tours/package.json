@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node index.ts",
-    "dev": "nodemon index.ts"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:dev": "nodemon src/index.ts"
   },
   "keywords": [
     "ahia",
@@ -28,7 +29,6 @@
     "node-fetch": "^3.3.2",
     "p-retry": "^6.2.0",
     "passport": "^0.7.0",
-    "ts-node": "^10.9.2",
     "winston": "^3.13.0"
   },
   "devDependencies": {
@@ -37,6 +37,9 @@
     "@types/hpp": "^0.2.6",
     "@types/mongoose": "^5.11.97",
     "dotenv": "^16.4.5",
-    "nodemon": "^3.1.2"
+    "nodemon": "^3.1.2",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.2"
   }
 }
