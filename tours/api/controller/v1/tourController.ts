@@ -10,7 +10,9 @@ import {
   LinearJitterRetry,
 } from "../../utils/retryHandler/retryHandler";
 
-const getTourCollection = async (
+const creatTour = async (): Promise<typeof Response | void> => {};
+
+const getTours = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -341,13 +343,18 @@ const rejectTourSchedule = async (
 };
 
 /**
+ * Create a new tour in collection.
+ */
+const createTourCollection = AsyncErrorWrapper(creatTour);
+
+/**
  * Retrieve collection of tours.
  */
-const retrieveTourCollection = AsyncErrorWrapper(
-  getTourCollection,
-  LinearJitterRetry,
-  { retries: 2, jitterFactor: 1000, minTimeout: 5000 }
-);
+const retrieveTourCollection = AsyncErrorWrapper(getTours, LinearJitterRetry, {
+  retries: 2,
+  jitterFactor: 1000,
+  minTimeout: 5000,
+});
 
 /**
  * Retrieve collection of tours based on search parameter.
@@ -421,6 +428,7 @@ const operationNotAllowed = (
 };
 
 export default {
+  createTourCollection,
   retrieveTourCollection,
   retrieveTourSearch,
   retrieveTourItem,
