@@ -23,7 +23,7 @@ TourRouterV1.route("/:id/status/reopen").patch(tourController.reopenTourItem);
 
 TourRouterV1.route("/:id/schedule").post(
   tourMiddleWare.checkIdempotencyKey,
-  tourController.scheduleTour
+  tourController.scheduleTourItem
 );
 
 TourRouterV1.route("/:id/schedule/accept/:scheduleId").put(
