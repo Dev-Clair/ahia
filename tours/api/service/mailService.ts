@@ -3,7 +3,6 @@ import {
   SESClientConfig,
   SendEmailCommand,
 } from "@aws-sdk/client-ses";
-import { ExponentialRetry } from "../utils/retryHandler/retryHandler";
 
 const configuration: SESClientConfig = [];
 
@@ -57,6 +56,8 @@ const SendEmail = async (
   const command = new SendEmailCommand(createInput);
 
   const response = await client.send(command);
+
+  return response;
 };
 
 export default SendEmail;
