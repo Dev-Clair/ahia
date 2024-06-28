@@ -7,14 +7,7 @@ const ExponentialRetry = async (
   const asyncRetry = await import("async-retry");
   return asyncRetry.default(
     async (bail, attempt) => {
-      try {
-        return await operation();
-      } catch (error: any) {
-        Logger.error(
-          `Exponential retry attempt ${attempt} failed.\nError: ${error.message}`
-        );
-        throw error;
-      }
+      return await operation();
     },
     {
       retries: options.retries,
@@ -38,17 +31,7 @@ const LinearJitterRetry = async (
   const asyncRetry = await import("async-retry");
   return asyncRetry.default(
     async (bail, attempt) => {
-      try {
-        return await operation();
-      } catch (error: any) {
-        const jitter = Math.random() * options.jitterFactor;
-        Logger.error(
-          `Linear jitter retry attempt ${attempt} failed.\nError: ${
-            error.message
-          }.\nNext retry in ${options.minTimeout + jitter}ms`
-        );
-        throw error;
-      }
+      return await operation();
     },
     {
       retries: options.retries,
@@ -73,14 +56,7 @@ const LinearRetry = async (
   const asyncRetry = await import("async-retry");
   return asyncRetry.default(
     async (bail, attempt) => {
-      try {
-        return await operation();
-      } catch (error: any) {
-        Logger.error(
-          `Linear retry attempt ${attempt} failed.\nError: ${error.message}.\nNext retry in ${options.minTimeout}ms`
-        );
-        throw error;
-      }
+      return await operation();
     },
     {
       retries: options.retries,
