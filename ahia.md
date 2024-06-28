@@ -13,19 +13,18 @@
       - APIs:
         - POST /iam/login
         - POST /iam/register
+        - POST /iam/authenticate
 
   - Asynchronous
 
     - Emits user insertion or update events to the event bus.
     - Listens to events from listing service.
     - Listens to events from payment service.
-    - Listens to events from appointment service.
 
       - Events:
         - Publish
           - IAM Change Streams (Insert, Replace and Update Events).
         - Consume
-          - Apppointment Change Streams (Update Events - appointment scheduling).
           - Listing Change Streams (Insert, Replace, Update and Delete Events).
           - Payment Change Streams (Payment Status Events).
 
@@ -117,57 +116,7 @@
           - Iam Change Streams.
           - Appointment Change Streams.
 
-## 5. appointment service
-
-### 5.1. realtor assignment and scheduling service
-
-- Permissions:
-
-  - Only users with role -realtor or customer- can perform command operations.
-  - Only users with role -admin- can review commands and perform query operations.
-
-- Responsibilities
-
-  - Fetches available realtors to tours based on location.
-  - Filters list based on customer's scheduled time.
-  - Assign realtor to tour.
-
-- Communication:
-
-  - Synchronous
-
-    - Interact with availability service to fetch available realtors based on booked tour location.
-
-      - APIs:
-        - PATCH /availability/:id
-
-  - Asynchronous
-
-    - Listens to events from the tour service.
-    - Emit assignment events to the event bus: the availability service subscribe to this event for further processing.
-
-      - Events:
-        - Publish
-          - Appointment Change Streams.
-        - Consume
-          - Tour Change Streams
-
-### 5.2. notification service
-
-- Responsibilities: Notifies customer and realtor of scheduled tour time at intervals.
-
-- Communication:
-
-  - Asynchronous
-
-    - Listens to tour service for changes in appointment schedules.
-    - Emit (re)schedule events to topic: iam service is notified about scheduled or rescheduled tour appointments.
-
-      - Events:
-        - Publish
-          - Notification Events.
-
-## 6. cart service
+## 5. cart service
 
 - Responsibilities: Manage customer carts and list of selected listings.
 
@@ -186,7 +135,7 @@
         - GET /cart
         - POST /cart/checkout
 
-## 7. payment service
+## 6. payment service
 
 - Responsibilities: Handle payment processing and confirmation via payment gateway channels.
 
