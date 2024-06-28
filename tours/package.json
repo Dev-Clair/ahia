@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "start:dev": "nodemon index.ts"
   },
   "keywords": [
     "ahia",
@@ -27,7 +28,6 @@
     "hpp": "^0.2.3",
     "joi": "^17.13.1",
     "mongoose": "^8.4.0",
-    "p-retry": "^6.2.0",
     "passport": "^0.7.0",
     "winston": "^3.13.0"
   },
