@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import retryHandler from "./api/utils/retryHandler/retryHandler";
-import notificationHandler from "./api/utils/notificationHandler/notificationHandler";
+import RetryHandler from "./src/utils/retryHandler/retryHandler";
+import NotifyUser from "./src/utils/notificationHandler/notificationHandler";
 
 const establishConnection = async (
   connectionUri: string
@@ -16,20 +16,24 @@ const Connection = async (
   connectionUri: string
 ): Promise<void | typeof mongoose> => {
   try {
-    await retryHandler.ExponentialRetry(() =>
+    await RetryHandler.ExponentialRetry(() =>
       establishConnection(connectionUri)
     );
   } catch (err: any) {
     try {
-      await retryHandler.LinearJitterRetry(() =>
+      await RetryHandler.LinearJitterRetry(() =>
         establishConnection(connectionUri)
       );
     } catch (err: any) {
-      const subject = "Database Connection Failure";
+      const from: string = process.env.TOUR_ADMIN_EMAIL || "";
 
-      const message = `Backoff retry strategies failed. Could not establish connection to the database. Error: ${err.message}`;
+      const toAddresses: [string] = [""];
 
-      await notificationHandler.notifyAdmin(subject, message, [""]);
+      const subject: string = "Database Connection Failure";
+
+      const message: string = `Backoff retry strategies failed. Could not establish connection to the database.\nError: ${err.message}`;
+
+      await NotifyUser(from, toAddresses, subject, message);
 
       process.kill(process.pid, "SIGTERM");
     }
