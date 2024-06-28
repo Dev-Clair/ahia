@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Logger from "./api/service/loggerService";
 import retryHandler from "./api/utils/retryHandler/retryHandler";
 import notificationHandler from "./api/utils/notificationHandler/notificationHandler";
 
@@ -20,21 +19,15 @@ const Connection = async (
     await retryHandler.ExponentialRetry(() =>
       establishConnection(connectionUri)
     );
-  } catch (err1: any) {
-    Logger.error(
-      `Exponential retry strategy failed, switching to linear jitter backoff. Error: ${err1.message}`
-    );
+  } catch (err: any) {
     try {
       await retryHandler.LinearJitterRetry(() =>
         establishConnection(connectionUri)
       );
-    } catch (err2: any) {
-      Logger.error(
-        `Linear jitter retry strategy failed as well. Final error: ${err2.message}`
-      );
+    } catch (err: any) {
       const subject = "Database Connection Failure";
 
-      const message = `Backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`;
+      const message = `Backoff retry strategies failed. Could not establish connection to the database. Error: ${err.message}`;
 
       await notificationHandler.notifyAdmin(subject, message, [""]);
 
