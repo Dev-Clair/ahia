@@ -5,7 +5,7 @@ import App from "./app";
 import Cron from "./cron";
 import Config from "./config";
 import Connection from "./connection";
-import Logger from "./api/service/loggerService";
+import Logger from "./src/service/loggerService";
 
 const numCPUs = os.cpus().length;
 
@@ -43,16 +43,15 @@ if (cluster.isPrimary) {
   const shutdown = () => {
     Logger.info("Shutting down gracefully...");
 
-    // Stop running cron task
+    // Stop running cron tasks
     Cron.stop();
 
-    // Close open mongoose connection
+    // Close open mongoose connections
     mongoose.connection.close(true);
 
-    // Close server process
+    // Close running server process
     server.close(() => {
-      Logger.info("Closed out remaining connections, initiating shutdown");
-      process.kill(process.pid, "SIGTERM");
+      Logger.info("Closed out remaining connections, initiating shutdown...");
     });
   };
 
