@@ -4,12 +4,10 @@ import tourMiddleWare from "../../middleware/v1/tourMiddleWare";
 
 const TourRouterV1 = Router();
 
-TourRouterV1.route("/")
-  .get(tourController.retrieveTourCollection)
-  .post(
-    tourMiddleWare.checkIdempotencyKey,
-    tourController.createTourCollection
-  );
+TourRouterV1.route("/").get(tourController.retrieveTourCollection).post(
+  // tourMiddleWare.checkIdempotencyKey,
+  tourController.createTourCollection
+);
 
 TourRouterV1.route("/search").get(tourController.retrieveTourSearch);
 
