@@ -4,26 +4,26 @@ import App from "./app";
 import Cron from "./cron/cron";
 import Config from "./config";
 import Connection from "./connection";
-import logger from "./api/service/loggerService";
+import Logger from "./api/service/loggerService";
 
 const numCPUs = os.cpus().length;
 
 if (cluster.isPrimary) {
-  logger.info(`Master ${process.pid} is running`);
+  Logger.info(`Master ${process.pid} is running`);
 
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
 
   cluster.on("exit", (worker, code, signal) => {
-    logger.info(`Worker ${worker.process.pid} died. Restarting...`);
+    Logger.info(`Worker ${worker.process.pid} died. Restarting...`);
     cluster.fork();
   });
 } else {
   Connection(Config.MONGO_URI);
 
   const server = App.listen(Config.SERVER_PORT, () => {
-    logger.info(
+    Logger.info(
       `Worker ${process.pid} started, listening on port ${Config.SERVER_PORT}`
     );
   });
@@ -31,24 +31,24 @@ if (cluster.isPrimary) {
   // Cron.start();
 
   process.on("unhandledRejection", (reason, promise) => {
-    logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+    Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
     process.exitCode = 1;
   });
 
   process.on("uncaughtException", (error) => {
-    logger.error("Uncaught Exception thrown:", error);
+    Logger.error("Uncaught Exception thrown:", error);
     process.exitCode = 1;
   });
 
   const shutdown = () => {
-    logger.info("Shutting down gracefully...");
+    Logger.info("Shutting down gracefully...");
     server.close(() => {
-      logger.info("Closed out remaining connections");
+      Logger.info("Closed out remaining connections");
       process.exitCode = 1;
     });
 
     setTimeout(() => {
-      logger.info("Forcing server shutdown");
+      Logger.info("Forcing server shutdown");
       process.exitCode = 1;
     }, 10000);
   };
@@ -56,3 +56,16 @@ if (cluster.isPrimary) {
   process.on("SIGTERM", shutdown);
   process.on("SIGINT", shutdown);
 }
+
+// prod: tslib
+// "scripts": {
+//   "build": "tsc",
+//   "start": "node dist/index.js",
+//   "start:dev": "nodemon src/index.ts"
+// },
+
+// dev: tsc
+// "scripts": {
+//   "build": "tsc",
+//   "start": "node dist/index.js"
+// },
