@@ -1,0 +1,26 @@
+org: clair99
+
+app: ahia
+
+service: tourCommand
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${env:AWS_REGION}
+  memorySize: 512
+
+functions:
+  ahia-tour-service:
+    handler: handler.tour
+    events:
+      - eventBridge:
+          eventBus: ${env:AWS_EVENT_BUS}
+          pattern:
+            source:
+              - AtlasCluster
+    environment:
+      NODE_ENV: ${env:NODE_ENV}
+      MONGO_URI: ${env:MONGO_URI}
