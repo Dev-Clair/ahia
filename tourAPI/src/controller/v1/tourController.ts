@@ -7,8 +7,8 @@ import TourModel from "../../model/tourModel";
 import TourIdempotencyModel from "../../model/tourIdempotencyModel";
 import TourScheduleModel from "../../model/tourScheduleModel";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
-import retryHandler from "../../utils/retryHandler/retryHandler";
-import notificationHandler from "../../utils/notificationHandler/notificationHandler";
+import RetryHandler from "../../utils/retryHandler/retryHandler";
+import NotifyUser from "../../utils/notificationHandler/notificationHandler";
 
 const createTour = async (
   req: Request,
@@ -46,7 +46,7 @@ const createTour = async (
         response: response,
       });
 
-      // await notificationHandler.notifyCustomer();
+      // await notifyUser();
 
       return res.status(201).json(response);
     })
@@ -417,6 +417,8 @@ const acceptTourRechedule = async (
               `No tour found for id: ${req.params.id}`
             );
           }
+
+          // await notifyUser();
         })
         .catch((err) => next(err));
     })
@@ -442,6 +444,8 @@ const rejectTourReschedule = async (
           "schedule not found or already processed."
         );
       }
+
+      // await notifyUser();
     })
     .catch((err) => next(err));
 };
@@ -451,7 +455,7 @@ const rejectTourReschedule = async (
  */
 const createTourCollection = AsyncErrorWrapper(
   createTour,
-  retryHandler.ExponentialRetry
+  RetryHandler.ExponentialRetry
   // { retries: 3, factor: 2, minTimeout: 10000 }
 );
 
@@ -460,7 +464,7 @@ const createTourCollection = AsyncErrorWrapper(
  */
 const retrieveTourCollection = AsyncErrorWrapper(
   getTours,
-  retryHandler.LinearJitterRetry,
+  RetryHandler.LinearJitterRetry,
   {
     retries: 2,
     jitterFactor: 1000,
@@ -473,7 +477,7 @@ const retrieveTourCollection = AsyncErrorWrapper(
  */
 const retrieveTourSearch = AsyncErrorWrapper(
   getTourSearch,
-  retryHandler.LinearJitterRetry,
+  RetryHandler.LinearJitterRetry,
   {
     retries: 2,
     jitterFactor: 1000,
@@ -486,7 +490,7 @@ const retrieveTourSearch = AsyncErrorWrapper(
  */
 const retrieveTourItem = AsyncErrorWrapper(
   getTour,
-  retryHandler.LinearJitterRetry,
+  RetryHandler.LinearJitterRetry,
   {
     retries: 3,
     jitterFactor: 1000,
@@ -499,44 +503,44 @@ const retrieveTourItem = AsyncErrorWrapper(
  */
 const replaceTourItem = AsyncErrorWrapper(
   replaceTour,
-  retryHandler.ExponentialRetry
+  RetryHandler.ExponentialRetry
   // { retries: 3, factor: 2, minTimeout: 10000 }
 );
 
 /**
  * Updates a tour item using its :id.
  */
-const updateTourItem = AsyncErrorWrapper(updateTour, retryHandler.LinearRetry);
+const updateTourItem = AsyncErrorWrapper(updateTour, RetryHandler.LinearRetry);
 
 /**
  * Deletes a tour item using its :id.
  */
-const deleteTourItem = AsyncErrorWrapper(deleteTour, retryHandler.LinearRetry);
+const deleteTourItem = AsyncErrorWrapper(deleteTour, RetryHandler.LinearRetry);
 
 /**
  * Complete a tour item using its :id.
  */
 const completeTourItem = AsyncErrorWrapper(
   completeTour,
-  retryHandler.LinearRetry
+  RetryHandler.LinearRetry
 );
 
 /**
  * Cancels a tour item using its :id.
  */
-const cancelTourItem = AsyncErrorWrapper(cancelTour, retryHandler.LinearRetry);
+const cancelTourItem = AsyncErrorWrapper(cancelTour, RetryHandler.LinearRetry);
 
 /**
  * reopens a cancelled tour using its :id.
  */
-const reopenTourItem = AsyncErrorWrapper(reopenTour, retryHandler.LinearRetry);
+const reopenTourItem = AsyncErrorWrapper(reopenTour, RetryHandler.LinearRetry);
 
 /**
  * schedule a new tour.
  */
 const scheduleTourItem = AsyncErrorWrapper(
   scheduleTour,
-  retryHandler.LinearRetry
+  RetryHandler.LinearRetry
 );
 
 /**
@@ -544,7 +548,7 @@ const scheduleTourItem = AsyncErrorWrapper(
  */
 const rescheduleTourItem = AsyncErrorWrapper(
   rescheduleTour,
-  retryHandler.LinearRetry
+  RetryHandler.LinearRetry
 );
 
 /**
