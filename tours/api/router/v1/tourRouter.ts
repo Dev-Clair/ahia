@@ -26,17 +26,22 @@ TourRouterV1.route("/:id/status/cancel").patch(tourController.cancelTourItem);
 
 TourRouterV1.route("/:id/status/reopen").patch(tourController.reopenTourItem);
 
-TourRouterV1.route("/:id/schedule").post(
+TourRouterV1.route("/:id/schedule").patch(
   tourMiddleWare.checkIdempotencyKey,
   tourController.scheduleTourItem
 );
 
-TourRouterV1.route("/:id/schedule/accept/:scheduleId").put(
-  tourController.acceptProposedTourSchedule
+TourRouterV1.route("/:id/reschedule").post(
+  tourMiddleWare.checkIdempotencyKey,
+  tourController.rescheduleTourItem
 );
 
-TourRouterV1.route("/:id/schedule/reject/:scheduleId").put(
-  tourController.rejectProposedTourSchedule
+TourRouterV1.route("/:id/reschedule/accept/:rescheduleId").put(
+  tourController.acceptProposedTourReschedule
+);
+
+TourRouterV1.route("/:id/reschedule/reject/:rescheduleId").put(
+  tourController.rejectProposedTourReschedule
 );
 
 export default TourRouterV1;
