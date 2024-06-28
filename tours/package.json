@@ -8,12 +8,13 @@
   },
   "keywords": [
     "ahia",
+    "api",
     "tours",
     "service"
   ],
   "author": "Aniogbu  Samuel",
   "license": "ISC",
-  "description": "tours service for ahia marketplace",
+  "description": "tours api service for ahia marketplace",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",
     "@aws-sdk/client-ses": "^3.600.0",
