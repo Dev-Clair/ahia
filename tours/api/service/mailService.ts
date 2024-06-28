@@ -9,16 +9,15 @@ const configuration: SESClientConfig = [];
 const client: SESClient = new SESClient(configuration);
 
 const SendEmail = async (
-  message: string,
-  text: string,
-  html: string,
-  from: string,
   to: [string],
+  subject: string,
+  text: string,
   cc?: [string],
-  bcc?: [string]
+  bcc?: [string],
+  html?: string
 ) => {
-  const createInput = {
-    Source: from,
+  const input = {
+    Source: "",
     Destination: {
       ToAddresses: to,
       CcAddresses: cc,
@@ -26,7 +25,7 @@ const SendEmail = async (
     },
     Message: {
       Subject: {
-        Data: message,
+        Data: subject,
         Charset: "UTF-8",
       },
       Body: {
@@ -53,7 +52,7 @@ const SendEmail = async (
     // ConfigurationSetName: "",
   };
 
-  const command = new SendEmailCommand(createInput);
+  const command = new SendEmailCommand(input);
 
   const response = await client.send(command);
 
