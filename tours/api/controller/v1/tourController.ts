@@ -7,11 +7,7 @@ import TourModel from "../../model/tourModel";
 import TourIdempotencyModel from "../../model/tourIdempotencyModel";
 import TourScheduleModel from "../../model/tourScheduleModel";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
-import {
-  ExponentialRetry,
-  LinearJitterRetry,
-  LinearRetry,
-} from "../../utils/retryHandler/retryHandler";
+import retryHandler from "../../utils/retryHandler/retryHandler";
 import notificationHandler from "../../utils/notificationHandler/notificationHandler";
 
 const createTour = async (
@@ -26,7 +22,7 @@ const createTour = async (
   } = req.body;
 
   if (!transactionRef || !customerId || !listingIds) {
-    throw new PaymentEventPayloadError("Invalid request body detail structure");
+    throw new PaymentEventPayloadError("Invalid request body data structure");
   }
 
   await TourIdempotencyModel.findOne({ key: transactionRef })
@@ -43,7 +39,7 @@ const createTour = async (
 
   await TourModel.create(req.body)
     .then(async (tour) => {
-      const response = { message: "", data: tour };
+      const response = { message: "Created", data: tour };
 
       await TourIdempotencyModel.create({
         key: transactionRef,
@@ -52,7 +48,7 @@ const createTour = async (
 
       // await notificationHandler.notifyCustomer();
 
-      return;
+      return res.status(201).json(response);
     })
     .catch((err) => next(err));
 };
@@ -288,6 +284,57 @@ const scheduleTour = async (
 ): Promise<typeof Response | void> => {
   const tourId = req.params.id;
 
+  const { scheduledDate, scheduledTime } = req.body;
+
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  await TourIdempotencyModel.findOne({
+    key: idempotencyKey,
+  })
+    .then((verifyOperationIdempotency) => {
+      if (verifyOperationIdempotency) {
+        res
+          .status(HttpStatusCode.CREATED)
+          .json(verifyOperationIdempotency.response);
+      }
+    })
+    .catch((err) => next(err));
+
+  await TourModel.findByIdAndUpdate(
+    { id: tourId },
+    { scheduledDate: scheduledDate, scheduledTime: scheduledTime },
+    { new: true }
+  )
+    .then(async (tour) => {
+      if (!tour) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tour found for id: ${req.params.id}`
+        );
+      }
+      const response = {
+        message:
+          "your tour schedule have been set. A realtor will be assigned to you shortly based on your schedule date and time.",
+        data: tour,
+      };
+
+      await TourIdempotencyModel.create({
+        key: idempotencyKey,
+        response: response,
+      });
+
+      return res.status(HttpStatusCode.CREATED).json(response);
+    })
+    .catch((err) => next(err));
+};
+
+const rescheduleTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<typeof Response | void> => {
+  const tourId = req.params.id;
+
   const { proposedDate, proposedTime } = req.body;
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
@@ -297,7 +344,9 @@ const scheduleTour = async (
   })
     .then((verifyOperationIdempotency) => {
       if (verifyOperationIdempotency) {
-        res.status(HttpStatusCode.OK).json(verifyOperationIdempotency.response);
+        res
+          .status(HttpStatusCode.CREATED)
+          .json(verifyOperationIdempotency.response);
       }
     })
     .catch((err) => next(err));
@@ -317,7 +366,7 @@ const scheduleTour = async (
     .then(async (schedule) => {
       const response = {
         message:
-          "your tour schedule have been set. A realtor will be assigned to you shortly based on your schedule date and time.",
+          "your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
         data: schedule,
       };
 
@@ -331,7 +380,7 @@ const scheduleTour = async (
     .catch((err) => next(err));
 };
 
-const acceptTourSchedule = async (
+const acceptTourRechedule = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -374,7 +423,7 @@ const acceptTourSchedule = async (
     .catch((err) => next(err));
 };
 
-const rejectTourSchedule = async (
+const rejectTourReschedule = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -402,85 +451,111 @@ const rejectTourSchedule = async (
  */
 const createTourCollection = AsyncErrorWrapper(
   createTour,
-  ExponentialRetry
+  retryHandler.ExponentialRetry
   // { retries: 3, factor: 2, minTimeout: 10000 }
 );
 
 /**
  * Retrieve collection of tours.
  */
-const retrieveTourCollection = AsyncErrorWrapper(getTours, LinearJitterRetry, {
-  retries: 2,
-  jitterFactor: 1000,
-  minTimeout: 5000,
-});
+const retrieveTourCollection = AsyncErrorWrapper(
+  getTours,
+  retryHandler.LinearJitterRetry,
+  {
+    retries: 2,
+    jitterFactor: 1000,
+    minTimeout: 5000,
+  }
+);
 
 /**
  * Retrieve collection of tours based on search parameter.
  */
-const retrieveTourSearch = AsyncErrorWrapper(getTourSearch, LinearJitterRetry, {
-  retries: 2,
-  jitterFactor: 1000,
-  minTimeout: 5000,
-});
+const retrieveTourSearch = AsyncErrorWrapper(
+  getTourSearch,
+  retryHandler.LinearJitterRetry,
+  {
+    retries: 2,
+    jitterFactor: 1000,
+    minTimeout: 5000,
+  }
+);
 
 /**
  * Retrieve a tour item using its :id.
  */
-const retrieveTourItem = AsyncErrorWrapper(getTour, LinearJitterRetry, {
-  retries: 3,
-  jitterFactor: 1000,
-  minTimeout: 7500,
-});
+const retrieveTourItem = AsyncErrorWrapper(
+  getTour,
+  retryHandler.LinearJitterRetry,
+  {
+    retries: 3,
+    jitterFactor: 1000,
+    minTimeout: 7500,
+  }
+);
 
 /**
  * Replace a tour item using its :id.
  */
 const replaceTourItem = AsyncErrorWrapper(
   replaceTour,
-  ExponentialRetry
+  retryHandler.ExponentialRetry
   // { retries: 3, factor: 2, minTimeout: 10000 }
 );
 
 /**
  * Updates a tour item using its :id.
  */
-const updateTourItem = AsyncErrorWrapper(updateTour, LinearRetry);
+const updateTourItem = AsyncErrorWrapper(updateTour, retryHandler.LinearRetry);
 
 /**
  * Deletes a tour item using its :id.
  */
-const deleteTourItem = AsyncErrorWrapper(deleteTour, LinearRetry);
+const deleteTourItem = AsyncErrorWrapper(deleteTour, retryHandler.LinearRetry);
 
 /**
  * Complete a tour item using its :id.
  */
-const completeTourItem = AsyncErrorWrapper(completeTour, LinearRetry);
+const completeTourItem = AsyncErrorWrapper(
+  completeTour,
+  retryHandler.LinearRetry
+);
 
 /**
  * Cancels a tour item using its :id.
  */
-const cancelTourItem = AsyncErrorWrapper(cancelTour, LinearRetry);
+const cancelTourItem = AsyncErrorWrapper(cancelTour, retryHandler.LinearRetry);
 
 /**
  * reopens a cancelled tour using its :id.
  */
-const reopenTourItem = AsyncErrorWrapper(reopenTour, LinearRetry);
+const reopenTourItem = AsyncErrorWrapper(reopenTour, retryHandler.LinearRetry);
 
 /**
- * schedule a new tour or reschedules an existing tour.
+ * schedule a new tour.
  */
-const scheduleTourItem = AsyncErrorWrapper(scheduleTour, LinearRetry);
+const scheduleTourItem = AsyncErrorWrapper(
+  scheduleTour,
+  retryHandler.LinearRetry
+);
+
+/**
+ * reschedules an existing tour.
+ */
+const rescheduleTourItem = AsyncErrorWrapper(
+  rescheduleTour,
+  retryHandler.LinearRetry
+);
 
 /**
  * accepts proposed tour schedule.
  */
-const acceptProposedTourSchedule = AsyncErrorWrapper(acceptTourSchedule);
+const acceptProposedTourReschedule = AsyncErrorWrapper(acceptTourRechedule);
 
 /**
  * rejects proposed tour schedule.
  */
-const rejectProposedTourSchedule = AsyncErrorWrapper(rejectTourSchedule);
+const rejectProposedTourReschedule = AsyncErrorWrapper(rejectTourReschedule);
 
 /**
  * Handle not allowed operations
@@ -506,7 +581,8 @@ export default {
   cancelTourItem,
   reopenTourItem,
   scheduleTourItem,
-  acceptProposedTourSchedule,
-  rejectProposedTourSchedule,
+  rescheduleTourItem,
+  acceptProposedTourReschedule,
+  rejectProposedTourReschedule,
   operationNotAllowed,
 };
