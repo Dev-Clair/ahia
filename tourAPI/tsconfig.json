@@ -32,6 +32,6 @@
     "strict": true, // Enable all strict type-checking options
     "skipLibCheck": true // Skip type checking of declaration files
   },
-  "include": ["src/**/*.ts"], // Include all TypeScript files in the src directory
+  "include": ["./**/*.ts"], // Include all TypeScript files in the src directory
   "exclude": ["node_modules", "dist"] // Exclude node_modules and dist directories
 }
