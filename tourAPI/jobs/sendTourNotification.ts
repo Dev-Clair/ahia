@@ -1,8 +1,8 @@
 import axios from "axios";
-import TourModel from "../api/model/tourModel";
-import MapCache from "../api/service/cacheService";
-import SendEmail from "../api/service/mailService";
-import retryHandler from "../api/utils/retryHandler/retryHandler";
+import TourModel from "../src/model/tourModel";
+import MapCache from "../src/service/cacheService";
+import SendEmail from "../src/service/mailService";
+import retryHandler from "../src/utils/retryHandler/retryHandler";
 
 const getUserEmail = async (userId: string) => {
   return "";
