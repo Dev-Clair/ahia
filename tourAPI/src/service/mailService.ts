@@ -9,15 +9,16 @@ const configuration: SESClientConfig = [];
 const client: SESClient = new SESClient(configuration);
 
 const SendEmail = async (
+  from: string,
   to: [string],
   subject: string,
   text: string,
+  html?: string,
   cc?: [string],
-  bcc?: [string],
-  html?: string
+  bcc?: [string]
 ) => {
   const input = {
-    Source: "",
+    Source: from,
     Destination: {
       ToAddresses: to,
       CcAddresses: cc,
