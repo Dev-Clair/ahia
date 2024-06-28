@@ -23,7 +23,7 @@ const Connection = async (connectionUri) => {
 
       setTimeout(() => Connection(connectionUri), retryDelay);
     } else {
-      console.log(
+      console.error(
         `Database connection error\nMax retries reached, Could not establish connection to database:\n${err.message}`
       );
     }
@@ -39,7 +39,7 @@ mongoose.connection.on("connected", () => {
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.log("Database connection failure");
+  console.error("Database connection failure");
 });
 
 mongoose.connection.on("reconnected", () => {
