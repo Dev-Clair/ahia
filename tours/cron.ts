@@ -6,6 +6,7 @@ const Cron = new Bree({
     {
       name: "sendTourNotification",
       path: path.join(__dirname, "jobs", "sendTourNotification.ts"),
+      timeout: "30 mins",
       interval: "1 hour",
     },
   ],
