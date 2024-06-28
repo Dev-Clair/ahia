@@ -1,9 +1,7 @@
 import mongoose from "mongoose";
-import {
-  ExponentialRetry,
-  LinearJitterRetry,
-} from "./api/utils/retryHandler/retryHandler";
 import Logger from "./api/service/loggerService";
+import retryHandler from "./api/utils/retryHandler/retryHandler";
+import notificationHandler from "./api/utils/notificationHandler/notificationHandler";
 
 const establishConnection = async (
   connectionUri: string
@@ -19,42 +17,46 @@ const Connection = async (
   connectionUri: string
 ): Promise<void | typeof mongoose> => {
   try {
-    ExponentialRetry(establishConnection(connectionUri));
+    await retryHandler.ExponentialRetry(() =>
+      establishConnection(connectionUri)
+    );
   } catch (err1: any) {
     Logger.error(
-      `${__filename}: Exponential retry strategy failed, switching to linear jitter backoff. Error: ${err1.message}`
+      `Exponential retry strategy failed, switching to linear jitter backoff. Error: ${err1.message}`
     );
     try {
-      LinearJitterRetry(establishConnection(connectionUri));
+      await retryHandler.LinearJitterRetry(() =>
+        establishConnection(connectionUri)
+      );
     } catch (err2: any) {
       Logger.error(
-        `${__filename}: Linear jitter retry strategy failed as well. Final error: ${err2.message}`
+        `Linear jitter retry strategy failed as well. Final error: ${err2.message}`
       );
       const subject = "Database Connection Failure";
 
       const message = `Backoff retry strategies failed. Could not establish connection to the database. Error: ${err2.message}`;
 
-      // await notificationHandler.notifyAdmin();
+      await notificationHandler.notifyAdmin(subject, message, [""]);
 
-      process.exitCode = 1;
+      process.kill(process.pid, "SIGTERM");
     }
   }
 };
 
 mongoose.connection.on("connecting", () => {
-  console.log(`${__filename}: Attempting connection to database`);
+  console.log(`Attempting connection to database`);
 });
 
 mongoose.connection.on("connected", () => {
-  console.log(`${__filename}: Database connection successful`);
+  console.log(`Database connection successful`);
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.error(`${__filename}: Database connection failure`);
+  console.error(`Database connection failure`);
 });
 
 mongoose.connection.on("reconnected", () => {
-  console.log(`${__filename}: Database reconnection successful`);
+  console.log(`Database reconnection successful`);
 });
 
 export default Connection;
