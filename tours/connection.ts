@@ -3,7 +3,7 @@ import {
   ExponentialRetry,
   LinearJitterRetry,
 } from "./api/utils/retryHandler/retryHandler";
-import logger from "./api/service/loggerService";
+import Logger from "./api/service/loggerService";
 
 const establishConnection = async (
   connectionUri: string
@@ -21,13 +21,13 @@ const Connection = async (
   try {
     ExponentialRetry(establishConnection(connectionUri));
   } catch (err1: any) {
-    logger.error(
+    Logger.error(
       `${__filename}: Exponential retry strategy failed, switching to linear jitter backoff. Error: ${err1.message}`
     );
     try {
       LinearJitterRetry(establishConnection(connectionUri));
     } catch (err2: any) {
-      logger.error(
+      Logger.error(
         `${__filename}: Linear jitter retry strategy failed as well. Final error: ${err2.message}`
       );
       const subject = "Database Connection Failure";

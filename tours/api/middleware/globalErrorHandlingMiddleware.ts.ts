@@ -1,12 +1,12 @@
 import APIError from "../error/apiError";
-import logger from "../service/loggerService";
+import Logger from "../service/loggerService";
 import notificationHandler from "../utils/notificationHandler/notificationHandler";
 
 class GlobalErrorHandlingMiddleware {
   public async handleAPIError(err: Error): Promise<void> {
     console.log(err.name, err.message, err.stack);
 
-    // logger.error(`name: ${err.name}\n message: ${err.message}`);
+    // Logger.error(`name: ${err.name}\n message: ${err.message}`);
 
     // await notificationHandler.notifyAdmin();
   }
