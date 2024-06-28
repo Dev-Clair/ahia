@@ -1,35 +1,15 @@
-import TourModel from "../../model/tourModel";
+import axios from "axios";
 import SendEmail from "../../service/mailService";
 import retryHandler from "../retryHandler/retryHandler";
 
-const notifyAdmin = async (
-  subject: String,
-  body: String,
+const NotifyUser = async (
+  from: string,
   toAddresses: [String],
+  subject: String,
+  text: String,
   ccAddresses?: [String],
   bccAddresses?: [String]
 ) => {
-  console.log(subject, body, toAddresses);
+  console.log(from, subject, text, toAddresses);
 };
-
-const notifyRealtor = async (
-  subject: String,
-  body: String,
-  toAddresses: [String],
-  ccAddresses?: [String],
-  bccAddresses?: [String]
-) => {
-  console.log(subject, body, toAddresses);
-};
-
-const notifyCustomer = async (
-  subject: String,
-  body: String,
-  toAddresses: [String],
-  ccAddresses?: [String],
-  bccAddresses?: [String]
-) => {
-  console.log(subject, body, toAddresses);
-};
-
-export default { notifyAdmin, notifyRealtor, notifyCustomer };
+export default NotifyUser;
