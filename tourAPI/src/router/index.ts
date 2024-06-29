@@ -5,6 +5,7 @@ import HttpStatusCode from "../enum/httpStatusCode";
 import APIError from "../error/apiError";
 import NotFoundError from "../error/notfoundError";
 import BadRequestError from "../error/badrequestError";
+import UnprocessableEntityError from "../error/unprocessableentityError";
 import GlobalErrorHandler from "../middleware/globalErrorHandlingMiddleware.ts";
 
 const TourRouter = Router();
@@ -25,10 +26,34 @@ TourRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
 TourRouter.use(
   (err: Error, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof SyntaxError) {
-      next(new BadRequestError(HttpStatusCode.BAD_REQUEST, "Bad JSON"));
+      next(
+        new BadRequestError(HttpStatusCode.BAD_REQUEST, "Bad or Malformed JSON")
+      );
+    } else {
+      next(err);
     }
+  }
+);
 
-    next(err);
+TourRouter.use(
+  (err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (GlobalErrorHandler.isSafeError(err)) {
+      next(
+        new UnprocessableEntityError(
+          HttpStatusCode.UNPROCESSABLE_ENTITY,
+          err.message
+        )
+      );
+    } else {
+      next(
+        new APIError(
+          "MONGOOSE_ERROR",
+          HttpStatusCode.INTERNAL_SERVER_ERROR,
+          false,
+          err.message
+        )
+      );
+    }
   }
 );
 
@@ -38,12 +63,18 @@ TourRouter.use(
       return res
         .status(err.httpStatusCode)
         .json({ error: err.name, message: err.message });
+    } else {
+      next(err);
     }
+  }
+);
 
-    GlobalErrorHandler.handleAPIError(err);
+TourRouter.use(
+  (err: Error, req: Request, res: Response, next: NextFunction) => {
+    GlobalErrorHandler.handleError(err);
 
-    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-      error: "INTERNAL SERVER ERROR",
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      error: "INTERNAL_SERVER_ERROR",
       message:
         "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly.",
     });
