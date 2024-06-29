@@ -1,12 +1,48 @@
-const https = require("node:https");
-const Config = require("./config");
-const Connection = require("./connection");
+const https = require("https");
+const crypto = require("crypto");
 
-exports.hello = async (event, context) => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: "Go Serverless v4! Your function executed successfully!",
-    }),
+const generateIdempotencyKey = () => {
+  return crypto.randomBytes(16).toString("hex");
+};
+
+exports.handler = async (event, context) => {
+  const payload = event.detail;
+  const idempotencyKey = generateIdempotencyKey();
+
+  const options = {
+    hostname: "tourAPI.elasticbeanstalk.com",
+    path: "/api/v1/tours/",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": idempotencyKey,
+    },
   };
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let data = "";
+
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+
+      res.on("end", () => {
+        resolve({
+          statusCode: res.statusCode,
+          body: data,
+        });
+      });
+    });
+
+    req.on("error", (err) => {
+      reject({
+        statusCode: 500,
+        body: "Error: " + err.message,
+      });
+    });
+
+    req.write(JSON.stringify(payload));
+    req.end();
+  });
 };

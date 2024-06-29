@@ -13,7 +13,7 @@ provider:
   memorySize: 512
 
 functions:
-  ahia-tour-service:
+  ahia-tour-command-service:
     handler: handler.tour
     events:
       - eventBridge:
