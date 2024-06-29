@@ -28,10 +28,10 @@ const createTour = async (
   await TourIdempotencyModel.findOne({ key: transactionRef })
     .then((verifyOperationIdempotency) => {
       if (verifyOperationIdempotency) {
-        // notificationHandler.notifyAdmin();
+        // NotifyUser(); // Admin
 
         throw new DuplicateTransactionError(
-          `Duplicate event detected: ${transactionRef}`
+          `Duplicate transaction reference detected: ${transactionRef}`
         );
       }
     })
@@ -39,16 +39,16 @@ const createTour = async (
 
   await TourModel.create(req.body)
     .then(async (tour) => {
-      const response = { message: "Created", data: tour };
+      const response = { message: "Created" };
 
       await TourIdempotencyModel.create({
         key: transactionRef,
         response: response,
       });
 
-      // await notifyUser();
+      // await NotifyUser(); // Customer
 
-      return res.status(201).json(response);
+      return res.status(HttpStatusCode.CREATED).json(response);
     })
     .catch((err) => next(err));
 };
