@@ -20,9 +20,7 @@ class GlobalErrorHandlingMiddleware {
 
   public isSafeError(err: Error): Boolean {
     if (err instanceof MongooseError) {
-      if (err.name === "ValidationError" || "CastError") {
-        return true;
-      }
+      return true;
     }
 
     return false;

@@ -38,21 +38,25 @@ TourRouter.use(
 TourRouter.use(
   (err: Error, req: Request, res: Response, next: NextFunction) => {
     if (GlobalErrorHandler.isSafeError(err)) {
-      next(
-        new UnprocessableEntityError(
-          HttpStatusCode.UNPROCESSABLE_ENTITY,
-          err.message
-        )
-      );
+      if (err.name === "ValidationError" || "CastError") {
+        next(
+          new UnprocessableEntityError(
+            HttpStatusCode.UNPROCESSABLE_ENTITY,
+            err.message
+          )
+        );
+      } else {
+        next(
+          new APIError(
+            "MONGOOSE_ERROR",
+            HttpStatusCode.INTERNAL_SERVER_ERROR,
+            false,
+            err.message
+          )
+        );
+      }
     } else {
-      next(
-        new APIError(
-          "MONGOOSE_ERROR",
-          HttpStatusCode.INTERNAL_SERVER_ERROR,
-          false,
-          err.message
-        )
-      );
+      next(err);
     }
   }
 );
