@@ -410,7 +410,7 @@ const acceptTourRechedule = async (
         },
         { new: true }
       )
-        .then((tour) => {
+        .then(async (tour) => {
           if (!tour) {
             throw new NotFoundError(
               HttpStatusCode.NOT_FOUND,
@@ -437,7 +437,7 @@ const rejectTourReschedule = async (
     { status: "rejected" },
     { new: true }
   )
-    .then((schedule) => {
+    .then(async (schedule) => {
       if (!schedule || schedule.status !== "pending") {
         throw new NotFoundError(
           HttpStatusCode.NOT_FOUND,
