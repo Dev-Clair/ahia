@@ -5,16 +5,14 @@ import NotifyUser from "../utils/notificationHandler/notificationHandler";
 
 class GlobalErrorHandlingMiddleware {
   public async handleError(err: Error): Promise<void> {
-    console.log(err.name, err.message, err.stack);
-
-    // Logger.error(`name: ${err.name}\n message: ${err.message}`);
+    Logger.error(`name: ${err.name}\n message: ${err.message}`);
 
     // await NotifyUser();
   }
 
-  public isTrustedError(err: Error): Boolean {
-    if (err instanceof APIError) {
-      return err.isOperational;
+  public isSyntaxError(err: Error): Boolean {
+    if (err instanceof SyntaxError) {
+      return true;
     }
 
     return false;
@@ -22,13 +20,17 @@ class GlobalErrorHandlingMiddleware {
 
   public isSafeError(err: Error): Boolean {
     if (err instanceof MongooseError) {
-      if (err.name === "ValidationError") {
+      if (err.name === "ValidationError" || "CastError") {
         return true;
-      } else if (err.name === "CastError") {
-        return true;
-      } else {
-        return false;
       }
+    }
+
+    return false;
+  }
+
+  public isTrustedError(err: Error): Boolean {
+    if (err instanceof APIError) {
+      return err.isOperational;
     }
 
     return false;

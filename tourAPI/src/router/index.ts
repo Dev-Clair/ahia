@@ -25,7 +25,7 @@ TourRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
 
 TourRouter.use(
   (err: Error, req: Request, res: Response, next: NextFunction) => {
-    if (err instanceof SyntaxError) {
+    if (GlobalErrorHandler.isSyntaxError(err)) {
       next(
         new BadRequestError(HttpStatusCode.BAD_REQUEST, "Bad or Malformed JSON")
       );
