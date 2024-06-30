@@ -1,6 +1,5 @@
-import axios from "axios";
 import SendEmail from "../../service/mailService";
-import retryHandler from "../retryHandler/retryHandler";
+import RetryHandler from "../retryHandler/retryHandler";
 
 const NotifyUser = async (
   from: string,
@@ -12,4 +11,5 @@ const NotifyUser = async (
 ) => {
   console.log(from, subject, text, toAddresses);
 };
+
 export default NotifyUser;

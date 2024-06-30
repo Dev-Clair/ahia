@@ -1,4 +1,3 @@
-import axios from "axios";
 import TourModel from "../src/model/tourModel";
 import MapCache from "../src/service/cacheService";
 import SendEmail from "../src/service/mailService";
