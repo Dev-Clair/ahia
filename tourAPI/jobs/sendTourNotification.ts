@@ -1,54 +1,46 @@
 import TourModel from "../src/model/tourModel";
-import MapCache from "../src/service/cacheService";
-import SendEmail from "../src/service/mailService";
-import retryHandler from "../src/utils/retryHandler/retryHandler";
+import ProcessManager from "../cronTourNotificationProcessManager";
 
-const getUserEmail = async (userId: string) => {
-  return "";
-};
+async function* retrieveToursGenerator() {
+  const tours = await TourModel.find({
+    scheduledDate: { $gte: new Date() },
+    status: "pending",
+  });
 
-const emailCache = new MapCache();
+  const now = new Date().getTime();
 
-const retrieveTours = async () => {
-  // const tours = await TourModel.find({
-  //   scheduledDate: { $gte: new Date() },
-  //   status: "pending",
-  // });
-  // for (const tour of tours) {
-  //   const { realtorId, customerId, scheduledDate, scheduledTime } = tour;
-  //   const now = Date.now();
-  //   const tourDate = scheduledDate;
-  //   const diff = tourDate - now;
-  //   if (diff <= 6 * 60 * 60 * 1000) {
-  //     return {
-  //       customerId: customerId,
-  //       realtorId: realtorId,
-  //       tourDate: scheduledDate,
-  //       tourTime: scheduledTime,
-  //     };
-  //   }
-  //   return;
-  // }
-};
+  for (const tour of tours) {
+    const { realtorId, customerId, scheduledDate, scheduledTime } = tour;
+    const tourDateTime = new Date(scheduledDate);
+    tourDateTime.setHours(parseInt(scheduledTime.split(":")[0], 10));
+    tourDateTime.setMinutes(parseInt(scheduledTime.split(":")[1], 10));
+    const diff = tourDateTime.getTime() - now;
+
+    if (diff <= 6 * 60 * 60 * 1000 && diff > 0) {
+      yield {
+        customerId,
+        realtorId,
+        tourDate: scheduledDate,
+        tourTime: scheduledTime,
+      };
+    }
+  }
+}
 
 const sendTourNotification = async () => {
-  console.log(__filename);
-  // const { customerId, realtorId, tourDate, tourTime } = retrieveTours();
-  // let customerEmail = emailCache.get(customerId);
-  // let realtorEmail = emailCache.get(realtorId);
-  // if (!customerEmail) {
-  //   customerEmail = await getUserEmail(customerId);
-  //   emailCache.set(customerId, customerEmail);
-  // }
-  // if (!realtorEmail) {
-  //   realtorEmail = await getUserEmail(realtorId);
-  //   emailCache.set(realtorId, realtorEmail);
-  // }
-  // const subject = "Tour Reminder";
-  // const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.`;
-  // return ExponentialRetry(
-  //   SendEmail(customerEmail, subject, text, realtorEmail)
-  // );
+  const toursGenerator = retrieveToursGenerator();
+
+  for await (const tour of toursGenerator) {
+    const { customerId, realtorId, tourDate, tourTime } = tour;
+    await ProcessManager.processTourNotification(
+      customerId,
+      realtorId,
+      tourDate,
+      tourTime
+    );
+  }
+
+  await ProcessManager.processDeadLetterQueue();
 };
 
 sendTourNotification();
