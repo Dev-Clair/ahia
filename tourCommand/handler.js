@@ -7,10 +7,11 @@ const generateIdempotencyKey = () => {
 
 exports.handler = async (event, context) => {
   const payload = event.detail;
+
   const idempotencyKey = generateIdempotencyKey();
 
   const options = {
-    hostname: "tourAPI.elasticbeanstalk.com",
+    hostname: "",
     path: "/api/v1/tours/",
     method: "POST",
     headers: {
@@ -43,6 +44,7 @@ exports.handler = async (event, context) => {
     });
 
     req.write(JSON.stringify(payload));
+
     req.end();
   });
 };
