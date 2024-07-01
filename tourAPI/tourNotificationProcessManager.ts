@@ -4,17 +4,18 @@ import SendEmail from "./src/service/mailService";
 import getUserEmail from "./src/utils/getUserEmail";
 
 const emailCache = new MapCache();
-const deadLetterQueue = new MapCache();
 
-class ProcessManager {
+const failureCache = new MapCache();
+
+class TourNotificationProcessManager {
   static async processTourNotification(
     customerId: string,
     realtorId: string,
     tourDate: Date,
     tourTime: string
   ) {
-    let customerEmail = emailCache.get(customerId);
-    let realtorEmail = emailCache.get(realtorId);
+    let customerEmail: string = emailCache.get(customerId);
+    let realtorEmail: string = emailCache.get(realtorId);
 
     try {
       if (!customerEmail) {
@@ -41,7 +42,7 @@ class ProcessManager {
       console.error(
         `Failed to process transaction for customer ${customerId} and realtor ${realtorId}: ${err.message}`
       );
-      deadLetterQueue.set(customerId, {
+      failureCache.set(customerId, {
         customerId,
         realtorId,
         tourDate,
@@ -50,15 +51,15 @@ class ProcessManager {
     }
   }
 
-  static async processDeadLetterQueue() {
+  static async processFailureCache() {
     for (const [
       customerId,
       { customerId: cid, realtorId, tourDate, tourTime },
-    ] of deadLetterQueue.entries()) {
+    ] of failureCache.entries()) {
       await this.processTourNotification(cid, realtorId, tourDate, tourTime);
-      deadLetterQueue.delete(customerId);
+      failureCache.delete(customerId);
     }
   }
 }
 
-export default ProcessManager;
+export default TourNotificationProcessManager;
