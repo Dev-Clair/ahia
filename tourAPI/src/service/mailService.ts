@@ -17,47 +17,49 @@ const SendEmail = async (
   cc?: [string],
   bcc?: [string]
 ) => {
-  const input = {
-    Source: from,
-    Destination: {
-      ToAddresses: to,
-      CcAddresses: cc,
-      BccAddresses: bcc,
-    },
-    Message: {
-      Subject: {
-        Data: subject,
-        Charset: "UTF-8",
-      },
-      Body: {
-        Text: {
-          Data: text,
-          Charset: "UTF-8",
-        },
-        Html: {
-          Data: html,
-          Charset: "UTF-8",
-        },
-      },
-    },
-    // ReplyToAddresses: [],
-    // ReturnPath: "",
-    SourceArn: "",
-    // ReturnPathArn: "",
-    // Tags: [
-    //   {
-    //     Name: "",
-    //     Value: "",
-    //   },
-    // ],
-    // ConfigurationSetName: "",
-  };
+  console.log(from, to, subject, text, html, cc, bcc);
 
-  const command = new SendEmailCommand(input);
+  // const input = {
+  //   Source: from,
+  //   Destination: {
+  //     ToAddresses: to,
+  //     CcAddresses: cc,
+  //     BccAddresses: bcc,
+  //   },
+  //   Message: {
+  //     Subject: {
+  //       Data: subject,
+  //       Charset: "UTF-8",
+  //     },
+  //     Body: {
+  //       Text: {
+  //         Data: text,
+  //         Charset: "UTF-8",
+  //       },
+  //       Html: {
+  //         Data: html,
+  //         Charset: "UTF-8",
+  //       },
+  //     },
+  //   },
+  //   // ReplyToAddresses: [],
+  //   // ReturnPath: "",
+  //   SourceArn: "",
+  //   // ReturnPathArn: "",
+  //   // Tags: [
+  //   //   {
+  //   //     Name: "",
+  //   //     Value: "",
+  //   //   },
+  //   // ],
+  //   // ConfigurationSetName: "",
+  // };
 
-  const response = await client.send(command);
+  // const command = new SendEmailCommand(input);
 
-  return response;
+  // const response = await client.send(command);
+
+  // return response;
 };
 
 export default SendEmail;

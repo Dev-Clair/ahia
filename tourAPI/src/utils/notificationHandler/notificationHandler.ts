@@ -3,13 +3,13 @@ import RetryHandler from "../retryHandler/retryHandler";
 
 const NotifyUser = async (
   from: string,
-  toAddresses: [String],
+  to: [String],
   subject: String,
   text: String,
-  ccAddresses?: [String],
-  bccAddresses?: [String]
+  cc?: [String],
+  bcc?: [String]
 ) => {
-  console.log(from, subject, text, toAddresses);
+  console.log(from, to, subject, text);
 };
 
 export default NotifyUser;

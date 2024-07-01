@@ -1,5 +1,5 @@
 import TourModel from "../src/model/tourModel";
-import ProcessManager from "../cronTourNotificationProcessManager";
+import TourNotificationProcessManager from "../tourNotificationProcessManager";
 
 async function* retrieveToursGenerator() {
   const tours = await TourModel.find({
@@ -32,7 +32,7 @@ const sendTourNotification = async () => {
 
   for await (const tour of toursGenerator) {
     const { customerId, realtorId, tourDate, tourTime } = tour;
-    await ProcessManager.processTourNotification(
+    await TourNotificationProcessManager.processTourNotification(
       customerId,
       realtorId,
       tourDate,
@@ -40,7 +40,7 @@ const sendTourNotification = async () => {
     );
   }
 
-  await ProcessManager.processDeadLetterQueue();
+  await TourNotificationProcessManager.processFailureCache();
 };
 
 sendTourNotification();
