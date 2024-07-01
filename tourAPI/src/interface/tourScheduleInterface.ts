@@ -1,9 +1,9 @@
 import { Document } from "mongoose";
 
 export default interface TourScheduleInterface extends Document {
-  tourId: String;
+  tourId: string;
   proposedDate: Date;
-  proposedTime: String;
+  proposedTime: string;
   status: "pending" | "accepted" | "rejected";
   createdAt: Date;
 }
