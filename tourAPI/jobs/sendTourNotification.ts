@@ -11,9 +11,13 @@ async function* retrieveToursGenerator() {
 
   for (const tour of tours) {
     const { realtorId, customerId, scheduledDate, scheduledTime } = tour;
+
     const tourDateTime = new Date(scheduledDate);
+
     tourDateTime.setHours(parseInt(scheduledTime.split(":")[0], 10));
+
     tourDateTime.setMinutes(parseInt(scheduledTime.split(":")[1], 10));
+
     const diff = tourDateTime.getTime() - now;
 
     if (diff <= 6 * 60 * 60 * 1000 && diff > 0) {
@@ -32,6 +36,7 @@ const sendTourNotification = async () => {
 
   for await (const tour of toursGenerator) {
     const { customerId, realtorId, tourDate, tourTime } = tour;
+
     await TourNotificationProcessManager.processTourNotification(
       customerId,
       realtorId,
