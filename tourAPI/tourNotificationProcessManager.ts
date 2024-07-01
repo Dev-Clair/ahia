@@ -1,6 +1,6 @@
 import MapCache from "./src/service/cacheService";
 import SendEmail from "./src/service/mailService";
-import getUserEmail from "./src/utils/getUserEmail";
+import GetUserEmail from "./src/utils/getUserEmail";
 import RetryHandler from "./src/utils/retryHandler/retryHandler";
 
 const emailCache = new MapCache();
@@ -21,14 +21,14 @@ class TourNotificationProcessManager {
     try {
       if (!customerEmail) {
         customerEmail = await RetryHandler.ExponentialRetry(() =>
-          getUserEmail(customerId)
+          GetUserEmail(customerId)
         );
         emailCache.set(customerId, customerEmail);
       }
 
       if (!realtorEmail) {
         realtorEmail = await RetryHandler.ExponentialRetry(() =>
-          getUserEmail(realtorId)
+          GetUserEmail(realtorId)
         );
         emailCache.set(realtorId, realtorEmail);
       }

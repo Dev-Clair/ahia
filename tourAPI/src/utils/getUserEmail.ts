@@ -1,6 +1,6 @@
 import https from "https";
 
-const getUserEmail = (userId: string): Promise<string> => {
+const GetUserEmail = (userId: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: "127.0.0.1:3999",
@@ -48,4 +48,4 @@ const getUserEmail = (userId: string): Promise<string> => {
   });
 };
 
-export default getUserEmail;
+export default GetUserEmail;
