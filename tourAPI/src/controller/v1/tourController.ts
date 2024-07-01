@@ -3,9 +3,9 @@ import HttpStatusCode from "../../enum/httpStatusCode";
 import NotFoundError from "../../error/notfoundError";
 import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
 import DuplicateTransactionError from "../../error/duplicateTransactionError";
-import TourModel from "../../model/tourModel";
-import TourIdempotencyModel from "../../model/tourIdempotencyModel";
-import TourScheduleModel from "../../model/tourScheduleModel";
+import Tour from "../../model/tourModel";
+import TourIdempotency from "../../model/tourIdempotencyModel";
+import TourSchedule from "../../model/tourScheduleModel";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
 import RetryHandler from "../../utils/retryHandler/retryHandler";
 import NotifyUser from "../../utils/notificationHandler/notificationHandler";
@@ -25,7 +25,7 @@ const createTour = async (
     throw new PaymentEventPayloadError("Invalid request body data structure");
   }
 
-  await TourIdempotencyModel.findOne({ key: transactionRef })
+  await TourIdempotency.findOne({ key: transactionRef })
     .then((verifyOperationIdempotency) => {
       if (verifyOperationIdempotency) {
         // NotifyUser(); // Admin
@@ -37,11 +37,11 @@ const createTour = async (
     })
     .catch((err) => next(err));
 
-  await TourModel.create(req.body)
+  await Tour.create(req.body)
     .then(async (tour) => {
       const response = { message: "Created" };
 
-      await TourIdempotencyModel.create({
+      await TourIdempotency.create({
         key: transactionRef,
         response: response,
       });
@@ -58,7 +58,7 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.find()
+  await Tour.find()
     .then((tours) => {
       if (!tours) {
         throw new NotFoundError(
@@ -80,7 +80,7 @@ const getTourSearch = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.find({
+  await Tour.find({
     // $text: { $search: req.query.q, $caseSensitive: false },
   })
     .then((tours) => {
@@ -104,7 +104,7 @@ const getTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.findById({ _id: req.params.id })
+  await Tour.findById({ _id: req.params.id })
     .then((tour) => {
       if (!tour) {
         throw new NotFoundError(
@@ -123,7 +123,7 @@ const replaceTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.findOneAndReplace({ id: req.params.id }, req.body, {
+  await Tour.findOneAndReplace({ id: req.params.id }, req.body, {
     new: true,
   })
     .then((tour) => {
@@ -146,7 +146,7 @@ const updateTour = async (
 ): Promise<typeof Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  await TourIdempotencyModel.findOne({
+  await TourIdempotency.findOne({
     key: idempotencyKey,
   })
     .then((verifyOperationIdempotency) => {
@@ -156,7 +156,7 @@ const updateTour = async (
     })
     .catch((err) => next(err));
 
-  await TourModel.findOneAndUpdate({ id: req.params.id }, req.body, {
+  await Tour.findOneAndUpdate({ id: req.params.id }, req.body, {
     new: true,
   })
     .then(async (tour) => {
@@ -167,7 +167,7 @@ const updateTour = async (
         );
       }
 
-      await TourIdempotencyModel.create({
+      await TourIdempotency.create({
         key: idempotencyKey,
         response: null,
       });
@@ -182,7 +182,7 @@ const completeTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.findOneAndUpdate(
+  await Tour.findOneAndUpdate(
     { id: req.params.id },
     { status: "completed", isClosed: true },
     {
@@ -209,7 +209,7 @@ const cancelTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.findOneAndUpdate(
+  await Tour.findOneAndUpdate(
     { id: req.params.id },
     { status: "cancelled", isClosed: true },
     {
@@ -236,7 +236,7 @@ const reopenTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.findOneAndUpdate(
+  await Tour.findOneAndUpdate(
     { id: req.params.id, status: "cancelled" },
     { isClosed: false },
     {
@@ -263,7 +263,7 @@ const deleteTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await TourModel.findOneAndUpdate({ id: req.params.id })
+  await Tour.findOneAndUpdate({ id: req.params.id })
     .then((tour) => {
       if (!tour) {
         throw new NotFoundError(
@@ -288,7 +288,7 @@ const scheduleTour = async (
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  await TourIdempotencyModel.findOne({
+  await TourIdempotency.findOne({
     key: idempotencyKey,
   })
     .then((verifyOperationIdempotency) => {
@@ -300,7 +300,7 @@ const scheduleTour = async (
     })
     .catch((err) => next(err));
 
-  await TourModel.findByIdAndUpdate(
+  await Tour.findByIdAndUpdate(
     { id: tourId },
     { scheduledDate: scheduledDate, scheduledTime: scheduledTime },
     { new: true }
@@ -318,7 +318,7 @@ const scheduleTour = async (
         data: tour,
       };
 
-      await TourIdempotencyModel.create({
+      await TourIdempotency.create({
         key: idempotencyKey,
         response: response,
       });
@@ -339,7 +339,7 @@ const rescheduleTour = async (
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  await TourIdempotencyModel.findOne({
+  await TourIdempotency.findOne({
     key: idempotencyKey,
   })
     .then((verifyOperationIdempotency) => {
@@ -351,7 +351,7 @@ const rescheduleTour = async (
     })
     .catch((err) => next(err));
 
-  await TourModel.findById({ id: tourId })
+  await Tour.findById({ id: tourId })
     .then((tour) => {
       if (!tour) {
         throw new NotFoundError(
@@ -362,7 +362,7 @@ const rescheduleTour = async (
     })
     .catch((err) => next(err));
 
-  await TourScheduleModel.create({ tourId, proposedDate, proposedTime })
+  await TourSchedule.create({ tourId, proposedDate, proposedTime })
     .then(async (schedule) => {
       const response = {
         message:
@@ -370,7 +370,7 @@ const rescheduleTour = async (
         data: schedule,
       };
 
-      await TourIdempotencyModel.create({
+      await TourIdempotency.create({
         key: idempotencyKey,
         response: response,
       });
@@ -389,7 +389,7 @@ const acceptTourRechedule = async (
 
   const tourScheduleId = req.params.rescheduleId;
 
-  await TourScheduleModel.findByIdAndUpdate(
+  await TourSchedule.findByIdAndUpdate(
     { id: tourScheduleId },
     { status: "accepted" },
     { new: true }
@@ -402,7 +402,7 @@ const acceptTourRechedule = async (
         );
       }
 
-      await TourModel.findByIdAndUpdate(
+      await Tour.findByIdAndUpdate(
         { id: tourId },
         {
           scheduledDate: schedule.proposedDate,
@@ -432,7 +432,7 @@ const rejectTourReschedule = async (
 ): Promise<typeof Response | void> => {
   const tourScheduleId = req.params.rescheduleId;
 
-  await TourScheduleModel.findByIdAndUpdate(
+  await TourSchedule.findByIdAndUpdate(
     { id: tourScheduleId },
     { status: "rejected" },
     { new: true }
@@ -455,8 +455,8 @@ const rejectTourReschedule = async (
  */
 const createTourCollection = AsyncErrorWrapper(
   createTour,
-  RetryHandler.ExponentialRetry
-  // { retries: 3, factor: 2, minTimeout: 10000 }
+  RetryHandler.ExponentialRetry,
+  { retries: 3, factor: 2, minTimeout: 10000 }
 );
 
 /**
@@ -468,7 +468,7 @@ const retrieveTourCollection = AsyncErrorWrapper(
   {
     retries: 2,
     jitterFactor: 1000,
-    minTimeout: 5000,
+    minTimeout: 2500,
   }
 );
 
@@ -481,7 +481,7 @@ const retrieveTourSearch = AsyncErrorWrapper(
   {
     retries: 2,
     jitterFactor: 1000,
-    minTimeout: 5000,
+    minTimeout: 2500,
   }
 );
 
@@ -494,7 +494,7 @@ const retrieveTourItem = AsyncErrorWrapper(
   {
     retries: 3,
     jitterFactor: 1000,
-    minTimeout: 7500,
+    minTimeout: 2500,
   }
 );
 
@@ -503,8 +503,8 @@ const retrieveTourItem = AsyncErrorWrapper(
  */
 const replaceTourItem = AsyncErrorWrapper(
   replaceTour,
-  RetryHandler.ExponentialRetry
-  // { retries: 3, factor: 2, minTimeout: 10000 }
+  RetryHandler.ExponentialRetry,
+  { retries: 3, factor: 2, minTimeout: 10000 }
 );
 
 /**
@@ -569,7 +569,7 @@ const operationNotAllowed = (
   res: Response,
   next: NextFunction
 ): Response => {
-  return res.status(405).json({
+  return res.status(HttpStatusCode.METHOD_NOT_ALLOWED).json({
     message: "operation not allowed",
   });
 };

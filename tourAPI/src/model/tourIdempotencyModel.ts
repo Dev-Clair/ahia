@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 import TourIdempotencySchema from "../schema/tourIdempotencySchema";
 import TourIdempotencyInterface from "../interface/tourIdempotencyInterface";
 
-const TourIdempotencyModel = mongoose.model<TourIdempotencyInterface>(
-  "TourIdempotencyModel",
+const TourIdempotency = mongoose.model<TourIdempotencyInterface>(
+  "TourIdempotency",
   TourIdempotencySchema
 );
 
-export default TourIdempotencyModel;
+export default TourIdempotency;
