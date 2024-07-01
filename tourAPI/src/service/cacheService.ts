@@ -47,6 +47,10 @@ class MapCache {
     return this.map.size;
   }
 
+  entries(): IterableIterator<[any, { value: any; expiry: any }]> {
+    return this.map.entries();
+  }
+
   private cleanup(): void {
     const now = Date.now();
 
