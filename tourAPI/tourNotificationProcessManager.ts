@@ -1,7 +1,7 @@
 import MapCache from "./src/service/cacheService";
-import RetryHandler from "./src/utils/retryHandler/retryHandler";
 import SendEmail from "./src/service/mailService";
 import getUserEmail from "./src/utils/getUserEmail";
+import RetryHandler from "./src/utils/retryHandler/retryHandler";
 
 const emailCache = new MapCache();
 
@@ -15,6 +15,7 @@ class TourNotificationProcessManager {
     tourTime: string
   ) {
     let customerEmail: string = emailCache.get(customerId);
+
     let realtorEmail: string = emailCache.get(realtorId);
 
     try {
@@ -33,6 +34,7 @@ class TourNotificationProcessManager {
       }
 
       const subject = "Tour Reminder";
+
       const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.`;
 
       await RetryHandler.LinearJitterRetry(() =>
@@ -51,13 +53,15 @@ class TourNotificationProcessManager {
     }
   }
 
-  static async processFailureCache() {
-    for (const [
-      customerId,
-      { customerId: cid, realtorId, tourDate, tourTime },
-    ] of failureCache.entries()) {
-      await this.processTourNotification(cid, realtorId, tourDate, tourTime);
-      failureCache.delete(customerId);
+  static async retryFailureCache() {
+    for (const [key, object] of failureCache.entries()) {
+      await this.processTourNotification(
+        object.value["customerId"],
+        object.value["realtorId"],
+        object.value["tourDate"],
+        object.value["tourTime"]
+      );
+      failureCache.delete(key);
     }
   }
 }

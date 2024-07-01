@@ -45,7 +45,7 @@ const sendTourNotification = async () => {
     );
   }
 
-  await TourNotificationProcessManager.processFailureCache();
+  await TourNotificationProcessManager.retryFailureCache();
 };
 
 sendTourNotification();
