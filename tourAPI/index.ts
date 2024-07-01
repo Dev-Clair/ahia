@@ -24,7 +24,7 @@ if (cluster.isPrimary) {
 } else {
   Connection(Config.MONGO_URI);
 
-  const server = App.listen(Config.SERVER_PORT, () =>
+  const Server = App.listen(Config.SERVER_PORT, () =>
     Logger.info(`server up and listening on port ${Config.SERVER_PORT}`)
   );
 
@@ -50,7 +50,7 @@ if (cluster.isPrimary) {
     mongoose.connection.close(true);
 
     // Close running server process
-    server.close(() => {
+    Server.close(() => {
       Logger.info("Closed out remaining connections, initiating shutdown...");
     });
   };
