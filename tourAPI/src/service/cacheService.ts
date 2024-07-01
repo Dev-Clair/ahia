@@ -39,16 +39,16 @@ class MapCache {
     return this.map.delete(key);
   }
 
-  clear(): void {
-    this.map.clear();
-  }
-
   size(): number {
     return this.map.size;
   }
 
   entries(): IterableIterator<[any, { value: any; expiry: any }]> {
     return this.map.entries();
+  }
+
+  clear(): void {
+    this.map.clear();
   }
 
   private cleanup(): void {
