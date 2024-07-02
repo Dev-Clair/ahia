@@ -5,7 +5,8 @@ dotenv.config();
 
 const Config = {
   NODE_ENV: process.env.NODE_ENV || "",
-  SERVER_PORT: process.env.SERVER_PORT || 5999,
+  HTTP_PORT: process.env.HTTP_PORT || 5999,
+  HTTPS_PORT: process.env.HTTPS_PORT || 6000,
   MONGO_URI: process.env.MONGO_URI || "",
   TOUR_ADMIN_EMAIL: process.env.TOUR_ADMIN_EMAIL || "",
   AWS_REGION: process.env.AWS_REGION || "",
