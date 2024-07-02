@@ -15,36 +15,36 @@ const createTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  // const {
-  //   customerId: customerId,
-  //   listingIds: listingIds,
-  //   transactionRef: transactionRef,
-  // } = req.body;
+  const {
+    customerId: customerId,
+    listingIds: listingIds,
+    transactionRef: transactionRef,
+  } = req.body;
 
-  // if (!transactionRef || !customerId || !listingIds) {
-  //   throw new PaymentEventPayloadError("Invalid request body data structure");
-  // }
+  if (!transactionRef || !customerId || !listingIds) {
+    throw new PaymentEventPayloadError("Invalid request body data structure");
+  }
 
-  // await TourIdempotency.findOne({ key: transactionRef })
-  //   .then((verifyOperationIdempotency) => {
-  //     if (verifyOperationIdempotency) {
-  //       // NotifyUser(); // Admin
+  await TourIdempotency.findOne({ key: transactionRef })
+    .then((verifyOperationIdempotency) => {
+      if (verifyOperationIdempotency) {
+        // NotifyUser(); // Admin
 
-  //       throw new DuplicateTransactionError(
-  //         `Duplicate transaction reference detected: ${transactionRef}`
-  //       );
-  //     }
-  //   })
-  //   .catch((err) => next(err));
+        throw new DuplicateTransactionError(
+          `Duplicate transaction reference detected: ${transactionRef}`
+        );
+      }
+    })
+    .catch((err) => next(err));
 
   await Tour.create(req.body)
     .then(async (tour) => {
       const response = { message: "Created" };
 
-      // await TourIdempotency.create({
-      //   key: transactionRef,
-      //   response: response,
-      // });
+      await TourIdempotency.create({
+        key: transactionRef,
+        response: response,
+      });
 
       // await NotifyUser(); // Customer
 
@@ -145,7 +145,7 @@ const updateTour = async (
     .then((verifyOperationIdempotency) => {
       if (verifyOperationIdempotency) {
         return res
-          .status(HttpStatusCode.OK)
+          .status(HttpStatusCode.MODIFIED)
           .json(verifyOperationIdempotency.response);
       }
     })
@@ -155,6 +155,8 @@ const updateTour = async (
     new: true,
   })
     .then(async (tour) => {
+      const response = { message: "modified" };
+
       if (!tour) {
         throw new NotFoundError(
           HttpStatusCode.NOT_FOUND,
@@ -164,10 +166,10 @@ const updateTour = async (
 
       await TourIdempotency.create({
         key: idempotencyKey,
-        response: null,
+        response: response,
       });
 
-      return res.status(HttpStatusCode.MODIFIED).json(null);
+      return res.status(HttpStatusCode.MODIFIED).json(response);
     })
     .catch((err) => next(err));
 };
@@ -413,7 +415,7 @@ const acceptTourRechedule = async (
             );
           }
 
-          // await notifyUser();
+          // await notifyUser(); // Customer && Realtor
         })
         .catch((err) => next(err));
     })
@@ -440,7 +442,7 @@ const rejectTourReschedule = async (
         );
       }
 
-      // await notifyUser();
+      // await notifyUser();  // Customer || Realtor
     })
     .catch((err) => next(err));
 };
