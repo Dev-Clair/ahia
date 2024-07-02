@@ -4,27 +4,27 @@ import Logger from "../service/loggerService";
 import NotifyUser from "../utils/notificationHandler/notificationHandler";
 
 class GlobalErrorHandlingMiddleware {
-  public async handleError(err: Error): Promise<void> {
-    console.log(err.name, err.message, err.stack);
-
-    // Logger.error(`name: ${err.name}\n message: ${err.message}`);
+  public static async handleError(err: Error): Promise<void> {
+    Logger.error(
+      `name: ${err.name}\nmessage: ${err.message}\nstack: ${err.stack}`
+    );
 
     // await NotifyUser();
   }
 
-  public isTrustedError(err: Error): boolean {
+  public static isTrustedError(err: Error): boolean {
     return err instanceof APIError && err.isOperational;
   }
 
-  public isSafeError(err: Error): boolean {
+  public static isSafeError(err: Error): boolean {
     return err instanceof MongooseError;
   }
 
-  public isSyntaxError(err: Error): boolean {
+  public static isSyntaxError(err: Error): boolean {
     return err instanceof SyntaxError && err.message.includes("JSON");
   }
 }
 
-const GlobalErrorHandler = new GlobalErrorHandlingMiddleware();
+const GlobalErrorHandler = GlobalErrorHandlingMiddleware;
 
 export default GlobalErrorHandler;
