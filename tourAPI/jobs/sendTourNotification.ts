@@ -7,6 +7,10 @@ async function* retrieveToursGenerator() {
     status: "pending",
   });
 
+  if (!tours) {
+    return console.log("No scheduled tours yet");
+  }
+
   const now = new Date().getTime();
 
   for (const tour of tours) {
