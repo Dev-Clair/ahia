@@ -5,16 +5,6 @@ import Config from "./config";
 import Connection from "./connection";
 import Logger from "./src/service/loggerService";
 
-process.on("uncaughtException", (error) => {
-  Logger.error("Uncaught Exception thrown:", error);
-  process.exitCode = 1;
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
-  process.exitCode = 1;
-});
-
 const HTTP = http.HTTP(App);
 
 // const HTTPS = http.HTTPS(App);
@@ -59,3 +49,13 @@ const shutdown = () => {
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
 };
+
+process.on("uncaughtException", (error) => {
+  Logger.error("Uncaught Exception thrown:", error);
+  process.exitCode = 1;
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exitCode = 1;
+});
