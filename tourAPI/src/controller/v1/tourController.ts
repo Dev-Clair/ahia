@@ -60,13 +60,6 @@ const getTours = async (
 ): Promise<typeof Response | void> => {
   await Tour.find()
     .then((tours) => {
-      if (!tours) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tours found for query: ${req.query.q}`
-        );
-      }
-
       return res.status(HttpStatusCode.OK).json({
         count: tours.length,
         data: tours,
@@ -123,7 +116,7 @@ const replaceTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await Tour.findOneAndReplace({ id: req.params.id }, req.body, {
+  await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
     new: true,
   })
     .then((tour) => {
@@ -151,12 +144,14 @@ const updateTour = async (
   })
     .then((verifyOperationIdempotency) => {
       if (verifyOperationIdempotency) {
-        res.status(HttpStatusCode.OK).json(verifyOperationIdempotency.response);
+        return res
+          .status(HttpStatusCode.OK)
+          .json(verifyOperationIdempotency.response);
       }
     })
     .catch((err) => next(err));
 
-  await Tour.findOneAndUpdate({ id: req.params.id }, req.body, {
+  await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
     new: true,
   })
     .then(async (tour) => {
@@ -182,8 +177,8 @@ const completeTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await Tour.findOneAndUpdate(
-    { id: req.params.id },
+  await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
     { status: "completed", isClosed: true },
     {
       new: true,
@@ -209,8 +204,8 @@ const cancelTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await Tour.findOneAndUpdate(
-    { id: req.params.id },
+  await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
     { status: "cancelled", isClosed: true },
     {
       new: true,
@@ -236,9 +231,9 @@ const reopenTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await Tour.findOneAndUpdate(
-    { id: req.params.id, status: "cancelled" },
-    { isClosed: false },
+  await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
+    { status: "pending", isClosed: false },
     {
       new: true,
     }
@@ -263,7 +258,7 @@ const deleteTour = async (
   res: Response,
   next: NextFunction
 ): Promise<typeof Response | void> => {
-  await Tour.findOneAndUpdate({ id: req.params.id })
+  await Tour.findByIdAndUpdate({ _id: req.params.id })
     .then((tour) => {
       if (!tour) {
         throw new NotFoundError(
@@ -301,7 +296,7 @@ const scheduleTour = async (
     .catch((err) => next(err));
 
   await Tour.findByIdAndUpdate(
-    { id: tourId },
+    { _id: tourId },
     { scheduledDate: scheduledDate, scheduledTime: scheduledTime },
     { new: true }
   )
@@ -351,7 +346,7 @@ const rescheduleTour = async (
     })
     .catch((err) => next(err));
 
-  await Tour.findById({ id: tourId })
+  await Tour.findById({ _id: tourId })
     .then((tour) => {
       if (!tour) {
         throw new NotFoundError(
@@ -390,7 +385,7 @@ const acceptTourRechedule = async (
   const tourScheduleId = req.params.rescheduleId;
 
   await TourSchedule.findByIdAndUpdate(
-    { id: tourScheduleId },
+    { _id: tourScheduleId },
     { status: "accepted" },
     { new: true }
   )
@@ -403,7 +398,7 @@ const acceptTourRechedule = async (
       }
 
       await Tour.findByIdAndUpdate(
-        { id: tourId },
+        { _id: tourId },
         {
           scheduledDate: schedule.proposedDate,
           scheduledTime: schedule.proposedTime,
@@ -433,7 +428,7 @@ const rejectTourReschedule = async (
   const tourScheduleId = req.params.rescheduleId;
 
   await TourSchedule.findByIdAndUpdate(
-    { id: tourScheduleId },
+    { _id: tourScheduleId },
     { status: "rejected" },
     { new: true }
   )
