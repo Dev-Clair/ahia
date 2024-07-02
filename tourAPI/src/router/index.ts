@@ -4,8 +4,6 @@ import TourRouterV2 from "./v2/tourRouter";
 import HttpStatusCode from "../enum/httpStatusCode";
 import APIError from "../error/apiError";
 import NotFoundError from "../error/notfoundError";
-import BadRequestError from "../error/badrequestError";
-import UnprocessableEntityError from "../error/unprocessableentityError";
 import GlobalErrorHandler from "../middleware/globalErrorHandlingMiddleware.ts";
 
 const TourRouter = Router();
@@ -25,38 +23,28 @@ TourRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
 
 TourRouter.use(
   (err: Error, req: Request, res: Response, next: NextFunction) => {
-    if (GlobalErrorHandler.isSyntaxError(err)) {
-      next(
-        new BadRequestError(HttpStatusCode.BAD_REQUEST, "Bad or Malformed JSON")
-      );
-    } else {
-      next(err);
+    if (res.headersSent) {
+      return next(err);
     }
-  }
-);
 
-TourRouter.use(
-  (err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (GlobalErrorHandler.isSyntaxError(err)) {
+      return res
+        .status(HttpStatusCode.BAD_REQUEST)
+        .json({ error: err.name, message: "Bad or Malformed JSON" });
+    }
+
     if (GlobalErrorHandler.isSafeError(err)) {
-      if (err.name === "ValidationError" || "CastError") {
-        next(
-          new UnprocessableEntityError(
-            HttpStatusCode.UNPROCESSABLE_ENTITY,
-            err.message
-          )
-        );
+      if (err.name === "ValidationError" || err.name === "CastError") {
+        return res.status(HttpStatusCode.UNPROCESSABLE_ENTITY).json({
+          error: err.name,
+          message: err.message,
+        });
       } else {
-        next(
-          new APIError(
-            "MONGOOSE_ERROR",
-            HttpStatusCode.INTERNAL_SERVER_ERROR,
-            false,
-            err.message
-          )
-        );
+        return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          error: err.name,
+          message: err.message,
+        });
       }
-    } else {
-      next(err);
     }
   }
 );
@@ -67,14 +55,8 @@ TourRouter.use(
       return res
         .status(err.httpStatusCode)
         .json({ error: err.name, message: err.message });
-    } else {
-      next(err);
     }
-  }
-);
 
-TourRouter.use(
-  (err: Error, req: Request, res: Response, next: NextFunction) => {
     GlobalErrorHandler.handleError(err);
 
     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({

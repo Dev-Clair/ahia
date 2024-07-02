@@ -1,5 +1,3 @@
-import cluster from "cluster";
-import os from "os";
 import mongoose from "mongoose";
 import App from "./app";
 import Cron from "./cron";
@@ -7,21 +5,6 @@ import Config from "./config";
 import Connection from "./connection";
 import Logger from "./src/service/loggerService";
 
-// const numCPUs = os.cpus().length;
-
-// if (cluster.isPrimary) {
-//   for (let i = 0; i < numCPUs; i++) {
-//     cluster.fork();
-//   }
-
-//   cluster.on("exit", (worker, code, signal) => {
-//     Logger.info(
-//       `worker process ${worker.process.pid} exits with code: ${code}, signal: ${signal}`
-//     );
-
-//     cluster.fork();
-//   });
-// } else {
 Connection(Config.MONGO_URI);
 
 const Server = App.listen(Config.SERVER_PORT, () =>
@@ -57,4 +40,3 @@ const shutdown = () => {
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
-// }
