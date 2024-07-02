@@ -10,18 +10,16 @@ const checkIdempotencyKey = (
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    const idempotencyKey = req.headers["idempotency-key"] as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
 
-    if (!idempotencyKey) {
-      throw new BadRequestError(
-        HttpStatusCode.BAD_REQUEST,
-        `Idempotency key is required`
-      );
-    }
-  } catch (err) {
-    next(err);
+  if (!idempotencyKey) {
+    throw new BadRequestError(
+      HttpStatusCode.BAD_REQUEST,
+      `Idempotency key is required`
+    );
   }
+
+  next();
 };
 
 export default { checkIdempotencyKey };
