@@ -27,13 +27,13 @@ const Connection = async (
     } catch (err: any) {
       const from: string = process.env.TOUR_ADMIN_EMAIL || "";
 
-      const toAddresses: [string] = [""];
+      const to: [string] = [""];
 
       const subject: string = "Database Connection Failure";
 
       const message: string = `Backoff retry strategies failed. Could not establish connection to the database.\nError: ${err.message}`;
 
-      await NotifyUser(from, toAddresses, subject, message);
+      await NotifyUser(from, to, subject, message); // Admin
 
       process.kill(process.pid, "SIGTERM");
     }

@@ -11,7 +11,7 @@ const HTTP = http.HTTP(App);
 // const HTTPS = http.HTTPS(App);
 
 HTTP.listen(Config.HTTP_PORT, () => {
-  console.log(`Listening on port ${Config.HTTP_PORT}`);
+  Logger.info(`Listening on port ${Config.HTTP_PORT}`);
 });
 
 // HTTPS.listen(Config.HTTPS_PORT, () => {
@@ -33,7 +33,7 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 const shutdown = () => {
-  console.log("Shutting down gracefully...");
+  Logger.info("Shutting down gracefully...");
 
   // Stop running cron tasks
   Cron.stop();
@@ -42,10 +42,15 @@ const shutdown = () => {
   mongoose.connection.close(true);
 
   // Close running server process
+
+  Logger.info(`Closing all connections to server on port ${Config.HTTP_PORT}`);
+
   HTTP.closeAllConnections();
 
-  // HTTPS.closeAllConnections();
-};
+  // Logger.info(`Closing all connections to server on port ${Config.HTTPS_PORT}`);
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+  // HTTPS.closeAllConnections();
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+};
