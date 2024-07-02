@@ -9,11 +9,6 @@ const logFormat = printf(({ level, message, timestamp }) => {
 const Logger = createLogger({
   level: "info",
   format: combine(timestamp(), logFormat),
-  transports: [
-    new transports.Console({
-      format: combine(colorize(), logFormat),
-    }),
-  ],
   exceptionHandlers: [new transports.File({ filename: "logs/exceptions.log" })],
   rejectionHandlers: [new transports.File({ filename: "logs/rejections.log" })],
 });
