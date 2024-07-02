@@ -3,12 +3,12 @@ import HttpStatusCode from "../enum/httpStatusCode";
 abstract class BaseError extends Error {
   public readonly name: string;
   public readonly httpStatusCode: number | HttpStatusCode;
-  public readonly isOperational: Boolean;
+  public readonly isOperational: boolean;
 
   constructor(
     name: string,
     httpStatusCode: number | HttpStatusCode,
-    isOperational: Boolean,
+    isOperational: boolean,
     message: string
   ) {
     super(message);
