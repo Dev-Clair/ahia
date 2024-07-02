@@ -3,7 +3,6 @@ import TourRouterV1 from "./v1/tourRouter";
 import TourRouterV2 from "./v2/tourRouter";
 import HttpStatusCode from "../enum/httpStatusCode";
 import APIError from "../error/apiError";
-import NotFoundError from "../error/notfoundError";
 import GlobalErrorHandler from "../middleware/globalErrorHandlingMiddleware.ts";
 
 const TourRouter = Router();
@@ -13,12 +12,9 @@ TourRouter.use("/v1/tours", TourRouterV1);
 TourRouter.use("/v2/tours", TourRouterV2);
 
 TourRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
-  next(
-    new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No resource or route defined for ${req.originalUrl}`
-    )
-  );
+  return res
+    .status(HttpStatusCode.NOT_FOUND)
+    .json({ message: `No resource or route defined for ${req.originalUrl}` });
 });
 
 TourRouter.use(
@@ -37,7 +33,7 @@ TourRouter.use(
       if (err.name === "ValidationError" || err.name === "CastError") {
         return res.status(HttpStatusCode.UNPROCESSABLE_ENTITY).json({
           error: err.name,
-          message: err.message,
+          message: JSON.stringify(err.message),
         });
       } else {
         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
