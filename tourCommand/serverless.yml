@@ -4,6 +4,8 @@ app: ahia
 
 service: tourCommand
 
+frameworkVersion: "4"
+
 useDotenv: true
 
 provider:
@@ -17,7 +19,7 @@ functions:
     handler: handler.tour
     events:
       - eventBridge:
-          eventBus: ${env:AWS_EVENT_BUS}
+          eventBus: ${env:AWS_PAYMENT_EVENT_BUS}
           pattern:
             source:
               - mongodb-atlas

@@ -5,7 +5,7 @@ const generateIdempotencyKey = () => {
   return crypto.randomBytes(16).toString("hex");
 };
 
-exports.handler = async (event, context) => {
+exports.tour = async (event, context) => {
   const payload = event.detail;
 
   const idempotencyKey = generateIdempotencyKey();
