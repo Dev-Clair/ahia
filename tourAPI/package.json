@@ -1,5 +1,5 @@
 {
-  "name": "tours",
+  "name": "tourapi",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -10,7 +10,7 @@
   "keywords": [
     "ahia",
     "api",
-    "tours",
+    "tour",
     "service"
   ],
   "author": "Aniogbu  Samuel",
