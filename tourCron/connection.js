@@ -23,7 +23,7 @@ const Connection = async (connectionUri) => {
     } catch (err) {
       const from = process.env.TOUR_ADMIN_EMAIL_I || "";
 
-      const to = [process.env.TOUR_ADMIN_EMAIL_II];
+      const to = [process.env.TOUR_ADMIN_EMAIL_II || ""];
 
       const subject = "Database Connection Failure";
 
