@@ -14,7 +14,7 @@ const createTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const {
     customerId: customerId,
     listingIds: listingIds,
@@ -37,85 +37,77 @@ const createTour = async (
   //   })
   //   .catch((err) => next(err));
 
-  await Tour.create(req.body)
-    .then(async (tour) => {
-      const response = { message: "Created" };
+  await Tour.create(req.body).then(async (tour) => {
+    const response = { message: "Created" };
 
-      await TourIdempotency.create({
-        key: transactionRef,
-        response: response,
-      });
+    // await TourIdempotency.create({
+    //   key: transactionRef,
+    //   response: response,
+    // });
 
-      // await NotifyUser(); // Customer
+    // await NotifyUser(); // Customer
 
-      return res.status(HttpStatusCode.CREATED).json(response);
-    })
-    .catch((err) => next(err));
+    return res.status(HttpStatusCode.CREATED).json(response);
+  });
 };
 
 const getTours = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
-  await Tour.find()
-    .then((tours) => {
-      return res.status(HttpStatusCode.OK).json({
-        count: tours.length,
-        data: tours,
-      });
-    })
-    .catch((err) => next(err));
+): Promise<Response | void> => {
+  const tours = await Tour.find();
+
+  return res.status(HttpStatusCode.OK).json({
+    count: tours.length,
+    data: tours,
+  });
 };
 
 const getTourSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.find({
     // $text: { $search: req.query.q, $caseSensitive: false },
-  })
-    .then((tours) => {
-      if (!tours) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tours found for query: ${req.query.q}`
-        );
-      }
+  }).then((tours) => {
+    if (!tours) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tours found for query: ${req.query.q}`
+      );
+    }
 
-      return res.status(HttpStatusCode.OK).json({
-        count: tours.length,
-        data: tours,
-      });
-    })
-    .catch((err) => next(err));
+    return res.status(HttpStatusCode.OK).json({
+      count: tours.length,
+      data: tours,
+    });
+  });
 };
 
 const getTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
-  await Tour.findById({ _id: req.params.id })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
+): Promise<Response | void> => {
+  const tour = await Tour.findById({ _id: req.params.id });
 
-      return res.status(HttpStatusCode.OK).json({ data: tour });
-    })
-    .catch((err) => next(err));
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  return res.status(HttpStatusCode.OK).json({ data: tour });
 };
 
 const replaceTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
     new: true,
   })
@@ -136,7 +128,7 @@ const updateTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
   await TourIdempotency.findOne({
@@ -178,7 +170,7 @@ const completeTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
     { status: "completed", isClosed: true },
@@ -205,7 +197,7 @@ const cancelTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
     { status: "cancelled", isClosed: true },
@@ -232,7 +224,7 @@ const reopenTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
     { status: "pending", isClosed: false },
@@ -259,7 +251,7 @@ const deleteTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate({ _id: req.params.id })
     .then((tour) => {
       if (!tour) {
@@ -278,7 +270,7 @@ const scheduleTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourId = req.params.id;
 
   const { scheduledDate, scheduledTime } = req.body;
@@ -329,7 +321,7 @@ const rescheduleTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourId = req.params.id;
 
   const { proposedDate, proposedTime } = req.body;
@@ -381,7 +373,7 @@ const acceptTourRechedule = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourId = req.params.id;
 
   const tourScheduleId = req.params.rescheduleId;
@@ -426,7 +418,7 @@ const rejectTourReschedule = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourScheduleId = req.params.rescheduleId;
 
   await TourSchedule.findByIdAndUpdate(
