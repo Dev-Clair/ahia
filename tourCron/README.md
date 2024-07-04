@@ -1,6 +1,6 @@
 # Serverless Framework Node Scheduled Cron on AWS
 
-title: 'AWS Node Scheduled Cron example in NodeJS'
+title: 'AWS Node Scheduled Cron'
 
 description: 'Runs Cron Jobs for the Ahia Tour Microservice.'
 
