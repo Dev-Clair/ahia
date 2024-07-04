@@ -1,0 +1,27 @@
+org: clair99
+
+app: ahia
+
+service: tourCron
+
+frameworkVersion: "4"
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${env:AWS_REGION}
+  memorySize: 1024
+
+functions:
+  ahia-tour-cron-service:
+    handler: handler.cron
+    events:
+      - eventBridge:
+          eventBus: ${env:AWS_DEFAULT_EVENT_BUS}
+          pattern:
+            source:
+              - aws
+    environment:
+      NODE_ENV: ${env:NODE_ENV}

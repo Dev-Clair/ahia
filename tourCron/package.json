@@ -1,0 +1,19 @@
+{
+  "name": "tourcron",
+  "version": "1.0.0",
+  "description": "AWS Node Scheduled Cron",
+  "main": "handler.js",
+  "scripts": {
+    "start": "serverless deploy",
+    "dev": "serverless dev"
+  },
+  "keywords": [
+    "ahia",
+    "api",
+    "tour",
+    "service",
+    "cron"
+  ],
+  "author": "Aniogbu  Samuel",
+  "license": "ISC"
+}

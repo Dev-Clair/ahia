@@ -1,8 +1,8 @@
-import TourModel from "../src/model/tourModel";
-import TourNotificationProcessManager from "../tourNotificationProcessManager";
+const Tour = require("./tourModel");
+const TourNotificationManager = require("./tourNotificationManager");
 
 async function* retrieveToursGenerator() {
-  const tours = await TourModel.find({
+  const tours = await Tour.find({
     scheduledDate: { $gte: new Date() },
     status: "pending",
   });
@@ -14,7 +14,7 @@ async function* retrieveToursGenerator() {
   const now = new Date().getTime();
 
   for (const tour of tours) {
-    const { realtorId, customerId, scheduledDate, scheduledTime } = tour;
+    const { realtor, customer, scheduledDate, scheduledTime } = tour;
 
     const tourDateTime = new Date(scheduledDate);
 
@@ -26,8 +26,8 @@ async function* retrieveToursGenerator() {
 
     if (diff <= 6 * 60 * 60 * 1000 && diff > 0) {
       yield {
-        customerId,
-        realtorId,
+        customer,
+        realtor,
         tourDate: scheduledDate,
         tourTime: scheduledTime,
       };
@@ -35,21 +35,21 @@ async function* retrieveToursGenerator() {
   }
 }
 
-const sendTourNotification = async () => {
+const TourNotification = async () => {
   const toursGenerator = retrieveToursGenerator();
 
   for await (const tour of toursGenerator) {
-    const { customerId, realtorId, tourDate, tourTime } = tour;
+    const { customer, realtor, tourDate, tourTime } = tour;
 
-    await TourNotificationProcessManager.processTourNotification(
-      customerId,
-      realtorId,
+    await TourNotificationManager.processTourNotification(
+      customer.email,
+      realtor.email,
       tourDate,
       tourTime
     );
   }
 
-  await TourNotificationProcessManager.retryFailureCache();
+  await TourNotificationManager.retryFailureCache();
 };
 
-sendTourNotification();
+module.exports = TourNotification;
