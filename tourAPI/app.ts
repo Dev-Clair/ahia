@@ -39,7 +39,7 @@ App.use(
       if (err.name === "ValidationError") {
         return res.status(HttpStatusCode.UNPROCESSABLE_ENTITY).json({
           error: err.name,
-          message: "Invalid data provided",
+          message: err.message,
         });
       } else if (err.name === "CastError") {
         return res.status(HttpStatusCode.UNPROCESSABLE_ENTITY).json({

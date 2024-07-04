@@ -14,28 +14,28 @@ const createTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const {
     customerId: customerId,
     listingIds: listingIds,
     transactionRef: transactionRef,
   } = req.body;
 
-  // if (!transactionRef || !customerId || !listingIds) {
-  //   throw new PaymentEventPayloadError("Invalid request body data structure");
-  // }
+  if (!transactionRef || !customerId || !listingIds) {
+    throw new PaymentEventPayloadError("Invalid request body data structure");
+  }
 
-  // await TourIdempotency.findOne({ key: transactionRef })
-  //   .then((verifyOperationIdempotency) => {
-  //     if (verifyOperationIdempotency) {
-  //       // NotifyUser(); // Admin
+  await TourIdempotency.findOne({ key: transactionRef })
+    .then((verifyOperationIdempotency) => {
+      if (verifyOperationIdempotency) {
+        // NotifyUser(); // Admin
 
-  //       throw new DuplicateTransactionError(
-  //         `Duplicate transaction reference detected: ${transactionRef}`
-  //       );
-  //     }
-  //   })
-  //   .catch((err) => next(err));
+        throw new DuplicateTransactionError(
+          `Duplicate transaction reference detected: ${transactionRef}`
+        );
+      }
+    })
+    .catch((err) => next(err));
 
   await Tour.create(req.body)
     .then(async (tour) => {
@@ -57,13 +57,12 @@ const getTours = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.find()
     .then((tours) => {
-      return res.status(HttpStatusCode.OK).json({
-        count: tours.length,
-        data: tours,
-      });
+      return res
+        .status(HttpStatusCode.OK)
+        .json({ count: tours.length, data: tours });
     })
     .catch((err) => next(err));
 };
@@ -72,7 +71,7 @@ const getTourSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.find({
     // $text: { $search: req.query.q, $caseSensitive: false },
   })
@@ -96,7 +95,7 @@ const getTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findById({ _id: req.params.id })
     .then((tour) => {
       if (!tour) {
@@ -115,7 +114,7 @@ const replaceTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
     new: true,
   })
@@ -136,7 +135,7 @@ const updateTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
   await TourIdempotency.findOne({
@@ -178,7 +177,7 @@ const completeTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
     { status: "completed", isClosed: true },
@@ -205,7 +204,7 @@ const cancelTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
     { status: "cancelled", isClosed: true },
@@ -232,7 +231,7 @@ const reopenTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
     { status: "pending", isClosed: false },
@@ -259,7 +258,7 @@ const deleteTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   await Tour.findByIdAndUpdate({ _id: req.params.id })
     .then((tour) => {
       if (!tour) {
@@ -278,7 +277,7 @@ const scheduleTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourId = req.params.id;
 
   const { scheduledDate, scheduledTime } = req.body;
@@ -329,7 +328,7 @@ const rescheduleTour = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourId = req.params.id;
 
   const { proposedDate, proposedTime } = req.body;
@@ -381,7 +380,7 @@ const acceptTourRechedule = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourId = req.params.id;
 
   const tourScheduleId = req.params.rescheduleId;
@@ -426,7 +425,7 @@ const rejectTourReschedule = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<typeof Response | void> => {
+): Promise<Response | void> => {
   const tourScheduleId = req.params.rescheduleId;
 
   await TourSchedule.findByIdAndUpdate(

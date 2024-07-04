@@ -5,7 +5,7 @@ const AsyncErrorWrapper = (
     req: Request,
     res: Response,
     next: NextFunction
-  ) => Promise<typeof Response | void>,
+  ) => Promise<Response | void>,
   retryStrategy?: Function,
   retryOptions?: {}
 ) => {
@@ -13,9 +13,7 @@ const AsyncErrorWrapper = (
     const executeOperation = () => operation(req, res, next);
 
     if (retryStrategy) {
-      retryStrategy(executeOperation, retryOptions)
-        // .then(() => next())
-        .catch(next);
+      retryStrategy(executeOperation, retryOptions).catch(next);
     } else {
       executeOperation().catch(next);
     }
