@@ -16,7 +16,7 @@ exports.tour = async (event, context) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Idempotency-Key": idempotencyKey,
+      "idempotency-key": idempotencyKey,
     },
   };
 

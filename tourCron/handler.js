@@ -3,24 +3,6 @@ const Connection = require("./connection");
 const NotifyAdmin = require("./notificationHandler");
 const TourNotification = require("./tourNotification");
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception thrown:", error);
-  process.exitCode = 1;
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  process.exitCode = 1;
-});
-
-const shutdown = () => {
-  console.log("Closing all open connections");
-
-  mongoose.connection.close(true);
-
-  process.on("SIGTERM", shutdown);
-};
-
 Connection(Config.MONGO_URI);
 
 exports.cron = async (event, context) => {
@@ -44,4 +26,22 @@ exports.cron = async (event, context) => {
 
     await NotifyAdmin(from, to, subject, message);
   }
+};
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception thrown:", error);
+  process.exitCode = 1;
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exitCode = 1;
+});
+
+const shutdown = () => {
+  console.log("Closing all open connections");
+
+  mongoose.connection.close(true);
+
+  process.on("SIGTERM", shutdown);
 };
