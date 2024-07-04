@@ -21,34 +21,36 @@ const createTour = async (
     transactionRef: transactionRef,
   } = req.body;
 
-  // if (!transactionRef || !customerId || !listingIds) {
-  //   throw new PaymentEventPayloadError("Invalid request body data structure");
-  // }
+  if (!transactionRef || !customerId || !listingIds) {
+    throw new PaymentEventPayloadError("Invalid request body data structure");
+  }
 
-  // await TourIdempotency.findOne({ key: transactionRef })
-  //   .then((verifyOperationIdempotency) => {
-  //     if (verifyOperationIdempotency) {
-  //       // NotifyUser(); // Admin
+  await TourIdempotency.findOne({ key: transactionRef })
+    .then((verifyOperationIdempotency) => {
+      if (verifyOperationIdempotency) {
+        // NotifyUser(); // Admin
 
-  //       throw new DuplicateTransactionError(
-  //         `Duplicate transaction reference detected: ${transactionRef}`
-  //       );
-  //     }
-  //   })
-  //   .catch((err) => next(err));
+        throw new DuplicateTransactionError(
+          `Duplicate transaction reference detected: ${transactionRef}`
+        );
+      }
+    })
+    .catch((err) => next(err));
 
-  await Tour.create(req.body).then(async (tour) => {
-    const response = { message: "Created" };
+  await Tour.create(req.body)
+    .then(async (tour) => {
+      const response = { message: "Created" };
 
-    // await TourIdempotency.create({
-    //   key: transactionRef,
-    //   response: response,
-    // });
+      await TourIdempotency.create({
+        key: transactionRef,
+        response: response,
+      });
 
-    // await NotifyUser(); // Customer
+      // await NotifyUser(); // Customer
 
-    return res.status(HttpStatusCode.CREATED).json(response);
-  });
+      return res.status(HttpStatusCode.CREATED).json(response);
+    })
+    .catch((err) => next(err));
 };
 
 const getTours = async (
@@ -56,12 +58,13 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tours = await Tour.find();
-
-  return res.status(HttpStatusCode.OK).json({
-    count: tours.length,
-    data: tours,
-  });
+  await Tour.find()
+    .then((tours) => {
+      return res
+        .status(HttpStatusCode.OK)
+        .json({ count: tours.length, data: tours });
+    })
+    .catch((err) => next(err));
 };
 
 const getTourSearch = async (
@@ -71,19 +74,21 @@ const getTourSearch = async (
 ): Promise<Response | void> => {
   await Tour.find({
     // $text: { $search: req.query.q, $caseSensitive: false },
-  }).then((tours) => {
-    if (!tours) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tours found for query: ${req.query.q}`
-      );
-    }
+  })
+    .then((tours) => {
+      if (!tours) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tours found for query: ${req.query.q}`
+        );
+      }
 
-    return res.status(HttpStatusCode.OK).json({
-      count: tours.length,
-      data: tours,
-    });
-  });
+      return res.status(HttpStatusCode.OK).json({
+        count: tours.length,
+        data: tours,
+      });
+    })
+    .catch((err) => next(err));
 };
 
 const getTour = async (
@@ -91,16 +96,18 @@ const getTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tour = await Tour.findById({ _id: req.params.id });
+  await Tour.findById({ _id: req.params.id })
+    .then((tour) => {
+      if (!tour) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tour found for id: ${req.params.id}`
+        );
+      }
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
-    );
-  }
-
-  return res.status(HttpStatusCode.OK).json({ data: tour });
+      return res.status(HttpStatusCode.OK).json({ data: tour });
+    })
+    .catch((err) => next(err));
 };
 
 const replaceTour = async (
