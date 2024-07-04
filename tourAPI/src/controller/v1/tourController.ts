@@ -21,21 +21,21 @@ const createTour = async (
     transactionRef: transactionRef,
   } = req.body;
 
-  if (!transactionRef || !customerId || !listingIds) {
-    throw new PaymentEventPayloadError("Invalid request body data structure");
-  }
+  // if (!transactionRef || !customerId || !listingIds) {
+  //   throw new PaymentEventPayloadError("Invalid request body data structure");
+  // }
 
-  await TourIdempotency.findOne({ key: transactionRef })
-    .then((verifyOperationIdempotency) => {
-      if (verifyOperationIdempotency) {
-        // NotifyUser(); // Admin
+  // await TourIdempotency.findOne({ key: transactionRef })
+  //   .then((verifyOperationIdempotency) => {
+  //     if (verifyOperationIdempotency) {
+  //       // NotifyUser(); // Admin
 
-        throw new DuplicateTransactionError(
-          `Duplicate transaction reference detected: ${transactionRef}`
-        );
-      }
-    })
-    .catch((err) => next(err));
+  //       throw new DuplicateTransactionError(
+  //         `Duplicate transaction reference detected: ${transactionRef}`
+  //       );
+  //     }
+  //   })
+  //   .catch((err) => next(err));
 
   await Tour.create(req.body)
     .then(async (tour) => {

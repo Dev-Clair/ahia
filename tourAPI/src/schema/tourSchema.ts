@@ -2,13 +2,25 @@ import { Schema } from "mongoose";
 import TourInterface from "../interface/tourInterface";
 
 const TourSchema: Schema<TourInterface> = new Schema({
-  realtorId: {
-    type: String,
-    required: false,
+  realtor: {
+    id: {
+      type: String,
+      required: false,
+    },
+    email: {
+      type: String,
+      required: false,
+    },
   },
-  customerId: {
-    type: String,
-    required: [true, "A new tour must have a customerId"],
+  customer: {
+    id: {
+      type: String,
+      required: [true, "ID is required"],
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+    },
   },
   listingIds: [
     {

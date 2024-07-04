@@ -1,8 +1,14 @@
 import { Document } from "mongoose";
 
 export default interface TourInterface extends Document {
-  realtorId: string;
-  customerId: string;
+  realtor: {
+    id: string;
+    email: string;
+  };
+  customer: {
+    id: string;
+    email: string;
+  };
   listingIds: string[];
   // location: {
   //   type?: String;
