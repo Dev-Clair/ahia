@@ -14,7 +14,7 @@ const AsyncErrorWrapper = (
 
     if (retryStrategy) {
       retryStrategy(executeOperation, retryOptions)
-        .then(() => next())
+        // .then(() => next())
         .catch(next);
     } else {
       executeOperation().catch(next);
