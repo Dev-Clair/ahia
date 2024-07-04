@@ -25,15 +25,15 @@ const Connection = async (
         establishConnection(connectionUri)
       );
     } catch (err: any) {
-      const from: string = process.env.TOUR_ADMIN_EMAIL || "";
+      const from: string = process.env.TOUR_ADMIN_EMAIL_I || "";
 
-      const to: [string] = [""];
+      const to: [string] = [process.env.TOUR_ADMIN_EMAIL_II || ""];
 
       const subject: string = "Database Connection Failure";
 
       const message: string = `Backoff retry strategies failed. Could not establish connection to the database.\nError: ${err.message}`;
 
-      await NotifyUser(from, to, subject, message); // Admin
+      await NotifyUser(from, to, subject, message);
 
       process.kill(process.pid, "SIGTERM");
     }
