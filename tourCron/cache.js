@@ -3,7 +3,7 @@ class MapCache {
 
   ttl;
 
-  constructor(ttl = 300000) {
+  constructor(ttl = 450000) {
     this.map = new Map();
 
     this.ttl = ttl;

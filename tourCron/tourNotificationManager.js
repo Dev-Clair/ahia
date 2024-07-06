@@ -1,15 +1,28 @@
+const URL = require("node:url").URL;
 const MapCache = require("./cache");
-const SendEmail = require("./mailer");
-const NotifyAdmin = require("./notificationHandler");
-const RetryHandler = require("./retryHandler");
+const Notify = require("./notify");
 
-const failureCache = new MapCache();
+class TourNotificationManager {
+  processedCount = 0;
 
-class TourNotificationTransactionManager {
-  static async processTourNotification(customer, realtor, tourDate, tourTime) {
+  failedCount = 0;
+
+  retriedCount = 0;
+
+  failureCache = new MapCache();
+
+  static async processNotification(
+    customer,
+    realtor,
+    tourId,
+    tourDate,
+    tourTime
+  ) {
     let customerEmail = customer.email;
 
     let realtorEmail = realtor.email;
+
+    const sender = process.env.TOUR_NOTIFICATION_EMAIL || "";
 
     try {
       if (!customerEmail) {
@@ -20,40 +33,68 @@ class TourNotificationTransactionManager {
         throw new Error(`Email not found for realtor: ${realtor.id}`);
       }
 
-      const subject = "Tour Reminder";
+      const subject = "TOUR REMINDER";
 
-      const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.`;
+      const link =
+        URL(`https://wwww.ahia.com/api/v1/tours/${tourId}/reschedule`) ||
+        URL(`https://wwww.ahia.com/api/v2/tours/${tourId}/reschedule`);
 
-      await RetryHandler.LinearJitterRetry(() =>
-        SendEmail("", [customerEmail], subject, text, "", [realtorEmail])
-      );
+      const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\nKindly click the ${link} to reschedule the tour to a more convienient date or time`;
+
+      await Notify(sender, [customerEmail, realtorEmail], subject, text);
+
+      processedCount++;
     } catch (err) {
       console.error(
-        `Failed to process transaction for customer ${customer.id} and realtor ${realtor.id}: ${err.message}`
+        `Failed to process tour notification to customer ${customer.id} and realtor ${realtor.id}\nError: ${err.message}`
       );
 
-      await NotifyAdmin();
+      const recipient = process.env.TOUR_ADMIN_EMAIL_I || "";
+
+      const subject = "CRON NOTIFICATION ERROR";
+
+      const text = `Failed to process tour notification to customer ${customer.id} and realtor ${realtor.id}\nError: ${err.message}`;
+
+      await Notify(sender, recipient, subject, text);
 
       failureCache.set(customer.id, {
-        customer: customer.email,
-        realtor: realtor.email,
+        customerEmail: customer.email,
+        realtorEmail: realtor.email,
+        tourId: tourId,
         tourDate: tourDate,
         tourTime: tourTime,
       });
+
+      failedCount++;
     }
   }
 
-  static async retryFailureCache() {
-    for (const [key, object] of failureCache.entries()) {
-      await this.processTourNotification(
-        object.value["customer.id"],
-        object.value["realtor.id"],
-        object.value["tourDate"],
-        object.value["tourTime"]
+  static async retryFailed() {
+    for (const [key, value] of failureCache.entries()) {
+      await this.processNotification(
+        value.customerEmail,
+        value.realtorEmail,
+        value.tourId,
+        value.tourDate,
+        value.tourTime
       );
+
       failureCache.delete(key);
+
+      this.retriedCount++;
     }
+  }
+
+  static getCronLog() {
+    return {
+      log: {
+        processed: processedCount,
+        failed: failedCount,
+        retried: retriedCount,
+        status: failedCount === retriedCount,
+      },
+    };
   }
 }
 
-module.exports = TourNotificationTransactionManager;
+module.exports = TourNotificationManager;

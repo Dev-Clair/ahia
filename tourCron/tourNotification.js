@@ -1,55 +1,24 @@
-const Tour = require("./tourModel");
+const TourGenerator = require("./tourGenerator");
 const TourNotificationManager = require("./tourNotificationManager");
 
-async function* retrieveToursGenerator() {
-  const tours = await Tour.find({
-    scheduledDate: { $gte: new Date() },
-    status: "pending",
-  });
-
-  if (!tours) {
-    return console.log("No scheduled tours yet");
-  }
-
-  const now = new Date().getTime();
-
-  for (const tour of tours) {
-    const { realtor, customer, scheduledDate, scheduledTime } = tour;
-
-    const tourDateTime = new Date(scheduledDate);
-
-    tourDateTime.setHours(parseInt(scheduledTime.split(":")[0], 10));
-
-    tourDateTime.setMinutes(parseInt(scheduledTime.split(":")[1], 10));
-
-    const diff = tourDateTime.getTime() - now;
-
-    if (diff <= 6 * 60 * 60 * 1000 && diff > 0) {
-      yield {
-        customer,
-        realtor,
-        tourDate: scheduledDate,
-        tourTime: scheduledTime,
-      };
-    }
-  }
-}
-
 const TourNotification = async () => {
-  const toursGenerator = retrieveToursGenerator();
+  const tourGenerator = TourGenerator();
 
-  for await (const tour of toursGenerator) {
-    const { customer, realtor, tourDate, tourTime } = tour;
+  for await (const tour of tourGenerator) {
+    const { customer, realtor, tourId, tourDate, tourTime } = tour;
 
-    await TourNotificationManager.processTourNotification(
-      customer.email,
-      realtor.email,
+    await TourNotificationManager.processNotification(
+      customer,
+      realtor,
+      tourId,
       tourDate,
       tourTime
     );
   }
 
-  await TourNotificationManager.retryFailureCache();
+  await TourNotificationManager.retryFailed();
+
+  return TourNotificationManager.getCronLog();
 };
 
 module.exports = TourNotification;

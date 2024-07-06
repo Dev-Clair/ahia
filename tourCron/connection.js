@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
-const RetryHandler = require("./retryHandler");
-const NotifyAdmin = require("./notificationHandler");
+const Notify = require("./notify");
+const Retry = require("./retry");
+
+const sender = process.env.TOUR_NOTIFICATION_EMAIL || "";
+
+const recipient = [process.env.TOUR_ADMIN_EMAIL_II || ""];
+
+const subject = "Database Connection Failure";
 
 const establishConnection = async (connectionUri) => {
   if (mongoose.connection.readyState === 0) {
@@ -12,24 +18,14 @@ const establishConnection = async (connectionUri) => {
 
 const Connection = async (connectionUri) => {
   try {
-    await RetryHandler.ExponentialRetry(() =>
-      establishConnection(connectionUri)
-    );
+    await Retry.ExponentialRetry(() => establishConnection(connectionUri));
   } catch (err) {
     try {
-      await RetryHandler.LinearJitterRetry(() =>
-        establishConnection(connectionUri)
-      );
+      await Retry.LinearJitterRetry(() => establishConnection(connectionUri));
     } catch (err) {
-      const from = process.env.TOUR_ADMIN_EMAIL_I || "";
-
-      const to = [process.env.TOUR_ADMIN_EMAIL_II || ""];
-
-      const subject = "Database Connection Failure";
-
       const message = `Backoff retry strategies failed. Could not establish connection to the database.\nError: ${err.message}`;
 
-      await NotifyAdmin(from, to, subject, message);
+      await Notify(sender, recipient, subject, message);
 
       process.kill(process.pid, "SIGTERM");
     }

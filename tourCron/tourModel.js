@@ -27,17 +27,6 @@ const TourSchema = new Schema({
       required: [true, "A new tour must have a collection of listings"],
     },
   ],
-  // location: {
-  //   type: {
-  //     type: String,
-  //     enum: ["Point"],
-  //     required: false,
-  //   },
-  //   coordinates: {
-  //     type: Number,
-  //     required: false,
-  //   },
-  // },
   scheduledDate: {
     type: Date,
     required: false,
@@ -60,8 +49,6 @@ const TourSchema = new Schema({
     default: Date.now,
   },
 });
-
-// TourSchema.index({ location: "2dsphere" });
 
 const Tour = mongoose.model("Tour", TourSchema);
 
