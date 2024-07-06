@@ -1,5 +1,5 @@
-const Tour = require("./tourModel");
-const TourNotificationManager = require("./tourNotificationManager");
+const Tour = require("../model/tour");
+const TourNotificationManager = require("../util/tourNotificationManager");
 
 const retrieveToursGenerator = async function* () {
   const pageSize = 100;
@@ -8,7 +8,7 @@ const retrieveToursGenerator = async function* () {
 
   let iterationCount = 0;
 
-  let retrievedCount = 0;
+  let totalRetrieved = 0;
 
   while (true) {
     const tours = await Tour.find({
@@ -91,8 +91,9 @@ const TourNotification = async () => {
 
   return {
     retrievedTours: retrievedCount,
-    failed: failedCount,
-    retried: retriedCount,
+    successfulNotifications: retrievedCount,
+    failedNotifications: failedCount,
+    retriedNotifications: retriedCount,
   };
 };
 

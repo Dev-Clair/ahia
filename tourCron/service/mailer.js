@@ -8,7 +8,7 @@ const configuration = [];
 
 const client = new SESClient(configuration);
 
-const SendEmail = async (from, to, subject, text, html, cc, bcc) => {
+const Mail = async (from, to, subject, text, html, cc, bcc) => {
   console.log(from, to, subject, text, html, cc, bcc);
 
   // const input = {
@@ -54,4 +54,4 @@ const SendEmail = async (from, to, subject, text, html, cc, bcc) => {
   // return response;
 };
 
-module.exports = SendEmail;
+module.exports = Mail;

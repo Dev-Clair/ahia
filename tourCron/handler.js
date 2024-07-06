@@ -1,23 +1,29 @@
 const Config = require("./config");
 const Connection = require("./connection");
-const NotifyAdmin = require("./notificationHandler");
-const TourNotification = require("./tourNotification");
+const Notify = require("./util/notify");
+const TourNotification = require("./job/tourNotification");
 
 Connection(Config.MONGO_URI);
 
+const from = process.env.TOUR_NOTIFICATION_EMAIL || "";
+
+const to = [process.env.TOUR_ADMIN_EMAIL_II];
+
 exports.cron = async (event, context) => {
   try {
-    await TourNotification();
+    const counts = await TourNotification();
+
+    const subject = "Tour Notification Cron Operation Report";
+
+    const message = JSON.stringify(counts);
+
+    await Notify(from, to, subject, message);
   } catch (err) {
-    const from = process.env.TOUR_ADMIN_EMAIL_I || "";
-
-    const to = [process.env.TOUR_ADMIN_EMAIL_II];
-
-    const subject = "Cron Scheduler Error";
+    const subject = "Tour Notification Cron Operation Error";
 
     const message = `${err.message}`;
 
-    await NotifyAdmin(from, to, subject, message);
+    await Notify(from, to, subject, message);
   }
 };
 
