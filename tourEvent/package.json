@@ -1,0 +1,17 @@
+{
+  "name": "tourevent",
+  "version": "1.0.0",
+  "description": "'AWS Lambda Resource Integrated with Eventbridge'",
+  "main": "handler.js",
+  "scripts": {
+    "start": "node main"
+  },
+  "keywords": [
+    "ahia",
+    "tour",
+    "service",
+    "event"
+  ],
+  "author": "Aniogbu  Samuel",
+  "license": "ISC"
+}
