@@ -1,7 +1,6 @@
-const Tour = require("../model/tour");
-const TourNotificationManager = require("../util/tourNotificationManager");
+const Tour = require("./tourModel");
 
-const retrieveToursGenerator = async function* () {
+const TourGenerator = async function* () {
   const pageSize = 100;
 
   let pageNumber = 0;
@@ -56,45 +55,4 @@ const retrieveToursGenerator = async function* () {
   }
 };
 
-const TourNotification = async () => {
-  let retrievedCount = 0;
-
-  let failedCount = 0;
-
-  let retriedCount = 0;
-
-  const toursGenerator = retrieveToursGenerator();
-
-  for await (const tour of toursGenerator) {
-    const { customer, realtor, tourDate, tourTime } = tour;
-
-    try {
-      await TourNotificationManager.processTourNotification(
-        customer,
-        realtor,
-        tourDate,
-        tourTime
-      );
-      retrievedCount++;
-    } catch (err) {
-      console.error(`Error processing tour notification: ${err.message}`);
-
-      failedCount++;
-    }
-  }
-
-  try {
-    retriedCount = await TourNotificationManager.retryFailureCache();
-  } catch (err) {
-    console.error(`Error retrying failed notifications: ${err.message}`);
-  }
-
-  return {
-    retrievedTours: retrievedCount,
-    successfulNotifications: retrievedCount,
-    failedNotifications: failedCount,
-    retriedNotifications: retriedCount,
-  };
-};
-
-module.exports = TourNotification;
+module.exports = TourGenerator;
