@@ -12,7 +12,7 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: ${env:AWS_REGION}
-  memorySize: 1024
+  memorySize: 512
 
 functions:
   ahia-tour-cron-service:

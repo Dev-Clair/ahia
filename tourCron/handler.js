@@ -7,14 +7,7 @@ Connection(Config.MONGO_URI);
 
 exports.cron = async (event, context) => {
   try {
-    const eventSource = event.source;
-    if (eventSource === "Ahia_Cron_Tour_Notification") {
-      await TourNotification();
-    } else if (eventSource === "Ahia_Cron_Clear_Logs") {
-      await ClearLogs();
-    } else {
-      throw new Error(`Unidentified Event Source: ${eventSource}`);
-    }
+    await TourNotification();
   } catch (err) {
     const from = process.env.TOUR_ADMIN_EMAIL_I || "";
 
@@ -28,20 +21,24 @@ exports.cron = async (event, context) => {
   }
 };
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception thrown:", error);
-  process.exitCode = 1;
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  process.exitCode = 1;
-});
-
 const shutdown = () => {
   console.log("Closing all open connections");
 
   mongoose.connection.close(true);
 
-  process.on("SIGTERM", shutdown);
+  process.exitCode = 1;
 };
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception thrown:", error);
+  shutdown();
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  shutdown();
+});
+
+process.on("SIGTERM", () => {
+  shutdown();
+});

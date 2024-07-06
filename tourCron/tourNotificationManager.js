@@ -44,15 +44,22 @@ class TourNotificationTransactionManager {
   }
 
   static async retryFailureCache() {
-    for (const [key, object] of failureCache.entries()) {
+    let retriedCount = 0;
+
+    for (const [key, value] of failureCache.entries()) {
       await this.processTourNotification(
-        object.value["customer.id"],
-        object.value["realtor.id"],
-        object.value["tourDate"],
-        object.value["tourTime"]
+        value.customer,
+        value.realtor,
+        value.tourDate,
+        value.tourTime
       );
+
+      retriedCount++;
+
       failureCache.delete(key);
     }
+
+    return retriedCount;
   }
 }
 
