@@ -17,7 +17,9 @@ exports.cron = async (event, context) => {
 
     const message = JSON.stringify(cronLog);
 
-    await Notify(sender, recipient, subject, message);
+    if (!cronLog.log.status) {
+      await Notify(sender, recipient, subject, message);
+    }
   } catch (err) {
     const message = `${err.message}`;
 

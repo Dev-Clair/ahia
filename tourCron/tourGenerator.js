@@ -18,14 +18,14 @@ const TourGenerator = async function* () {
       .limit(pageSize);
 
     if (tours.length === 0 || !tours) {
-      console.log("No tours are scheduled at the moment.");
+      console.log("No tours are scheduled at the moment");
       break;
     }
 
     const now = new Date().getTime();
 
     for (const tour of tours) {
-      const { realtor, customer, scheduledDate, scheduledTime } = tour;
+      const { _id, realtor, customer, scheduledDate, scheduledTime } = tour;
 
       const tourDateTime = new Date(scheduledDate);
 
@@ -39,6 +39,7 @@ const TourGenerator = async function* () {
         yield {
           customer,
           realtor,
+          tourId: _id,
           tourDate: scheduledDate,
           tourTime: scheduledTime,
         };
