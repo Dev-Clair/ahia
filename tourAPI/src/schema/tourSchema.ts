@@ -52,17 +52,3 @@ const TourSchema: Schema<TourInterface> = new Schema({
 });
 
 export default TourSchema;
-
-// location: {
-//   type: {
-//     type: String,
-//     enum: ["Point"],
-//     required: false,
-//   },
-//   coordinates: {
-//     type: Number,
-//     required: false,
-//   },
-// },
-
-// TourSchema.index({ location: "2dsphere" });
