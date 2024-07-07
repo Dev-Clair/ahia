@@ -1,14 +1,19 @@
-const {
-  SESClient,
-  SESClientConfig,
-  SendEmailCommand,
-} = require("@aws-sdk/client-ses");
+const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+const Config = require("./config");
 
-const configuration = [];
+const configuration = [
+  {
+    region: Config.AWS_REGION,
+    credentials: {
+      accessKeyId: Config.AWS_ACCESS_KEY_ID,
+      secretAccessKey: Config.AWS_SECRET_ACCESS_KEY,
+    },
+  },
+];
 
 const client = new SESClient(configuration);
 
-const Mail = async (
+const SendMail = async (
   sender,
   recipient,
   subject,
@@ -40,7 +45,6 @@ const Mail = async (
         },
       },
     },
-    SourceArn: "",
   };
 
   const command = new SendEmailCommand(input);
@@ -50,4 +54,4 @@ const Mail = async (
   return response;
 };
 
-module.exports = Mail;
+module.exports = SendMail;
