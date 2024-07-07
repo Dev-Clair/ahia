@@ -1,29 +1,51 @@
 const Config = require("./config");
 const Connection = require("./connection");
+const ConnectionError = require("./connectionError");
+const MailerError = require("./mailerError");
 const Notify = require("./notify");
 const TourNotification = require("./tourNotification");
-
-Connection(Config.MONGO_URI);
 
 const sender = process.env.TOUR_NOTIFICATION_EMAIL || "";
 
 const recipient = [process.env.TOUR_ADMIN_EMAIL_II];
 
-const subject = "Tour Notification Cron Operation Log";
-
 exports.cron = async (event, context) => {
   try {
+    Connection(Config.MONGO_URI);
+
     const cronLog = await TourNotification();
 
     const message = JSON.stringify(cronLog);
 
     if (!cronLog.log.status) {
-      await Notify(sender, recipient, subject, message);
+      await Notify(
+        sender,
+        recipient,
+        "OPERATION LOG: CRON TOUR NOTIFICATION",
+        message
+      );
     }
   } catch (err) {
-    const message = `${err.message}`;
+    if (err instanceof ConnectionError) {
+      const message = { message: err.message, description: err.description };
 
-    await Notify(sender, recipient, subject, message);
+      await Notify(
+        sender,
+        recipient,
+        err.name.toUpperCase(),
+        JSON.stringify(message)
+      );
+    }
+
+    if (err instanceof MailerError) {
+      console.log(err.name, "AWS SES ERROR", err.message);
+
+      process.kill(process.pid, SIGTERM);
+    }
+
+    const message = `${err.message}\n${err.stack}`;
+
+    await Notify(sender, recipient, "CRITICAL ERROR", message);
   }
 };
 

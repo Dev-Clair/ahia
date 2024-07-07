@@ -1,15 +1,20 @@
 const URL = require("node:url").URL;
-const MapCache = require("./cache");
+const Cache = require("./cache");
+const MailerError = require("./mailerError");
 const Notify = require("./notify");
 
 class TourNotificationManager {
-  processedCount = 0;
+  constructor() {
+    this.processedCount = 0;
 
-  failedCount = 0;
+    this.failedCount = 0;
 
-  retriedCount = 0;
+    this.retriedCount = 0;
 
-  failureCache = new MapCache();
+    this.failureCache = new Cache.MapCache();
+
+    this.errorCache = new Cache.SetCache();
+  }
 
   static async processNotification(
     customer,
@@ -35,25 +40,25 @@ class TourNotificationManager {
 
       const subject = "TOUR REMINDER";
 
-      const link =
-        URL(`https://wwww.ahia.com/api/v1/tours/${tourId}/reschedule`) ||
-        URL(`https://wwww.ahia.com/api/v2/tours/${tourId}/reschedule`);
+      const link = URL(
+        `https://wwww.ahia.com/api/v1/tours/${tourId}/reschedule`
+      );
 
-      const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\nKindly click the ${link} to reschedule the tour to a more convienient date or time`;
+      const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\n\nKindly click the ${link} to reschedule the tour to a more convienient date or time to inform the other party earlier.\nPlease note that rescheduling a tour becomes impossible 3-Hrs before the scheduled time.`;
 
       await Notify(sender, [customerEmail, realtorEmail], subject, text);
 
-      processedCount++;
+      this.processedCount++;
     } catch (err) {
-      console.error(
-        `Failed to process tour notification to customer ${customer.id} and realtor ${realtor.id}\nError: ${err.message}`
-      );
+      if (err instanceof MailerError) {
+        throw err;
+      }
 
       const recipient = process.env.TOUR_ADMIN_EMAIL_I || "";
 
       const subject = "CRON NOTIFICATION ERROR";
 
-      const text = `Failed to process tour notification to customer ${customer.id} and realtor ${realtor.id}\nError: ${err.message}`;
+      const text = `Failed to process tour notification for tour ${tourId}\nError: ${err.message}`;
 
       await Notify(sender, recipient, subject, text);
 
@@ -65,7 +70,9 @@ class TourNotificationManager {
         tourTime: tourTime,
       });
 
-      failedCount++;
+      errorCache.set(tourId, text);
+
+      this.failedCount++;
     }
   }
 
@@ -88,10 +95,11 @@ class TourNotificationManager {
   static getCronLog() {
     return {
       log: {
-        processed: processedCount,
-        failed: failedCount,
-        retried: retriedCount,
-        status: failedCount === retriedCount,
+        processed: this.processedCount,
+        failed: this.failedCount,
+        retried: this.retriedCount,
+        status: this.failedCount === this.retriedCount,
+        errors: errorCache.entries(),
       },
     };
   }
