@@ -28,17 +28,6 @@ const TourSchema: Schema<TourInterface> = new Schema({
       required: [true, "A new tour must have a collection of listings"],
     },
   ],
-  // location: {
-  //   type: {
-  //     type: String,
-  //     enum: ["Point"],
-  //     required: false,
-  //   },
-  //   coordinates: {
-  //     type: Number,
-  //     required: false,
-  //   },
-  // },
   scheduledDate: {
     type: Date,
     required: false,
@@ -62,6 +51,18 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
 });
 
-// TourSchema.index({ location: "2dsphere" });
-
 export default TourSchema;
+
+// location: {
+//   type: {
+//     type: String,
+//     enum: ["Point"],
+//     required: false,
+//   },
+//   coordinates: {
+//     type: Number,
+//     required: false,
+//   },
+// },
+
+// TourSchema.index({ location: "2dsphere" });

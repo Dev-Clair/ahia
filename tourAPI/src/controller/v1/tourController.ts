@@ -7,8 +7,8 @@ import Tour from "../../model/tourModel";
 import TourIdempotency from "../../model/tourIdempotencyModel";
 import TourSchedule from "../../model/tourScheduleModel";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
-import RetryHandler from "../../utils/retry";
-import NotifyUser from "../../utils/notify";
+import Retry from "../../utils/retry";
+import Notify from "../../utils/notify";
 
 const createTour = async (
   req: Request,
@@ -28,7 +28,7 @@ const createTour = async (
   await TourIdempotency.findOne({ key: transactionRef })
     .then((verifyOperationIdempotency) => {
       if (verifyOperationIdempotency) {
-        // NotifyUser(); // Admin
+        // Notify(); // Admin
 
         throw new DuplicateTransactionError(
           `Duplicate transaction reference detected: ${transactionRef}`
@@ -46,7 +46,7 @@ const createTour = async (
         response: response,
       });
 
-      // await NotifyUser(); // Customer
+      // await Notify(); // Customer
 
       return res.status(HttpStatusCode.CREATED).json(response);
     })
@@ -414,7 +414,7 @@ const acceptTourRechedule = async (
             );
           }
 
-          // await notifyUser(); // Customer && Realtor
+          // await notify(); // Customer && Realtor
         })
         .catch((err) => next(err));
     })
@@ -441,7 +441,7 @@ const rejectTourReschedule = async (
         );
       }
 
-      // await notifyUser();  // Customer || Realtor
+      // await notify();  // Customer || Realtor
     })
     .catch((err) => next(err));
 };
@@ -451,8 +451,7 @@ const rejectTourReschedule = async (
  */
 const createTourCollection = AsyncErrorWrapper(
   createTour,
-  RetryHandler.ExponentialRetry,
-  { retries: 3, factor: 2, minTimeout: 10000 }
+  Retry.ExponentialBackoff
 );
 
 /**
@@ -460,7 +459,7 @@ const createTourCollection = AsyncErrorWrapper(
  */
 const retrieveTourCollection = AsyncErrorWrapper(
   getTours,
-  RetryHandler.LinearJitterRetry,
+  Retry.LinearJitterBackoff,
   {
     retries: 2,
     jitterFactor: 1000,
@@ -473,7 +472,7 @@ const retrieveTourCollection = AsyncErrorWrapper(
  */
 const retrieveTourSearch = AsyncErrorWrapper(
   getTourSearch,
-  RetryHandler.LinearJitterRetry,
+  Retry.LinearJitterBackoff,
   {
     retries: 2,
     jitterFactor: 1000,
@@ -484,67 +483,57 @@ const retrieveTourSearch = AsyncErrorWrapper(
 /**
  * Retrieve a tour item using its :id.
  */
-const retrieveTourItem = AsyncErrorWrapper(
-  getTour,
-  RetryHandler.LinearJitterRetry,
-  {
-    retries: 3,
-    jitterFactor: 1000,
-    minTimeout: 2500,
-  }
-);
+const retrieveTourItem = AsyncErrorWrapper(getTour, Retry.LinearJitterBackoff, {
+  retries: 3,
+  jitterFactor: 1000,
+  minTimeout: 2500,
+});
 
 /**
  * Replace a tour item using its :id.
  */
 const replaceTourItem = AsyncErrorWrapper(
   replaceTour,
-  RetryHandler.ExponentialRetry,
+  Retry.ExponentialBackoff,
   { retries: 3, factor: 2, minTimeout: 10000 }
 );
 
 /**
  * Updates a tour item using its :id.
  */
-const updateTourItem = AsyncErrorWrapper(updateTour, RetryHandler.LinearRetry);
+const updateTourItem = AsyncErrorWrapper(updateTour, Retry.LinearBackoff);
 
 /**
  * Deletes a tour item using its :id.
  */
-const deleteTourItem = AsyncErrorWrapper(deleteTour, RetryHandler.LinearRetry);
+const deleteTourItem = AsyncErrorWrapper(deleteTour, Retry.LinearBackoff);
 
 /**
  * Complete a tour item using its :id.
  */
-const completeTourItem = AsyncErrorWrapper(
-  completeTour,
-  RetryHandler.LinearRetry
-);
+const completeTourItem = AsyncErrorWrapper(completeTour, Retry.LinearBackoff);
 
 /**
  * Cancels a tour item using its :id.
  */
-const cancelTourItem = AsyncErrorWrapper(cancelTour, RetryHandler.LinearRetry);
+const cancelTourItem = AsyncErrorWrapper(cancelTour, Retry.LinearBackoff);
 
 /**
  * reopens a cancelled tour using its :id.
  */
-const reopenTourItem = AsyncErrorWrapper(reopenTour, RetryHandler.LinearRetry);
+const reopenTourItem = AsyncErrorWrapper(reopenTour, Retry.LinearBackoff);
 
 /**
  * schedule a new tour.
  */
-const scheduleTourItem = AsyncErrorWrapper(
-  scheduleTour,
-  RetryHandler.LinearRetry
-);
+const scheduleTourItem = AsyncErrorWrapper(scheduleTour, Retry.LinearBackoff);
 
 /**
  * reschedules an existing tour.
  */
 const rescheduleTourItem = AsyncErrorWrapper(
   rescheduleTour,
-  RetryHandler.LinearRetry
+  Retry.LinearBackoff
 );
 
 /**
