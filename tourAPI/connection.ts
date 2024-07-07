@@ -24,8 +24,6 @@ const Connection = async (
         "Retry strategies failed. Could not establish connection to the database";
 
       throw new ConnectionError(err.message, description);
-
-      process.kill(process.pid, "SIGTERM");
     }
   }
 };
