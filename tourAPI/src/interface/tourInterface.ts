@@ -16,8 +16,3 @@ export default interface TourInterface extends Document {
   isClosed: boolean;
   createdAt: Date;
 }
-
-// location: {
-//   type?: String;
-//   coordinates?: Number;
-// };
