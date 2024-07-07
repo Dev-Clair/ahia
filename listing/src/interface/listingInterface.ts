@@ -1,10 +1,10 @@
 import { Document } from "mongoose";
 
 export default interface ListingInterface extends Document {
-  name: String;
-  description: String;
-  slug: String;
-  cost: Number;
+  name: string;
+  description: string;
+  slug: string;
+  cost: number;
   purpose: "rent" | "sell";
   type: "developed" | "undeveloped";
   useType:
@@ -21,14 +21,18 @@ export default interface ListingInterface extends Document {
     | "bare-land";
 
   useCategory: "residential" | "commercial";
-  features: String[];
-  location: {
-    address: String;
-    zone: String;
-    countyLGA: String;
-    state: String;
+  features: string[];
+  address: {
+    street: string;
+    zone: string;
+    countyLGA: string;
+    state: string;
   };
-  attachments: String[];
-  provider: String;
+  location: {
+    type?: string;
+    coordinates?: number;
+  };
+  attachments: string[];
+  provider: string;
   createdAt: Date;
 }

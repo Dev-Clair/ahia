@@ -57,8 +57,8 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
       required: true,
     },
   ],
-  location: {
-    address: {
+  address: {
+    street: {
       type: String,
       required: true,
     },
@@ -73,6 +73,17 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
     state: {
       type: String,
       required: true,
+    },
+  },
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: false,
+    },
+    coordinates: {
+      type: Number,
+      required: false,
     },
   },
   attachments: [
@@ -90,5 +101,7 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
     default: Date.now,
   },
 });
+
+ListingSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model<ListingInterface>("Listing", ListingSchema);
