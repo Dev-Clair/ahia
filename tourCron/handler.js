@@ -17,7 +17,7 @@ exports.cron = async (event, context) => {
 
     const message = JSON.stringify(cronLog);
 
-    if (!cronLog.log.status) {
+    if (cronLog.status === false) {
       await Notify(
         sender,
         recipient,
@@ -27,25 +27,25 @@ exports.cron = async (event, context) => {
     }
   } catch (err) {
     if (err instanceof ConnectionError) {
-      const message = { message: err.message, description: err.description };
+      const text = { message: err.message, description: err.description };
 
       await Notify(
         sender,
         recipient,
         err.name.toUpperCase(),
-        JSON.stringify(message)
+        JSON.stringify(text)
       );
     }
 
     if (err instanceof MailerError) {
-      console.log(err.name, "AWS SES ERROR", err.message);
+      console.log(err.name, err.message);
 
       process.kill(process.pid, SIGTERM);
     }
 
-    const message = `${err.message}\n${err.stack}`;
+    const text = { message: err.message, trace: err.stack };
 
-    await Notify(sender, recipient, "CRITICAL ERROR", message);
+    await Notify(sender, recipient, "CRITICAL ERROR", JSON.stringify(text));
   }
 };
 

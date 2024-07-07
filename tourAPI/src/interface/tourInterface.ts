@@ -10,13 +10,14 @@ export default interface TourInterface extends Document {
     email: string;
   };
   listingIds: string[];
-  // location: {
-  //   type?: String;
-  //   coordinates?: Number;
-  // };
   scheduledDate: Date;
   scheduledTime: string;
   status: "pending" | "ongoing" | "completed" | "cancelled";
   isClosed: boolean;
   createdAt: Date;
 }
+
+// location: {
+//   type?: String;
+//   coordinates?: Number;
+// };

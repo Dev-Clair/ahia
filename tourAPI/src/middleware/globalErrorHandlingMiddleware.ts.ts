@@ -1,7 +1,7 @@
 import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
 import Logger from "../service/loggerService";
-import NotifyUser from "../utils/notificationHandler/notificationHandler";
+import NotifyUser from "../utils/notify";
 
 class GlobalErrorHandlingMiddleware {
   public static async handleError(err: Error): Promise<void> {

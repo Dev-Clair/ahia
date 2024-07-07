@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from "express";
 
 const AsyncErrorWrapper = (
-  operation: (
+  Operation: (
     req: Request,
     res: Response,
     next: NextFunction
   ) => Promise<Response | void>,
-  retryStrategy?: Function,
-  retryOptions?: {}
+  Retry?: Function,
+  RetryOptions?: {}
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const executeOperation = () => operation(req, res, next);
+    const executeOperation = () => Operation(req, res, next);
 
-    if (retryStrategy) {
-      retryStrategy(executeOperation, retryOptions).catch(next);
+    if (Retry) {
+      Retry(executeOperation, RetryOptions).catch(next);
     } else {
       executeOperation().catch(next);
     }
