@@ -14,7 +14,7 @@ class Retry {
         factor: options.factor,
         minTimeout: options.minTimeout,
         onRetry: (error, attempt) => {
-          console.error.error(
+          console.error(
             `Exponential retry attempt no. ${attempt} failed.\nThere are ${
               options.retries - attempt
             } retries left.\nError: ${error.message}`

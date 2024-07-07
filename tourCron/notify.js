@@ -8,7 +8,7 @@ const Notify = async (sender, recipient, subject, text) => {
       SendMail(sender, recipient, subject, text)
     );
   } catch (err) {
-    throw new MailerError(err);
+    throw new MailerError(err.message);
   }
 };
 

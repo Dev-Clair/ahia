@@ -16,8 +16,6 @@ const TourNotification = async () => {
     );
   }
 
-  await TourNotificationManager.retryFailed();
-
   return TourNotificationManager.getCronLog();
 };
 
