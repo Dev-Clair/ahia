@@ -4,7 +4,8 @@ class PaymentEventPayloadError extends Error {
   constructor(message: string) {
     super(message);
 
-    this.name = "PaymentEventPayloadError";
+    this.name = "PAYMENT EVENT PAYLOAD ERROR";
+
     this.isOperational = false;
 
     Error.captureStackTrace(this, this.constructor);

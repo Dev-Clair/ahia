@@ -6,9 +6,9 @@ import DuplicateTransactionError from "../../error/duplicateTransactionError";
 import Tour from "../../model/tourModel";
 import TourIdempotency from "../../model/tourIdempotencyModel";
 import TourSchedule from "../../model/tourScheduleModel";
-import AsyncErrorWrapper from "../../utils/asyncErrorWrapper/asyncErrorWrapper";
-import RetryHandler from "../../utils/retryHandler/retryHandler";
-import NotifyUser from "../../utils/notificationHandler/notificationHandler";
+import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
+import RetryHandler from "../../utils/retry";
+import NotifyUser from "../../utils/notify";
 
 const createTour = async (
   req: Request,

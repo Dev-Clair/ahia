@@ -4,7 +4,8 @@ class DuplicateTransactionError extends Error {
   constructor(message: string) {
     super(message);
 
-    this.name = "DuplicateTransactionError";
+    this.name = "DUPLICATE TRANSACTION ERROR";
+
     this.isOperational = false;
 
     Error.captureStackTrace(this, this.constructor);
