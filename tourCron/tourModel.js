@@ -24,7 +24,7 @@ const TourSchema = new Schema({
   listingIds: [
     {
       type: [String],
-      required: [true, "A new tour must have a collection of listings"],
+      required: true,
     },
   ],
   scheduledDate: {
