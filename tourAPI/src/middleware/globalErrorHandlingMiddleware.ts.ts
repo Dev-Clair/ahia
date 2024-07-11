@@ -1,7 +1,7 @@
 import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
 import Logger from "../service/loggerService";
-import NotifyUser from "../utils/notify";
+import Notify from "../utils/notify";
 
 class GlobalErrorHandlingMiddleware {
   public static async handleError(err: Error): Promise<void> {
@@ -9,10 +9,10 @@ class GlobalErrorHandlingMiddleware {
       `name: ${err.name}\nmessage: ${err.message}\nstack: ${err.stack}`
     );
 
-    // await NotifyUser();
+    // await Notify();
   }
 
-  public static isTrustedError(err: Error): boolean {
+  public static isTrustedError(err: APIError | Error): boolean {
     return err instanceof APIError && err.isOperational;
   }
 
