@@ -15,17 +15,17 @@ const TourSchema: Schema<TourInterface> = new Schema({
   customer: {
     id: {
       type: String,
-      required: [true, "ID is required"],
+      required: true,
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: true,
     },
   },
   listingIds: [
     {
       type: [String],
-      required: [true, "A new tour must have a collection of listings"],
+      required: true,
     },
   ],
   scheduledDate: {
