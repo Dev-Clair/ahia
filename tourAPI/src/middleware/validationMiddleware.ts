@@ -20,21 +20,23 @@ const doubleParamIdSchema = singleParamIdSchema.extend({
     .optional(),
 });
 
+const identitySchema = z.object({
+  id: z
+    .string({
+      required_error: "ID is required",
+      invalid_type_error: "ID must be a string",
+    })
+    .uuid({ message: "Invalid ID format" }),
+  email: z
+    .string({
+      required_error: "Email is required",
+      invalid_type_error: "Email must be a string",
+    })
+    .email({ message: "Invalid email format" }),
+});
+
 const customerSchema = z.object({
-  customer: z.object({
-    id: z
-      .string({
-        required_error: "ID is required",
-        invalid_type_error: "ID must be a string",
-      })
-      .uuid({ message: "Invalid ID format" }),
-    email: z
-      .string({
-        required_error: "Email is required",
-        invalid_type_error: "Email must be a string",
-      })
-      .email({ message: "Invalid email format" }),
-  }),
+  customer: identitySchema,
   listingIds: z
     .array(
       z
@@ -46,26 +48,13 @@ const customerSchema = z.object({
     )
     .nonempty("A new tour must have a collection of listings"),
   transactionRef: z.string({
-    required_error: "Listing ID(s) are required",
-    invalid_type_error: "Listing ID(s) must be a string",
+    required_error: "Transaction reference is required",
+    invalid_type_error: "Transaction reference must be a string",
   }),
 });
 
 const realtorSchema = z.object({
-  realtor: z.object({
-    id: z
-      .string({
-        required_error: "ID is required",
-        invalid_type_error: "ID must be a string",
-      })
-      .uuid({ message: "Invalid ID format" }),
-    email: z
-      .string({
-        required_error: "Email is required",
-        invalid_type_error: "Email must be a string",
-      })
-      .email({ message: "Invalid email format" }),
-  }),
+  realtor: identitySchema,
 });
 
 const scheduleSchema = z.object({
@@ -126,9 +115,13 @@ const validateBody =
   };
 
 export const validateSingleParamId = validateParams(singleParamIdSchema);
+
 export const validateDoubleParamId = validateParams(doubleParamIdSchema);
+
 export const validateCustomer = validateBody(customerSchema);
+
 export const validateRealtor = validateBody(realtorSchema);
+
 export const validateSchedule = validateBody(scheduleSchema);
 
 export default {
