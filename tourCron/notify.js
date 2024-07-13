@@ -8,7 +8,17 @@ const Notify = async (sender, recipient, subject, text) => {
       SendMail(sender, recipient, subject, text)
     );
   } catch (err) {
-    throw new MailerError(err.message);
+    if (
+      err.name === "AccountSendingPaused" ||
+      err.name === "ConfigurationSetDoesNotExist" ||
+      err.name === "ConfigurationSetSendingPaused" ||
+      err.name === "MailFromDomainNotVerified" ||
+      err.name === "LimitExceeded"
+    ) {
+      const error = err;
+
+      throw new MailerError(error);
+    }
   }
 };
 
