@@ -4,8 +4,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const Config = {
-  NODE_ENV: process.env.NODE_ENV || "",
+  NODE_ENV: process.env.NODE_ENV || "production",
   HTTP_PORT: process.env.HTTP_PORT || 5999,
+  SSL_KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
+  SSL_CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",
   HTTPS_PORT: process.env.HTTPS_PORT || 6000,
   TOUR_ADMIN_EMAIL_I: process.env.TOUR_ADMIN_EMAIL_I || "",
   TOUR_ADMIN_EMAIL_II: process.env.TOUR_ADMIN_EMAIL_II || "",

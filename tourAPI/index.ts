@@ -1,27 +1,26 @@
-import http from "./http";
 import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
 import Connection from "./connection";
 import Logger from "./src/service/loggerService";
 import Notify from "./src/utils/notify";
+import Server from "./server";
 
-const HTTP = http.HTTP(App);
+const SSLOptions = {
+  key: Config.SSL_KEY_FILE_PATH,
+  cert: Config.SSL_CERT_FILE_PATH,
+};
 
-// const HTTPS = http.HTTPS(App);
+const server = new Server(App, SSLOptions);
 
 try {
   if (Config.NODE_ENV === "development") {
-    HTTP.listen(Config.HTTP_PORT, () => {
-      Logger.info(`Listening on port ${Config.HTTP_PORT}`);
-    });
+    server.startHTTPServer(Config.HTTP_PORT);
   }
 
-  // if (Config.NODE_ENV === "production") {
-  //   HTTPS.listen(Config.HTTPS_PORT, () => {
-  //     Logger.info(`Listening on port ${Config.HTTPS_PORT}`);
-  //   });
-  // }
+  if (Config.NODE_ENV === "production") {
+    server.startHTTPSServer(Config.HTTPS_PORT);
+  }
 
   Connection(Config.MONGO_URI);
 } catch (err: any) {
@@ -48,21 +47,7 @@ const shutdown = () => {
   mongoose.connection.close(true);
 
   // Close running server process
-  if (Config.NODE_ENV === "development") {
-    Logger.info(
-      `Closing all connections to server on port ${Config.HTTP_PORT}`
-    );
-
-    HTTP.closeAllConnections();
-  }
-
-  // if (Config.NODE_ENV === "production") {
-  //   Logger.info(
-  //     `Closing all connections to server on port ${Config.HTTPS_PORT}`
-  //   );
-
-  //   HTTPS.closeAllConnections();
-  // }
+  server.closeAllConnections();
 };
 
 process.on("uncaughtException", (error) => {
