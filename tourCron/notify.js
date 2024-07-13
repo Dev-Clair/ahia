@@ -1,6 +1,6 @@
-const SendMail = require("./mailer");
 const MailerError = require("./mailerError");
 const Retry = require("./retry");
+const SendMail = require("./mailer");
 
 const Notify = async (sender, recipient, subject, text) => {
   try {
@@ -15,6 +15,8 @@ const Notify = async (sender, recipient, subject, text) => {
       err.name === "MailFromDomainNotVerified" ||
       err.name === "LimitExceeded"
     ) {
+      return;
+    } else {
       const error = err;
 
       throw new MailerError(error);
