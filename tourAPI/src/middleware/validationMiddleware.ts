@@ -58,18 +58,18 @@ const realtorSchema = z.object({
 });
 
 const scheduleSchema = z.object({
-  scheduledDate: z
+  date: z
     .string({
-      required_error: "Scheduled date is required",
-      invalid_type_error: "Scheduled date must be a string",
+      required_error: "Date is required",
+      invalid_type_error: "Date must be a string",
     })
     .refine((date) => !isNaN(Date.parse(date)), {
       message: "Invalid date string",
     }),
-  scheduledTime: z
+  time: z
     .string({
-      required_error: "Scheduled time is required",
-      invalid_type_error: "Scheduled time must be a string",
+      required_error: "Time is required",
+      invalid_type_error: "Time must be a string",
     })
     .regex(/^\d{2}:\d{2}$/, { message: "Invalid time string" }),
 });

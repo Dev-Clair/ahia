@@ -280,7 +280,7 @@ const scheduleTour = async (
 ): Promise<Response | void> => {
   const tourId = req.params.id;
 
-  const { scheduledDate, scheduledTime } = req.body;
+  const { date, time } = req.body;
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
@@ -298,7 +298,7 @@ const scheduleTour = async (
 
   await Tour.findByIdAndUpdate(
     { _id: tourId },
-    { scheduledDate: scheduledDate, scheduledTime: scheduledTime },
+    { scheduledDate: date, scheduledTime: time },
     { new: true }
   )
     .then(async (tour) => {
@@ -331,7 +331,7 @@ const rescheduleTour = async (
 ): Promise<Response | void> => {
   const tourId = req.params.id;
 
-  const { proposedDate, proposedTime } = req.body;
+  const { date, time } = req.body;
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
@@ -358,7 +358,11 @@ const rescheduleTour = async (
     })
     .catch((err) => next(err));
 
-  await TourSchedule.create({ tourId, proposedDate, proposedTime })
+  await TourSchedule.create({
+    tourId: tourId,
+    proposedDate: date,
+    proposedTime: time,
+  })
     .then(async (schedule) => {
       const response = {
         message:
@@ -414,7 +418,7 @@ const acceptTourRechedule = async (
             );
           }
 
-          // await notify(); // Customer && Realtor
+          // await Notify(); // Customer && Realtor
         })
         .catch((err) => next(err));
     })
@@ -441,7 +445,7 @@ const rejectTourReschedule = async (
         );
       }
 
-      // await notify();  // Customer || Realtor
+      // await Notify();  // Customer || Realtor
     })
     .catch((err) => next(err));
 };
