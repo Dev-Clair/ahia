@@ -20,10 +20,10 @@ const Connection = async (
     try {
       await Retry.LinearJitterBackoff(() => establishConnection(connectionUri));
     } catch (err: any) {
-      const description =
-        "Retry strategies failed. Could not establish connection to the database";
-
-      throw new ConnectionError(err.message, description);
+      throw new ConnectionError(
+        err.message,
+        "Retry strategies failed. Could not establish connection to the database"
+      );
 
       process.kill(process.pid, "SIGTERM");
     }
