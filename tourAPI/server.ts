@@ -25,7 +25,7 @@ class Server {
     this.httpServer = http.createServer(this.app);
 
     this.httpServer.listen(HTTP_PORT, () => {
-      console.log(`Listening on port ${HTTP_PORT}`);
+      console.log(`Listening on http port ${HTTP_PORT}`);
     });
   }
 
@@ -33,7 +33,7 @@ class Server {
     this.httpsServer = https.createServer(this.sslOptions, this.app);
 
     this.httpsServer.listen(HTTPS_PORT, () => {
-      console.log(`Listening on port ${HTTPS_PORT}`);
+      console.log(`Listening on https port ${HTTPS_PORT}`);
     });
   }
 
