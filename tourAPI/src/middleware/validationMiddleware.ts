@@ -8,7 +8,7 @@ const singleParamIdSchema = z.object({
       required_error: "ID is required",
       invalid_type_error: "ID must be a string",
     })
-    .uuid({ message: "Invalid ID format" }),
+    .uuid("Invalid ID format"),
 });
 
 const doubleParamIdSchema = singleParamIdSchema.extend({
@@ -16,8 +16,7 @@ const doubleParamIdSchema = singleParamIdSchema.extend({
     .string({
       invalid_type_error: "Reschedule ID must be a string",
     })
-    .uuid({ message: "Invalid Reschedule ID format" })
-    .optional(),
+    .uuid("Invalid ID format"),
 });
 
 const identitySchema = z.object({
@@ -26,7 +25,7 @@ const identitySchema = z.object({
       required_error: "ID is required",
       invalid_type_error: "ID must be a string",
     })
-    .uuid({ message: "Invalid ID format" }),
+    .uuid("Invalid ID format"),
   email: z
     .string({
       required_error: "Email is required",
@@ -44,7 +43,7 @@ const customerSchema = z.object({
           required_error: "Listing ID(s) are required",
           invalid_type_error: "Listing ID(s) must be a string",
         })
-        .uuid({ message: "Invalid ID format" })
+        .uuid("Invalid ID format")
     )
     .nonempty("A new tour must have a collection of listings"),
   transactionRef: z.string({
