@@ -3,20 +3,18 @@ import { z } from "zod";
 import HttpStatusCode from "../enum/httpStatusCode";
 
 const singleParamIdSchema = z.object({
-  id: z
-    .string({
-      required_error: "ID is required",
-      invalid_type_error: "ID must be a string",
-    })
-    .uuid("Invalid ID format"),
+  id: z.string({
+    required_error: "ID is required",
+    invalid_type_error: "ID must be a string",
+  }),
+  // .uuid({ message: "Invalid ID format" }),
 });
 
 const doubleParamIdSchema = singleParamIdSchema.extend({
-  rescheduleId: z
-    .string({
-      invalid_type_error: "Reschedule ID must be a string",
-    })
-    .uuid("Invalid ID format"),
+  rescheduleId: z.string({
+    invalid_type_error: "Reschedule ID must be a string",
+  }),
+  // .uuid({ message: "Invalid Reschedule ID format" }),
 });
 
 const identitySchema = z.object({
@@ -25,7 +23,7 @@ const identitySchema = z.object({
       required_error: "ID is required",
       invalid_type_error: "ID must be a string",
     })
-    .uuid("Invalid ID format"),
+    .uuid({ message: "Invalid ID format" }),
   email: z
     .string({
       required_error: "Email is required",
@@ -38,12 +36,11 @@ const customerSchema = z.object({
   customer: identitySchema,
   listingIds: z
     .array(
-      z
-        .string({
-          required_error: "Listing ID(s) are required",
-          invalid_type_error: "Listing ID(s) must be a string",
-        })
-        .uuid("Invalid ID format")
+      z.string({
+        required_error: "Listing ID(s) are required",
+        invalid_type_error: "Listing ID(s) must be a string",
+      })
+      // .uuid({ message: "Invalid ID format" })
     )
     .nonempty("A new tour must have a collection of listings"),
   transactionRef: z.string({

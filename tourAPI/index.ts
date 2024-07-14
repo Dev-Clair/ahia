@@ -19,7 +19,7 @@ const server = new Server(
 );
 
 try {
-  if (Config.NODE_ENV !== "development") {
+  if (Config.NODE_ENV === "development") {
     server.startHTTPServer(Config.HTTP_PORT);
   }
 
