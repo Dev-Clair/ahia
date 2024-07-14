@@ -1,6 +1,5 @@
 import http from "node:http";
 import https from "node:https";
-import fs from "node:fs";
 import { Express } from "express";
 
 class Server {
@@ -12,13 +11,10 @@ class Server {
 
   private httpsServer: https.Server | null = null;
 
-  constructor(App: Express, SSLOptions: { key: string; cert: string }) {
+  constructor(App: Express, SSLOptions: Object) {
     this.app = App;
 
-    this.sslOptions = {
-      key: fs.readFileSync(SSLOptions.key),
-      cert: fs.readFileSync(SSLOptions.cert),
-    };
+    this.sslOptions = SSLOptions;
   }
 
   public startHTTPServer(HTTP_PORT: string | number) {

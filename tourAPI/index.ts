@@ -7,13 +7,16 @@ import Logger from "./src/service/loggerService";
 import MailerError from "./src/error/mailerError";
 import Notify from "./src/utils/notify";
 import Server from "./server";
+import SSL from "./ssl/ssl";
 
-const SSLOptions = {
-  key: Config.SSL_KEY_FILE_PATH,
-  cert: Config.SSL_CERT_FILE_PATH,
-};
+const sender: string = Config.TOUR_ADMIN_EMAIL_I;
 
-const server = new Server(App, SSLOptions);
+const recipient: [string] = [Config.TOUR_ADMIN_EMAIL_II];
+
+const server = new Server(
+  App,
+  SSL(Config.SSL_KEY_FILE_PATH, Config.SSL_CERT_FILE_PATH)
+);
 
 try {
   if (Config.NODE_ENV === "development") {
@@ -27,10 +30,6 @@ try {
   Connection(Config.MONGO_URI);
 } catch (err: any) {
   if (err instanceof ConnectionError) {
-    const sender: string = Config.TOUR_ADMIN_EMAIL_I;
-
-    const recipient: [string] = [Config.TOUR_ADMIN_EMAIL_II];
-
     const text = JSON.stringify({
       message: err.message,
       description: err.description,
