@@ -36,7 +36,15 @@ try {
 
     Notify(sender, recipient, err.name, text);
 
-    process.exitCode = 1;
+    // process.exitCode = 1;
+
+    process.kill(process.pid, "SIGTERM");
+  }
+
+  if (err instanceof MailerError) {
+    console.error(err);
+
+    process.kill(process.pid, "SIGTERM");
   }
 }
 
