@@ -1,5 +1,6 @@
 import Retry from "./retry";
 import SendMail from "../service/mailService";
+import MailerError from "../error/mailerError";
 
 const Notify = async (
   sender: string,

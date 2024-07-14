@@ -12,4 +12,4 @@ class MailerError extends Error {
   }
 }
 
-module.exports = MailerError;
+export default MailerError;

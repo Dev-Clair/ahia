@@ -2,7 +2,9 @@ import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
 import Connection from "./connection";
+import ConnectionError from "./src/error/connectionError";
 import Logger from "./src/service/loggerService";
+import MailerError from "./src/error/mailerError";
 import Notify from "./src/utils/notify";
 import Server from "./server";
 
