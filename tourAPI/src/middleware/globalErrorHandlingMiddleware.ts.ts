@@ -1,5 +1,6 @@
 import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
+import Config from "../../config";
 import Logger from "../service/loggerService";
 import Notify from "../utils/notify";
 
@@ -9,7 +10,16 @@ class GlobalErrorHandlingMiddleware {
       `name: ${err.name}\nmessage: ${err.message}\nstack: ${err.stack}`
     );
 
-    // await Notify();
+    const sender: string = Config.TOUR_ADMIN_EMAIL_I;
+
+    const recipient: [string] = [Config.TOUR_ADMIN_EMAIL_II];
+
+    await Notify(
+      sender,
+      recipient,
+      err.name,
+      JSON.stringify({ message: err.message, stack: err.stack })
+    );
   }
 
   public static isTrustedError(err: APIError | Error): boolean {

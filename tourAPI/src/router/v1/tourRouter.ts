@@ -47,12 +47,14 @@ TourRouterV1.route("/:id/status/reopen").patch(
 
 TourRouterV1.route("/:id/schedule").patch(
   validationMiddleware.validateSingleParamId,
+  validationMiddleware.validateSchedule,
   tourMiddleWare.checkIdempotencyKey,
   tourController.scheduleTourItem
 );
 
 TourRouterV1.route("/:id/reschedule").post(
   validationMiddleware.validateSingleParamId,
+  validationMiddleware.validateSchedule,
   tourMiddleWare.checkIdempotencyKey,
   tourController.rescheduleTourItem
 );

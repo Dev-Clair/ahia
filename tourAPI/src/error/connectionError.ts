@@ -12,4 +12,4 @@ class ConnectionError extends Error {
   }
 }
 
-module.exports = ConnectionError;
+export default ConnectionError;

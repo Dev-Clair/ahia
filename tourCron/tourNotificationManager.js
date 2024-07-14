@@ -1,5 +1,6 @@
 const URL = require("node:url").URL;
 const Cache = require("./cache");
+const Config = require("./config");
 const MailerError = require("./mailerError");
 const Notify = require("./notify");
 
@@ -23,7 +24,7 @@ class TourNotificationManager {
 
     let realtorEmail = realtor.email;
 
-    const sender = process.env.TOUR_NOTIFICATION_EMAIL || "";
+    const sender = Config.TOUR_NOTIFICATION_EMAIL || "";
 
     try {
       if (!customerEmail) {

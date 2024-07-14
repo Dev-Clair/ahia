@@ -18,12 +18,7 @@ exports.cron = async (event, context) => {
     const message = JSON.stringify(cronLog);
 
     if (cronLog.status === false) {
-      await Notify(
-        sender,
-        recipient,
-        "OPERATION LOG: CRON TOUR NOTIFICATION",
-        message
-      );
+      await Notify(sender, recipient, "TOUR NOTIFICATION: CRON LOG", message);
     }
   } catch (err) {
     if (err instanceof ConnectionError) {
@@ -43,9 +38,10 @@ exports.cron = async (event, context) => {
       process.kill(process.pid, SIGTERM);
     }
 
-    const text = { message: err.message, trace: err.stack };
+    // Set up node-mailer as failure notification service
+    // const text = { message: err.message, trace: err.stack };
 
-    await Notify(sender, recipient, "CRITICAL ERROR", JSON.stringify(text));
+    // await Notify(sender, recipient, "CRITICAL ERROR", JSON.stringify(text));
   }
 };
 

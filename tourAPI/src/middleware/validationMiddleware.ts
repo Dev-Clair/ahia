@@ -3,21 +3,18 @@ import { z } from "zod";
 import HttpStatusCode from "../enum/httpStatusCode";
 
 const singleParamIdSchema = z.object({
-  id: z
-    .string({
-      required_error: "ID is required",
-      invalid_type_error: "ID must be a string",
-    })
-    .uuid({ message: "Invalid ID format" }),
+  id: z.string({
+    required_error: "ID is required",
+    invalid_type_error: "ID must be a string",
+  }),
+  // .uuid({ message: "Invalid ID format" }),
 });
 
 const doubleParamIdSchema = singleParamIdSchema.extend({
-  rescheduleId: z
-    .string({
-      invalid_type_error: "Reschedule ID must be a string",
-    })
-    .uuid({ message: "Invalid Reschedule ID format" })
-    .optional(),
+  rescheduleId: z.string({
+    invalid_type_error: "Reschedule ID must be a string",
+  }),
+  // .uuid({ message: "Invalid Reschedule ID format" }),
 });
 
 const identitySchema = z.object({
@@ -39,12 +36,11 @@ const customerSchema = z.object({
   customer: identitySchema,
   listingIds: z
     .array(
-      z
-        .string({
-          required_error: "Listing ID(s) are required",
-          invalid_type_error: "Listing ID(s) must be a string",
-        })
-        .uuid({ message: "Invalid ID format" })
+      z.string({
+        required_error: "Listing ID(s) are required",
+        invalid_type_error: "Listing ID(s) must be a string",
+      })
+      // .uuid({ message: "Invalid ID format" })
     )
     .nonempty("A new tour must have a collection of listings"),
   transactionRef: z.string({
@@ -58,18 +54,18 @@ const realtorSchema = z.object({
 });
 
 const scheduleSchema = z.object({
-  scheduledDate: z
+  date: z
     .string({
-      required_error: "Scheduled date is required",
-      invalid_type_error: "Scheduled date must be a string",
+      required_error: "Date is required",
+      invalid_type_error: "Date must be a string",
     })
     .refine((date) => !isNaN(Date.parse(date)), {
       message: "Invalid date string",
     }),
-  scheduledTime: z
+  time: z
     .string({
-      required_error: "Scheduled time is required",
-      invalid_type_error: "Scheduled time must be a string",
+      required_error: "Time is required",
+      invalid_type_error: "Time must be a string",
     })
     .regex(/^\d{2}:\d{2}$/, { message: "Invalid time string" }),
 });

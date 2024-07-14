@@ -1,35 +1,35 @@
-import http from "./http";
 import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
 import Connection from "./connection";
+import ConnectionError from "./src/error/connectionError";
 import Logger from "./src/service/loggerService";
+import MailerError from "./src/error/mailerError";
 import Notify from "./src/utils/notify";
+import Server from "./server";
+import SSL from "./ssl/ssl";
 
-const HTTP = http.HTTP(App);
+const sender: string = Config.TOUR_ADMIN_EMAIL_I;
 
-// const HTTPS = http.HTTPS(App);
+const recipient: [string] = [Config.TOUR_ADMIN_EMAIL_II];
+
+const server = new Server(
+  App,
+  SSL(Config.SSL_KEY_FILE_PATH, Config.SSL_CERT_FILE_PATH)
+);
 
 try {
   if (Config.NODE_ENV === "development") {
-    HTTP.listen(Config.HTTP_PORT, () => {
-      Logger.info(`Listening on port ${Config.HTTP_PORT}`);
-    });
+    server.startHTTPServer(Config.HTTP_PORT);
   }
 
-  // if (Config.NODE_ENV === "production") {
-  //   HTTPS.listen(Config.HTTPS_PORT, () => {
-  //     Logger.info(`Listening on port ${Config.HTTPS_PORT}`);
-  //   });
-  // }
+  if (Config.NODE_ENV === "production") {
+    server.startHTTPSServer(Config.HTTPS_PORT);
+  }
 
   Connection(Config.MONGO_URI);
 } catch (err: any) {
   if (err instanceof ConnectionError) {
-    const sender: string = Config.TOUR_ADMIN_EMAIL_I;
-
-    const recipient: [string] = [Config.TOUR_ADMIN_EMAIL_II];
-
     const text = JSON.stringify({
       message: err.message,
       description: err.description,
@@ -37,7 +37,15 @@ try {
 
     Notify(sender, recipient, err.name, text);
 
-    process.exitCode = 1;
+    // process.exitCode = 1;
+
+    process.kill(process.pid, "SIGTERM");
+  }
+
+  if (err instanceof MailerError) {
+    console.error(err);
+
+    process.kill(process.pid, "SIGTERM");
   }
 }
 
@@ -48,21 +56,7 @@ const shutdown = () => {
   mongoose.connection.close(true);
 
   // Close running server process
-  if (Config.NODE_ENV === "development") {
-    Logger.info(
-      `Closing all connections to server on port ${Config.HTTP_PORT}`
-    );
-
-    HTTP.closeAllConnections();
-  }
-
-  // if (Config.NODE_ENV === "production") {
-  //   Logger.info(
-  //     `Closing all connections to server on port ${Config.HTTPS_PORT}`
-  //   );
-
-  //   HTTPS.closeAllConnections();
-  // }
+  server.closeAllConnections();
 };
 
 process.on("uncaughtException", (error) => {

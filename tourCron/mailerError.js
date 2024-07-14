@@ -3,7 +3,7 @@ class MailerError extends Error {
 
   description;
 
-  constructor(message, description = "") {
+  constructor(message, description = "AWS SES ERROR") {
     super(message);
 
     this.name = "MAILER ERROR";

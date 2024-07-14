@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
+import ConnectionError from "./src/error/connectionError";
 import Retry from "./src/utils/retry";
 
-const establishConnection = async (
-  connectionUri: string
-): Promise<void | typeof mongoose> => {
+const establishConnection = async (connectionUri: string): Promise<void> => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(connectionUri, {
       serverSelectionTimeoutMS: 10000,
@@ -11,19 +10,17 @@ const establishConnection = async (
   }
 };
 
-const Connection = async (
-  connectionUri: string
-): Promise<void | typeof mongoose> => {
+const Connection = async (connectionUri: string): Promise<void> => {
   try {
     await Retry.ExponentialBackoff(() => establishConnection(connectionUri));
   } catch (err: any) {
     try {
       await Retry.LinearJitterBackoff(() => establishConnection(connectionUri));
     } catch (err: any) {
-      const description =
-        "Retry strategies failed. Could not establish connection to the database";
-
-      throw new ConnectionError(err.message, description);
+      throw new ConnectionError(
+        err.message,
+        "Retry strategies failed. Could not establish connection to the database"
+      );
     }
   }
 };
