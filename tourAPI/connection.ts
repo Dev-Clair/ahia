@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ConnectionError from "./src/error/connectionError";
 import Retry from "./src/utils/retry";
 
 const establishConnection = async (
