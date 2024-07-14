@@ -15,11 +15,11 @@ const Notify = async (sender, recipient, subject, text) => {
       err.name === "MailFromDomainNotVerified" ||
       err.name === "LimitExceeded"
     ) {
-      return;
-    } else {
       const error = err;
-
       throw new MailerError(error);
+    } else {
+      console.log(err.name);
+      return;
     }
   }
 };
