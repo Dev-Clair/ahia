@@ -13,8 +13,6 @@ TourRouterV1.route("/")
     tourController.createTourCollection
   );
 
-TourRouterV1.route("/search").get(tourController.retrieveTourSearch);
-
 TourRouterV1.route("/:id")
   .get(
     validationMiddleware.validateSingleParamId,

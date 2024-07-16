@@ -9,6 +9,7 @@ import TourSchedule from "../../model/tourScheduleModel";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
 import Retry from "../../utils/retry";
 import Notify from "../../utils/notify";
+import Paginate from "../../utils/paginate";
 
 const createTour = async (
   req: Request,
@@ -58,37 +59,32 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.find()
-    .then((tours) => {
-      return res
-        .status(HttpStatusCode.OK)
-        .json({ count: tours.length, data: tours });
-    })
-    .catch((err) => next(err));
-};
+  try {
+    const { query } = req.query;
 
-const getTourSearch = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  await Tour.find({
-    // $text: { $search: req.query.q, $caseSensitive: false },
-  })
-    .then((tours) => {
-      if (!tours) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tours found for query: ${req.query.q}`
-        );
-      }
+    const searchQuery = {
+      $text: { $search: query as string, $caseSensitive: false },
+    };
 
-      return res.status(HttpStatusCode.OK).json({
-        count: tours.length,
-        data: tours,
-      });
-    })
-    .catch((err) => next(err));
+    const projection = "-__v"; // -customer.email -realtor.email createdAt";
+
+    const { data, pagination } = await Paginate(
+      Tour,
+      searchQuery,
+      req,
+      projection
+    );
+
+    return res.status(HttpStatusCode.OK).json({
+      data: data,
+      totalItems: pagination.totalItems,
+      totalPages: pagination.totalPages,
+      page: pagination.page,
+      links: pagination.links,
+    });
+  } catch (err) {
+    return next(err);
+  }
 };
 
 const getTour = async (
@@ -466,21 +462,8 @@ const retrieveTourCollection = AsyncErrorWrapper(
   Retry.LinearJitterBackoff,
   {
     retries: 2,
-    jitterFactor: 1000,
     minTimeout: 2500,
-  }
-);
-
-/**
- * Retrieve collection of tours based on search parameter.
- */
-const retrieveTourSearch = AsyncErrorWrapper(
-  getTourSearch,
-  Retry.LinearJitterBackoff,
-  {
-    retries: 2,
     jitterFactor: 1000,
-    minTimeout: 2500,
   }
 );
 
@@ -488,9 +471,9 @@ const retrieveTourSearch = AsyncErrorWrapper(
  * Retrieve a tour item using its :id.
  */
 const retrieveTourItem = AsyncErrorWrapper(getTour, Retry.LinearJitterBackoff, {
-  retries: 3,
-  jitterFactor: 1000,
+  retries: 2,
   minTimeout: 2500,
+  jitterFactor: 1000,
 });
 
 /**
@@ -566,7 +549,6 @@ const operationNotAllowed = (
 export default {
   createTourCollection,
   retrieveTourCollection,
-  retrieveTourSearch,
   retrieveTourItem,
   replaceTourItem,
   updateTourItem,
