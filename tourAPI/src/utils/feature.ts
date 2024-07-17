@@ -12,26 +12,20 @@ interface PaginationOptions {
   };
 }
 
-const Paginate = async <M extends Document>(
+const Features = async <M extends Document>(
   model: Model<M>,
   query: object,
   req: Request,
   projection: string = ""
 ): Promise<{ data: M[]; pagination: PaginationOptions }> => {
+  /**
+   * Pagination
+   */
   const defaultLimit = 10;
 
   const queryLimit = parseInt(req.query.limit as string);
 
   const queryPage = parseInt(req.query.page as string) || 1;
-
-  const sortOptions = ["asc", "ascending", "desc", "descending", 1, -1];
-
-  const defaultSort = "asc";
-
-  const querySort =
-    (req.query.sort as string) in sortOptions
-      ? (req.query.sort as string)
-      : defaultSort;
 
   const limit = queryLimit <= defaultLimit ? queryLimit : defaultLimit;
 
@@ -39,11 +33,29 @@ const Paginate = async <M extends Document>(
 
   const skip = (page - 1) * limit;
 
+  /**
+   * Sorting
+   */
+  const sortOptions = ["asc", "ascending", "desc", "descending", 1, -1];
+
+  const defaultSort = "asc";
+
+  const querySort = sortOptions.includes(req.query.sort as string)
+    ? (req.query.sort as string)
+    : defaultSort;
+
+  const sort = querySort || defaultSort;
+
+  /**
+   * Filtering
+   */
+  const filterOptions = ["gt", "gte", "lt", "lte"];
+
   const data = await model
     .find(query)
     .skip(skip)
     .limit(limit)
-    .sort(querySort || defaultSort)
+    .sort(sort)
     .select(projection);
 
   const totalItems = await model.countDocuments(query);
@@ -75,4 +87,4 @@ const Paginate = async <M extends Document>(
   };
 };
 
-export default Paginate;
+export default Features;

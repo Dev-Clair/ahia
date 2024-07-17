@@ -1,11 +1,11 @@
 import express, { Request, Response, Router, NextFunction } from "express";
+import express_mongo_sanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import hpp from "hpp";
-import express_mongo_sanitize from "express-mongo-sanitize";
-import TourRouter from "./src/router";
-import HttpStatusCode from "./src/enum/httpStatusCode";
 import APIError from "./src/error/apiError";
 import GlobalErrorHandler from "./src/middleware/globalErrorHandlingMiddleware.ts";
+import HttpStatusCode from "./src/enum/httpStatusCode";
+import TourRouter from "./src/router";
 
 const App = express();
 
@@ -20,12 +20,6 @@ App.use(hpp());
 App.use(express_mongo_sanitize());
 
 App.use("/api", TourRouter);
-
-App.all("*", (req: Request, res: Response, next: NextFunction) => {
-  return res
-    .status(HttpStatusCode.NOT_FOUND)
-    .json({ message: `No resource or route defined for ${req.originalUrl}` });
-});
 
 App.use(
   (err: APIError | Error, req: Request, res: Response, next: NextFunction) => {
@@ -72,5 +66,11 @@ App.use(
     }
   }
 );
+
+App.all("*", (req: Request, res: Response, next: NextFunction) => {
+  return res
+    .status(HttpStatusCode.NOT_FOUND)
+    .json({ message: `No resource or route defined for ${req.originalUrl}` });
+});
 
 export default App;

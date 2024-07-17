@@ -9,7 +9,7 @@ import TourSchedule from "../../model/tourScheduleModel";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
 import Retry from "../../utils/retry";
 import Notify from "../../utils/notify";
-import Paginate from "../../utils/paginate";
+import Features from "../../utils/feature";
 
 const createTour = async (
   req: Request,
@@ -60,15 +60,15 @@ const getTours = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { query } = req.query;
+    const query = req.query.search;
 
     const searchQuery = {
-      $text: { $search: query as string, $caseSensitive: false },
+      $text: query ? { $search: query as string, $caseSensitive: false } : {},
     };
 
-    const projection = "-__v"; // -customer.email -realtor.email createdAt";
+    const projection = "-__v -customer.email -realtor.email createdAt";
 
-    const { data, pagination } = await Paginate(
+    const { data, pagination } = await Features(
       Tour,
       searchQuery,
       req,

@@ -51,4 +51,11 @@ const TourSchema: Schema<TourInterface> = new Schema({
   },
 });
 
+TourSchema.index({
+  "customer.id": "text",
+  "realtor.id": "text",
+  "customer.email": "text",
+  "realtor.email": "text",
+});
+
 export default TourSchema;
