@@ -29,15 +29,11 @@ const IAMSchema: Schema<IAMInterface> = new Schema(
       trim: true,
       required: true,
     },
-    passwordHash: {
+    password: {
       type: String,
       trim: true,
       select: false,
       required: true,
-    },
-    verified: {
-      type: Boolean,
-      default: false,
     },
     role: {
       type: String,
@@ -62,13 +58,13 @@ const IAMSchema: Schema<IAMInterface> = new Schema(
 );
 
 IAMSchema.pre("save", async function (next) {
-  if (!this.isModified("passwordHash")) {
+  if (!this.isModified("password")) {
     return next();
   }
 
   try {
     const salt = await bcrypt.genSalt(10);
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (err: any) {
     next(err);

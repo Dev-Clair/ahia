@@ -6,8 +6,7 @@ export default interface IAMInterface extends Document {
   username: string;
   email: string;
   phone: string;
-  passwordHash: string;
-  verified: boolean;
+  password: string;
   role: "Customer" | "Realtor" | "Provider" | "Admin";
   accountStatus: "active" | "inactive" | "suspended";
   createdAt: Date;

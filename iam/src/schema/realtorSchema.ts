@@ -49,9 +49,9 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
       },
     },
   },
-  status: {
+  availabilityStatus: {
     type: String,
-    enum: ["in_waiting", "available"],
+    enum: ["in_waiting", "available", "booked"],
     default: "in_waiting",
     required: true,
   },
@@ -93,5 +93,38 @@ RealtorSchema.pre("save", function (next) {
     next();
   }
 });
+
+RealtorSchema.methods.switchRealtorType = async function (
+  newRealtorType: string,
+  companyInfo: {
+    name: string;
+    email: string;
+    phone: string[];
+    address: string;
+    regNo: string;
+    regCert: string;
+  }
+) {
+  if (newRealtorType === "corporate") {
+    if (
+      !companyInfo ||
+      !companyInfo.name ||
+      !companyInfo.email ||
+      !companyInfo.phone ||
+      !companyInfo.address ||
+      !companyInfo.regNo ||
+      !companyInfo.regCert
+    ) {
+      throw new Error(
+        "All company information fields must be provided to switch to corporate type."
+      );
+    }
+    this.companyInformation = companyInfo;
+  } else {
+    this.companyInformation = undefined;
+  }
+  this.realtorType = newRealtorType;
+  await this.save();
+};
 
 export default RealtorSchema;
