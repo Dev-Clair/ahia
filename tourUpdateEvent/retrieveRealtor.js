@@ -1,13 +1,13 @@
 const https = require("https");
 
 const RetrieveRealtor = (location) => {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: "",
-      path: `/api/v1/iam/realtors/available?location=${location}`,
-      method: "GET",
-    };
+  const options = {
+    hostname: "",
+    path: `/api/v1/iam/realtors/?status=available&location=${location}`,
+    method: "GET",
+  };
 
+  return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
       let data = "";
 

@@ -10,13 +10,19 @@ export default interface RealtorInterface extends IAMInterface {
     regNo: string;
     regCert: string;
   };
-  availabilityStatus: "in_waiting" | "available" | "booked";
-  assignedTours: {
-    tourId: string;
-  }[];
-  security: {
+  securityInformation: {
     identityType?: "driver-license" | "passport" | "other";
     identityNo?: string;
     identityDoc?: string;
   }[];
+  assignedTours: {
+    tourId: string;
+  }[];
+  availability: {
+    status: "in_waiting" | "available" | "booked";
+    location: {
+      type: string;
+      coordinates: number;
+    };
+  };
 }

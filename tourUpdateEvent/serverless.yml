@@ -19,7 +19,7 @@ functions:
     handler: handler.tour
     events:
       - eventBridge:
-          eventBus: ${env:AWS_PAYMENT_EVENT_BUS}
+          eventBus: ${env:AWS_TOUR_EVENT_BUS}
           pattern:
             source:
               - mongodb-atlas

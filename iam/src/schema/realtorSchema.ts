@@ -49,22 +49,7 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
       },
     },
   },
-  availabilityStatus: {
-    type: String,
-    enum: ["in_waiting", "available", "booked"],
-    default: "in_waiting",
-    required: true,
-  },
-  assignedTours: [
-    {
-      tourId: {
-        type: String,
-        trim: true,
-        required: false,
-      },
-    },
-  ],
-  security: [
+  securityInformation: [
     {
       identityType: {
         type: String,
@@ -81,7 +66,37 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
       },
     },
   ],
+  assignedTours: [
+    {
+      tourId: {
+        type: String,
+        trim: true,
+        required: false,
+      },
+    },
+  ],
+  availability: {
+    status: {
+      type: String,
+      enum: ["in_waiting", "available", "booked"],
+      default: "in_waiting",
+      required: false,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: false,
+      },
+      coordinates: {
+        type: Number,
+        required: false,
+      },
+    },
+  },
 });
+
+RealtorSchema.index({ location: "2dsphere" });
 
 RealtorSchema.pre("save", function (next) {
   if (this.realtorType === "individual" && this.companyInformation) {
