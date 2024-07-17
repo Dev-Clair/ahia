@@ -9,7 +9,7 @@ const BookRealtor = (id) => {
   const idempotencyKey = generateIdempotencyKey();
 
   const payload = {
-    availabilityStatus: "booked",
+    availability: { status: "booked" },
   };
 
   const options = {
