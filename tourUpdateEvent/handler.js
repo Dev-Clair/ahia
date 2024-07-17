@@ -28,7 +28,7 @@ exports.tour = async (event, context) => {
 
     await Retry.ExponentialBackoff(() => BookRealtor(realtor.id));
 
-    console.log(`Tour: ${tour._id} updated successfully`);
+    console.log(`Tour: ${id} updated successfully`);
   } catch (err) {
     console.error(err);
   }
