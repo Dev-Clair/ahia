@@ -7,19 +7,22 @@ exports.tour = async (event, context) => {
   try {
     const tour = event.detail;
 
-    const { location } = tour;
+    const { id, location } = tour;
 
     const realtor = await Retry.LinearJitterBackoff(() =>
       RetrieveRealtor(location)
     );
 
     if (!realtor) {
-      throw new Error(`No available realtor found for ${tour._id}`);
+      throw new Error(`No available realtor found for location ${location}`);
     }
 
     await Retry.ExponentialBackoff(() =>
-      UpdateTour(tour._id, {
-        realtor: { id: realtor.id, email: realtor.email },
+      UpdateTour(id, {
+        realtor: {
+          id: realtor.id,
+          email: realtor.companyInformation.email || realtor.email,
+        },
       })
     );
 
