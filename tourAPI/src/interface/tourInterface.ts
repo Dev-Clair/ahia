@@ -10,8 +10,10 @@ export default interface TourInterface extends Document {
     email: string;
   };
   listingIds: string[];
-  scheduledDate: Date;
-  scheduledTime: string;
+  scheduled: {
+    date: Date;
+    time: string;
+  };
   status: "pending" | "ongoing" | "completed" | "cancelled";
   isClosed: boolean;
   createdAt: Date;

@@ -11,9 +11,9 @@ export default interface RealtorInterface extends IAMInterface {
     regCert: string;
   };
   securityInformation: {
-    identityType?: "driver-license" | "passport" | "other";
-    identityNo?: string;
-    identityDoc?: string;
+    identityType: "driver-license" | "passport" | "other";
+    identityNo: string;
+    identityDoc: string;
   }[];
   assignedTours: {
     tourId: string;
@@ -24,5 +24,6 @@ export default interface RealtorInterface extends IAMInterface {
       type: string;
       coordinates: number;
     };
+    capacity: number;
   };
 }

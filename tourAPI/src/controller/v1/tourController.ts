@@ -40,7 +40,7 @@ const createTour = async (
 
   await Tour.create(req.body)
     .then(async (tour) => {
-      const response = { message: "Created" };
+      const response = { data: "Created" };
 
       await TourIdempotency.create({
         key: transactionRef,
@@ -122,7 +122,7 @@ const replaceTour = async (
         );
       }
 
-      return res.status(HttpStatusCode.MODIFIED).json(null);
+      return res.status(HttpStatusCode.MODIFIED).json({ data: null });
     })
     .catch((err) => next(err));
 };
@@ -150,7 +150,7 @@ const updateTour = async (
     new: true,
   })
     .then(async (tour) => {
-      const response = { message: "modified" };
+      const response = { data: "Modified" };
 
       if (!tour) {
         throw new NotFoundError(
@@ -176,7 +176,7 @@ const completeTour = async (
 ): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
-    { status: "completed", isClosed: true },
+    { $set: { status: "completed", isClosed: true } },
     {
       new: true,
     }
@@ -191,7 +191,7 @@ const completeTour = async (
 
       return res
         .status(HttpStatusCode.OK)
-        .json("Your tour has been successfully completed");
+        .json({ data: "Your tour has been successfully completed" });
     })
     .catch((err) => next(err));
 };
@@ -203,7 +203,7 @@ const cancelTour = async (
 ): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
-    { status: "cancelled", isClosed: true },
+    { $set: { status: "cancelled", isClosed: true } },
     {
       new: true,
     }
@@ -218,7 +218,7 @@ const cancelTour = async (
 
       return res
         .status(HttpStatusCode.OK)
-        .json("Your tour has been successfully cancelled");
+        .json({ data: "Your tour has been successfully cancelled" });
     })
     .catch((err) => next(err));
 };
@@ -230,7 +230,7 @@ const reopenTour = async (
 ): Promise<Response | void> => {
   await Tour.findByIdAndUpdate(
     { _id: req.params.id },
-    { status: "pending", isClosed: false },
+    { $set: { status: "pending", isClosed: false } },
     {
       new: true,
     }
@@ -245,7 +245,7 @@ const reopenTour = async (
 
       return res
         .status(HttpStatusCode.OK)
-        .json("Your tour has been successfully reopened");
+        .json({ data: "Your tour has been successfully reopened" });
     })
     .catch((err) => next(err));
 };
@@ -255,7 +255,7 @@ const deleteTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.findByIdAndUpdate({ _id: req.params.id })
+  await Tour.findByIdAndDelete({ _id: req.params.id })
     .then((tour) => {
       if (!tour) {
         throw new NotFoundError(
@@ -294,7 +294,7 @@ const scheduleTour = async (
 
   await Tour.findByIdAndUpdate(
     { _id: tourId },
-    { scheduledDate: date, scheduledTime: time },
+    { $set: { schedule: { date: date, time: time } } },
     { new: true }
   )
     .then(async (tour) => {
@@ -356,8 +356,7 @@ const rescheduleTour = async (
 
   await TourSchedule.create({
     tourId: tourId,
-    proposedDate: date,
-    proposedTime: time,
+    proposed: { date: date, time: time },
   })
     .then(async (schedule) => {
       const response = {
@@ -401,8 +400,12 @@ const acceptTourRechedule = async (
       await Tour.findByIdAndUpdate(
         { _id: tourId },
         {
-          scheduledDate: schedule.proposedDate,
-          scheduledTime: schedule.proposedTime,
+          $set: {
+            schedule: {
+              date: schedule.proposed.date,
+              time: schedule.proposed.time,
+            },
+          },
         },
         { new: true }
       )
@@ -430,7 +433,7 @@ const rejectTourReschedule = async (
 
   await TourSchedule.findByIdAndUpdate(
     { _id: tourScheduleId },
-    { status: "rejected" },
+    { $set: { status: "rejected" } },
     { new: true }
   )
     .then(async (schedule) => {
