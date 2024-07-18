@@ -93,10 +93,6 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
         required: false,
       },
     },
-    capacity: {
-      type: Number,
-      default: 1,
-    },
   },
 });
 

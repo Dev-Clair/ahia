@@ -24,6 +24,5 @@ export default interface RealtorInterface extends IAMInterface {
       type: string;
       coordinates: number;
     };
-    capacity: number;
   };
 }
