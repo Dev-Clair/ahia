@@ -1,9 +1,14 @@
 const BookRealtor = require("./bookRealtor");
+const Mail = require("./mail");
 const RetrieveRealtor = require("./retrieveRealtor");
 const Retry = require("./retry");
 const UpdateTour = require("./updateTour");
 
 exports.tour = async (event, context) => {
+  const sender = Config.TOUR_NOTIFICATION_EMAIL;
+
+  const recipient = [Config.TOUR_ADMIN_EMAIL_I];
+
   try {
     const tour = JSON.parse(event.detail);
 
@@ -46,6 +51,8 @@ exports.tour = async (event, context) => {
 
     console.log(`Tour: ${id} updated successfully`);
   } catch (err) {
+    Mail(sender, recipient, "TOUR EVENT UPDATE ERROR", err.message);
+
     console.error(err.message);
   }
 };
