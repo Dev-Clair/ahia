@@ -13,7 +13,7 @@ const configuration = [
 
 const client = new SESClient(configuration);
 
-const SendMail = async (
+const Mailer = async (
   sender,
   recipient,
   subject,
@@ -54,4 +54,4 @@ const SendMail = async (
   return response;
 };
 
-module.exports = SendMail;
+module.exports = Mailer;

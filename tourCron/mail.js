@@ -1,11 +1,11 @@
+const Mailer = require("./mailer");
 const MailerError = require("./mailerError");
 const Retry = require("./retry");
-const SendMail = require("./mailer");
 
-const Notify = async (sender, recipient, subject, text) => {
+const Mail = async (sender, recipient, subject, text) => {
   try {
     await Retry.LinearJitterBackoff(() =>
-      SendMail(sender, recipient, subject, text)
+      Mailer(sender, recipient, subject, text)
     );
   } catch (err) {
     if (
@@ -24,4 +24,4 @@ const Notify = async (sender, recipient, subject, text) => {
   }
 };
 
-module.exports = Notify;
+module.exports = Mail;

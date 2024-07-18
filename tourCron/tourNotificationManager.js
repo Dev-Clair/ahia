@@ -1,8 +1,8 @@
 const URL = require("node:url").URL;
 const Cache = require("./cache");
 const Config = require("./config");
+const Mail = require("./mail");
 const MailerError = require("./mailerError");
-const Notify = require("./notify");
 
 class TourNotificationManager {
   constructor() {
@@ -43,7 +43,7 @@ class TourNotificationManager {
 
       const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\n\nTo reschedule, kindly click the ${link} to initiate the rescheduling process.\nPlease note that rescheduling a tour is subject to the tour party approval and automatically becomes impossible 3-Hrs before the original scheduled time.`;
 
-      await Notify(sender, [customerEmail, realtorEmail], subject, text);
+      await Mail(sender, [customerEmail, realtorEmail], subject, text);
 
       this.successCount++;
     } catch (err) {
