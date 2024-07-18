@@ -5,7 +5,7 @@ const UpdateTour = require("./updateTour");
 
 exports.tour = async (event, context) => {
   try {
-    const tour = event.detail;
+    const tour = JSON.parse(event.detail);
 
     const { id, location } = tour;
 
