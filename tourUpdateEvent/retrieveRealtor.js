@@ -3,7 +3,7 @@ const https = require("https");
 const RetrieveRealtor = (location) => {
   const options = {
     hostname: "",
-    path: `/api/v1/iam/realtors/?status=available&location=${location}`,
+    path: `/api/v1/iam/?role=realtor&status=available&location=${location}`,
     method: "GET",
   };
 
@@ -17,12 +17,19 @@ const RetrieveRealtor = (location) => {
 
       res.on("end", () => {
         const realtor = JSON.parse(data);
-        resolve(realtor);
+
+        resolve({
+          statusCode: res.statusCode,
+          body: realtor,
+        });
       });
     });
 
     req.on("error", (err) => {
-      reject(err);
+      reject({
+        statusCode: 500,
+        body: "Error: " + err.message,
+      });
     });
 
     req.end();

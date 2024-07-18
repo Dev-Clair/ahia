@@ -32,12 +32,19 @@ const BookRealtor = (id) => {
 
       res.on("end", () => {
         const realtor = JSON.parse(data);
-        resolve(realtor);
+
+        resolve({
+          statusCode: res.statusCode,
+          body: realtor,
+        });
       });
     });
 
     req.on("error", (err) => {
-      reject(err);
+      reject({
+        statusCode: 500,
+        body: "Error: " + err.message,
+      });
     });
 
     req.write(JSON.stringify(payload));

@@ -9,27 +9,41 @@ exports.tour = async (event, context) => {
 
     const { id, location } = tour;
 
-    const realtor = await Retry.LinearJitterBackoff(() =>
+    const getRealtor = await Retry.LinearJitterBackoff(() =>
       RetrieveRealtor(location)
     );
 
-    if (!realtor) {
+    if (getRealtor.statusCode !== 200) {
       throw new Error(`No available realtor found for location ${location}`);
     }
 
-    await Retry.ExponentialBackoff(() =>
-      UpdateTour(id, {
-        realtor: {
-          id: realtor.id,
-          email: realtor.companyInformation.email || realtor.email,
-        },
-      })
+    const payload = {
+      realtor: {
+        id: getRealtor.id,
+        email: getRealtor.companyInformation.email || getRealtor.email,
+      },
+    };
+
+    const updateTour = await Retry.ExponentialBackoff(() =>
+      UpdateTour(id, payload)
     );
 
-    await Retry.ExponentialBackoff(() => BookRealtor(realtor.id));
+    if (updateTour.getStatusCode !== 204) {
+      throw new Error(`Cannot create realtor details for tour: ${id}`);
+    }
+
+    const bookRealtor = await Retry.ExponentialBackoff(() =>
+      BookRealtor(realtor.id)
+    );
+
+    if (bookRealtor.getStatusCode !== 204) {
+      throw new Error(
+        `Failed to update  availability status for realtor: ${realtor.id}`
+      );
+    }
 
     console.log(`Tour: ${id} updated successfully`);
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
   }
 };
