@@ -20,7 +20,7 @@ exports.tour = async (event, context) => {
         `Tour Creation Failed:\nError: ${createTour.body}\nPayload: ${payload}`
       );
   } catch (err) {
-    Mail(sender, recipient, "TOUR CREATION ERROR", err.message);
+    Mail(sender, recipient, "TOUR EVENT CREATE ERROR", err.message);
 
     console.error(err);
   }
