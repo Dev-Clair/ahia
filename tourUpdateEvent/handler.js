@@ -40,7 +40,7 @@ exports.tour = async (event, context) => {
 
     if (bookRealtor.getStatusCode !== 204) {
       throw new Error(
-        `Failed to update  availability status for realtor: ${realtor.id}`
+        `Failed to update availability status for realtor: ${realtor.id}`
       );
     }
 
