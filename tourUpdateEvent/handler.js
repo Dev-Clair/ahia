@@ -17,10 +17,12 @@ exports.tour = async (event, context) => {
       throw new Error(`No available realtor found for location ${location}`);
     }
 
+    const realtor = getRealtor.body;
+
     const payload = {
       realtor: {
-        id: getRealtor.id,
-        email: getRealtor.companyInformation.email || getRealtor.email,
+        id: realtor.id,
+        email: realtor.companyInformation.email || realtor.email,
       },
     };
 

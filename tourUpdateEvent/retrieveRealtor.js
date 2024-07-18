@@ -16,11 +16,9 @@ const RetrieveRealtor = (location) => {
       });
 
       res.on("end", () => {
-        const realtor = JSON.parse(data);
-
         resolve({
           statusCode: res.statusCode,
-          body: realtor,
+          body: JSON.parse(data),
         });
       });
     });

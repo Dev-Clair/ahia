@@ -14,7 +14,7 @@ const BookRealtor = (id) => {
 
   const options = {
     hostname: "",
-    path: `/api/v1/iam/${id}/realtors`,
+    path: `/api/v1/iam/${id}`,
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
