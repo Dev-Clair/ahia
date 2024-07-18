@@ -1,50 +1,27 @@
-const https = require("https");
-const crypto = require("crypto");
-
-const generateIdempotencyKey = () => {
-  return crypto.randomBytes(16).toString("hex");
-};
+const Config = require("./config");
+const CreateTour = require("./createTour");
+const Mail = require("./mail");
+const Retry = require("./retry");
 
 exports.tour = async (event, context) => {
-  const payload = event.detail;
+  const sender = Config.TOUR_NOTIFICATION_EMAIL;
 
-  const idempotencyKey = generateIdempotencyKey();
+  const recipient = [Config.TOUR_ADMIN_EMAIL_I];
 
-  const options = {
-    hostname: "",
-    path: "/api/v1/tours/",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "idempotency-key": idempotencyKey,
-    },
-  };
+  try {
+    const payload = JSON.parse(event.detail);
 
-  return new Promise((resolve, reject) => {
-    const req = https.request(options, (res) => {
-      let data = "";
+    const createTour = await Retry.ExponentialJitterBackoff(() =>
+      CreateTour(payload)
+    );
 
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
+    if (createTour.statusCode !== 201)
+      throw new Error(
+        `Tour Creation Failed:\nError: ${createTour.body}\nPayload: ${payload}`
+      );
+  } catch (err) {
+    Mail(sender, recipient, "TOUR CREATION ERROR", err.message);
 
-      res.on("end", () => {
-        resolve({
-          statusCode: res.statusCode,
-          body: data,
-        });
-      });
-    });
-
-    req.on("error", (err) => {
-      reject({
-        statusCode: 500,
-        body: "Error: " + err.message,
-      });
-    });
-
-    req.write(JSON.stringify(payload));
-
-    req.end();
-  });
+    console.error(err);
+  }
 };
