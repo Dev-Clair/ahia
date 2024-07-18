@@ -11,7 +11,7 @@ const TourGenerator = async function* () {
 
   while (true) {
     const tours = await Tour.find({
-      scheduledDate: { $gte: new Date() },
+      schedule: { date: { $gte: new Date() } },
       status: "pending",
     })
       .skip(pageNumber * pageSize)
@@ -25,7 +25,11 @@ const TourGenerator = async function* () {
     const now = new Date().getTime();
 
     for (const tour of tours) {
-      const { _id, realtor, customer, scheduledDate, scheduledTime } = tour;
+      const { _id, realtor, customer } = tour;
+
+      const scheduledDate = tour.scheduled.date;
+
+      const scheduledTime = tour.scheduled.time;
 
       const tourDateTime = new Date(scheduledDate);
 
