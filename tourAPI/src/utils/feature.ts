@@ -14,14 +14,14 @@ interface PaginationOptions {
 
 const Features = async <M extends Document>(
   model: Model<M>,
-  query: object,
+  query: object = {},
   req: Request,
-  projection: string = ""
+  projection: object = {}
 ): Promise<{ data: M[]; pagination: PaginationOptions }> => {
   /**
    * Pagination
    */
-  const defaultLimit = 10;
+  const defaultLimit = 2;
 
   const queryLimit = parseInt(req.query.limit as string);
 
@@ -52,11 +52,10 @@ const Features = async <M extends Document>(
   const filterOptions = ["gt", "gte", "lt", "lte"];
 
   const data = await model
-    .find(query)
+    .find(query, projection)
     .skip(skip)
     .limit(limit)
-    .sort(sort)
-    .select(projection);
+    .sort(sort);
 
   const totalItems = await model.countDocuments(query);
 

@@ -60,20 +60,20 @@ const getTours = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const query = req.query.search;
-
-    const searchQuery = {
-      $text: query ? { $search: query as string, $caseSensitive: false } : {},
+    const projection = {
+      // name: 1,
+      realtor: 1,
+      customer: 1,
+      listingsId: 1,
+      // listing:1,
+      // location:1,
+      // schedule: 1,
+      status: 1,
     };
 
-    const projection = "-__v -customer.email -realtor.email createdAt";
+    const { data, pagination } = await Features(Tour, {}, req, projection);
 
-    const { data, pagination } = await Features(
-      Tour,
-      searchQuery,
-      req,
-      projection
-    );
+    console.log(data);
 
     return res.status(HttpStatusCode.OK).json({
       data: data,
@@ -169,6 +169,25 @@ const updateTour = async (
     .catch((err) => next(err));
 };
 
+const deleteTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  await Tour.findByIdAndDelete({ _id: req.params.id })
+    .then((tour) => {
+      if (!tour) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tour found for id: ${req.params.id}`
+        );
+      }
+
+      return res.status(HttpStatusCode.MODIFIED).json(null);
+    })
+    .catch((err) => next(err));
+};
+
 const completeTour = async (
   req: Request,
   res: Response,
@@ -246,25 +265,6 @@ const reopenTour = async (
       return res
         .status(HttpStatusCode.OK)
         .json({ data: "Your tour has been successfully reopened" });
-    })
-    .catch((err) => next(err));
-};
-
-const deleteTour = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  await Tour.findByIdAndDelete({ _id: req.params.id })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
-
-      return res.status(HttpStatusCode.MODIFIED).json(null);
     })
     .catch((err) => next(err));
 };
@@ -462,30 +462,20 @@ const createTourCollection = AsyncErrorWrapper(
  */
 const retrieveTourCollection = AsyncErrorWrapper(
   getTours,
-  Retry.LinearJitterBackoff,
-  {
-    retries: 2,
-    minTimeout: 2500,
-    jitterFactor: 1000,
-  }
+  Retry.LinearJitterBackoff
 );
 
 /**
  * Retrieve a tour item using its :id.
  */
-const retrieveTourItem = AsyncErrorWrapper(getTour, Retry.LinearJitterBackoff, {
-  retries: 2,
-  minTimeout: 2500,
-  jitterFactor: 1000,
-});
+const retrieveTourItem = AsyncErrorWrapper(getTour, Retry.LinearJitterBackoff);
 
 /**
  * Replace a tour item using its :id.
  */
 const replaceTourItem = AsyncErrorWrapper(
   replaceTour,
-  Retry.ExponentialBackoff,
-  { retries: 3, factor: 2, minTimeout: 10000 }
+  Retry.ExponentialBackoff
 );
 
 /**
