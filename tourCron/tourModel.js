@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const TourSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
   realtor: {
     id: {
       type: String,
@@ -21,13 +25,37 @@ const TourSchema = new Schema({
       required: true,
     },
   },
-  listingIds: [
+  listings: [
     {
-      type: [String],
-      required: true,
+      id: {
+        type: String,
+        required: true,
+      },
+      location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          required: true,
+        },
+        coordinates: {
+          type: [Number],
+          required: true,
+        },
+      },
     },
   ],
-  scheduled: {
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
+  schedule: {
     date: {
       type: Date,
       required: false,
