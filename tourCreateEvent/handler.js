@@ -3,11 +3,11 @@ const CreateTour = require("./createTour");
 const Mail = require("./mail");
 const Retry = require("./retry");
 
+const sender = Config.TOUR_NOTIFICATION_EMAIL;
+
+const recipient = [Config.TOUR_ADMIN_EMAIL_I];
+
 exports.tour = async (event, context) => {
-  const sender = Config.TOUR_NOTIFICATION_EMAIL;
-
-  const recipient = [Config.TOUR_ADMIN_EMAIL_I];
-
   try {
     const payload = JSON.parse(event.detail);
 
