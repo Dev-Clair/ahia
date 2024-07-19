@@ -89,7 +89,7 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
         required: false,
       },
       coordinates: {
-        type: Number,
+        type: [Number],
         required: false,
       },
     },

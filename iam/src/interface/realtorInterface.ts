@@ -22,7 +22,7 @@ export default interface RealtorInterface extends IAMInterface {
     status: "in_waiting" | "available" | "booked";
     location: {
       type: string;
-      coordinates: number;
+      coordinates: number[];
     };
   };
 }
