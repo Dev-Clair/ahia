@@ -21,7 +21,7 @@ class HTTPClient {
     return crypto.randomBytes(16).toString("hex");
   }
 
-  async Request(options, payload) {
+  async Request(options, payload = null) {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
         let data = "";
