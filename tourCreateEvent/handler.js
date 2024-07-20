@@ -1,7 +1,6 @@
 const Config = require("./config");
-const CreateTour = require("./createTour");
+const HTTPClient = require("./httpClient");
 const Mail = require("./mail");
-const Retry = require("./retry");
 
 const sender = Config.TOUR_NOTIFICATION_EMAIL;
 
@@ -11,13 +10,15 @@ exports.tour = async (event, context) => {
   try {
     const payload = JSON.parse(event.detail);
 
-    const createTour = await Retry.ExponentialJitterBackoff(() =>
-      CreateTour(payload)
-    );
+    const url = `www.ahia.com/tours/`; // Development URL or Elastic Beanstalk Application Public Endpoint
+
+    const createTour = await new HTTPClient(url, {
+      "Content-Type": "application/json",
+    }).Post(payload);
 
     if (createTour.statusCode !== 201)
       throw new Error(
-        `Tour Creation Failed:\nError: ${createTour.body}\nPayload: ${payload}`
+        `Tour Creation Failed:\nURL: ${url}\nPayload: ${payload}\nError: ${createTour.body}`
       );
   } catch (err) {
     Mail(sender, recipient, "TOUR EVENT CREATE ERROR", err.message);
