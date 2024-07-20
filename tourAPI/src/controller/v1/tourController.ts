@@ -10,6 +10,8 @@ import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
 import Retry from "../../utils/retry";
 import Notify from "../../utils/notify";
 import Features from "../../utils/feature";
+import { RuleDoesNotExistException } from "@aws-sdk/client-ses";
+import HTTPClient from "../../utils/httpClient";
 
 const createTour = async (
   req: Request,
@@ -269,6 +271,109 @@ const reopenTour = async (
     .catch((err) => next(err));
 };
 
+const selectRealtor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  await Tour.findById({ _id: req.params.id })
+    .then((tour) => {
+      if (!tour) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tour found for id: ${req.params.id}`
+        );
+      }
+
+      const httpClient = new HTTPClient(
+        `www.ahia.com/iam/realtors?status=available&location=${tour.location}`,
+        {
+          "Content-Type": "application/json",
+        }
+      );
+
+      const realtors = httpClient.Get();
+
+      return res.status(HttpStatusCode.OK).json({ data: realtors });
+    })
+    .catch((err) => next(err));
+};
+
+const acceptTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  await Tour.findById({ _id: req.params.id })
+    .then((tour) => {
+      if (!tour) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tour found for id: ${req.params.id}`
+        );
+      }
+
+      /**
+       * Logic to accept tour
+       */
+
+      return res.status(HttpStatusCode.MODIFIED).json({
+        data: "Realtor successfully added to tour",
+      });
+    })
+    .catch((err) => next(err));
+};
+
+const rejectTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  await Tour.findById({ _id: req.params.id })
+    .then((tour) => {
+      if (!tour) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tour found for id: ${req.params.id}`
+        );
+      }
+
+      /**
+       * Logic to reject tour
+       */
+
+      return res.status(HttpStatusCode.MODIFIED).json({
+        data: "Realtor successfully added to tour",
+      });
+    })
+    .catch((err) => next(err));
+};
+
+const addRealtor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  await Tour.findById({ _id: req.params.id })
+    .then((tour) => {
+      if (!tour) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No tour found for id: ${req.params.id}`
+        );
+      }
+
+      /**
+       * Logic to add realtor to tour
+       */
+
+      return res.status(HttpStatusCode.MODIFIED).json({
+        data: "Realtor successfully added to tour",
+      });
+    })
+    .catch((err) => next(err));
+};
+
 const scheduleTour = async (
   req: Request,
   res: Response,
@@ -356,7 +461,7 @@ const rescheduleTour = async (
 
   await TourSchedule.create({
     tourId: tourId,
-    proposed: { date: date, time: time },
+    propose: { date: date, time: time },
   })
     .then(async (schedule) => {
       const response = {
@@ -386,7 +491,7 @@ const acceptTourRechedule = async (
 
   await TourSchedule.findByIdAndUpdate(
     { _id: tourScheduleId },
-    { status: "accepted" },
+    { $set: { status: "accepted" } },
     { new: true }
   )
     .then(async (schedule) => {
@@ -402,8 +507,8 @@ const acceptTourRechedule = async (
         {
           $set: {
             schedule: {
-              date: schedule.proposed.date,
-              time: schedule.proposed.time,
+              date: schedule.propose.date,
+              time: schedule.propose.time,
             },
           },
         },
