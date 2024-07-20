@@ -2,7 +2,7 @@ import { Document } from "mongoose";
 
 export default interface TourScheduleInterface extends Document {
   tourId: string;
-  proposed: {
+  propose: {
     date: Date;
     time: string;
   };

@@ -1,7 +1,12 @@
 import { Schema } from "mongoose";
 import TourInterface from "../interface/tourInterface";
+import { getCenterOfBounds } from "geolib";
 
 const TourSchema: Schema<TourInterface> = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
   realtor: {
     id: {
       type: String,
@@ -22,13 +27,37 @@ const TourSchema: Schema<TourInterface> = new Schema({
       required: true,
     },
   },
-  listingIds: [
+  listings: [
     {
-      type: [String],
-      required: true,
+      id: {
+        type: String,
+        required: true,
+      },
+      location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          required: true,
+        },
+        coordinates: {
+          type: [Number],
+          required: true,
+        },
+      },
     },
   ],
-  scheduled: {
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
+  schedule: {
     date: {
       type: Date,
       required: false,
@@ -58,6 +87,27 @@ TourSchema.index({
   "realtor.id": "text",
   "customer.email": "text",
   "realtor.email": "text",
+  location: "2dsphere",
+});
+
+TourSchema.pre("save", function (next) {
+  if (this.isModified("listings")) {
+    return next(new Error("Listings are required to calculate tour location"));
+  }
+
+  const coordinates = this.listings.map((listings) => ({
+    latitude: listings.location.coordinates[1],
+    longitude: listings.location.coordinates[0],
+  }));
+
+  const centroid = getCenterOfBounds(coordinates);
+
+  this.location = {
+    type: "Point",
+    coordinates: [centroid.latitude, centroid.longitude],
+  };
+
+  next();
 });
 
 export default TourSchema;

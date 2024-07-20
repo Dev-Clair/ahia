@@ -1,6 +1,7 @@
 import { Document } from "mongoose";
 
 export default interface TourInterface extends Document {
+  name: string;
   realtor: {
     id: string;
     email: string;
@@ -9,8 +10,18 @@ export default interface TourInterface extends Document {
     id: string;
     email: string;
   };
-  listingIds: string[];
-  scheduled: {
+  listings: {
+    id: string;
+    location: {
+      type: string;
+      coordinates: number[];
+    };
+  }[];
+  location: {
+    type: string;
+    coordinates: number[];
+  };
+  schedule: {
     date: Date;
     time: string;
   };
