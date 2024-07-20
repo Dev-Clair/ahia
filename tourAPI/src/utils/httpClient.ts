@@ -10,8 +10,7 @@ class HTTPClient {
   constructor(url: string, httpHeaders: {} = {}) {
     Object.assign(this.httpOptions, {
       hostname: new URL(url).hostname,
-      path: new URL(url).pathname,
-      params: new URL(url).searchParams || "",
+      path: new URL(url).pathname + new URL(url).search,
     });
 
     Object.assign(this.httpHeaders, httpHeaders);
