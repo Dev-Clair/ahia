@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import HTTPClient from "../../utils/httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import NotFoundError from "../../error/notfoundError";
 import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
@@ -10,8 +11,6 @@ import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
 import Retry from "../../utils/retry";
 import Notify from "../../utils/notify";
 import Features from "../../utils/feature";
-import { RuleDoesNotExistException } from "@aws-sdk/client-ses";
-import HTTPClient from "../../utils/httpClient";
 
 const createTour = async (
   req: Request,
@@ -299,7 +298,7 @@ const selectRealtor = async (
     .catch((err) => next(err));
 };
 
-const acceptTour = async (
+const acceptTourRequest = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -324,7 +323,7 @@ const acceptTour = async (
     .catch((err) => next(err));
 };
 
-const rejectTour = async (
+const rejectTourRequest = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -480,7 +479,7 @@ const rescheduleTour = async (
     .catch((err) => next(err));
 };
 
-const acceptTourRechedule = async (
+const acceptTourReschedule = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -609,6 +608,21 @@ const cancelTourItem = AsyncErrorWrapper(cancelTour, Retry.LinearBackoff);
 const reopenTourItem = AsyncErrorWrapper(reopenTour, Retry.LinearBackoff);
 
 /**
+ * select a realtor from pool based on availability and tour location
+ */
+const selectTourRealtor = AsyncErrorWrapper(selectRealtor);
+
+/**
+ * accept tour order
+ */
+const acceptProposedTourRequest = AsyncErrorWrapper(acceptTourRequest);
+
+/**
+ * reject tour order
+ */
+const rejectProposedTourRequest = AsyncErrorWrapper(rejectTourRequest);
+
+/**
  * schedule a new tour.
  */
 const scheduleTourItem = AsyncErrorWrapper(scheduleTour, Retry.LinearBackoff);
@@ -624,7 +638,7 @@ const rescheduleTourItem = AsyncErrorWrapper(
 /**
  * accepts proposed tour schedule.
  */
-const acceptProposedTourReschedule = AsyncErrorWrapper(acceptTourRechedule);
+const acceptProposedTourReschedule = AsyncErrorWrapper(acceptTourReschedule);
 
 /**
  * rejects proposed tour schedule.
@@ -653,6 +667,9 @@ export default {
   completeTourItem,
   cancelTourItem,
   reopenTourItem,
+  selectTourRealtor,
+  acceptProposedTourRequest,
+  rejectProposedTourRequest,
   scheduleTourItem,
   rescheduleTourItem,
   acceptProposedTourReschedule,
