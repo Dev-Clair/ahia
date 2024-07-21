@@ -11,6 +11,7 @@ import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
 import Retry from "../../utils/retry";
 import Notify from "../../utils/notify";
 import Features from "../../utils/feature";
+import TourRequest from "../../model/tourRequestModel";
 
 const createTour = async (
   req: Request,
@@ -270,7 +271,7 @@ const reopenTour = async (
     .catch((err) => next(err));
 };
 
-const selectRealtor = async (
+const getRealtors = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -298,27 +299,88 @@ const selectRealtor = async (
     .catch((err) => next(err));
 };
 
+const selectRealtor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const tourId = req.params.id;
+
+  const { realtorId, realtorEmail } = req.query;
+
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  await TourIdempotency.findOne({
+    key: idempotencyKey,
+  })
+    .then((verifyOperationIdempotency) => {
+      if (verifyOperationIdempotency) {
+        res
+          .status(HttpStatusCode.CREATED)
+          .json(verifyOperationIdempotency.response);
+      }
+    })
+    .catch((err) => next(err));
+
+  await TourRequest.create({
+    tourId: tourId,
+    realtor: { id: realtorId, email: realtorEmail },
+  })
+    .then(async (request) => {
+      // Notify realtor of request
+
+      const response = {
+        data: "Realtor has been notified of your request. Realtor's confirmation status will be communicated to you accordingly.",
+      };
+
+      await TourIdempotency.create({
+        key: idempotencyKey,
+        response: response,
+      });
+
+      return res.status(HttpStatusCode.CREATED).json(response);
+    })
+    .catch((err) => next(err));
+};
+
 const acceptTourRequest = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.findById({ _id: req.params.id })
-    .then((tour) => {
-      if (!tour) {
+  await TourRequest.findOne({ tourId: req.params.id })
+    .then(async (request) => {
+      if (!request) {
         throw new NotFoundError(
           HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
+          `No realtor request found for tour: ${req.params.id}`
         );
       }
 
-      /**
-       * Logic to accept tour
-       */
+      await Tour.findById({ _id: req.params.id })
+        .then(async (tour) => {
+          if (!tour) {
+            throw new NotFoundError(
+              HttpStatusCode.NOT_FOUND,
+              `No tour found for id: ${req.params.id}`
+            );
+          }
 
-      return res.status(HttpStatusCode.MODIFIED).json({
-        data: "Realtor successfully added to tour",
-      });
+          tour.realtor = request.realtor;
+
+          await tour.save();
+
+          await request.deleteOne({ id: request.tourId });
+
+          await request.save();
+
+          // Notify customer of realtor's acceptance
+
+          return res.status(HttpStatusCode.MODIFIED).json({
+            data: `Congratulations, you have been added to tour: ${req.params.id}`,
+          });
+        })
+        .catch((err) => next(err));
     })
     .catch((err) => next(err));
 };
@@ -328,47 +390,35 @@ const rejectTourRequest = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.findById({ _id: req.params.id })
-    .then((tour) => {
-      if (!tour) {
+  await TourRequest.findOne({ tourId: req.params.id })
+    .then(async (request) => {
+      if (!request) {
         throw new NotFoundError(
           HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
+          `No realtor request found for tour: ${req.params.id}`
         );
       }
 
-      /**
-       * Logic to reject tour
-       */
+      await Tour.findById({ _id: req.params.id })
+        .then(async (tour) => {
+          if (!tour) {
+            throw new NotFoundError(
+              HttpStatusCode.NOT_FOUND,
+              `No tour found for id: ${req.params.id}`
+            );
+          }
 
-      return res.status(HttpStatusCode.MODIFIED).json({
-        data: "Realtor successfully added to tour",
-      });
-    })
-    .catch((err) => next(err));
-};
+          await request.deleteOne({ id: request.tourId });
 
-const addRealtor = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  await Tour.findById({ _id: req.params.id })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
+          await request.save();
 
-      /**
-       * Logic to add realtor to tour
-       */
+          // Notify customer of realtor's rejection
 
-      return res.status(HttpStatusCode.MODIFIED).json({
-        data: "Realtor successfully added to tour",
-      });
+          return res.status(HttpStatusCode.MODIFIED).json({
+            data: `Successfully rejected realtor request for tour: ${req.params.id}`,
+          });
+        })
+        .catch((err) => next(err));
     })
     .catch((err) => next(err));
 };
@@ -409,9 +459,7 @@ const scheduleTour = async (
         );
       }
       const response = {
-        message:
-          "your tour schedule have been set. A realtor will be assigned to you shortly based on your schedule date and time.",
-        data: tour,
+        data: "Your tour schedule have been successfully set.",
       };
 
       await TourIdempotency.create({
@@ -447,26 +495,13 @@ const rescheduleTour = async (
     })
     .catch((err) => next(err));
 
-  await Tour.findById({ _id: tourId })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
-    })
-    .catch((err) => next(err));
-
   await TourSchedule.create({
     tourId: tourId,
     propose: { date: date, time: time },
   })
     .then(async (schedule) => {
       const response = {
-        message:
-          "your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
-        data: schedule,
+        data: "Your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
       };
 
       await TourIdempotency.create({
@@ -608,19 +643,30 @@ const cancelTourItem = AsyncErrorWrapper(cancelTour, Retry.LinearBackoff);
 const reopenTourItem = AsyncErrorWrapper(reopenTour, Retry.LinearBackoff);
 
 /**
- * select a realtor from pool based on availability and tour location
+ * retrieve realtors based on availability and tour location
+ */
+const retrieveAvailableRealtors = AsyncErrorWrapper(getRealtors);
+
+/**
+ * select a realtor from collection based on availability and tour location
  */
 const selectTourRealtor = AsyncErrorWrapper(selectRealtor);
 
 /**
- * accept tour order
+ * accept tour realtor request
  */
-const acceptProposedTourRequest = AsyncErrorWrapper(acceptTourRequest);
+const acceptProposedTourRequest = AsyncErrorWrapper(
+  acceptTourRequest,
+  Retry.LinearBackoff
+);
 
 /**
- * reject tour order
+ * reject tour realtor request
  */
-const rejectProposedTourRequest = AsyncErrorWrapper(rejectTourRequest);
+const rejectProposedTourRequest = AsyncErrorWrapper(
+  rejectTourRequest,
+  Retry.LinearBackoff
+);
 
 /**
  * schedule a new tour.
@@ -667,6 +713,7 @@ export default {
   completeTourItem,
   cancelTourItem,
   reopenTourItem,
+  retrieveAvailableRealtors,
   selectTourRealtor,
   acceptProposedTourRequest,
   rejectProposedTourRequest,
