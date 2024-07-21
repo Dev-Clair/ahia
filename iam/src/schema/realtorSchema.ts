@@ -49,22 +49,7 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
       },
     },
   },
-  status: {
-    type: String,
-    enum: ["in_waiting", "available"],
-    default: "in_waiting",
-    required: true,
-  },
-  assignedTours: [
-    {
-      tourId: {
-        type: String,
-        trim: true,
-        required: false,
-      },
-    },
-  ],
-  security: [
+  securityInformation: [
     {
       identityType: {
         type: String,
@@ -81,7 +66,37 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
       },
     },
   ],
+  assignedTours: [
+    {
+      tourId: {
+        type: String,
+        trim: true,
+        required: false,
+      },
+    },
+  ],
+  availability: {
+    status: {
+      type: String,
+      enum: ["in_waiting", "available", "booked"],
+      default: "in_waiting",
+      required: false,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: false,
+      },
+      coordinates: {
+        type: [Number],
+        required: false,
+      },
+    },
+  },
 });
+
+RealtorSchema.index({ location: "2dsphere" });
 
 RealtorSchema.pre("save", function (next) {
   if (this.realtorType === "individual" && this.companyInformation) {
@@ -93,5 +108,38 @@ RealtorSchema.pre("save", function (next) {
     next();
   }
 });
+
+RealtorSchema.methods.switchRealtorType = async function (
+  newRealtorType: string,
+  companyInfo: {
+    name: string;
+    email: string;
+    phone: string[];
+    address: string;
+    regNo: string;
+    regCert: string;
+  }
+) {
+  if (newRealtorType === "corporate") {
+    if (
+      !companyInfo ||
+      !companyInfo.name ||
+      !companyInfo.email ||
+      !companyInfo.phone ||
+      !companyInfo.address ||
+      !companyInfo.regNo ||
+      !companyInfo.regCert
+    ) {
+      throw new Error(
+        "All company information fields must be provided to switch to corporate type."
+      );
+    }
+    this.companyInformation = companyInfo;
+  } else {
+    this.companyInformation = undefined;
+  }
+  this.realtorType = newRealtorType;
+  await this.save();
+};
 
 export default RealtorSchema;

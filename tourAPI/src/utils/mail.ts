@@ -1,13 +1,18 @@
-const MailerError = require("./mailerError");
-const Retry = require("./retry");
-const SendMail = require("./mailer");
+import Mailer from "../service/mailService";
+import MailerError from "../error/mailerError";
+import Retry from "./retry";
 
-const Notify = async (sender, recipient, subject, text) => {
+const Mail = async (
+  sender: string,
+  recipient: [string],
+  subject: string,
+  text: string
+) => {
   try {
     await Retry.LinearJitterBackoff(() =>
-      SendMail(sender, recipient, subject, text)
+      Mailer(sender, recipient, subject, text)
     );
-  } catch (err) {
+  } catch (err: any) {
     if (
       err.name === "AccountSendingPaused" ||
       err.name === "ConfigurationSetDoesNotExist" ||
@@ -24,4 +29,4 @@ const Notify = async (sender, recipient, subject, text) => {
   }
 };
 
-module.exports = Notify;
+export default Mail;

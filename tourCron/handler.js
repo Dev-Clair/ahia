@@ -1,8 +1,8 @@
 const Config = require("./config");
 const Connection = require("./connection");
 const ConnectionError = require("./connectionError");
+const Mail = require("./mail");
 const MailerError = require("./mailerError");
-const Notify = require("./notify");
 const TourNotification = require("./tourNotification");
 
 const sender = process.env.TOUR_NOTIFICATION_EMAIL || "";
@@ -18,7 +18,7 @@ exports.cron = async (event, context) => {
     const message = JSON.stringify(cronLog);
 
     if (cronLog.status === false) {
-      await Notify(sender, recipient, "TOUR NOTIFICATION: CRON LOG", message);
+      await Mail(sender, recipient, "TOUR NOTIFICATION: CRON LOG", message);
     }
   } catch (err) {
     if (err instanceof ConnectionError) {
@@ -41,7 +41,7 @@ exports.cron = async (event, context) => {
     // Set up node-mailer as failure notification service
     // const text = { message: err.message, trace: err.stack };
 
-    // await Notify(sender, recipient, "CRITICAL ERROR", JSON.stringify(text));
+    // await Mail(sender, recipient, "CRITICAL ERROR", JSON.stringify(text));
   }
 };
 

@@ -2,7 +2,7 @@ import http from "node:http";
 import https from "node:https";
 import { Express } from "express";
 
-class Server {
+class HttpServer {
   private app: Express;
 
   private sslOptions: Object;
@@ -17,7 +17,7 @@ class Server {
     this.sslOptions = SSLOptions;
   }
 
-  public startHTTPServer(HTTP_PORT: string | number) {
+  public startHTTP(HTTP_PORT: string | number) {
     this.httpServer = http.createServer(this.app);
 
     this.httpServer.listen(HTTP_PORT, () => {
@@ -25,7 +25,7 @@ class Server {
     });
   }
 
-  public startHTTPSServer(HTTPS_PORT: string | number) {
+  public startHTTPS(HTTPS_PORT: string | number) {
     this.httpsServer = https.createServer(this.sslOptions, this.app);
 
     this.httpsServer.listen(HTTPS_PORT, () => {
@@ -48,4 +48,4 @@ class Server {
   }
 }
 
-export default Server;
+export default HttpServer;

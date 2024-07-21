@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-const AsyncErrorWrapper = (
+const AsyncCatch = (
   Operation: (
     req: Request,
     res: Response,
@@ -20,4 +20,4 @@ const AsyncErrorWrapper = (
   };
 };
 
-export default AsyncErrorWrapper;
+export default AsyncCatch;

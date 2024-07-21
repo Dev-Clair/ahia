@@ -13,7 +13,7 @@ TourRouterV1.route("/")
     tourController.createTourCollection
   );
 
-TourRouterV1.route("/search").get(tourController.retrieveTourSearch);
+TourRouterV1.route("/search").get(tourController.retrieveTourCollection);
 
 TourRouterV1.route("/:id")
   .get(
@@ -43,6 +43,26 @@ TourRouterV1.route("/:id/status/cancel").patch(
 TourRouterV1.route("/:id/status/reopen").patch(
   validationMiddleware.validateSingleParamId,
   tourController.reopenTourItem
+);
+
+TourRouterV1.route("/:id/realtors")
+  .get(
+    validationMiddleware.validateSingleParamId,
+    tourController.retrieveAvailableRealtors
+  )
+  .post(
+    validationMiddleware.validateSingleParamId,
+    tourController.selectTourRealtor
+  );
+
+TourRouterV1.route("/:id/realtor/accept").put(
+  validationMiddleware.validateSingleParamId,
+  tourController.acceptProposedTourRequest
+);
+
+TourRouterV1.route("/:id/realtor/reject").put(
+  validationMiddleware.validateSingleParamId,
+  tourController.rejectProposedTourRequest
 );
 
 TourRouterV1.route("/:id/schedule").patch(

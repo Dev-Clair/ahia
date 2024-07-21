@@ -1,56 +1,54 @@
+import AsyncCatch from "../../utils/asynCatch";
 import { NextFunction, Request, Response } from "express";
+import Features from "../../utils/feature";
+import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
+import Mail from "../../utils/mail";
+import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
-import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
 import DuplicateTransactionError from "../../error/duplicateTransactionError";
+import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
+import Retry from "../../utils/retry";
 import Tour from "../../model/tourModel";
 import TourIdempotency from "../../model/tourIdempotencyModel";
+import TourRealtor from "../../model/tourRealtorModel";
 import TourSchedule from "../../model/tourScheduleModel";
-import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
-import Retry from "../../utils/retry";
-import Notify from "../../utils/notify";
 
 const createTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const {
-    customerId: customerId,
-    listingIds: listingIds,
-    transactionRef: transactionRef,
-  } = req.body;
+  const { customer, listings, transactionRef } = req.body;
 
-  if (!transactionRef || !customerId || !listingIds) {
+  if (!customer || !listings! || transactionRef) {
     throw new PaymentEventPayloadError("Invalid request body data structure");
   }
 
-  await TourIdempotency.findOne({ key: transactionRef })
-    .then((verifyOperationIdempotency) => {
-      if (verifyOperationIdempotency) {
-        // Notify(); // Admin
+  const verifyOperationIdempotency = await TourIdempotency.findOne({
+    key: transactionRef,
+  });
 
-        throw new DuplicateTransactionError(
-          `Duplicate transaction reference detected: ${transactionRef}`
-        );
-      }
-    })
-    .catch((err) => next(err));
+  if (verifyOperationIdempotency) {
+    throw new DuplicateTransactionError(
+      `Duplicate transaction reference detected: ${transactionRef}`
+    );
+  }
 
-  await Tour.create(req.body)
-    .then(async (tour) => {
-      const response = { message: "Created" };
+  await Tour.create({ customer, listings });
 
-      await TourIdempotency.create({
-        key: transactionRef,
-        response: response,
-      });
+  const response = { data: "Created" };
 
-      // await Notify(); // Customer
+  await TourIdempotency.create({
+    key: transactionRef,
+    response: response,
+  });
 
-      return res.status(HttpStatusCode.CREATED).json(response);
-    })
-    .catch((err) => next(err));
+  // await Mail(); // Send mail to customer confirming tour creation success
+
+  // await Notify(); // Send push notification to customer to schedule tour and select realtor
+
+  return res.status(HttpStatusCode.CREATED).json(response);
 };
 
 const getTours = async (
@@ -58,37 +56,16 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.find()
-    .then((tours) => {
-      return res
-        .status(HttpStatusCode.OK)
-        .json({ count: tours.length, data: tours });
-    })
-    .catch((err) => next(err));
-};
+  const { data, pagination } = await Features(Tour, {}, req);
 
-const getTourSearch = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  await Tour.find({
-    // $text: { $search: req.query.q, $caseSensitive: false },
-  })
-    .then((tours) => {
-      if (!tours) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tours found for query: ${req.query.q}`
-        );
-      }
-
-      return res.status(HttpStatusCode.OK).json({
-        count: tours.length,
-        data: tours,
-      });
-    })
-    .catch((err) => next(err));
+  return res.status(HttpStatusCode.OK).json({
+    data: data,
+    page: pagination.page,
+    limit: pagination.limit,
+    totalItems: pagination.totalItems,
+    totalPages: pagination.totalPages,
+    links: pagination.links,
+  });
 };
 
 const getTour = async (
@@ -96,18 +73,16 @@ const getTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.findById({ _id: req.params.id })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
+  const tour = await Tour.findById({ _id: req.params.id });
 
-      return res.status(HttpStatusCode.OK).json({ data: tour });
-    })
-    .catch((err) => next(err));
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  return res.status(HttpStatusCode.OK).json({ data: tour });
 };
 
 const replaceTour = async (
@@ -115,20 +90,18 @@ const replaceTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
+  const tour = await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
     new: true,
-  })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
+  });
 
-      return res.status(HttpStatusCode.MODIFIED).json(null);
-    })
-    .catch((err) => next(err));
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 const updateTour = async (
@@ -138,120 +111,35 @@ const updateTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  await TourIdempotency.findOne({
+  const verifyOperationIdempotency = await TourIdempotency.findOne({
     key: idempotencyKey,
-  })
-    .then((verifyOperationIdempotency) => {
-      if (verifyOperationIdempotency) {
-        return res
-          .status(HttpStatusCode.MODIFIED)
-          .json(verifyOperationIdempotency.response);
-      }
-    })
-    .catch((err) => next(err));
+  });
 
-  await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
+  if (verifyOperationIdempotency) {
+    return res
+      .status(HttpStatusCode.MODIFIED)
+      .json(verifyOperationIdempotency.response);
+  }
+
+  const tour = await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
     new: true,
-  })
-    .then(async (tour) => {
-      const response = { message: "modified" };
+  });
 
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
 
-      await TourIdempotency.create({
-        key: idempotencyKey,
-        response: response,
-      });
+  const response = { data: "Modified" };
 
-      return res.status(HttpStatusCode.MODIFIED).json(response);
-    })
-    .catch((err) => next(err));
-};
+  await TourIdempotency.create({
+    key: idempotencyKey,
+    response: response,
+  });
 
-const completeTour = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  await Tour.findByIdAndUpdate(
-    { _id: req.params.id },
-    { status: "completed", isClosed: true },
-    {
-      new: true,
-    }
-  )
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
-
-      return res
-        .status(HttpStatusCode.OK)
-        .json("Your tour has been successfully completed");
-    })
-    .catch((err) => next(err));
-};
-
-const cancelTour = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  await Tour.findByIdAndUpdate(
-    { _id: req.params.id },
-    { status: "cancelled", isClosed: true },
-    {
-      new: true,
-    }
-  )
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
-
-      return res
-        .status(HttpStatusCode.OK)
-        .json("Your tour has been successfully cancelled");
-    })
-    .catch((err) => next(err));
-};
-
-const reopenTour = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  await Tour.findByIdAndUpdate(
-    { _id: req.params.id },
-    { status: "pending", isClosed: false },
-    {
-      new: true,
-    }
-  )
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No cancelled tour found for id: ${req.params.id}`
-        );
-      }
-
-      return res
-        .status(HttpStatusCode.OK)
-        .json("Your tour has been successfully reopened");
-    })
-    .catch((err) => next(err));
+  return res.status(HttpStatusCode.MODIFIED).json(response);
 };
 
 const deleteTour = async (
@@ -259,18 +147,227 @@ const deleteTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await Tour.findByIdAndUpdate({ _id: req.params.id })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
+  const tour = await Tour.findByIdAndDelete({ _id: req.params.id });
 
-      return res.status(HttpStatusCode.MODIFIED).json(null);
-    })
-    .catch((err) => next(err));
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  return res.status(HttpStatusCode.MODIFIED).json(null);
+};
+
+const completeTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const tour = await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
+    { $set: { status: "completed", isClosed: true } },
+    {
+      new: true,
+    }
+  );
+
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  // await Notify() // Send push notification confirming completion and requesting a review
+
+  return res.status(HttpStatusCode.OK).json(null);
+};
+
+const cancelTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const tour = await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
+    { $set: { status: "cancelled", isClosed: true } },
+    {
+      new: true,
+    }
+  );
+
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  // await Notify() // Send push notification confirming cancellation and requesting a reason
+
+  return res.status(HttpStatusCode.OK).json(null);
+};
+
+const reopenTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const tour = await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
+    { $set: { status: "pending", isClosed: false } },
+    {
+      new: true,
+    }
+  );
+
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No cancelled tour found for id: ${req.params.id}`
+    );
+  }
+
+  // await Notify() // Send push notification confirming reopening
+
+  return res
+    .status(HttpStatusCode.OK)
+    .json({ data: "Your tour has been successfully reopened" });
+};
+
+const getRealtors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const tour = await Tour.findById({ _id: req.params.id });
+
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  const httpClient = new HttpClient(
+    `www.ahia.com/iam/realtors?status=available&location=${tour.location}`,
+    {
+      "Content-Type": "application/json",
+    }
+  );
+
+  const realtors = await httpClient.Get();
+
+  return res.status(HttpStatusCode.OK).json({ data: realtors });
+};
+
+const selectRealtor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const tourId = req.params.id;
+
+  const { id, email } = req.query;
+
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  const verifyOperationIdempotency = await TourIdempotency.findOne({
+    key: idempotencyKey,
+  });
+
+  if (verifyOperationIdempotency) {
+    return res
+      .status(HttpStatusCode.CREATED)
+      .json(verifyOperationIdempotency.response);
+  }
+
+  await TourRealtor.create({
+    tourId: tourId,
+    realtor: { id: id, email: email },
+  });
+
+  // await Notify() // Send push notification to realtor about tour request
+
+  const response = {
+    data: "Realtor has been notified of your request. Realtor's confirmation status will be communicated to you accordingly.",
+  };
+
+  await TourIdempotency.create({
+    key: idempotencyKey,
+    response: response,
+  });
+
+  return res.status(HttpStatusCode.CREATED).json(response);
+};
+
+const acceptTourRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const request = await TourRealtor.findOne({ tourId: req.params.id });
+
+  if (!request) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No realtor request found for tour: ${req.params.id}`
+    );
+  }
+
+  const tour = await Tour.findById({ _id: req.params.id });
+
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  tour.realtor = request.realtor;
+
+  await tour.save();
+
+  await request.deleteOne();
+
+  // await Notify() // Send realtor's acceptance push notification to customer
+
+  return res.status(HttpStatusCode.MODIFIED).json({
+    data: `Congratulations, you have been added to tour: ${req.params.id}`,
+  });
+};
+
+const rejectTourRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const request = await TourRealtor.findOne({ tourId: req.params.id });
+
+  if (!request) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No realtor request found for tour: ${req.params.id}`
+    );
+  }
+
+  const tour = await Tour.findById({ _id: req.params.id });
+
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  await request.deleteOne();
+
+  // await Notify() // Send realtor's rejection push notification to customer
+
+  return res.status(HttpStatusCode.MODIFIED).json({
+    data: `Successfully rejected realtor request for tour: ${req.params.id}`,
+  });
 };
 
 const scheduleTour = async (
@@ -284,44 +381,38 @@ const scheduleTour = async (
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  await TourIdempotency.findOne({
+  const verifyOperationIdempotency = await TourIdempotency.findOne({
     key: idempotencyKey,
-  })
-    .then((verifyOperationIdempotency) => {
-      if (verifyOperationIdempotency) {
-        res
-          .status(HttpStatusCode.CREATED)
-          .json(verifyOperationIdempotency.response);
-      }
-    })
-    .catch((err) => next(err));
+  });
 
-  await Tour.findByIdAndUpdate(
+  if (verifyOperationIdempotency) {
+    return res
+      .status(HttpStatusCode.CREATED)
+      .json(verifyOperationIdempotency.response);
+  }
+
+  const tour = await Tour.findByIdAndUpdate(
     { _id: tourId },
-    { scheduledDate: date, scheduledTime: time },
+    { $set: { schedule: { date: date, time: time } } },
     { new: true }
-  )
-    .then(async (tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
-      const response = {
-        message:
-          "your tour schedule have been set. A realtor will be assigned to you shortly based on your schedule date and time.",
-        data: tour,
-      };
+  );
 
-      await TourIdempotency.create({
-        key: idempotencyKey,
-        response: response,
-      });
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+  const response = {
+    data: "Your tour schedule have been successfully set.",
+  };
 
-      return res.status(HttpStatusCode.CREATED).json(response);
-    })
-    .catch((err) => next(err));
+  await TourIdempotency.create({
+    key: idempotencyKey,
+    response: response,
+  });
+
+  return res.status(HttpStatusCode.CREATED).json(response);
 };
 
 const rescheduleTour = async (
@@ -335,52 +426,34 @@ const rescheduleTour = async (
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  await TourIdempotency.findOne({
+  const verifyOperationIdempotency = await TourIdempotency.findOne({
     key: idempotencyKey,
-  })
-    .then((verifyOperationIdempotency) => {
-      if (verifyOperationIdempotency) {
-        res
-          .status(HttpStatusCode.CREATED)
-          .json(verifyOperationIdempotency.response);
-      }
-    })
-    .catch((err) => next(err));
+  });
 
-  await Tour.findById({ _id: tourId })
-    .then((tour) => {
-      if (!tour) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No tour found for id: ${req.params.id}`
-        );
-      }
-    })
-    .catch((err) => next(err));
+  if (verifyOperationIdempotency) {
+    return res
+      .status(HttpStatusCode.CREATED)
+      .json(verifyOperationIdempotency.response);
+  }
 
   await TourSchedule.create({
     tourId: tourId,
-    proposedDate: date,
-    proposedTime: time,
-  })
-    .then(async (schedule) => {
-      const response = {
-        message:
-          "your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
-        data: schedule,
-      };
+    propose: { date: date, time: time },
+  });
 
-      await TourIdempotency.create({
-        key: idempotencyKey,
-        response: response,
-      });
+  const response = {
+    data: "Your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
+  };
 
-      return res.status(HttpStatusCode.CREATED).json(response);
-    })
-    .catch((err) => next(err));
+  await TourIdempotency.create({
+    key: idempotencyKey,
+    response: response,
+  });
+
+  return res.status(HttpStatusCode.CREATED).json(response);
 };
 
-const acceptTourRechedule = async (
+const acceptTourReschedule = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -389,40 +462,40 @@ const acceptTourRechedule = async (
 
   const tourScheduleId = req.params.rescheduleId;
 
-  await TourSchedule.findByIdAndUpdate(
-    { _id: tourScheduleId },
-    { status: "accepted" },
-    { new: true }
-  )
-    .then(async (schedule) => {
-      if (!schedule || schedule.status !== "pending") {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          "schedule not found or already processed."
-        );
-      }
+  const schedule = await TourSchedule.findById({ _id: tourScheduleId });
 
-      await Tour.findByIdAndUpdate(
-        { _id: tourId },
-        {
-          scheduledDate: schedule.proposedDate,
-          scheduledTime: schedule.proposedTime,
+  if (!schedule) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      "schedule not found or already processed."
+    );
+  }
+
+  const tour = await Tour.findByIdAndUpdate(
+    { _id: tourId },
+    {
+      $set: {
+        schedule: {
+          date: schedule.propose.date,
+          time: schedule.propose.time,
         },
-        { new: true }
-      )
-        .then(async (tour) => {
-          if (!tour) {
-            throw new NotFoundError(
-              HttpStatusCode.NOT_FOUND,
-              `No tour found for id: ${req.params.id}`
-            );
-          }
+      },
+    },
+    { new: true }
+  );
 
-          // await Notify(); // Customer && Realtor
-        })
-        .catch((err) => next(err));
-    })
-    .catch((err) => next(err));
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No tour found for id: ${req.params.id}`
+    );
+  }
+
+  await schedule.deleteOne();
+
+  // await Notify(); // Send push notification to Customer and Realtor
+
+  return res.status(HttpStatusCode.MODIFIED).json();
 };
 
 const rejectTourReschedule = async (
@@ -432,123 +505,21 @@ const rejectTourReschedule = async (
 ): Promise<Response | void> => {
   const tourScheduleId = req.params.rescheduleId;
 
-  await TourSchedule.findByIdAndUpdate(
-    { _id: tourScheduleId },
-    { status: "rejected" },
-    { new: true }
-  )
-    .then(async (schedule) => {
-      if (!schedule || schedule.status !== "pending") {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          "schedule not found or already processed."
-        );
-      }
+  const schedule = await TourSchedule.findById({ _id: tourScheduleId });
 
-      // await Notify();  // Customer || Realtor
-    })
-    .catch((err) => next(err));
+  if (!schedule) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      "schedule not found or already processed."
+    );
+  }
+
+  await schedule.deleteOne();
+
+  // await Notify();  // Send push notification to Customer or Realtor
+
+  return res.status(HttpStatusCode.MODIFIED).json();
 };
-
-/**
- * Create a new tour in collection.
- */
-const createTourCollection = AsyncErrorWrapper(
-  createTour,
-  Retry.ExponentialBackoff
-);
-
-/**
- * Retrieve collection of tours.
- */
-const retrieveTourCollection = AsyncErrorWrapper(
-  getTours,
-  Retry.LinearJitterBackoff,
-  {
-    retries: 2,
-    jitterFactor: 1000,
-    minTimeout: 2500,
-  }
-);
-
-/**
- * Retrieve collection of tours based on search parameter.
- */
-const retrieveTourSearch = AsyncErrorWrapper(
-  getTourSearch,
-  Retry.LinearJitterBackoff,
-  {
-    retries: 2,
-    jitterFactor: 1000,
-    minTimeout: 2500,
-  }
-);
-
-/**
- * Retrieve a tour item using its :id.
- */
-const retrieveTourItem = AsyncErrorWrapper(getTour, Retry.LinearJitterBackoff, {
-  retries: 3,
-  jitterFactor: 1000,
-  minTimeout: 2500,
-});
-
-/**
- * Replace a tour item using its :id.
- */
-const replaceTourItem = AsyncErrorWrapper(
-  replaceTour,
-  Retry.ExponentialBackoff,
-  { retries: 3, factor: 2, minTimeout: 10000 }
-);
-
-/**
- * Updates a tour item using its :id.
- */
-const updateTourItem = AsyncErrorWrapper(updateTour, Retry.LinearBackoff);
-
-/**
- * Deletes a tour item using its :id.
- */
-const deleteTourItem = AsyncErrorWrapper(deleteTour, Retry.LinearBackoff);
-
-/**
- * Complete a tour item using its :id.
- */
-const completeTourItem = AsyncErrorWrapper(completeTour, Retry.LinearBackoff);
-
-/**
- * Cancels a tour item using its :id.
- */
-const cancelTourItem = AsyncErrorWrapper(cancelTour, Retry.LinearBackoff);
-
-/**
- * reopens a cancelled tour using its :id.
- */
-const reopenTourItem = AsyncErrorWrapper(reopenTour, Retry.LinearBackoff);
-
-/**
- * schedule a new tour.
- */
-const scheduleTourItem = AsyncErrorWrapper(scheduleTour, Retry.LinearBackoff);
-
-/**
- * reschedules an existing tour.
- */
-const rescheduleTourItem = AsyncErrorWrapper(
-  rescheduleTour,
-  Retry.LinearBackoff
-);
-
-/**
- * accepts proposed tour schedule.
- */
-const acceptProposedTourReschedule = AsyncErrorWrapper(acceptTourRechedule);
-
-/**
- * rejects proposed tour schedule.
- */
-const rejectProposedTourReschedule = AsyncErrorWrapper(rejectTourReschedule);
 
 /**
  * Handle not allowed operations
@@ -563,16 +534,110 @@ const operationNotAllowed = (
   });
 };
 
+/**
+ * Create a new tour in collection.
+ */
+const createTourCollection = AsyncCatch(createTour, Retry.ExponentialBackoff);
+
+/**
+ * Retrieve collection of tours.
+ */
+const retrieveTourCollection = AsyncCatch(getTours, Retry.LinearJitterBackoff);
+
+/**
+ * Retrieve a tour item using its :id.
+ */
+const retrieveTourItem = AsyncCatch(getTour, Retry.LinearJitterBackoff);
+
+/**
+ * Replace a tour item using its :id.
+ */
+const replaceTourItem = AsyncCatch(replaceTour, Retry.ExponentialBackoff);
+
+/**
+ * Updates a tour item using its :id.
+ */
+const updateTourItem = AsyncCatch(updateTour, Retry.LinearBackoff);
+
+/**
+ * Deletes a tour item using its :id.
+ */
+const deleteTourItem = AsyncCatch(deleteTour, Retry.LinearBackoff);
+
+/**
+ * Complete a tour item using its :id.
+ */
+const completeTourItem = AsyncCatch(completeTour, Retry.LinearBackoff);
+
+/**
+ * Cancels a tour item using its :id.
+ */
+const cancelTourItem = AsyncCatch(cancelTour, Retry.LinearBackoff);
+
+/**
+ * reopens a cancelled tour using its :id.
+ */
+const reopenTourItem = AsyncCatch(reopenTour, Retry.LinearBackoff);
+
+/**
+ * retrieve realtors based on availability and tour location
+ */
+const retrieveAvailableRealtors = AsyncCatch(getRealtors);
+
+/**
+ * select a realtor from collection based on availability and tour location
+ */
+const selectTourRealtor = AsyncCatch(selectRealtor);
+
+/**
+ * accept tour realtor request
+ */
+const acceptProposedTourRequest = AsyncCatch(
+  acceptTourRequest,
+  Retry.LinearBackoff
+);
+
+/**
+ * reject tour realtor request
+ */
+const rejectProposedTourRequest = AsyncCatch(
+  rejectTourRequest,
+  Retry.LinearBackoff
+);
+
+/**
+ * schedule a new tour.
+ */
+const scheduleTourItem = AsyncCatch(scheduleTour, Retry.LinearBackoff);
+
+/**
+ * reschedules an existing tour.
+ */
+const rescheduleTourItem = AsyncCatch(rescheduleTour, Retry.LinearBackoff);
+
+/**
+ * accepts proposed tour schedule.
+ */
+const acceptProposedTourReschedule = AsyncCatch(acceptTourReschedule);
+
+/**
+ * rejects proposed tour schedule.
+ */
+const rejectProposedTourReschedule = AsyncCatch(rejectTourReschedule);
+
 export default {
   createTourCollection,
   retrieveTourCollection,
-  retrieveTourSearch,
   retrieveTourItem,
   replaceTourItem,
   updateTourItem,
   completeTourItem,
   cancelTourItem,
   reopenTourItem,
+  retrieveAvailableRealtors,
+  selectTourRealtor,
+  acceptProposedTourRequest,
+  rejectProposedTourRequest,
   scheduleTourItem,
   rescheduleTourItem,
   acceptProposedTourReschedule,

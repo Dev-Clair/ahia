@@ -2,7 +2,7 @@ import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
 import Config from "../../config";
 import Logger from "../service/loggerService";
-import Notify from "../utils/notify";
+import Mail from "../utils/mail";
 
 class GlobalErrorHandlingMiddleware {
   public static async handleError(err: Error): Promise<void> {
@@ -14,7 +14,7 @@ class GlobalErrorHandlingMiddleware {
 
     const recipient: [string] = [Config.TOUR_ADMIN_EMAIL_II];
 
-    await Notify(
+    await Mail(
       sender,
       recipient,
       err.name,
