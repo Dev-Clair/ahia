@@ -1,5 +1,5 @@
 const Config = require("./config");
-const HTTPClient = require("./httpClient");
+const HttpClient = require("./httpClient");
 const Mail = require("./mail");
 
 const sender = Config.TOUR_NOTIFICATION_EMAIL;
@@ -12,7 +12,7 @@ exports.tour = async (event, context) => {
 
     const url = `www.ahia.com/tours/`; // Development URL or Elastic Beanstalk Application Public Endpoint
 
-    const createTour = await new HTTPClient(url, {
+    const createTour = await new HttpClient(url, {
       "Content-Type": "application/json",
     }).Post(payload);
 

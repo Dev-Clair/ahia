@@ -1,8 +1,8 @@
 import https from "node:https";
 import crypto from "node:crypto";
-import Retry from "./retry";
+import Retry from "./src/utils/retry";
 
-class HTTPClient {
+class HttpClient {
   private httpOptions: object = {};
 
   private httpHeaders: object = {};
@@ -20,7 +20,7 @@ class HTTPClient {
     return crypto.randomBytes(16).toString("hex");
   }
 
-  public async Request(options: object, payload?: any): Promise<any> {
+  private async Request(options: object, payload?: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
         let data = "";
@@ -105,4 +105,4 @@ class HTTPClient {
   }
 }
 
-export default HTTPClient;
+export default HttpClient;

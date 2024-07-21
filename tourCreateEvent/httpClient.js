@@ -2,7 +2,7 @@ const https = require("node:https");
 const crypto = require("node:crypto");
 const Retry = require("./retry");
 
-class HTTPClient {
+class HttpClient {
   httpOptions = {};
 
   httpHeaders = {};
@@ -105,4 +105,4 @@ class HTTPClient {
   }
 }
 
-module.exports = HTTPClient;
+module.exports = HttpClient;
