@@ -18,12 +18,11 @@ const doubleParamIdSchema = singleParamIdSchema.extend({
 });
 
 const identitySchema = z.object({
-  id: z
-    .string({
-      required_error: "ID is required",
-      invalid_type_error: "ID must be a string",
-    })
-    .uuid({ message: "Invalid ID format" }),
+  id: z.string({
+    required_error: "ID is required",
+    invalid_type_error: "ID must be a string",
+  }),
+  // .uuid({ message: "Invalid ID format" }),
   email: z
     .string({
       required_error: "Email is required",
@@ -34,23 +33,25 @@ const identitySchema = z.object({
 
 const customerSchema = z.object({
   customer: identitySchema,
-  listingIds: z
+  listings: z
     .array(
-      z.string({
-        required_error: "Listing ID(s) are required",
-        invalid_type_error: "Listing ID(s) must be a string",
+      z.object({
+        id: z.string({
+          required_error: "Listing ID is required",
+          invalid_type_error: "Listing ID must be a string",
+        }),
+        // .uuid({ message: "Invalid ID format" }),
+        location: z.string({
+          required_error: "Listing location is required",
+          invalid_type_error: "Listing location must be a string",
+        }),
       })
-      // .uuid({ message: "Invalid ID format" })
     )
-    .nonempty("A new tour must have a collection of listings"),
+    .nonempty("A new tour must have a collection of listings id and location"),
   transactionRef: z.string({
     required_error: "Transaction reference is required",
     invalid_type_error: "Transaction reference must be a string",
   }),
-});
-
-const realtorSchema = z.object({
-  realtor: identitySchema,
 });
 
 const scheduleSchema = z.object({
@@ -116,14 +117,11 @@ export const validateDoubleParamId = validateParams(doubleParamIdSchema);
 
 export const validateCustomer = validateBody(customerSchema);
 
-export const validateRealtor = validateBody(realtorSchema);
-
 export const validateSchedule = validateBody(scheduleSchema);
 
 export default {
   validateSingleParamId,
   validateDoubleParamId,
   validateCustomer,
-  validateRealtor,
   validateSchedule,
 };
