@@ -46,7 +46,7 @@ const createTour = async (
 
   // await Mail(); // Send mail to customer confirming tour creation success
 
-  // await Notify(); // Send push notification to customer to schedule tour and select realtor
+  // await Notify(); // Send push notification to customer to modify tour name, schedule tour date and time and select realtor
 
   return res.status(HttpStatusCode.CREATED).json(response);
 };
