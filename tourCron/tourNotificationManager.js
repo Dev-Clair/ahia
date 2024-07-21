@@ -38,7 +38,7 @@ class TourNotificationManager {
       const subject = "TOUR REMINDER";
 
       const link = URL(
-        `https://wwww.ahia.com/api/v1/tours/${tourId}/reschedule`
+        `https://www.ahia.com/api/v1/tours/${tourId}/reschedule`
       );
 
       const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\n\nTo reschedule, kindly click the ${link} to initiate the rescheduling process.\nPlease note that rescheduling a tour is subject to the tour party approval and automatically becomes impossible 3-Hrs before the original scheduled time.`;

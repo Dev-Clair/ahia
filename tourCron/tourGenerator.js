@@ -27,9 +27,9 @@ const TourGenerator = async function* () {
     for (const tour of tours) {
       const { _id, realtor, customer } = tour;
 
-      const scheduledDate = tour.scheduled.date;
+      const scheduledDate = tour.schedule.date;
 
-      const scheduledTime = tour.scheduled.time;
+      const scheduledTime = tour.schedule.time;
 
       const tourDateTime = new Date(scheduledDate);
 
