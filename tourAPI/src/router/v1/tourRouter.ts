@@ -45,17 +45,15 @@ TourRouterV1.route("/:id/status/reopen").patch(
   tourController.reopenTourItem
 );
 
-TourRouterV1.route("/:id/realtors").get(
-  validationMiddleware.validateSingleParamId,
-  tourController.retrieveAvailableRealtors
-);
-
-TourRouterV1.route(
-  "/:id/realtors?realtorId=:realtor.id&realtorEmail=:realtor.email"
-).post(
-  validationMiddleware.validateSingleParamId,
-  tourController.selectTourRealtor
-);
+TourRouterV1.route("/:id/realtors")
+  .get(
+    validationMiddleware.validateSingleParamId,
+    tourController.retrieveAvailableRealtors
+  )
+  .post(
+    validationMiddleware.validateSingleParamId,
+    tourController.selectTourRealtor
+  );
 
 TourRouterV1.route("/:id/realtor/accept").put(
   validationMiddleware.validateSingleParamId,

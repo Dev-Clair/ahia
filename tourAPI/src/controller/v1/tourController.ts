@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import HTTPClient from "../../utils/httpClient";
+import HTTPClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import NotFoundError from "../../error/notfoundError";
 import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
@@ -268,7 +268,7 @@ const selectRealtor = async (
 ): Promise<Response | void> => {
   const tourId = req.params.id;
 
-  const { realtorId, realtorEmail } = req.query;
+  const { id, email } = req.query;
 
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
@@ -277,14 +277,14 @@ const selectRealtor = async (
   });
 
   if (verifyOperationIdempotency) {
-    res
+    return res
       .status(HttpStatusCode.CREATED)
       .json(verifyOperationIdempotency.response);
   }
 
   await TourRealtor.create({
     tourId: tourId,
-    realtor: { id: realtorId, email: realtorEmail },
+    realtor: { id: id, email: email },
   });
 
   // await Notify() // Send push notification to realtor about tour request
@@ -360,7 +360,7 @@ const rejectTourRequest = async (
     );
   }
 
-  await request.deleteOne({ id: request.tourId });
+  await request.deleteOne();
 
   await request.save();
 
@@ -387,7 +387,7 @@ const scheduleTour = async (
   });
 
   if (verifyOperationIdempotency) {
-    res
+    return res
       .status(HttpStatusCode.CREATED)
       .json(verifyOperationIdempotency.response);
   }
@@ -432,7 +432,7 @@ const rescheduleTour = async (
   });
 
   if (verifyOperationIdempotency) {
-    res
+    return res
       .status(HttpStatusCode.CREATED)
       .json(verifyOperationIdempotency.response);
   }
