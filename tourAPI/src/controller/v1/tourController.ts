@@ -6,12 +6,12 @@ import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
 import DuplicateTransactionError from "../../error/duplicateTransactionError";
 import Tour from "../../model/tourModel";
 import TourIdempotency from "../../model/tourIdempotencyModel";
+import TourRealtor from "../../model/tourRealtorModel";
 import TourSchedule from "../../model/tourScheduleModel";
 import AsyncErrorWrapper from "../../utils/asyncErrorWrapper";
 import Retry from "../../utils/retry";
 import Notify from "../../utils/notify";
 import Features from "../../utils/feature";
-import TourRequest from "../../model/tourRequestModel";
 
 const createTour = async (
   req: Request,
@@ -322,7 +322,7 @@ const selectRealtor = async (
     })
     .catch((err) => next(err));
 
-  await TourRequest.create({
+  await TourRealtor.create({
     tourId: tourId,
     realtor: { id: realtorId, email: realtorEmail },
   })
@@ -348,7 +348,7 @@ const acceptTourRequest = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await TourRequest.findOne({ tourId: req.params.id })
+  await TourRealtor.findOne({ tourId: req.params.id })
     .then(async (request) => {
       if (!request) {
         throw new NotFoundError(
@@ -390,7 +390,7 @@ const rejectTourRequest = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  await TourRequest.findOne({ tourId: req.params.id })
+  await TourRealtor.findOne({ tourId: req.params.id })
     .then(async (request) => {
       if (!request) {
         throw new NotFoundError(

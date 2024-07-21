@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import TourRequestInterface from "../interface/tourRequestInterface";
+import TourRealtorInterface from "../interface/tourRealtorInterface";
 
-const TourRequestSchema: Schema<TourRequestInterface> = new Schema({
+const TourRealtorSchema: Schema<TourRealtorInterface> = new Schema({
   tourId: {
     type: String,
     required: true,
@@ -22,4 +22,4 @@ const TourRequestSchema: Schema<TourRequestInterface> = new Schema({
   },
 });
 
-export default TourRequestSchema;
+export default TourRealtorSchema;

@@ -1,6 +1,6 @@
 import { Document } from "mongoose";
 
-export default interface TourRequestInterface extends Document {
+export default interface TourRealtorInterface extends Document {
   tourId: string;
   realtor: {
     id: string;
