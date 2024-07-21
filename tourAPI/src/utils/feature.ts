@@ -15,8 +15,7 @@ interface PaginationOptions {
 const Features = async <M extends Document>(
   model: Model<M>,
   query: object = {},
-  req: Request,
-  projection: object = {}
+  req: Request
 ): Promise<{ data: M[]; pagination: PaginationOptions }> => {
   /**
    * Pagination
@@ -51,11 +50,7 @@ const Features = async <M extends Document>(
    */
   const filterOptions = ["gt", "gte", "lt", "lte"];
 
-  const data = await model
-    .find(query, projection)
-    .skip(skip)
-    .limit(limit)
-    .sort(sort);
+  const data = await model.find(query).skip(skip).limit(limit).sort(sort);
 
   const totalItems = await model.countDocuments(query);
 
