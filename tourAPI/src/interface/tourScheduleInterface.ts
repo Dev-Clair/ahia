@@ -6,6 +6,5 @@ export default interface TourScheduleInterface extends Document {
     date: Date;
     time: string;
   };
-  status: "pending" | "accepted" | "rejected";
   createdAt: Date;
 }

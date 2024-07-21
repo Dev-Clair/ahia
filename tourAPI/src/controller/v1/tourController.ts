@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import HTTPClient from "../../../httpClient";
+import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import NotFoundError from "../../error/notfoundError";
 import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
@@ -10,6 +10,7 @@ import TourRealtor from "../../model/tourRealtorModel";
 import TourSchedule from "../../model/tourScheduleModel";
 import AsyncCatch from "../../utils/asynCatch";
 import Retry from "../../utils/retry";
+import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import Features from "../../utils/feature";
 
@@ -249,7 +250,7 @@ const getRealtors = async (
     );
   }
 
-  const httpClient = new HTTPClient(
+  const httpClient = new HttpClient(
     `www.ahia.com/iam/realtors?status=available&location=${tour.location}`,
     {
       "Content-Type": "application/json",
@@ -362,8 +363,6 @@ const rejectTourRequest = async (
 
   await request.deleteOne();
 
-  await request.save();
-
   // await Notify() // Send realtor's rejection push notification to customer
 
   return res.status(HttpStatusCode.MODIFIED).json({
@@ -463,13 +462,9 @@ const acceptTourReschedule = async (
 
   const tourScheduleId = req.params.rescheduleId;
 
-  const schedule = await TourSchedule.findByIdAndUpdate(
-    { _id: tourScheduleId },
-    { $set: { status: "accepted" } },
-    { new: true }
-  );
+  const schedule = await TourSchedule.findById({ _id: tourScheduleId });
 
-  if (!schedule || schedule.status !== "pending") {
+  if (!schedule) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
       "schedule not found or already processed."
@@ -496,6 +491,8 @@ const acceptTourReschedule = async (
     );
   }
 
+  await schedule.deleteOne();
+
   // await Notify(); // Send push notification to Customer and Realtor
 
   return res.status(HttpStatusCode.MODIFIED).json();
@@ -508,18 +505,16 @@ const rejectTourReschedule = async (
 ): Promise<Response | void> => {
   const tourScheduleId = req.params.rescheduleId;
 
-  const schedule = await TourSchedule.findByIdAndUpdate(
-    { _id: tourScheduleId },
-    { $set: { status: "rejected" } },
-    { new: true }
-  );
+  const schedule = await TourSchedule.findById({ _id: tourScheduleId });
 
-  if (!schedule || schedule.status !== "pending") {
+  if (!schedule) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
       "schedule not found or already processed."
     );
   }
+
+  await schedule.deleteOne();
 
   // await Notify();  // Send push notification to Customer or Realtor
 
