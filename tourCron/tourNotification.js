@@ -5,9 +5,10 @@ const TourNotification = async () => {
   const tourGenerator = TourGenerator();
 
   for await (const tour of tourGenerator) {
-    const { customer, realtor, tourId, tourDate, tourTime } = tour;
+    const { name, customer, realtor, tourId, tourDate, tourTime } = tour;
 
     await TourNotificationManager.processNotification(
+      name,
       customer,
       realtor,
       tourId,
