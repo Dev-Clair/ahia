@@ -61,18 +61,19 @@ class HttpClient {
   }
 
   async request(method, payload = null) {
-    const headers = { ...this.httpHeaders, method };
+    const headers = this.httpHeaders;
 
-    if (method === "POST" || method === "PATCH") {
+    if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH") {
       Object.assign(headers, {
         "idempotency-key": this.generateIdempotencyKey(),
       });
     }
 
-    const options = {
-      ...this.httpOptions,
-      headers,
-    };
+    const options = this.httpOptions;
+
+    Object.assign(options, { method: method });
+
+    Object.assign(options, { headers: headers });
 
     return Retry.ExponentialBackoff(() => this.call(options, payload));
   }

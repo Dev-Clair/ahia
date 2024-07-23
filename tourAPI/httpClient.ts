@@ -12,7 +12,7 @@ interface HttpOptions {
 class HttpClient {
   private httpOptions: HttpOptions;
 
-  private httpHeaders: object = {};
+  private httpHeaders: object;
 
   constructor(url: string, httpHeaders: object = {}) {
     const parsedUrl = new URL(url);
@@ -68,18 +68,19 @@ class HttpClient {
   }
 
   private async request(method: string, payload?: any): Promise<any> {
-    const headers = { ...this.httpHeaders, method };
+    const headers = this.httpHeaders;
 
-    if (method === "POST" || method === "PATCH") {
+    if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH") {
       Object.assign(headers, {
         "idempotency-key": this.generateIdempotencyKey(),
       });
     }
 
-    const options = {
-      ...this.httpOptions,
-      headers,
-    };
+    const options = this.httpOptions;
+
+    Object.assign(options, { method: method });
+
+    Object.assign(options, { headers: headers });
 
     return Retry.ExponentialBackoff(() => this.call(options, payload));
   }
