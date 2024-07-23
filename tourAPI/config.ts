@@ -1,7 +1,9 @@
 import process from "process";
 import dotenv from "dotenv";
 
-dotenv.config();
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 const Config = {
   AWS_REGION: process.env.AWS_REGION,
@@ -10,7 +12,7 @@ const Config = {
   HTTP_PORT: process.env.HTTP_PORT || 5999,
   HTTPS_PORT: process.env.HTTPS_PORT || 6000,
   MONGO_URI: process.env.MONGO_URI || "",
-  NODE_ENV: process.env.NODE_ENV || "production",
+  NODE_ENV: process.env.NODE_ENV || "test",
   SSL_KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
   SSL_CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",
   TOUR_ADMIN_EMAIL_I: process.env.TOUR_ADMIN_EMAIL_I || "",
