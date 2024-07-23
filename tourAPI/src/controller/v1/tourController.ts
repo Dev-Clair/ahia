@@ -316,7 +316,10 @@ const acceptTourRequest = async (
     );
   }
 
-  const tour = await Tour.findById({ _id: req.params.id });
+  const tour = await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
+    { $set: { realtor: request.realtor } }
+  );
 
   if (!tour) {
     throw new NotFoundError(
@@ -324,10 +327,6 @@ const acceptTourRequest = async (
       `No tour found for id: ${req.params.id}`
     );
   }
-
-  tour.realtor = request.realtor;
-
-  await tour.save();
 
   await request.deleteOne();
 
@@ -349,15 +348,6 @@ const rejectTourRequest = async (
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
       `No realtor request found for tour: ${req.params.id}`
-    );
-  }
-
-  const tour = await Tour.findById({ _id: req.params.id });
-
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
     );
   }
 
@@ -495,7 +485,7 @@ const acceptTourReschedule = async (
 
   // await Notify(); // Send push notification to Customer and Realtor
 
-  return res.status(HttpStatusCode.MODIFIED).json();
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 const rejectTourReschedule = async (
@@ -505,7 +495,9 @@ const rejectTourReschedule = async (
 ): Promise<Response | void> => {
   const tourScheduleId = req.params.rescheduleId;
 
-  const schedule = await TourSchedule.findById({ _id: tourScheduleId });
+  const schedule = await TourSchedule.findByIdAndDelete({
+    _id: tourScheduleId,
+  });
 
   if (!schedule) {
     throw new NotFoundError(
@@ -514,11 +506,9 @@ const rejectTourReschedule = async (
     );
   }
 
-  await schedule.deleteOne();
-
   // await Notify();  // Send push notification to Customer or Realtor
 
-  return res.status(HttpStatusCode.MODIFIED).json();
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**

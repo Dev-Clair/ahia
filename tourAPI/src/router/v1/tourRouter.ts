@@ -79,12 +79,12 @@ TourRouterV1.route("/:id/reschedule").post(
   tourController.rescheduleTourItem
 );
 
-TourRouterV1.route("/:id/reschedule/accept/:rescheduleId").put(
+TourRouterV1.route("/:id/reschedule/:rescheduleId/accept").put(
   validationMiddleware.validateDoubleParamId,
   tourController.acceptProposedTourReschedule
 );
 
-TourRouterV1.route("/:id/reschedule/reject/:rescheduleId").put(
+TourRouterV1.route("/:id/reschedule/:rescheduleId/reject").put(
   validationMiddleware.validateDoubleParamId,
   tourController.rejectProposedTourReschedule
 );

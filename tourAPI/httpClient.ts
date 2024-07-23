@@ -6,7 +6,7 @@ interface HttpOptions {
   hostname: string;
   path: string;
   method?: string;
-  headers?: { [key: string]: string };
+  headers?: {};
 }
 
 interface HttpHeaders {
