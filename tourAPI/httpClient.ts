@@ -9,16 +9,12 @@ interface HttpOptions {
   headers?: {};
 }
 
-interface HttpHeaders {
-  [key: string]: string;
-}
-
 class HttpClient {
   private httpOptions: HttpOptions;
 
-  private httpHeaders: HttpHeaders;
+  private httpHeaders: object = {};
 
-  constructor(url: string, httpHeaders: HttpHeaders = {}) {
+  constructor(url: string, httpHeaders: object = {}) {
     const parsedUrl = new URL(url);
 
     this.httpOptions = {
