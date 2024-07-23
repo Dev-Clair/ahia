@@ -91,8 +91,8 @@ TourSchema.index({
 });
 
 TourSchema.pre("save", function (next) {
-  if (!this.name) {
-    this.name = `Tour-${this.customer.id}-${Date.now()}`;
+  if (!this.isModified(this.name)) {
+    this.name = `Tour_${this.customer.id}`;
   }
 
   next();
