@@ -74,6 +74,13 @@ const ProviderSchema: Schema<ProviderInterface> = new Schema({
       },
     },
   ],
+  subscription: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Subscription",
+      required: false,
+    },
+  ],
 });
 
 ProviderSchema.virtual("numberOfListings").get(function () {

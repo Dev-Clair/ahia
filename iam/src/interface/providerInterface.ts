@@ -1,3 +1,4 @@
+import { Schema } from "mongoose";
 import IAMInterface from "./iamInterface";
 
 export default interface ProviderInterface extends IAMInterface {
@@ -18,4 +19,5 @@ export default interface ProviderInterface extends IAMInterface {
       document: string;
     }[];
   };
+  subscription: Schema.Types.ObjectId[];
 }
