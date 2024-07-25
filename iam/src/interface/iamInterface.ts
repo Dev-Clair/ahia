@@ -8,6 +8,6 @@ export default interface IAMInterface extends Document {
   phone: string;
   password: string;
   role: "Customer" | "Realtor" | "Provider" | "Admin";
-  accountStatus: "active" | "inactive" | "suspended";
+  status: "active" | "inactive" | "suspended";
   createdAt: Date;
 }

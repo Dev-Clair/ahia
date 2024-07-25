@@ -40,7 +40,7 @@ const IAMSchema: Schema<IAMInterface> = new Schema(
       enum: ["Customer", "Realtor", "Provider", "Admin"],
       required: true,
     },
-    accountStatus: {
+    status: {
       type: String,
       enum: ["active", "inactive", "suspended"],
       default: "active",
@@ -53,7 +53,7 @@ const IAMSchema: Schema<IAMInterface> = new Schema(
   },
   {
     discriminatorKey: "role",
-    collection: "IAM",
+    collection: "iam",
   }
 );
 
