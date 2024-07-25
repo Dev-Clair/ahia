@@ -1,32 +1,25 @@
 import mongoose from "mongoose";
+import ConnectionError from "./src/error/connectionError";
+import Retry from "./src/utils/retry";
 
-let currentRetries: number = 0;
+const establishConnection = async (connectionUri: string): Promise<void> => {
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(connectionUri, {
+      serverSelectionTimeoutMS: 10000,
+    });
+  }
+};
 
-let retryDelay: number = 5000;
-
-const maxRetries: number = 5;
-
-const Connection = async (
-  connectionUri: string
-): Promise<void | typeof import("mongoose")> => {
+const Connection = async (connectionUri: string): Promise<void> => {
   try {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(connectionUri, {
-        serverSelectionTimeoutMS: 10000,
-      });
-    }
+    await Retry.ExponentialBackoff(() => establishConnection(connectionUri));
   } catch (err: any) {
-    if (currentRetries < maxRetries) {
-      console.log(`Attempting reconnection to database`);
-
-      currentRetries++;
-
-      retryDelay *= 2;
-
-      setTimeout(() => Connection(connectionUri), retryDelay);
-    } else {
-      console.log(
-        `Database connection error\nMax retries reached, Could not establish connection to database:\n${err.message}`
+    try {
+      await Retry.LinearJitterBackoff(() => establishConnection(connectionUri));
+    } catch (err: any) {
+      throw new ConnectionError(
+        err.message,
+        "Retry strategies failed. Could not establish connection to the database"
       );
     }
   }
@@ -37,15 +30,15 @@ mongoose.connection.on("connecting", () => {
 });
 
 mongoose.connection.on("connected", () => {
-  console.log("Database connection successful");
+  console.log(`Database connection successful`);
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.log("Database connection failure");
+  console.error(`Database connection failure`);
 });
 
 mongoose.connection.on("reconnected", () => {
-  console.log("Database reconnection successful");
+  console.log(`Database reconnection successful`);
 });
 
 export default Connection;
