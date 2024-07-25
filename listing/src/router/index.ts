@@ -1,37 +1,11 @@
 import { Request, Response, Router, NextFunction } from "express";
-import routerV1 from "./v1/listingRouter";
-import routerV2 from "./v2/listingRouter";
+import ListingRouterV1 from "./v1/listingRouter";
+import ListingRouterV2 from "./v2/listingRouter";
 
-const router = Router();
+const ListingRouter = Router();
 
-router.use("/v1/listings", routerV1);
+ListingRouter.use("/v1/listings", ListingRouterV1);
 
-router.use("/v2/listings", routerV2);
+ListingRouter.use("/v2/listings", ListingRouterV2);
 
-router.all("*", (req: Request, res: Response, next: NextFunction) => {
-  return res.status(404).json({
-    message: `No resource or route defined for ${req.originalUrl}`,
-  });
-});
-
-router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof SyntaxError) {
-    console.error({ message: `${err.message}` });
-
-    return res.status(400).json({ message: "Bad JSON" });
-  }
-
-  next(err);
-});
-
-router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.message);
-
-  if (!res.headersSent) {
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-
-  return;
-});
-
-export default router;
+export default ListingRouter;
