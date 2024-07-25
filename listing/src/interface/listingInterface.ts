@@ -7,20 +7,21 @@ export default interface ListingInterface extends Document {
   cost: number;
   purpose: "rent" | "sell";
   type: "developed" | "undeveloped";
-  useType:
-    | "single-room"
-    | "mini-flat"
-    | "2 bedroom flat"
-    | "3 bedroom flat"
-    | "duplex"
-    | "semi-detached"
-    | "short-lets"
-    | "office"
-    | "shop"
-    | "event halls"
-    | "bare-land";
-
-  useCategory: "residential" | "commercial";
+  use: {
+    type:
+      | "single-room"
+      | "mini-flat"
+      | "2-bedroom-flat"
+      | "3-bedroom-flat"
+      | "duplex"
+      | "semi-detached"
+      | "short-lets"
+      | "office"
+      | "shop"
+      | "event-halls"
+      | "bare-land";
+    category: "residential" | "commercial";
+  };
   features: string[];
   address: {
     street: string;
