@@ -14,6 +14,7 @@ class TourNotificationManager {
   }
 
   static async processNotification(
+    name,
     customer,
     realtor,
     tourId,
@@ -35,13 +36,13 @@ class TourNotificationManager {
         throw new Error(`Email not found for realtor: ${realtor.id}`);
       }
 
-      const subject = "TOUR REMINDER";
+      const subject = `TOUR REMINDER: ${name}`;
 
       const link = URL(
         `https://www.ahia.com/api/v1/tours/${tourId}/reschedule`
       );
 
-      const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\n\nTo reschedule, kindly click the ${link} to initiate the rescheduling process.\nPlease note that rescheduling a tour is subject to the tour party approval and automatically becomes impossible 3-Hrs before the original scheduled time.`;
+      const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\n\nTo reschedule, kindly click the ${link} to initiate the rescheduling process.\nPlease note that rescheduling a tour is subject to the tour party approval and you might incur a penalty fee if initiated 3-Hrs before the scheduled time.`;
 
       await Mail(sender, [customerEmail, realtorEmail], subject, text);
 
@@ -53,7 +54,7 @@ class TourNotificationManager {
 
       errorCache.set(
         tourId,
-        `Failed to process tour notification for tour ${tourId}\nError: ${err.message}`
+        `Failed to process tour notification for tour:\nName:${name}\nId:${tourId}\nError: ${err.message}`
       );
 
       this.failedCount++;

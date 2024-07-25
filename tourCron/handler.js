@@ -5,9 +5,9 @@ const Mail = require("./mail");
 const MailerError = require("./mailerError");
 const TourNotification = require("./tourNotification");
 
-const sender = process.env.TOUR_NOTIFICATION_EMAIL || "";
+const sender = Config.TOUR_NOTIFICATION_EMAIL || "";
 
-const recipient = [process.env.TOUR_ADMIN_EMAIL_II];
+const recipient = [Config.TOUR_ADMIN_EMAIL_II];
 
 exports.cron = async (event, context) => {
   try {

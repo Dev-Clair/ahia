@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: ahia tour create event service.
+
+Parameters:
+  AWSRegion:
+    Type: String
+    Default: "af-south-1"
+  AWSPaymentEventBus:
+    Type: String
+  NodeEnv:
+    Type: String
+
+Resources:
+  AhiaTourCreateEventFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "ahia-tour-create-event"
+      Handler: "handler.tour"
+      Runtime: "nodejs20.x"
+      MemorySize: 128
+      Environment:
+        Variables:
+          NODE_ENV: !Ref NodeEnv
+      Role: !GetAtt AhiaTourCreateEventRole.Arn
+      Code:
+        S3Bucket: " "
+        S3Key: " "
+
+  AhiaTourCreateEventRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "ahia-tour-create-event-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: "Allow"
+                Action: "events:PutEvents"
+                Resource: "*"
+
+  AhiaTourCreateEventRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      EventBusName: !Ref AWSPaymentEventBus
+      EventPattern:
+        source:
+          - "mongodb-atlas"
+      Targets:
+        - Arn: !GetAtt AhiaTourCreateEventFunction.Arn
+          Id: "AhiaTourCreateEventTarget"
+
+  AhiaTourCreateEventPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref AhiaTourCreateEventFunction
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt AhiaTourCreateEventRule.Arn

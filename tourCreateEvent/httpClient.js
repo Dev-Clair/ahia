@@ -3,24 +3,26 @@ const crypto = require("node:crypto");
 const Retry = require("./retry");
 
 class HttpClient {
-  httpOptions = {};
+  httpOptions;
 
-  httpHeaders = {};
+  httpHeaders;
 
   constructor(url, httpHeaders = {}) {
-    Object.assign(this.httpOptions, {
-      hostname: new URL(url).hostname,
-      path: new URL(url).pathname + new URL(url).search,
-    });
+    const parsedUrl = new URL(url);
 
-    Object.assign(this.httpHeaders, httpHeaders);
+    this.httpOptions = {
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname + parsedUrl.search,
+    };
+
+    this.httpHeaders = { ...httpHeaders };
   }
 
   generateIdempotencyKey() {
     return crypto.randomBytes(16).toString("hex");
   }
 
-  async Request(options, payload = null) {
+  async call(options, payload = null) {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
         let data = "";
@@ -30,10 +32,18 @@ class HttpClient {
         });
 
         res.on("end", () => {
-          resolve({
-            statusCode: res.statusCode,
-            body: data,
-          });
+          try {
+            const parsedData = JSON.parse(data);
+            resolve({
+              statusCode: res.statusCode,
+              body: parsedData,
+            });
+          } catch (error) {
+            resolve({
+              statusCode: res.statusCode,
+              body: data,
+            });
+          }
         });
       });
 
@@ -50,58 +60,42 @@ class HttpClient {
     });
   }
 
-  async Get() {
-    Object.assign(this.httpHeaders, { method: "GET" });
+  async request(method, payload = null) {
+    const headers = this.httpHeaders;
 
-    Object.assign(this.httpOptions, { headers: this.httpHeaders });
+    if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH") {
+      Object.assign(headers, {
+        "idempotency-key": this.generateIdempotencyKey(),
+      });
+    }
 
-    return Retry.ExponentialBackoff(() => this.Request(this.httpOptions));
+    const options = this.httpOptions;
+
+    Object.assign(options, { method: method });
+
+    Object.assign(options, { headers: headers });
+
+    return Retry.ExponentialBackoff(() => this.call(options, payload));
   }
 
-  async Post(payload) {
-    Object.assign(this.httpHeaders, { method: "POST" });
-
-    Object.assign(this.httpHeaders, {
-      "idempotency-key": this.generateIdempotencyKey(),
-    });
-
-    Object.assign(this.httpOptions, { headers: this.httpHeaders });
-
-    return Retry.ExponentialBackoff(() =>
-      this.Request(this.httpOptions, payload)
-    );
+  Get() {
+    return this.request("GET");
   }
 
-  async Put(payload) {
-    Object.assign(this.httpHeaders, { method: "PUT" });
-
-    Object.assign(this.httpOptions, { headers: this.httpHeaders });
-
-    return Retry.ExponentialBackoff(() =>
-      this.Request(this.httpOptions, payload)
-    );
+  Post(payload) {
+    return this.request("POST", payload);
   }
 
-  async Patch(payload) {
-    Object.assign(this.httpHeaders, { method: "PATCH" });
-
-    Object.assign(this.httpHeaders, {
-      "idempotency-key": this.generateIdempotencyKey(),
-    });
-
-    Object.assign(this.httpOptions, { headers: this.httpHeaders });
-
-    return Retry.ExponentialBackoff(() =>
-      this.Request(this.httpOptions, payload)
-    );
+  Put(payload) {
+    return this.request("PUT", payload);
   }
 
-  async Delete() {
-    Object.assign(this.httpHeaders, { method: "DELETE" });
+  Patch(payload) {
+    return this.request("PATCH", payload);
+  }
 
-    Object.assign(this.httpOptions, { headers: this.httpHeaders });
-
-    return Retry.ExponentialBackoff(() => this.Request(this.httpOptions));
+  Delete() {
+    return this.request("DELETE");
   }
 }
 

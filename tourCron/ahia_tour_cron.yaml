@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: ahia tour service cron.
+
+Parameters:
+  AWSRegion:
+    Type: String
+    Default: "af-south-1"
+  AWSDefaultEventBus:
+    Type: String
+  NodeEnv:
+    Type: String
+  MongoUri:
+    Type: String
+  TourNotificationEmail:
+    Type: String
+  TourAdminEmailI:
+    Type: String
+  TourAdminEmailII:
+    Type: String
+  TourAdminEmailIII:
+    Type: String
+
+Resources:
+  AhiaTourServiceCronFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "ahia-tour-service-cron"
+      Handler: "handler.cron"
+      Runtime: "nodejs20.x"
+      MemorySize: 512
+      Environment:
+        Variables:
+          NODE_ENV: !Ref NodeEnv
+          MONGO_URI: !Ref MongoUri
+          TOUR_NOTIFICATION_EMAIL: !Ref TourNotificationEmail
+          TOUR_ADMIN_EMAIL_I: !Ref TourAdminEmailI
+          TOUR_ADMIN_EMAIL_II: !Ref TourAdminEmailII
+          TOUR_ADMIN_EMAIL_III: !Ref TourAdminEmailIII
+      Role: !GetAtt AhiaTourServiceCronRole.Arn
+      Code:
+        S3Bucket: " "
+        S3Key: " "
+
+  AhiaTourServiceCronRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "ahia-tour-service-cron-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: "Allow"
+                Action: "events:PutEvents"
+                Resource: "*"
+
+  AhiaTourServiceCronRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      EventBusName: !Ref AWSDefaultEventBus
+      EventPattern:
+        source:
+          - "aws"
+      Targets:
+        - Arn: !GetAtt AhiaTourServiceCronFunction.Arn
+          Id: "AhiaTourServiceCronTarget"
+
+  AhiaTourServiceCronPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref AhiaTourServiceCronFunction
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt AhiaTourServiceCronRule.Arn

@@ -25,7 +25,7 @@ const TourGenerator = async function* () {
     const now = new Date().getTime();
 
     for (const tour of tours) {
-      const { _id, realtor, customer } = tour;
+      const { _id, name, customer, realtor } = tour;
 
       const scheduledDate = tour.schedule.date;
 
@@ -41,6 +41,7 @@ const TourGenerator = async function* () {
 
       if (diff <= 6 * 60 * 60 * 1000 && diff > 0) {
         yield {
+          name,
           customer,
           realtor,
           tourId: _id,

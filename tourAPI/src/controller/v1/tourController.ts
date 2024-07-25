@@ -6,6 +6,7 @@ import HttpStatusCode from "../../enum/httpStatusCode";
 import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
+import InternalServerError from "../../error/internalserverError";
 import DuplicateTransactionError from "../../error/duplicateTransactionError";
 import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
 import Retry from "../../utils/retry";
@@ -46,7 +47,7 @@ const createTour = async (
 
   // await Mail(); // Send mail to customer confirming tour creation success
 
-  // await Notify(); // Send push notification to customer to schedule tour and select realtor
+  // await Notify(); // Send push notification to customer to modify tour name, schedule tour date and time and select realtor
 
   return res.status(HttpStatusCode.CREATED).json(response);
 };
@@ -254,12 +255,41 @@ const getRealtors = async (
     `www.ahia.com/iam/realtors?status=available&location=${tour.location}`,
     {
       "Content-Type": "application/json",
+      "Service-Name": "Tour_Service",
     }
   );
 
-  const realtors = await httpClient.Get();
+  const response = await httpClient.Get();
 
-  return res.status(HttpStatusCode.OK).json({ data: realtors });
+  const { statusCode, body } = response;
+
+  if (statusCode !== HttpStatusCode.OK) {
+    if (statusCode === HttpStatusCode.FORBIDDEN) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        false,
+        "Oops! Sorry an error occured on our end, we will resolve it and notify you to retry shortly."
+      );
+    }
+
+    if (statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        true,
+        "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly."
+      );
+    }
+
+    if (body.length === 0) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        false,
+        "Oops! Sorry, we could not find any available realtors within your designated location. Please try again shortly."
+      );
+    }
+  }
+
+  return res.status(HttpStatusCode.OK).json({ data: body });
 };
 
 const selectRealtor = async (
@@ -316,7 +346,10 @@ const acceptTourRequest = async (
     );
   }
 
-  const tour = await Tour.findById({ _id: req.params.id });
+  const tour = await Tour.findByIdAndUpdate(
+    { _id: req.params.id },
+    { $set: { realtor: request.realtor } }
+  );
 
   if (!tour) {
     throw new NotFoundError(
@@ -324,10 +357,6 @@ const acceptTourRequest = async (
       `No tour found for id: ${req.params.id}`
     );
   }
-
-  tour.realtor = request.realtor;
-
-  await tour.save();
 
   await request.deleteOne();
 
@@ -349,15 +378,6 @@ const rejectTourRequest = async (
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
       `No realtor request found for tour: ${req.params.id}`
-    );
-  }
-
-  const tour = await Tour.findById({ _id: req.params.id });
-
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
     );
   }
 
@@ -495,7 +515,7 @@ const acceptTourReschedule = async (
 
   // await Notify(); // Send push notification to Customer and Realtor
 
-  return res.status(HttpStatusCode.MODIFIED).json();
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 const rejectTourReschedule = async (
@@ -505,7 +525,9 @@ const rejectTourReschedule = async (
 ): Promise<Response | void> => {
   const tourScheduleId = req.params.rescheduleId;
 
-  const schedule = await TourSchedule.findById({ _id: tourScheduleId });
+  const schedule = await TourSchedule.findByIdAndDelete({
+    _id: tourScheduleId,
+  });
 
   if (!schedule) {
     throw new NotFoundError(
@@ -514,11 +536,9 @@ const rejectTourReschedule = async (
     );
   }
 
-  await schedule.deleteOne();
-
   // await Notify();  // Send push notification to Customer or Realtor
 
-  return res.status(HttpStatusCode.MODIFIED).json();
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**

@@ -19,11 +19,9 @@ const server = new HttpServer(
 );
 
 try {
-  if (Config.NODE_ENV === "development") {
+  if (Config.NODE_ENV === "test") {
     server.startHTTP(Config.HTTP_PORT);
-  }
-
-  if (Config.NODE_ENV === "production") {
+  } else {
     server.startHTTPS(Config.HTTPS_PORT);
   }
 
