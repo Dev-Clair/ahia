@@ -16,6 +16,13 @@ const CustomerSchema: Schema<CustomerInterface> = new Schema({
       required: false,
     },
   ],
+  subscription: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Subscription",
+      required: false,
+    },
+  ],
 });
 
 export default CustomerSchema;
