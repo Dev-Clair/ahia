@@ -6,6 +6,7 @@ import HttpStatusCode from "../../enum/httpStatusCode";
 import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
+import InternalServerError from "../../error/internalserverError";
 import DuplicateTransactionError from "../../error/duplicateTransactionError";
 import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
 import Retry from "../../utils/retry";
@@ -254,12 +255,41 @@ const getRealtors = async (
     `www.ahia.com/iam/realtors?status=available&location=${tour.location}`,
     {
       "Content-Type": "application/json",
+      "Service-Name": "Tour_Service",
     }
   );
 
-  const realtors = await httpClient.Get();
+  const response = await httpClient.Get();
 
-  return res.status(HttpStatusCode.OK).json({ data: realtors });
+  const { statusCode, body } = response;
+
+  if (statusCode !== HttpStatusCode.OK) {
+    if (statusCode === HttpStatusCode.FORBIDDEN) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        false,
+        "Oops! Sorry an error occured on our end, we will resolve it and notify you to retry shortly."
+      );
+    }
+
+    if (statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        true,
+        "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly."
+      );
+    }
+
+    if (body.length === 0) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        false,
+        "Oops! Sorry, we could not find any available realtors within your designated location. Please try again shortly."
+      );
+    }
+  }
+
+  return res.status(HttpStatusCode.OK).json({ data: body });
 };
 
 const selectRealtor = async (
