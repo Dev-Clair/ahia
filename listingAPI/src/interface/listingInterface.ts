@@ -27,4 +27,9 @@ export default interface ListingInterface extends Document {
   attachment: Schema.Types.ObjectId[];
   provider: string;
   createdAt: Date;
+  reference: {
+    id: string;
+    status: string;
+    expiry: Date;
+  };
 }

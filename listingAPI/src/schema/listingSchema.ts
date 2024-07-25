@@ -1,5 +1,7 @@
 import { Schema } from "mongoose";
 import ListingInterface from "../interface/listingInterface";
+import { nanoid } from "nanoid";
+import slugify from "slugify";
 
 const ListingSchema: Schema<ListingInterface> = new Schema({
   name: {
@@ -98,6 +100,23 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
     type: String,
     required: true,
   },
+  reference: {
+    id: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
+      default: "pending",
+    },
+    expiry: {
+      type: Date,
+      default: function () {
+        return Date.now() + 3 * 24 * 60 * 60 * 1000;
+      },
+    },
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -105,5 +124,26 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
 });
 
 ListingSchema.index({ location: "2dsphere" });
+
+ListingSchema.pre("save", function (next) {
+  if (!this.isModified("slug")) {
+    this.slug = slugify(this.name, {
+      replacement: "-",
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+  }
+
+  next();
+});
+
+ListingSchema.pre("save", function (next) {
+  if (!this.isModified("reference")) {
+    this.reference.id = nanoid();
+  }
+
+  next();
+});
 
 export default ListingSchema;
