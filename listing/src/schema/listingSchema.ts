@@ -88,9 +88,15 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
       required: false,
     },
   },
-  attachments: [
+  offering: [
     {
-      type: String,
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+  ],
+  attachment: [
+    {
+      type: Schema.Types.ObjectId,
       required: true,
     },
   ],

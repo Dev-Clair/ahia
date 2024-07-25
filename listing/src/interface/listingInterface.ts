@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Schema } from "mongoose";
 
 export default interface ListingInterface extends Document {
   name: string;
@@ -30,10 +30,11 @@ export default interface ListingInterface extends Document {
     state: string;
   };
   location: {
-    type?: string;
-    coordinates?: number;
+    type: string;
+    coordinates: number;
   };
-  attachments: string[];
+  offering: Schema.Types.ObjectId[];
+  attachment: Schema.Types.ObjectId[];
   provider: string;
   createdAt: Date;
 }
