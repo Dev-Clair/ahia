@@ -2,77 +2,77 @@ import { Schema } from "mongoose";
 import RealtorInterface from "../interface/realtorInterface";
 
 const RealtorSchema: Schema<RealtorInterface> = new Schema({
-  realtorType: {
+  type: {
     type: String,
     enum: ["individual", "corporate"],
     required: true,
   },
-  companyInformation: {
+  company: {
     name: {
       type: String,
       trim: true,
       required: function () {
-        return this.realtorType === "corporate";
+        return this.type === "corporate";
       },
     },
     email: {
       type: String,
       trim: true,
       required: function () {
-        return this.realtorType === "corporate";
+        return this.type === "corporate";
       },
     },
     phone: [
       {
         type: String,
         required: function () {
-          return this.realtorType === "corporate";
+          return this.type === "corporate";
         },
       },
     ],
     address: {
       type: String,
       required: function () {
-        return this.realtorType === "corporate";
+        return this.type === "corporate";
       },
     },
     regNo: {
       type: String,
       required: function () {
-        return this.realtorType === "corporate";
+        return this.type === "corporate";
       },
     },
     regCert: {
       type: String,
       required: function () {
-        return this.realtorType === "corporate";
+        return this.type === "corporate";
       },
     },
   },
-  securityInformation: [
+  security: [
     {
-      identityType: {
-        type: String,
-        enum: ["driver-license", "passport", "other"],
-        required: false,
-      },
-      identityNo: {
-        type: String,
-        required: false,
-      },
-      identityDoc: {
-        type: String,
-        required: false,
+      identity: {
+        type: {
+          type: String,
+          enum: ["driver-license", "passport", "other"],
+          required: false,
+        },
+        refNo: {
+          type: String,
+          required: false,
+        },
+        document: {
+          type: String,
+          required: false,
+        },
       },
     },
   ],
-  assignedTours: [
+  tours: [
     {
-      tourId: {
-        type: String,
-        trim: true,
-        required: false,
-      },
+      type: String,
+      trim: true,
+      required: false,
     },
   ],
   availability: {
@@ -99,9 +99,9 @@ const RealtorSchema: Schema<RealtorInterface> = new Schema({
 RealtorSchema.index({ location: "2dsphere" });
 
 RealtorSchema.pre("save", function (next) {
-  if (this.realtorType === "individual" && this.companyInformation) {
+  if (this.type === "individual" && this.company) {
     this.invalidate(
-      "companyInformation",
+      "company",
       "Company information cannot exist for individual realtors"
     );
 
@@ -109,9 +109,9 @@ RealtorSchema.pre("save", function (next) {
   }
 });
 
-RealtorSchema.methods.switchRealtorType = async function (
-  newRealtorType: string,
-  companyInfo: {
+RealtorSchema.methods.switchType = async function (
+  newtype: string,
+  newcompany: {
     name: string;
     email: string;
     phone: string[];
@@ -120,25 +120,25 @@ RealtorSchema.methods.switchRealtorType = async function (
     regCert: string;
   }
 ) {
-  if (newRealtorType === "corporate") {
+  if (newtype === "corporate") {
     if (
-      !companyInfo ||
-      !companyInfo.name ||
-      !companyInfo.email ||
-      !companyInfo.phone ||
-      !companyInfo.address ||
-      !companyInfo.regNo ||
-      !companyInfo.regCert
+      !newcompany ||
+      !newcompany.name ||
+      !newcompany.email ||
+      !newcompany.phone ||
+      !newcompany.address ||
+      !newcompany.regNo ||
+      !newcompany.regCert
     ) {
       throw new Error(
         "All company information fields must be provided to switch to corporate type."
       );
     }
-    this.companyInformation = companyInfo;
+    this.company = newcompany;
   } else {
-    this.companyInformation = undefined;
+    this.company = undefined;
   }
-  this.realtorType = newRealtorType;
+  this.type = newtype;
   await this.save();
 };
 
