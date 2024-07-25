@@ -6,7 +6,7 @@ export default interface ListingInterface extends Document {
   slug: string;
   cost: number;
   purpose: "rent" | "sell";
-  type: "developed" | "undeveloped";
+  type: "developed" | "ongoing" | "undeveloped";
   category: "economy" | "premium" | "luxury";
   use: {
     type: string; // "single-room" | "mini-flat" | "2-bedroom-flat" | "3-bedroom-flat" | "duplex" | "semi-detached" | "studio" | "short-lets" | "office" | "shop" | "event-halls" | "bare-land";
@@ -21,7 +21,7 @@ export default interface ListingInterface extends Document {
   };
   location: {
     type: string;
-    coordinates: number;
+    coordinates: number[];
   };
   promotion: Schema.Types.ObjectId[];
   attachment: Schema.Types.ObjectId[];

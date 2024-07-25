@@ -26,7 +26,7 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
   },
   type: {
     type: String,
-    enum: ["developed", "undeveloped"],
+    enum: ["developed", "ongoing", "undeveloped"],
     required: true,
   },
   category: {
