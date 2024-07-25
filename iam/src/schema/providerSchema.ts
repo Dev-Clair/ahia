@@ -2,54 +2,54 @@ import { Schema } from "mongoose";
 import ProviderInterface from "../interface/providerInterface";
 
 const ProviderSchema: Schema<ProviderInterface> = new Schema({
-  providerType: {
+  type: {
     type: String,
     enum: ["individual", "corporate"],
     required: true,
   },
-  companyInformation: {
+  company: {
     name: {
       type: String,
       trim: true,
       required: function () {
-        return this.providerType === "corporate";
+        return this.type === "corporate";
       },
     },
     email: {
       type: String,
       trim: true,
       required: function () {
-        return this.providerType === "corporate";
+        return this.type === "corporate";
       },
     },
     phone: [
       {
         type: String,
         required: function () {
-          return this.providerType === "corporate";
+          return this.type === "corporate";
         },
       },
     ],
     address: {
       type: String,
       required: function () {
-        return this.providerType === "corporate";
+        return this.type === "corporate";
       },
     },
     regNo: {
       type: String,
       required: function () {
-        return this.providerType === "corporate";
+        return this.type === "corporate";
       },
     },
     regCert: {
       type: String,
       required: function () {
-        return this.providerType === "corporate";
+        return this.type === "corporate";
       },
     },
   },
-  listingsId: [
+  listings: [
     {
       type: String,
       trim: true,
@@ -57,31 +57,33 @@ const ProviderSchema: Schema<ProviderInterface> = new Schema({
   ],
   security: [
     {
-      identityType: {
-        type: String,
-        enum: ["driver-license", "passport", "other"],
-        required: false,
-      },
-      identityNo: {
-        type: String,
-        required: false,
-      },
-      identityDoc: {
-        type: String,
-        required: false,
+      identity: {
+        type: {
+          type: String,
+          enum: ["driver-license", "passport", "other"],
+          required: false,
+        },
+        refNo: {
+          type: String,
+          required: false,
+        },
+        document: {
+          type: String,
+          required: false,
+        },
       },
     },
   ],
 });
 
 ProviderSchema.virtual("numberOfListings").get(function () {
-  return this.listingsId.length;
+  return this.listings.length;
 });
 
 ProviderSchema.pre("save", function (next) {
-  if (this.providerType === "individual" && this.companyInformation) {
+  if (this.type === "individual" && this.company) {
     this.invalidate(
-      "companyInformation",
+      "company",
       "Company information cannot exist for individual providers"
     );
 
@@ -89,9 +91,9 @@ ProviderSchema.pre("save", function (next) {
   }
 });
 
-ProviderSchema.methods.switchProviderType = async function (
-  newProviderType: string,
-  companyInfo: {
+ProviderSchema.methods.switchType = async function (
+  newtype: string,
+  newcompany: {
     name: string;
     email: string;
     phone: string[];
@@ -100,25 +102,25 @@ ProviderSchema.methods.switchProviderType = async function (
     regCert: string;
   }
 ) {
-  if (newProviderType === "corporate") {
+  if (newtype === "corporate") {
     if (
-      !companyInfo ||
-      !companyInfo.name ||
-      !companyInfo.email ||
-      !companyInfo.phone ||
-      !companyInfo.address ||
-      !companyInfo.regNo ||
-      !companyInfo.regCert
+      !newcompany ||
+      !newcompany.name ||
+      !newcompany.email ||
+      !newcompany.phone ||
+      !newcompany.address ||
+      !newcompany.regNo ||
+      !newcompany.regCert
     ) {
       throw new Error(
         "All company information fields must be provided to switch to corporate type."
       );
     }
-    this.companyInformation = companyInfo;
+    this.company = newcompany;
   } else {
-    this.companyInformation = undefined;
+    this.company = undefined;
   }
-  this.providerType = newProviderType;
+  this.type = newtype;
   await this.save();
 };
 

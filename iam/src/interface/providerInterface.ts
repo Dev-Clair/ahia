@@ -1,8 +1,8 @@
 import IAMInterface from "./iamInterface";
 
 export default interface ProviderInterface extends IAMInterface {
-  providerType: "individual" | "corporate";
-  companyInformation: {
+  type: "individual" | "corporate";
+  company: {
     name: string;
     email: string;
     phone: string[];
@@ -10,10 +10,12 @@ export default interface ProviderInterface extends IAMInterface {
     regNo: string;
     regCert: string;
   };
-  listingsId: string[];
+  listings: string[];
   security: {
-    identityType: "driver-license" | "passport" | "other";
-    identityNo: string;
-    identityDoc: string;
-  }[];
+    identity: {
+      type: "driver-license" | "passport" | "other";
+      refNo: string;
+      document: string;
+    }[];
+  };
 }
