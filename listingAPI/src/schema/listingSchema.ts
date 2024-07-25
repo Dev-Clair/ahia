@@ -80,15 +80,17 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
       required: false,
     },
   },
-  offering: [
+  promotion: [
     {
       type: Schema.Types.ObjectId,
+      ref: "Promotion",
       required: false,
     },
   ],
   attachment: [
     {
       type: Schema.Types.ObjectId,
+      ref: "Attachment",
       required: false,
     },
   ],
