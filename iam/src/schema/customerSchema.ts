@@ -2,22 +2,18 @@ import { Schema } from "mongoose";
 import CustomerInterface from "../interface/customerInterface";
 
 const CustomerSchema: Schema<CustomerInterface> = new Schema({
-  bookedTours: [
+  tours: [
     {
-      tourId: {
-        type: String,
-        trim: true,
-        required: false,
-      },
+      type: String,
+      trim: true,
+      required: false,
     },
   ],
-  paymentRecords: [
+  payments: [
     {
-      paymentId: {
-        type: String,
-        trim: true,
-        required: false,
-      },
+      type: String,
+      trim: true,
+      required: false,
     },
   ],
 });
