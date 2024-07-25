@@ -7,22 +7,12 @@ export default interface ListingInterface extends Document {
   cost: number;
   purpose: "rent" | "sell";
   type: "developed" | "undeveloped";
+  category: "economy" | "premium" | "luxury";
   use: {
-    type:
-      | "single-room"
-      | "mini-flat"
-      | "2-bedroom-flat"
-      | "3-bedroom-flat"
-      | "duplex"
-      | "semi-detached"
-      | "short-lets"
-      | "office"
-      | "shop"
-      | "event-halls"
-      | "bare-land";
+    type: string; // "single-room" | "mini-flat" | "2-bedroom-flat" | "3-bedroom-flat" | "duplex" | "semi-detached" | "studio" | "short-lets" | "office" | "shop" | "event-halls" | "bare-land";
     category: "residential" | "commercial";
   };
-  features: string[];
+  features: string[]; // landmark features
   address: {
     street: string;
     zone: string;

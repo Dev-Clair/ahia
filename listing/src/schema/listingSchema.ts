@@ -29,22 +29,14 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
     enum: ["developed", "undeveloped"],
     required: true,
   },
+  category: {
+    type: String,
+    enum: ["economy", "premium", "luxury"],
+    required: true,
+  },
   use: {
     type: {
-      type: String,
-      enum: [
-        "single-room",
-        "mini-flat",
-        "2-bedroom-flat",
-        "3-bedroom-flat",
-        "duplex",
-        "semi-detached",
-        "short-lets",
-        "office",
-        "shop",
-        "event-halls",
-        "bare-land",
-      ],
+      type: String, // "single-room" | "mini-flat" | "2-bedroom-flat" | "3-bedroom-flat" | "duplex" | "semi-detached" | "short-lets" | "office" | "shop" | "event-halls" | "bare-land";
       required: true,
     },
     category: {
@@ -55,7 +47,7 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
   },
   features: [
     {
-      type: String,
+      type: String, // landmark features
       required: true,
     },
   ],
@@ -91,13 +83,13 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
   offering: [
     {
       type: Schema.Types.ObjectId,
-      required: true,
+      required: false,
     },
   ],
   attachment: [
     {
       type: Schema.Types.ObjectId,
-      required: true,
+      required: false,
     },
   ],
   provider: {
