@@ -1,4 +1,4 @@
-import express, { Request, Response, Router, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import express_mongo_sanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import hpp from "hpp";
