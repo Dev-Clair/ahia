@@ -100,6 +100,10 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
     type: String,
     required: true,
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
   reference: {
     id: {
       type: String,
@@ -116,10 +120,6 @@ const ListingSchema: Schema<ListingInterface> = new Schema({
         return Date.now() + 3 * 24 * 60 * 60 * 1000;
       },
     },
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
   },
 });
 
