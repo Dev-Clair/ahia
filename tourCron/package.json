@@ -4,8 +4,7 @@
   "description": "AWS Node Scheduled Cron",
   "main": "handler.js",
   "scripts": {
-    "start": "serverless deploy",
-    "dev": "serverless dev"
+    "start": "node main"
   },
   "keywords": [
     "ahia",

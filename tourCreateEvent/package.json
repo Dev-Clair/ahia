@@ -4,8 +4,7 @@
   "description": "'AWS Lambda Resource Integrated with Eventbridge'",
   "main": "handler.js",
   "scripts": {
-    "start": "serverless deploy",
-    "dev": "serverless local"
+    "start": "node main"
   },
   "keywords": [
     "ahia",
