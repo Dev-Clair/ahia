@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: ahia listing service cron.
+
+Parameters:
+  AWSRegion:
+    Type: String
+    Default: "af-south-1"
+  AWSDefaultEventBus:
+    Type: String
+  NodeEnv:
+    Type: String
+  MongoUri:
+    Type: String
+  ListingNotificationEmail:
+    Type: String
+  ListingAdminEmailI:
+    Type: String
+  ListingAdminEmailII:
+    Type: String
+  ListingAdminEmailIII:
+    Type: String
+
+Resources:
+  AhiaListingServiceCronFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "ahia-listing-service-cron"
+      Handler: "handler.cron"
+      Runtime: "nodejs20.x"
+      MemorySize: 512
+      Environment:
+        Variables:
+          NODE_ENV: !Ref NodeEnv
+          MONGO_URI: !Ref MongoUri
+          LISTING_NOTIFICATION_EMAIL: !Ref ListingNotificationEmail
+          LISTING_ADMIN_EMAIL_I: !Ref ListingAdminEmailI
+          LISTING_ADMIN_EMAIL_II: !Ref ListingAdminEmailII
+          LISTING_ADMIN_EMAIL_III: !Ref ListingAdminEmailIII
+      Role: !GetAtt AhiaListingServiceCronRole.Arn
+      Code:
+        S3Bucket: " "
+        S3Key: " "
+
+  AhiaListingServiceCronRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "ahia-listing-service-cron-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: "Allow"
+                Action: "events:PutEvents"
+                Resource: "*"
+
+  AhiaListingServiceCronRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      EventBusName: !Ref AWSDefaultEventBus
+      EventPattern:
+        source:
+          - "aws"
+      Targets:
+        - Arn: !GetAtt AhiaListingServiceCronFunction.Arn
+          Id: "AhiaListingServiceCronTarget"
+
+  AhiaListingServiceCronPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref AhiaListingServiceCronFunction
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt AhiaListingServiceCronRule.Arn
