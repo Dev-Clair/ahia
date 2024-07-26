@@ -1,6 +1,8 @@
 import AsyncCatch from "../../utils/asynCatch";
 import { NextFunction, Request, Response } from "express";
+import Config from "../../../config";
 import Features from "../../utils/feature";
+import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Idempotency from "../../model/idempotencyModel";
 import Listing from "../../model/listingModel";
@@ -8,6 +10,7 @@ import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import Retry from "../../utils/retry";
+import InternalServerError from "../../error/internalserverError";
 
 const createListing = async (
   req: Request,
@@ -36,7 +39,7 @@ const createListing = async (
     );
 
     const response = {
-      data: { message: "Created", ref: listing.reference },
+      data: { message: "Created", ref: listing.reference.id },
     };
 
     await Idempotency.create({
@@ -164,6 +167,67 @@ const deleteListing = async (
   }
 
   return res.status(HttpStatusCode.MODIFIED).json(null);
+};
+
+const validateListingReference = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const reference = req.body;
+
+  const listing = await Listing.findOne({
+    "reference.id": reference,
+    "reference.status": "pending",
+  });
+
+  if (!listing) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `no listing or transaction reference found for ${reference}`
+    );
+  }
+
+  const httpClient = new HttpClient(
+    `www.ahia.com/payments/?transactionRef=${reference}`,
+    {
+      "Content-Type": "application/json",
+      "Service-Name": Config.SERVICE_NAME,
+      "Service-Secret": Config.SERVICE_SECRET,
+    }
+  );
+
+  const response = await httpClient.Get();
+
+  const { statusCode, body } = response;
+
+  if (statusCode !== HttpStatusCode.OK) {
+    if (statusCode === HttpStatusCode.FORBIDDEN) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        false,
+        "Oops! Sorry an error occured on our end, we will resolve it and notify you to retry shortly."
+      );
+    }
+
+    if (statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        true,
+        "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly."
+      );
+    }
+
+    if (!body) {
+      throw new InternalServerError(
+        HttpStatusCode.INTERNAL_SERVER_ERROR,
+        false,
+        `Oops! Sorry, we could not find any listing with transaction reference ${reference}. Please contact us via our official communications channel`
+      );
+    }
+  }
+
+  return res.status(HttpStatusCode.OK).json({ data: body });
 };
 
 /**
