@@ -24,7 +24,7 @@ exports.cron = async (event, context) => {
     if (err instanceof ConnectionError) {
       const text = { message: err.message, description: err.description };
 
-      await Notify(
+      await Mail(
         sender,
         recipient,
         err.name.toUpperCase(),
