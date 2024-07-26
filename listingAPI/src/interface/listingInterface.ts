@@ -25,7 +25,10 @@ export default interface ListingInterface extends Document {
   };
   promotion: Schema.Types.ObjectId[];
   attachment: Schema.Types.ObjectId[];
-  provider: string;
+  provider: {
+    id: string;
+    email: string;
+  };
   reference: {
     id: string;
     status: string;

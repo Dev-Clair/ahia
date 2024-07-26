@@ -98,8 +98,14 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
       },
     ],
     provider: {
-      type: String,
-      required: true,
+      id: {
+        type: String,
+        required: true,
+      },
+      email: {
+        type: String,
+        required: true,
+      },
     },
     reference: {
       id: {
