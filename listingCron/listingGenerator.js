@@ -27,7 +27,7 @@ const ListingGenerator = async function* () {
     const now = new Date().getTime();
 
     for (const listing of listings) {
-      const { name, provider, reference } = listing;
+      const { _id, name, provider, reference } = listing;
 
       const expiry = reference.expiry;
 
@@ -35,6 +35,7 @@ const ListingGenerator = async function* () {
 
       if (diff > 0) {
         yield {
+          id: _id,
           name,
           provider,
           reference,
