@@ -13,6 +13,8 @@ const Config = {
   HTTPS_PORT: process.env.HTTPS_PORT || 5000,
   MONGO_URI: process.env.MONGO_URI || "",
   NODE_ENV: process.env.NODE_ENV || "test",
+  SERVICE_NAME: process.env.SERVICE_NAME,
+  SERVICE_SECRET: process.env.SERVICE_SECRET,
   SSL_KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
   SSL_CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",
   LISTING_ADMIN_EMAIL_I: process.env.LISTING_ADMIN_EMAIL_I || "",
