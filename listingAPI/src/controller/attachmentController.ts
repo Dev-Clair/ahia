@@ -1,5 +1,5 @@
-import { S3Client } from "@aws-sdk/client-s3";
+class AttachmentController {
+  constructor() {}
+}
 
-class AttachmentService {}
-
-export default AttachmentService;
+export default AttachmentController;
