@@ -28,7 +28,7 @@ const ListingCron = async () => {
     )}.\nKindly recreate listing and make payment on the new listing reference to secure your listing.`;
 
     try {
-      await Listing.findOneAndDelete({ _id: id });
+      await Listing.findByIdAndDelete({ _id: id });
 
       await Mail(sender, [provider.email], `LISTING ${name} REMOVAL`, text);
 

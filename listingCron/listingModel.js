@@ -116,7 +116,7 @@ const ListingSchema = new Schema({
     expiry: {
       type: Date,
       default: function () {
-        return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+        return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
       },
     },
   },
