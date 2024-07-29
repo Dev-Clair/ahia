@@ -7,6 +7,10 @@ const AttachmentSchema: Schema<AttachmentInterface> = new Schema({
     ref: "Listing",
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+  },
   type: {
     type: String,
     trim: true,
