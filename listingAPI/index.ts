@@ -9,20 +9,20 @@ import MailerError from "./src/error/mailerError";
 import HttpServer from "./httpServer";
 import SSL from "./ssl/ssl";
 
-const sender: string = Config.LISTING_ADMIN_EMAIL_I;
+const sender: string = Config.LISTING.ADMIN_EMAIL_I;
 
-const recipient: [string] = [Config.LISTING_ADMIN_EMAIL_II];
+const recipient: [string] = [Config.LISTING.ADMIN_EMAIL_II];
 
 const server = new HttpServer(
   App,
-  SSL(Config.SSL_KEY_FILE_PATH, Config.SSL_CERT_FILE_PATH)
+  SSL(Config.SSL.KEY_FILE_PATH, Config.SSL.CERT_FILE_PATH)
 );
 
 try {
   if (Config.NODE_ENV === "test") {
-    server.startHTTP(Config.HTTP_PORT);
+    server.startHTTP(Config.PORT.HTTP);
   } else {
-    server.startHTTPS(Config.HTTPS_PORT);
+    server.startHTTPS(Config.PORT.HTTPS);
   }
 
   Connection(Config.MONGO_URI);

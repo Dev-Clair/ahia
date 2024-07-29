@@ -23,9 +23,7 @@ const ListingCron = async () => {
       reference.id
     } for listing ${name} have expired and the listing ${name} have been deleted due to failure to make payment before the deadline ${new Date(
       reference.expiry
-    ).format(
-      "YYYY-MM-DD"
-    )}.\nKindly recreate listing and make payment on the new listing reference to secure your listing.`;
+    ).toDateString()}.\nKindly recreate listing and make payment on the new listing reference to secure your listing.`;
 
     try {
       await Listing.findByIdAndDelete({ _id: id });
