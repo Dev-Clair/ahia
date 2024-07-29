@@ -8,8 +8,15 @@ import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import Retry from "../../utils/retry";
-import { optional } from "zod";
+import Config from "../../../config";
 
+/**
+ * Creates a new listing resource in collection
+ * @param req *
+ * @param res
+ * @param next
+ * @returns
+ */
 const createListing = async (
   req: Request,
   res: Response,
@@ -54,6 +61,13 @@ const createListing = async (
   }
 };
 
+/**
+ * Retrieves listing collections
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const getListings = async (
   req: Request,
   res: Response,
@@ -75,6 +89,13 @@ const getListings = async (
   });
 };
 
+/**
+ * Retrieves a listing item using its :id
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const getListing = async (
   req: Request,
   res: Response,
@@ -92,6 +113,13 @@ const getListing = async (
   return res.status(HttpStatusCode.OK).json({ data: listing });
 };
 
+/**
+ * Modifies a listing item using its :id
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const updateListing = async (
   req: Request,
   res: Response,
@@ -134,6 +162,13 @@ const updateListing = async (
   return res.status(HttpStatusCode.MODIFIED).json(response);
 };
 
+/**
+ * Deletes a listing item using its :id
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const deleteListing = async (
   req: Request,
   res: Response,
@@ -151,6 +186,28 @@ const deleteListing = async (
   return res.status(HttpStatusCode.MODIFIED).json(null);
 };
 
+/**
+ * Redirects to AHIA Payment Service with headers:{"Service-Name": Config.Service.Name, "Service-Secret": Config.Service.Secret}
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
+const listingPayment = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  // res.setHeader("Service-Name", Config.SERVICE.NAME).redirect(301, "url");
+};
+
+/**
+ * Validates a listing payment status
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 const validateListingReference = async (
   req: Request,
   res: Response,
