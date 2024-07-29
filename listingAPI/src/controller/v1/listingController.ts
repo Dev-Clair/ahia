@@ -58,7 +58,11 @@ const getListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { data, pagination } = await Features(Listing, {}, req);
+  const { data, pagination } = await Features(
+    Listing,
+    { reference: { status: "paid" } },
+    req
+  );
 
   return res.status(HttpStatusCode.OK).json({
     data: data,
@@ -187,13 +191,13 @@ const validateListingReference = async (
   if (listing.reference.status !== "paid") {
     return res.status(HttpStatusCode.FORBIDDEN).json({
       data: {
-        message: `${listing.name} has not been been approved for listing. Kindly pay the commision fee to validate the listing`,
+        message: `${listing.name} has not been been approved for listing. Kindly pay the listing fee to validate this listing`,
       },
     });
   }
 
   return res.status(HttpStatusCode.OK).json({
-    message: `${listing.name} has not been been approved for listing. Kindly pay the commision fee to validate the listing`,
+    message: `${listing.name} have been been approved for listing. Kindly poceed to add attachments and create promotions for your listing`,
   });
 
   // const httpClient = new HttpClient(
