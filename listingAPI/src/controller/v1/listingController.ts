@@ -1,5 +1,6 @@
 import AsyncCatch from "../../utils/asynCatch";
 import { NextFunction, Request, Response } from "express";
+import Config from "../../../config";
 import Features from "../../utils/feature";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Idempotency from "../../model/idempotencyModel";
@@ -8,14 +9,13 @@ import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import Retry from "../../utils/retry";
-import Config from "../../../config";
 
 /**
  * Creates a new listing resource in collection
  * @param req *
  * @param res
  * @param next
- * @returns
+ * @returns Promise<Response | void>
  */
 const createListing = async (
   req: Request,
@@ -27,7 +27,7 @@ const createListing = async (
 
     const key = (req.headers["idempotency-key"] as string) || "";
 
-    const provider = (req.headers["authenticated-provider"] as string) || "";
+    const provider = `Provider-` + Math.random(); // Replace with provider id either from auth payload or api call to iam service
 
     const verifyOperationIdempotency = await Idempotency.findOne({
       key: key,
@@ -66,7 +66,7 @@ const createListing = async (
  * @param req
  * @param res
  * @param next
- * @returns
+ * @returns Promise<Response | void>
  */
 const getListings = async (
   req: Request,
@@ -94,7 +94,7 @@ const getListings = async (
  * @param req
  * @param res
  * @param next
- * @returns
+ * @returns Promise<Response | void>
  */
 const getListing = async (
   req: Request,
@@ -118,7 +118,7 @@ const getListing = async (
  * @param req
  * @param res
  * @param next
- * @returns
+ * @returns Promise<Response | void>
  */
 const updateListing = async (
   req: Request,
@@ -167,7 +167,7 @@ const updateListing = async (
  * @param req
  * @param res
  * @param next
- * @returns
+ * @returns Promise<Response | void>
  */
 const deleteListing = async (
   req: Request,
@@ -187,18 +187,25 @@ const deleteListing = async (
 };
 
 /**
- * Redirects to AHIA Payment Service with headers:{"Service-Name": Config.Service.Name, "Service-Secret": Config.Service.Secret}
+ * listing checkout functionality
  * @param req
  * @param res
  * @param next
- * @returns
+ * @returns Promise<Response | void>
  */
-const listingPayment = (
+const checkoutListing = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  // res.setHeader("Service-Name", Config.SERVICE.NAME).redirect(301, "url");
+  // redirects with the following headers:
+  const headers = {
+    "Service-Name": Config.SERVICE.NAME,
+    "Service-Secret": Config.SERVICE.SECRET,
+    "Response-Url": `www.ahia.com/listings/validate`,
+  };
+
+  res.redirect(301, "payment_service_url");
 };
 
 /**
@@ -206,14 +213,14 @@ const listingPayment = (
  * @param req
  * @param res
  * @param next
- * @returns
+ * @returns Promise<Response | void>
  */
-const validateListingReference = async (
+const validateListingPayment = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const reference = req.body;
+  const reference = req.query;
 
   const listing = await Listing.findOne({
     "reference.id": reference,
@@ -240,7 +247,11 @@ const validateListingReference = async (
 };
 
 /**
- * Handle not allowed operations
+ * Handles not allowed operations
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response
  */
 const operationNotAllowed = (
   req: Request,
@@ -286,10 +297,15 @@ const updateListingItem = AsyncCatch(
 const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
 
 /**
- * Retrieve a listing item validation status using its transaction reference :id.
+ * Hnadles interface with payment service for listing transactions
  */
-const validateListingItemTransactionReference = AsyncCatch(
-  validateListingReference,
+const checkoutListingItem = AsyncCatch(checkoutListing);
+
+/**
+ * Retrieve a listing item payment status using its reference :id.
+ */
+const validateListingItemPayment = AsyncCatch(
+  validateListingPayment,
   Retry.LinearJitterBackoff
 );
 
@@ -299,6 +315,7 @@ export default {
   retrieveListingItem,
   updateListingItem,
   deleteListingItem,
-  validateListingItemTransactionReference,
+  checkoutListingItem,
+  validateListingItemPayment,
   operationNotAllowed,
 };
