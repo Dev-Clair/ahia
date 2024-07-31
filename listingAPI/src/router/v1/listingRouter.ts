@@ -9,6 +9,12 @@ ListingRouterV1.route("/").get().post();
 
 ListingRouterV1.route("/search").get();
 
+ListingRouterV1.route("/checkout").get(ListingController.checkoutListingItem);
+
+ListingRouterV1.route("/payment").get(
+  ListingController.validateListingItemPayment
+);
+
 ListingRouterV1.route("/:id")
   .get()
   .put(ListingController.operationNotAllowed)
