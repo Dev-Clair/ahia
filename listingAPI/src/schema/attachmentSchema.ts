@@ -14,10 +14,10 @@ const AttachmentSchema: Schema<AttachmentInterface> = new Schema({
   type: {
     type: String,
     trim: true,
-    enum: ["audio", "video", "picture", "document"],
+    enum: ["audio", "video", "picture", "document", "other"],
     required: true,
   },
-  url: {
+  key: {
     type: String,
     required: true,
   },
