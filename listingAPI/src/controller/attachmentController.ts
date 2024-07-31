@@ -16,20 +16,24 @@ class AttachmentController {
     this.storageService = StorageService;
   }
 
-  public async createAttachment(): Promise<void> {
-    this.storageService.upload();
+  public async createAttachment(
+    key: string,
+    type: string,
+    body: any
+  ): Promise<void> {
+    this.storageService.upload(key, type, body);
   }
 
-  public async retrieveAttachments(): Promise<void> {
-    this.storageService.download();
+  public async retrieveAttachments(prefix: string): Promise<void> {
+    this.storageService.retrieveCollection(prefix);
   }
 
-  public async retrieveAttachment(): Promise<void> {
-    this.storageService.download();
+  public async retrieveAttachment(key: string): Promise<void> {
+    this.storageService.download(key);
   }
 
-  public async deleteAttachment(): Promise<void> {
-    this.storageService.remove();
+  public async deleteAttachment(key: string): Promise<void> {
+    this.storageService.remove(key);
   }
 }
 
