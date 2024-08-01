@@ -83,20 +83,20 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
         required: false,
       },
     },
-    promotion: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Promotion",
-        required: false,
-      },
-    ],
-    attachment: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Attachment",
-        required: false,
-      },
-    ],
+    // promotion: [
+    //   {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Promotion",
+    //     required: false,
+    //   },
+    // ],
+    // attachment: [
+    //   {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Attachment",
+    //     required: false,
+    //   },
+    // ],
     provider: {
       id: {
         type: String,
