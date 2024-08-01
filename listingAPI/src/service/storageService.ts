@@ -31,14 +31,16 @@ class StorageService {
   }
 
   public async upload(
-    key: string,
+    id: string,
     type: string,
     body: any
-  ): Promise<boolean | void> {
+  ): Promise<string | void> {
     try {
+      const key = `${id}/${type}/${nanoid()}`;
+
       const input = {
         Bucket: this.bucket,
-        Key: `${type}/${key}/${nanoid()}`,
+        Key: key,
         Body: body,
         ContentEncoding: "UTF-8",
         ContentMD5: "",
@@ -49,9 +51,7 @@ class StorageService {
       const response = await this.s3.send(command);
 
       if ("VersionId" in Object.keys(response)) {
-        return true;
-      } else {
-        return false;
+        return key;
       }
     } catch (err: any) {
       throw err;
@@ -94,7 +94,7 @@ class StorageService {
     }
   }
 
-  public async getObjectFileSize(key: string): Promise<number | undefined> {
+  public async getObjectSize(key: string): Promise<number | undefined> {
     try {
       const input = {
         Bucket: this.bucket,

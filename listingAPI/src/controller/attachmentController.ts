@@ -17,11 +17,11 @@ class AttachmentController {
   }
 
   public async createAttachment(
-    key: string,
+    id: string,
     type: string,
     body: any
   ): Promise<void> {
-    this.storageService.upload(key, type, body);
+    this.storageService.upload(id, type, body);
   }
 
   public async retrieveAttachments(prefix: string): Promise<void> {
