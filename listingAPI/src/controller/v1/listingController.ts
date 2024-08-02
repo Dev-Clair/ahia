@@ -272,52 +272,6 @@ const validateListingPayment = async (
   });
 };
 
-/**
- * Create a new listing in collection.
- */
-const createListingCollection = AsyncCatch(
-  createListing,
-  Retry.ExponentialJitterBackoff
-);
-
-/**
- * Retrieve collection of listings.
- */
-const retrieveListingCollection = AsyncCatch(
-  getListings,
-  Retry.LinearJitterBackoff
-);
-
-/**
- * Retrieve a listing item using its :id.
- */
-const retrieveListingItem = AsyncCatch(getListing, Retry.LinearJitterBackoff);
-
-/**
- * Updates a listing item using its :id.
- */
-const updateListingItem = AsyncCatch(
-  updateListing,
-  Retry.ExponentialJitterBackoff
-);
-
-/**listing item using its :id.
- */
-const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
-
-/**
- * Handles interface with payment service for listing transactions
- */
-const checkoutListingItem = AsyncCatch(checkoutListing);
-
-/**
- * Retrieve a listing item payment status using its reference :id.
- */
-const validateListingItemPayment = AsyncCatch(
-  validateListingPayment,
-  Retry.LinearJitterBackoff
-);
-
 /***********************Attachment**************************************** */
 
 /**
@@ -407,6 +361,52 @@ const deleteAttachment = async (
 
 /***********************Promotion**************************************** */
 
+/**
+ * Create a new listing in collection.
+ */
+const createListingCollection = AsyncCatch(
+  createListing,
+  Retry.ExponentialJitterBackoff
+);
+
+/**
+ * Retrieve collection of listings.
+ */
+const retrieveListingCollection = AsyncCatch(
+  getListings,
+  Retry.LinearJitterBackoff
+);
+
+/**
+ * Retrieve a listing item using its :id.
+ */
+const retrieveListingItem = AsyncCatch(getListing, Retry.LinearJitterBackoff);
+
+/**
+ * Updates a listing item using its :id.
+ */
+const updateListingItem = AsyncCatch(
+  updateListing,
+  Retry.ExponentialJitterBackoff
+);
+
+/**listing item using its :id.
+ */
+const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
+
+/**
+ * Handles interface with payment service for listing transactions
+ */
+const checkoutListingItem = AsyncCatch(checkoutListing);
+
+/**
+ * Retrieve a listing item payment status using its reference :id.
+ */
+const validateListingItemPayment = AsyncCatch(
+  validateListingPayment,
+  Retry.LinearJitterBackoff
+);
+
 export default {
   listing: {
     createListingCollection,
@@ -417,5 +417,7 @@ export default {
     checkoutListingItem,
     validateListingItemPayment,
   },
+  attachment: {},
+  promotion: {},
   isNotAllowed,
 };
