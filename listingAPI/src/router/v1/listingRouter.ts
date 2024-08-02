@@ -9,15 +9,17 @@ ListingRouterV1.route("/").get().post();
 
 ListingRouterV1.route("/search").get();
 
-ListingRouterV1.route("/checkout").get(ListingController.checkoutListingItem);
+ListingRouterV1.route("/checkout").get(
+  ListingController.listing.checkoutListingItem
+);
 
 ListingRouterV1.route("/payment").get(
-  ListingController.validateListingItemPayment
+  ListingController.listing.validateListingItemPayment
 );
 
 ListingRouterV1.route("/:id")
   .get()
-  .put(ListingController.operationNotAllowed)
+  .put(ListingController.isNotAllowed)
   .patch()
   .delete();
 
@@ -25,14 +27,14 @@ ListingRouterV1.route("/:id/attachments").post();
 
 ListingRouterV1.route("/:id/attachments/:attachmentId")
   .get()
-  .put(ListingController.operationNotAllowed)
+  .put(ListingController.isNotAllowed)
   .delete();
 
 ListingRouterV1.route("/:id/promotions").post();
 
 ListingRouterV1.route("/:id/promotions/:promotionId")
   .get()
-  .put(ListingController.operationNotAllowed)
+  .put(ListingController.isNotAllowed)
   .delete();
 
 export default ListingRouterV1;
