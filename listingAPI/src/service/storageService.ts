@@ -1,3 +1,5 @@
+import { createReadStream, createWriteStream } from "node:fs";
+import { Transform, Readable, Writable } from "node:stream";
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -33,17 +35,17 @@ class StorageService {
   public async upload(
     id: string,
     type: string,
+    category: string,
     body: any
   ): Promise<string | void> {
     try {
-      const key = `${id}/${type}/${nanoid()}`;
+      const key = `${category}/${id}/${type}/${nanoid()}`;
 
       const input = {
         Bucket: this.bucket,
         Key: key,
         Body: body,
         ContentEncoding: "UTF-8",
-        ContentMD5: "",
       };
 
       const command = new PutObjectCommand(input);
@@ -131,4 +133,6 @@ class StorageService {
   }
 }
 
-export default StorageService;
+const storageService = new StorageService();
+
+export default storageService;
