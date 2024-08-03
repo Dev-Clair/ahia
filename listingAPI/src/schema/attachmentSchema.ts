@@ -34,7 +34,7 @@ const AttachmentSchema: Schema<AttachmentInterface> = new Schema(
 
 AttachmentSchema.pre("save", function (next) {
   if (!this.isModified(this.name)) {
-    this.name = `Promotion_${nanoid()}`;
+    this.name = `attachment_${nanoid()}`;
   }
 
   next();
