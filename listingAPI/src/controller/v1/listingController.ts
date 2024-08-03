@@ -9,22 +9,22 @@ import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import Retry from "../../utils/retry";
-import attachmentController from "../attachmentController";
 
+/***********************Helper Methods**************************************** */
 /**
- * Verifies operation idempotency
+ * Ensures operation idempotency
  * @param req
  * @param res
  * @returns Promise<Response | string>
  */
-const isIdempotent = async (
+const ensureIdempotency = async (
   req: Request,
   res: Response
 ): Promise<Response | string> => {
-  const key = (req.headers["idempotency-key"] as string) || "";
+  const idempotencyKey = (req.headers["idempotency-key"] as string) || "";
 
   const verifyOperationIdempotency = await Idempotency.findOne({
-    key: key,
+    key: idempotencyKey,
   });
 
   if (verifyOperationIdempotency) {
@@ -33,32 +33,13 @@ const isIdempotent = async (
       .json({ data: verifyOperationIdempotency.response });
   }
 
-  return key;
+  return idempotencyKey;
 };
 
-/**
- * Handles not allowed operations
- * @param req
- * @param res
- * @param next
- * @returns Response
- */
-const isNotAllowed = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Response => {
-  return res.status(HttpStatusCode.METHOD_NOT_ALLOWED).json({
-    data: {
-      message: "operation not allowed",
-    },
-  });
-};
-
-/***********************Listing**************************************** */
+/***********************Listing Business Logic**************************************** */
 /**
  * Creates a new listing resource in collection
- * @param req *
+ * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
@@ -69,22 +50,25 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = await isIdempotent(req, res);
+    const idempotencyKey = await ensureIdempotency(req, res);
 
     const payload = req.body;
 
-    const provider = `Provider-` + Math.random(); // Replace with provider id either from auth payload or api call to iam service
+    const provider = {
+      id: `Provider-` + Math.random(),
+      email: `provider.` + Math.random() + `@yahoo.com`,
+    }; // Replace with provider id either from auth payload or api call to iam service
 
     const listing = await Listing.create(
       Object.assign(payload, { provider: provider })
     );
 
     const response = {
-      data: { message: "Created", ref: listing.reference.id },
+      data: { message: "Created", reference: listing.status.id },
     };
 
     await Idempotency.create({
-      key: key,
+      key: idempotencyKey,
       response: response,
     });
 
@@ -111,7 +95,7 @@ const getListings = async (
 ): Promise<Response | void> => {
   const { data, pagination } = await Features(
     Listing,
-    { reference: { status: "paid" } },
+    { status: { approved: true } },
     req
   );
 
@@ -161,7 +145,7 @@ const updateListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const key = await isIdempotent(req, res);
+  const idempotencyKey = await ensureIdempotency(req, res);
 
   const listing = await Listing.findByIdAndUpdate(
     { _id: req.params.id },
@@ -181,7 +165,7 @@ const updateListing = async (
   const response = { data: "Modified" };
 
   await Idempotency.create({
-    key: key,
+    key: idempotencyKey,
     response: response,
   });
 
@@ -213,25 +197,47 @@ const deleteListing = async (
 };
 
 /**
- * listing checkout functionality
+ * Processes listing checkout to payment
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const checkoutListing = (
+const checkoutListing = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
-  // redirects with the following headers:
-  const headers = {
-    "Service-Name": Config.SERVICE.NAME,
-    "Service-Secret": Config.SERVICE.SECRET,
-    "Response-Url": `www.ahia.com/listings/validate`,
-  };
+): Promise<void> => {
+  const listing = await Listing.findById({
+    _id: req.params.id,
+  });
 
-  res.redirect(301, "payment_service_url");
+  if (!listing) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No listing found for id: ${req.params.id}`
+    );
+  }
+
+  if (listing.status.approved === false) {
+    res.setHeader("Service-Name", Config.SERVICE.NAME);
+
+    res.setHeader("Service-Secret", Config.SERVICE.SECRET);
+
+    res.setHeader(
+      "Payload",
+      JSON.stringify({
+        id: listing._id,
+        name: listing.name,
+        transactionReference: listing.status.id,
+        "Success-Url": `127.0.0.1:5999/api/v1/listings/${listing._id}`, // dev/test uri or elastic beanstalk public endpoint
+      })
+    );
+
+    return res.redirect(301, `127.0.0.1:6999/payments`);
+  }
+
+  return;
 };
 
 /**
@@ -241,58 +247,14 @@ const checkoutListing = (
  * @param next
  * @returns Promise<Response | void>
  */
-const validateListingPayment = async (
+const validateListingStatus = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const reference = req.query;
-
-  const listing = await Listing.findOne({
-    "reference.id": reference,
+  const listing = await Listing.findById({
+    _id: req.params.id,
   });
-
-  if (!listing) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `no listing or transaction reference found for ${reference}`
-    );
-  }
-
-  if (listing.reference.status !== "paid") {
-    return res.status(HttpStatusCode.FORBIDDEN).json({
-      data: {
-        message: `${listing.name} has not been been approved for listing. Kindly pay the listing fee to validate this listing`,
-      },
-    });
-  }
-
-  return res.status(HttpStatusCode.OK).json({
-    message: `${listing.name} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
-  });
-};
-
-/***********************Attachment**************************************** */
-
-/**
- * Creates a new attachment resource in collection
- * @param req
- * @param res
- * @param next
- * @returns Promise<Response | void>
- */
-const createAttachment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  const key = await isIdempotent(req, res);
-
-  const id = req.params.id;
-
-  const { type, category, body } = req.body;
-
-  const listing = await Listing.findById({ _id: id });
 
   if (!listing) {
     throw new NotFoundError(
@@ -301,65 +263,18 @@ const createAttachment = async (
     );
   }
 
-  const attachment = await attachmentController.createAttachmentCollection(
-    id,
-    type,
-    category,
-    body
-  );
+  if (listing.status.approved !== true) {
+    return res.status(HttpStatusCode.FORBIDDEN).json({
+      data: {
+        message: `${listing.name} has not been been approved for listing. Kindly pay the listing fee to approve this listing`,
+      },
+    });
+  }
 
-  const response = {
-    data: { message: "file successfully uploaded" },
-  };
-
-  await Idempotency.create({
-    key: key,
-    response: response,
+  return res.status(HttpStatusCode.OK).json({
+    message: `${listing.name} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
   });
-
-  return res.status(HttpStatusCode.CREATED).json(response);
 };
-
-/**
- * Retrieves collection of attachment resources
- * @param req
- * @param res
- * @param next
- * @returns Promise<Response | void>
- */
-const getAttachments = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {};
-
-/**
- * Retrieves an attachment resource from collection
- * @param req
- * @param res
- * @param next
- * @returns Promise<Response | void>
- */
-const getAttachment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {};
-
-/**
- * Removes an attachment resource from collection
- * @param req
- * @param res
- * @param next
- * @returns Promise<Response | void>
- */
-const deleteAttachment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {};
-
-/***********************Promotion**************************************** */
 
 /**
  * Create a new listing in collection.
@@ -402,22 +317,17 @@ const checkoutListingItem = AsyncCatch(checkoutListing);
 /**
  * Retrieve a listing item payment status using its reference :id.
  */
-const validateListingItemPayment = AsyncCatch(
-  validateListingPayment,
+const validateListingItemStatus = AsyncCatch(
+  validateListingStatus,
   Retry.LinearJitterBackoff
 );
 
 export default {
-  listing: {
-    createListingCollection,
-    retrieveListingCollection,
-    retrieveListingItem,
-    updateListingItem,
-    deleteListingItem,
-    checkoutListingItem,
-    validateListingItemPayment,
-  },
-  attachment: {},
-  promotion: {},
-  isNotAllowed,
+  createListingCollection,
+  retrieveListingCollection,
+  retrieveListingItem,
+  updateListingItem,
+  deleteListingItem,
+  checkoutListingItem,
+  validateListingItemStatus,
 };

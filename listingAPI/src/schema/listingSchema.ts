@@ -76,11 +76,11 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
       type: {
         type: String,
         enum: ["Point"],
-        required: false,
+        required: true,
       },
       coordinates: {
         type: Number,
-        required: false,
+        required: true,
       },
     },
     // promotion: [
@@ -107,15 +107,15 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
         required: true,
       },
     },
-    reference: {
+    status: {
       id: {
         type: String,
         required: true,
       },
-      status: {
-        type: String,
-        enum: ["pending", "paid", "failed"],
-        default: "pending",
+      approved: {
+        type: Boolean,
+        enum: [true, false],
+        default: false,
       },
       expiry: {
         type: Date,
@@ -144,8 +144,8 @@ ListingSchema.pre("save", function (next) {
 });
 
 ListingSchema.pre("save", function (next) {
-  if (!this.isModified(this.reference.id)) {
-    this.reference.id = nanoid();
+  if (!this.isModified(this.status.id)) {
+    this.status.id = nanoid();
   }
 
   next();

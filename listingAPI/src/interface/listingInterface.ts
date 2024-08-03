@@ -29,9 +29,9 @@ export default interface ListingInterface extends Document {
     id: string;
     email: string;
   };
-  reference: {
+  status: {
     id: string;
-    status: string;
+    approved: boolean;
     expiry: Date;
   };
 }
