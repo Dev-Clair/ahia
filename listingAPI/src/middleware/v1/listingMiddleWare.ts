@@ -2,13 +2,17 @@ import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
 
 /**
- * Check request protocol
+ * Verifies request security
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response | void
  */
-const checkRequestProtocol = (
+const isSecure = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response | void => {
   const getProtocol = req.protocol;
 
   const getSecurity = req.secure;
@@ -23,13 +27,17 @@ const checkRequestProtocol = (
 };
 
 /**
- * Check idempotency key in request headers
+ * Verifies request header contains idempotency key
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response | void
  */
-const checkIdempotencyKey = (
+const isIdempotent = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response | void => {
   const getIdempotencyKey = req.headers["idempotency-key"] as string;
 
   if (!getIdempotencyKey) {
@@ -42,16 +50,22 @@ const checkIdempotencyKey = (
 };
 
 /**
- * Check for request content type
+ * Verifies request header contains allowed content type
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response | void
  */
-const checkRequestContentType = (
+const isAllowedContentType = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response | void => {
+  const allowedContentTypes = ["application/json", "text/html", "text/plain"];
+
   const getContentType = req.headers["Content-Type"] as string;
 
-  if (getContentType !== "application/json") {
+  if (!allowedContentTypes.includes(getContentType)) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
       message: "Invalid content type",
       expected: "application/json",
@@ -62,8 +76,28 @@ const checkRequestContentType = (
   next();
 };
 
+/**
+ * Handles not allowed operations
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response
+ */
+const isNotAllowed = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Response => {
+  return res.status(HttpStatusCode.METHOD_NOT_ALLOWED).json({
+    data: {
+      message: "operation not allowed",
+    },
+  });
+};
+
 export default {
-  checkRequestProtocol,
-  checkIdempotencyKey,
-  checkRequestContentType,
+  isSecure,
+  isIdempotent,
+  isAllowedContentType,
+  isNotAllowed,
 };

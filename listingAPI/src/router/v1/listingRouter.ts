@@ -9,32 +9,32 @@ ListingRouterV1.route("/").get().post();
 
 ListingRouterV1.route("/search").get();
 
-ListingRouterV1.route("/checkout").get(
-  ListingController.listing.checkoutListingItem
-);
-
-ListingRouterV1.route("/payment").get(
-  ListingController.listing.validateListingItemPayment
-);
-
 ListingRouterV1.route("/:id")
   .get()
-  .put(ListingController.isNotAllowed)
+  .put(ListingMiddleWare.isNotAllowed)
   .patch()
   .delete();
+
+ListingRouterV1.route("/:id/checkout").get(
+  ListingController.checkoutListingItem
+);
+
+ListingRouterV1.route("/:id/status").get(
+  ListingController.validateListingItemStatus
+);
 
 ListingRouterV1.route("/:id/attachments").post();
 
 ListingRouterV1.route("/:id/attachments/:attachmentId")
   .get()
-  .put(ListingController.isNotAllowed)
+  .put(ListingMiddleWare.isNotAllowed)
   .delete();
 
 ListingRouterV1.route("/:id/promotions").post();
 
 ListingRouterV1.route("/:id/promotions/:promotionId")
   .get()
-  .put(ListingController.isNotAllowed)
+  .put(ListingMiddleWare.isNotAllowed)
   .delete();
 
 export default ListingRouterV1;
