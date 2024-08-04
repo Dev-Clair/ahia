@@ -1,4 +1,5 @@
 import { Router } from "express";
+import AttachmentController from "../../controller/attachmentController";
 import ListingController from "../../controller/v1/listingController";
 import ListingMiddleWare from "../../middleware/v1/listingMiddleWare";
 import ValidationMiddleware from "../../middleware/validationMiddleware";
@@ -6,8 +7,8 @@ import ValidationMiddleware from "../../middleware/validationMiddleware";
 const ListingRouterV1 = Router();
 
 ListingRouterV1.route("/")
-  .get(ListingController.retrieveListingCollection)
-  .post(ListingController.createListingCollection);
+  .get(ListingController.retrieveListings)
+  .post(ListingController.createListings);
 
 ListingRouterV1.route("/search").get();
 
@@ -33,14 +34,18 @@ ListingRouterV1.route("/:id/status").get(
   ListingController.validateListingItemStatus
 );
 
-ListingRouterV1.route("/:id/attachments").post();
+ListingRouterV1.route("/:id/attachments")
+  .get(ListingMiddleWare.isNotAllowed)
+  .post(AttachmentController.createAttachments);
 
 ListingRouterV1.route("/:id/attachments/:attachmentId")
-  .get()
+  .get(AttachmentController.retrieveAttachmentItem)
   .put(ListingMiddleWare.isNotAllowed)
-  .delete();
+  .delete(AttachmentController.deleteAttachmentItem);
 
-ListingRouterV1.route("/:id/promotions").post();
+ListingRouterV1.route("/:id/promotions")
+  .get(ListingMiddleWare.isNotAllowed)
+  .post();
 
 ListingRouterV1.route("/:id/promotions/:promotionId")
   .get()

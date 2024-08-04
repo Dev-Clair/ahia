@@ -372,7 +372,7 @@ const validateListingStatus = async (
 /**
  * Create a new listing in collection
  */
-const createListingCollection = AsyncCatch(
+const createListings = AsyncCatch(
   createListing,
   Retry.ExponentialJitterBackoff
 );
@@ -380,10 +380,7 @@ const createListingCollection = AsyncCatch(
 /**
  * Retrieve collection of listings
  */
-const retrieveListingCollection = AsyncCatch(
-  getListings,
-  Retry.LinearJitterBackoff
-);
+const retrieveListings = AsyncCatch(getListings, Retry.LinearJitterBackoff);
 
 /**
  * Retrieve top five (5) listing offerings based on location
@@ -440,8 +437,8 @@ const validateListingItemStatus = AsyncCatch(
 );
 
 export default {
-  createListingCollection,
-  retrieveListingCollection,
+  createListings,
+  retrieveListings,
   retrieveListingItem,
   updateListingItem,
   deleteListingItem,
