@@ -1,5 +1,5 @@
 {
-  "name": "tourapi",
+  "name": "listingapi",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -9,26 +9,28 @@
   },
   "keywords": [
     "ahia",
-    "tour",
+    "listing",
     "service",
     "api"
   ],
   "author": "Aniogbu  Samuel",
   "license": "ISC",
-  "description": "tour api service for ahia marketplace",
+  "description": "listing api service for ahia marketplace",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.600.0",
-    "@aws-sdk/client-ses": "^3.600.0",
+    "@aws-sdk/client-s3": "^3.617.0",
+    "@aws-sdk/client-ses": "^3.616.0",
+    "@types/mongoose": "^5.11.97",
     "async-retry": "^1.3.3",
     "express": "^4.18.2",
     "express-mongo-sanitize": "^2.2.0",
-    "geolib": "^3.3.4",
     "helmet": "^7.1.0",
     "hpp": "^0.2.3",
     "mongoose": "^8.4.0",
+    "nanoid": "^5.0.7",
     "passport": "^0.7.0",
+    "slugify": "^1.6.6",
     "web-push": "^3.6.7",
-    "winston": "^3.13.0",
+    "winston": "^3.13.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -36,9 +38,9 @@
     "@types/express": "^4.17.21",
     "@types/hpp": "^0.2.6",
     "dotenv": "^16.4.5",
-    "nodemon": "^3.1.2",
+    "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.3",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.4"
   }
 }
