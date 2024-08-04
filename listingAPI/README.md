@@ -99,13 +99,13 @@ The ahia Listing Service API is a robust backend service designed to manage real
     2.1 Top 5 Listings
 
     ```
-    GET /api/v1/listings/top-5-listings?location=:location
+    GET /api/v1/listings/top-5?location=:location
     ```
 
     2.2 Exclusive Listings
 
     ```
-    GET /api/v1/listings/exclusive-listings?location=:location&category=:category
+    GET /api/v1/listings/exclusive?location=:location&category=:category
     ```
 
     2.3 Hot Sales Listings
