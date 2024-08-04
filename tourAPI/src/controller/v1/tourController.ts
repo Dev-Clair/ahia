@@ -1,4 +1,5 @@
 import AsyncCatch from "../../utils/asyncCatch";
+import CryptoHash from "../../utils/cryptoHash";
 import EnsureIdempotency from "../../utils/ensureIdempotency";
 import Config from "../../../config";
 import { NextFunction, Request, Response } from "express";
@@ -302,11 +303,12 @@ const getRealtors = async (
   }
 
   const httpClient = new HttpClient(
-    `www.ahia.com/iam/realtors?status=available&location=${tour.location}`,
+    Config.IAM_SERVICE_URL +
+      `/realtors?status=available&location=${tour.location}`,
     {
       "Content-Type": "application/json",
       "Service-Name": Config.SERVICE.NAME,
-      "Service-Secret": Config.SERVICE.SECRET,
+      "Service-Secret": await CryptoHash(Config.SERVICE.SECRET),
     }
   );
 
