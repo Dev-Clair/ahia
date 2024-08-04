@@ -1,4 +1,5 @@
-import AsyncCatch from "../../utils/asynCatch";
+import AsyncCatch from "../../utils/asyncCatch";
+import EnsureIdempotency from "../../utils/ensureIdempotency";
 import { NextFunction, Request, Response } from "express";
 import Config from "../../../config";
 import Features from "../../utils/feature";
@@ -10,33 +11,6 @@ import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import Retry from "../../utils/retry";
 
-/***********************Helper Methods**************************************** */
-/**
- * Ensures operation idempotency
- * @param req
- * @param res
- * @returns Promise<Response | string>
- */
-const ensureIdempotency = async (
-  req: Request,
-  res: Response
-): Promise<Response | string> => {
-  const idempotencyKey = (req.headers["idempotency-key"] as string) || "";
-
-  const verifyOperationIdempotency = await Idempotency.findOne({
-    key: idempotencyKey,
-  });
-
-  if (verifyOperationIdempotency) {
-    return res
-      .status(HttpStatusCode.CREATED)
-      .json({ data: verifyOperationIdempotency.response });
-  }
-
-  return idempotencyKey;
-};
-
-/***********************Listing Business Logic**************************************** */
 /**
  * Creates a new listing resource in collection
  * @param req
@@ -50,14 +24,14 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const idempotencyKey = await ensureIdempotency(req, res);
+    const idempotencyKey = await EnsureIdempotency(req, res);
 
     const payload = req.body;
 
     const provider = {
       id: `Provider-` + Math.random(),
-      email: `provider.` + Math.random() + `@yahoo.com`,
-    }; // Replace with provider id either from auth payload or api call to iam service
+      email: `provider.` + Math.random() * 1000 + `@yahoo.com`,
+    }; // Replace with provider id & email either from auth payload
 
     const listing = await Listing.create(
       Object.assign(payload, { provider: provider })
@@ -145,7 +119,7 @@ const updateListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = await ensureIdempotency(req, res);
+  const idempotencyKey = await EnsureIdempotency(req, res);
 
   const listing = await Listing.findByIdAndUpdate(
     { _id: req.params.id },
@@ -230,7 +204,7 @@ const checkoutListing = async (
         id: listing._id,
         name: listing.name,
         transactionReference: listing.status.id,
-        "Success-Url": `127.0.0.1:5999/api/v1/listings/${listing._id}`, // dev/test uri or elastic beanstalk public endpoint
+        successUrl: `127.0.0.1:5999/api/v1/listings/${listing._id}`, // dev/test uri or elastic beanstalk public endpoint
       })
     );
 
@@ -277,7 +251,7 @@ const validateListingStatus = async (
 };
 
 /**
- * Create a new listing in collection.
+ * Create a new listing in collection
  */
 const createListingCollection = AsyncCatch(
   createListing,
@@ -285,7 +259,7 @@ const createListingCollection = AsyncCatch(
 );
 
 /**
- * Retrieve collection of listings.
+ * Retrieve collection of listings
  */
 const retrieveListingCollection = AsyncCatch(
   getListings,
@@ -293,7 +267,7 @@ const retrieveListingCollection = AsyncCatch(
 );
 
 /**
- * Retrieve a listing item using its :id.
+ * Retrieve a listing item using its :id
  */
 const retrieveListingItem = AsyncCatch(getListing, Retry.LinearJitterBackoff);
 
@@ -305,7 +279,8 @@ const updateListingItem = AsyncCatch(
   Retry.ExponentialJitterBackoff
 );
 
-/**listing item using its :id.
+/**
+ * Deletes a listing item using its :id
  */
 const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
 
@@ -315,7 +290,7 @@ const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
 const checkoutListingItem = AsyncCatch(checkoutListing);
 
 /**
- * Retrieve a listing item payment status using its reference :id.
+ * Retrieve a listing item payment status using its reference :id
  */
 const validateListingItemStatus = AsyncCatch(
   validateListingStatus,
