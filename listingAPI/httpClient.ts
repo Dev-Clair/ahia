@@ -25,8 +25,14 @@ class HttpClient {
     this.httpHeaders = { ...httpHeaders };
   }
 
-  private generateIdempotencyKey(): string {
-    return crypto.randomBytes(16).toString("hex");
+  private generateIdempotencyKey(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(16, (err, buf) => {
+        if (err) reject(err);
+
+        resolve(buf.toString("hex"));
+      });
+    });
   }
 
   private async call(options: HttpOptions, payload?: any): Promise<any> {
