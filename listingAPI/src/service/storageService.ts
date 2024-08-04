@@ -1,8 +1,7 @@
 import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  HeadObjectCommand,
-  ListObjectsV2Command,
+  // DeleteObjectCommand,
+  // GetObjectCommand,
+  // ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -58,77 +57,60 @@ class StorageService {
     }
   }
 
-  public async download(key: string, start: string = "0", end: string = "9") {
-    try {
-      const streamRange = `bytes=${start}-${end}`;
+  // public async download(key: string, start: string = "0", end: string = "9") {
+  //   try {
+  //     const streamRange = `bytes=${start}-${end}`;
 
-      const input = {
-        Bucket: this.bucket,
-        Key: key,
-        Range: streamRange,
-      };
-      const command = new GetObjectCommand(input);
+  //     const input = {
+  //       Bucket: this.bucket,
+  //       Key: key,
+  //       Range: streamRange,
+  //     };
+  //     const command = new GetObjectCommand(input);
 
-      const response = await this.s3.send(command);
+  //     const response = await this.s3.send(command);
 
-      return response.Body;
-    } catch (err: any) {
-      throw err;
-    }
-  }
+  //     return response.Body;
+  //   } catch (err: any) {
+  //     throw err;
+  //   }
+  // }
 
-  public async remove(key: string): Promise<boolean | undefined> {
-    try {
-      const input = {
-        Bucket: this.bucket,
-        Key: key,
-      };
+  // public async remove(key: string): Promise<boolean | undefined> {
+  //   try {
+  //     const input = {
+  //       Bucket: this.bucket,
+  //       Key: key,
+  //     };
 
-      const command = new DeleteObjectCommand(input);
+  //     const command = new DeleteObjectCommand(input);
 
-      const response = await this.s3.send(command);
+  //     const response = await this.s3.send(command);
 
-      return response.DeleteMarker;
-    } catch (err: any) {
-      throw err;
-    }
-  }
+  //     return response.DeleteMarker;
+  //   } catch (err: any) {
+  //     throw err;
+  //   }
+  // }
 
-  public async getObjectSize(key: string): Promise<number | undefined> {
-    try {
-      const input = {
-        Bucket: this.bucket,
-        Key: key,
-      };
+  // public async *retrieveCollection(
+  //   prefix: string
+  // ): AsyncGenerator<string | undefined, any, unknown> {
+  //   const input = {
+  //     Bucket: this.bucket,
+  //     Prefix: prefix,
+  //   };
 
-      const command = new HeadObjectCommand(input);
+  //   const command = new ListObjectsV2Command(input);
 
-      const response = await this.s3.send(command);
+  //   const response = await this.s3.send(command);
 
-      return response.ContentLength;
-    } catch (err: any) {
-      throw err;
-    }
-  }
+  //   const keys = response.Contents?.map((item) => item.Key) ?? [];
 
-  public async *retrieveCollection(
-    prefix: string
-  ): AsyncGenerator<string | undefined, any, unknown> {
-    const input = {
-      Bucket: this.bucket,
-      Prefix: prefix,
-    };
-
-    const command = new ListObjectsV2Command(input);
-
-    const response = await this.s3.send(command);
-
-    const keys = response.Contents?.map((item) => item.Key) ?? [];
-
-    for (const key of keys) {
-      yield key;
-    }
-  }
+  //   for (const key of keys) {
+  //     yield key;
+  //   }
+  // }
 }
 
 const storageService = new StorageService();
