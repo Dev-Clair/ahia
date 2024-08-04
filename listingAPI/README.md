@@ -43,9 +43,9 @@ The ahia Listing Service API is a robust backend service designed to manage real
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/your-username/listing-api.git
+   git clone https://github.com/Dev-Clair/ahia/tree/listing_service/listingAPI.git
 
-   cd listing-api
+   cd listingAPI/
    ```
 
 ## Endpoints
@@ -142,4 +142,4 @@ Contributions are welcome! Please follow these steps:
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE] file for details.
+This project is licensed under the MIT License. See the LICENSE file for details.
