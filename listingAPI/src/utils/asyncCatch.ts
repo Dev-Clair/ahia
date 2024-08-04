@@ -1,5 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 
+/**
+ * Handles synchronous and asynchronous errors
+ * @param Operation
+ * @param Retry
+ * @param RetryOptions
+ * @returns Promise<Response|void>
+ */
 const AsyncCatch = (
   Operation: (
     req: Request,
