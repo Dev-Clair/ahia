@@ -17,7 +17,7 @@ const Config = {
   },
   MONGO_URI: process.env.MONGO_URI || "",
   NODE_ENV: process.env.NODE_ENV || "test",
-  iAM_SERVICE_URL: process.env.IAM_SERVICE_URL || "127.0.0.1:3999/api/v1/iam",
+  IAM_SERVICE_URL: process.env.IAM_SERVICE_URL || "127.0.0.1:3999/api/v1/iam",
   SERVICE: {
     NAME: process.env.SERVICE_NAME || "",
     SECRET: process.env.SERVICE_SECRET || "",
