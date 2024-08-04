@@ -1,90 +1,94 @@
 import { Router } from "express";
-import tourController from "../../controller/v1/tourController";
-import tourMiddleWare from "../../middleware/v1/tourMiddleWare";
-import validationMiddleware from "../../middleware/validationMiddleware";
+import TourController from "../../controller/v1/tourController";
+import TourMiddleWare from "../../middleware/v1/tourMiddleWare";
+import ValidationMiddleware from "../../middleware/validationMiddleware";
 
 const TourRouterV1 = Router();
 
 TourRouterV1.route("/")
-  .get(tourController.retrieveTourCollection)
+  .get(TourController.retrieveTourCollection)
   .post(
-    validationMiddleware.validateCustomer,
-    tourMiddleWare.isIdempotent,
-    tourController.createTourCollection
+    ValidationMiddleware.validateCustomer,
+    TourMiddleWare.isAllowedContentType,
+    TourMiddleWare.isIdempotent,
+    TourController.createTourCollection
   );
 
-TourRouterV1.route("/search").get(tourController.retrieveTourCollection);
+TourRouterV1.route("/search").get(TourController.retrieveTourCollection);
 
 TourRouterV1.route("/:id")
   .get(
-    validationMiddleware.validateSingleParamId,
-    tourController.retrieveTourItem
+    ValidationMiddleware.validateSingleParamId,
+    TourController.retrieveTourItem
   )
-  .put(tourMiddleWare.isNotAllowed)
+  .put(TourMiddleWare.isNotAllowed)
   .patch(
-    validationMiddleware.validateSingleParamId,
-    tourMiddleWare.isIdempotent,
-    tourMiddleWare.isUpdatable,
-    tourController.updateTourItem
+    ValidationMiddleware.validateSingleParamId,
+    TourMiddleWare.isAllowedContentType,
+    TourMiddleWare.isIdempotent,
+    TourMiddleWare.isUpdatable,
+    TourController.updateTourItem
   );
 
 TourRouterV1.route("/:id/status/complete").patch(
-  validationMiddleware.validateSingleParamId,
-  tourController.completeTourItem
+  ValidationMiddleware.validateSingleParamId,
+  TourController.completeTourItem
 );
 
 TourRouterV1.route("/:id/status/cancel").patch(
-  validationMiddleware.validateSingleParamId,
-  tourController.cancelTourItem
+  ValidationMiddleware.validateSingleParamId,
+  TourController.cancelTourItem
 );
 
 TourRouterV1.route("/:id/status/reopen").patch(
-  validationMiddleware.validateSingleParamId,
-  tourController.reopenTourItem
+  ValidationMiddleware.validateSingleParamId,
+  TourController.reopenTourItem
 );
 
 TourRouterV1.route("/:id/realtors")
   .get(
-    validationMiddleware.validateSingleParamId,
-    tourController.retrieveAvailableRealtors
+    ValidationMiddleware.validateSingleParamId,
+    TourController.retrieveAvailableRealtors
   )
   .post(
-    validationMiddleware.validateSingleParamId,
-    tourController.selectTourRealtor
+    ValidationMiddleware.validateSingleParamId,
+    TourController.selectTourRealtor
   );
 
 TourRouterV1.route("/:id/realtor/accept").put(
-  validationMiddleware.validateSingleParamId,
-  tourController.acceptProposedTourRequest
+  ValidationMiddleware.validateSingleParamId,
+  TourController.acceptProposedTourRequest
 );
 
 TourRouterV1.route("/:id/realtor/reject").put(
-  validationMiddleware.validateSingleParamId,
-  tourController.rejectProposedTourRequest
+  ValidationMiddleware.validateSingleParamId,
+  TourController.rejectProposedTourRequest
 );
 
 TourRouterV1.route("/:id/schedule").patch(
-  validationMiddleware.validateSingleParamId,
-  validationMiddleware.validateSchedule,
-  tourMiddleWare.isIdempotent,
-  tourController.scheduleTourItem
+  ValidationMiddleware.validateSingleParamId,
+  ValidationMiddleware.validateSchedule,
+  TourMiddleWare.isAllowedContentType,
+  TourMiddleWare.isIdempotent,
+  TourController.scheduleTourItem
 );
 
 TourRouterV1.route("/:id/reschedule").post(
-  validationMiddleware.validateSingleParamId,
-  validationMiddleware.validateSchedule,
-  tourMiddleWare.isIdempotent,
-  tourController.rescheduleTourItem
+  ValidationMiddleware.validateSingleParamId,
+  ValidationMiddleware.validateSchedule,
+  TourMiddleWare.isAllowedContentType,
+  TourMiddleWare.isIdempotent,
+  TourController.rescheduleTourItem
 );
 
 TourRouterV1.route("/:id/reschedule/:rescheduleId/accept").put(
-  validationMiddleware.validateDoubleParamId,
-  tourController.acceptProposedTourReschedule
+  ValidationMiddleware.validateDoubleParamId,
+  TourController.acceptProposedTourReschedule
 );
 
 TourRouterV1.route("/:id/reschedule/:rescheduleId/reject").put(
-  validationMiddleware.validateDoubleParamId,
-  tourController.rejectProposedTourReschedule
+  ValidationMiddleware.validateDoubleParamId,
+  TourController.rejectProposedTourReschedule
 );
 
 export default TourRouterV1;

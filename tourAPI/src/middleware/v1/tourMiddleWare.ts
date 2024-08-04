@@ -94,7 +94,15 @@ const isUpdatable = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const allowedFields = ["name", "schedule", "realtor.id", "realtor.email"];
+  const allowedFields = [
+    "name",
+    "schedule.date",
+    "schedule.time",
+    "propose.date",
+    "propose.time",
+    "realtor.id",
+    "realtor.email",
+  ];
 
   const getRequestBody = req.body as object;
 
