@@ -19,7 +19,9 @@ const isSecure = (
 
   if (getProtocol !== "https" || getSecurity === false) {
     return res.status(HttpStatusCode.FORBIDDEN).json({
-      message: "Connection is not secure. SSL required",
+      data: {
+        message: "Connection is not secure. SSL required",
+      },
     });
   }
 
@@ -42,7 +44,9 @@ const isIdempotent = (
 
   if (!getIdempotencyKey) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
-      message: "Idempotency key is required",
+      data: {
+        message: "Idempotency key is required",
+      },
     });
   }
 
@@ -67,11 +71,49 @@ const isAllowedContentType = (
 
   if (!allowedContentTypes.includes(getContentType)) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
-      message: "Invalid content type",
-      expected: "application/json",
-      received: `${getContentType}`,
+      data: {
+        message: "Invalid content type",
+        expected: "application/json",
+        received: `${getContentType}`,
+      },
     });
   }
+
+  next();
+};
+
+/**
+ * Verifies request body contains fields that are updatable
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response | void
+ */
+const isUpdatable = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Response | void => {
+  const allowedFields = [
+    "cost",
+    "purpose",
+    "category",
+    "use.type",
+    "use.category",
+    "features",
+  ];
+
+  const getRequestBody = req.body as object;
+
+  const updateFields = Object.keys(getRequestBody);
+
+  updateFields.forEach((element) => {
+    if (!allowedFields.includes(element)) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        message: `Updates are not allowed on field ${element}`,
+      });
+    }
+  });
 
   next();
 };
@@ -99,5 +141,6 @@ export default {
   isSecure,
   isIdempotent,
   isAllowedContentType,
+  isUpdatable,
   isNotAllowed,
 };

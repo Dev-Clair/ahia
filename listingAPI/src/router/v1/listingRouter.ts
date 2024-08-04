@@ -23,7 +23,7 @@ ListingRouterV1.route("/hot-lease").get(ListingController.hotLeases);
 ListingRouterV1.route("/:id")
   .get(ListingController.retrieveListingItem)
   .put(ListingMiddleWare.isNotAllowed)
-  .patch(ListingController.updateListingItem)
+  .patch(ListingMiddleWare.isUpdatable, ListingController.updateListingItem)
   .delete(ListingController.deleteListingItem);
 
 ListingRouterV1.route("/:id/checkout").get(
@@ -39,9 +39,9 @@ ListingRouterV1.route("/:id/attachments")
   .post(AttachmentController.createAttachments);
 
 ListingRouterV1.route("/:id/attachments/:attachmentId")
-  .get(AttachmentController.retrieveAttachmentItem)
+  .get(ListingMiddleWare.isNotAllowed)
   .put(ListingMiddleWare.isNotAllowed)
-  .delete(AttachmentController.deleteAttachmentItem);
+  .delete(ListingMiddleWare.isNotAllowed);
 
 ListingRouterV1.route("/:id/promotions")
   .get(ListingMiddleWare.isNotAllowed)
