@@ -41,8 +41,10 @@ The ahia Listing Service API is a robust backend service designed to manage real
 ## Installation
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/your-username/listing-api.git
+
    cd listing-api
    ```
 
@@ -52,71 +54,71 @@ The ahia Listing Service API is a robust backend service designed to manage real
 
     1.1 Create a Listing
 
-             ```
-             POST /api/v1/listings
-             ```
+        ```bash
+        POST /api/v1/listings
+        ```
 
     1.2 Retrieve All Listings
 
-             ```
-             GET /api/v1/listings
-             ```
+        ```bash
+        GET /api/v1/listings
+        ```
 
     1.3 Retrieve a Listing by ID
 
-             ```
-             GET /api/v1/listings/:id
-             ```
+        ```bash
+        GET /api/v1/listings/:id
+        ```
 
     1.4 Update a Listing by ID
 
-             ```
-             PATCH /api/v1/listings/:id
-             ```
+        ```bash
+        PATCH /api/v1/listings/:id
+        ```
 
     1.5 Deletes a Listing by ID
 
-             ```
-             DELETE /api/v1/listings/:id
-             ```
+        ```bash
+        DELETE /api/v1/listings/:id
+        ```
 
     1.6 Checkout a Listing
 
-             ```
-             GET /api/v1/listings/:id/checkout
-             ```
+        ```bash
+        GET /api/v1/listings/:id/checkout
+        ```
 
     1.6 Validate a Listing Payment Status
 
-             ```
-             GET /api/v1/listings/:id/status
-             ```
+        ```bash
+        GET /api/v1/listings/:id/status
+        ```
 
 2.  Specialized Endpoints
 
     2.1 Top 5 Listings
 
-             ```
-             GET /api/v1/listings/top-5-listings?location=:location
-             ```
+        ```bash
+        GET /api/v1/listings/top-5-listings?location=:location
+        ```
 
     2.2 Exclusive Listings
 
-             ```
-             GET /api/v1/listings/exclusive-listings?location=:location&category=:category
-             ```
+        ```bash
+        GET /api/v1/listings/exclusive-listings?location=:location&category=:category
+        ```
 
     2.3 Hot Sales Listings
 
-             ```
-             GET /api/v1/listings/hot-sale?location=:location
-             ```
+        ```bash
+        GET /api/v1/listings/hot-sale?location=:location
+        ```
 
     2.4 Hot Lease Listings
 
-             ```
-             GET /api/v1/listings/hot-lease?location=:location
-             ```
+        ```bash
+        GET /api/v1/listings/hot-lease?location=:location
+        ```
 
 ## Error Handling
 
@@ -128,12 +130,16 @@ Contributions are welcome! Please follow these steps:
 
 ```
     Fork the repository.
+
     Create a new branch: git checkout -b feature-branch.
+
     Make your changes and commit them: git commit -m 'Add new feature'.
+
     Push to the branch: git push origin feature-branch.
+
     Open a pull request.
 ```
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE] file for details.
