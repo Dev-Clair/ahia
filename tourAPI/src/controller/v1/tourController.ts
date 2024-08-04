@@ -1,4 +1,6 @@
-import AsyncCatch from "../../utils/asynCatch";
+import AsyncCatch from "../../utils/asyncCatch";
+import EnsureIdempotency from "../../utils/ensureIdempotency";
+import Config from "../../../config";
 import { NextFunction, Request, Response } from "express";
 import Features from "../../utils/feature";
 import HttpClient from "../../../httpClient";
@@ -11,10 +13,17 @@ import DuplicateTransactionError from "../../error/duplicateTransactionError";
 import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
 import Retry from "../../utils/retry";
 import Tour from "../../model/tourModel";
-import TourIdempotency from "../../model/tourIdempotencyModel";
-import TourRealtor from "../../model/tourRealtorModel";
-import TourSchedule from "../../model/tourScheduleModel";
+import Idempotency from "../../model/idempotencyModel";
+import Realtor from "../../model/realtorModel";
+import Schedule from "../../model/scheduleModel";
 
+/**
+ * Creates a new tour resource in collection
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const createTour = async (
   req: Request,
   res: Response,
@@ -26,7 +35,7 @@ const createTour = async (
     throw new PaymentEventPayloadError("Invalid request body data structure");
   }
 
-  const verifyOperationIdempotency = await TourIdempotency.findOne({
+  const verifyOperationIdempotency = await Idempotency.findOne({
     key: transactionRef,
   });
 
@@ -40,7 +49,7 @@ const createTour = async (
 
   const response = { data: "Created" };
 
-  await TourIdempotency.create({
+  await Idempotency.create({
     key: transactionRef,
     response: response,
   });
@@ -52,6 +61,13 @@ const createTour = async (
   return res.status(HttpStatusCode.CREATED).json(response);
 };
 
+/**
+ * Retrieves collection of tours
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const getTours = async (
   req: Request,
   res: Response,
@@ -69,6 +85,13 @@ const getTours = async (
   });
 };
 
+/**
+ * Retrieves a tour resource from collection
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const getTour = async (
   req: Request,
   res: Response,
@@ -86,56 +109,38 @@ const getTour = async (
   return res.status(HttpStatusCode.OK).json({ data: tour });
 };
 
-const replaceTour = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  const tour = await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
-    new: true,
-  });
-
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
-    );
-  }
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
-};
-
+/**
+ * Modifies a tour resource in collection
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const updateTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = req.headers["idempotency-key"] as string;
+  const idempotencyKey = EnsureIdempotency(req, res);
 
-  const verifyOperationIdempotency = await TourIdempotency.findOne({
-    key: idempotencyKey,
-  });
+  const id = req.params.id as string;
 
-  if (verifyOperationIdempotency) {
-    return res
-      .status(HttpStatusCode.MODIFIED)
-      .json(verifyOperationIdempotency.response);
-  }
+  const payload = req.body as object;
 
-  const tour = await Tour.findByIdAndUpdate({ _id: req.params.id }, req.body, {
+  const tour = await Tour.findByIdAndUpdate({ _id: id }, payload, {
     new: true,
   });
 
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
 
   const response = { data: "Modified" };
 
-  await TourIdempotency.create({
+  await Idempotency.create({
     key: idempotencyKey,
     response: response,
   });
@@ -143,30 +148,48 @@ const updateTour = async (
   return res.status(HttpStatusCode.MODIFIED).json(response);
 };
 
+/**
+ * Removes a tour resource from collection
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const deleteTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tour = await Tour.findByIdAndDelete({ _id: req.params.id });
+  const id = req.params.id as string;
+
+  const tour = await Tour.findByIdAndDelete({ _id: id });
 
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
 
-  return res.status(HttpStatusCode.MODIFIED).json(null);
+  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
 };
 
+/**
+ * Marks a tour resource as completed
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const completeTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const id = req.params.id as string;
+
   const tour = await Tour.findByIdAndUpdate(
-    { _id: req.params.id },
+    { _id: id },
     { $set: { status: "completed", isClosed: true } },
     {
       new: true,
@@ -176,22 +199,31 @@ const completeTour = async (
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
 
   // await Notify() // Send push notification confirming completion and requesting a review
 
-  return res.status(HttpStatusCode.OK).json(null);
+  return res.status(HttpStatusCode.OK).json({ data: { message: null } });
 };
 
+/**
+ * Marks a tour resource as cancelled
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const cancelTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const id = req.params.id as string;
+
   const tour = await Tour.findByIdAndUpdate(
-    { _id: req.params.id },
+    { _id: id },
     { $set: { status: "cancelled", isClosed: true } },
     {
       new: true,
@@ -201,22 +233,31 @@ const cancelTour = async (
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
 
   // await Notify() // Send push notification confirming cancellation and requesting a reason
 
-  return res.status(HttpStatusCode.OK).json(null);
+  return res.status(HttpStatusCode.OK).json({ data: { message: null } });
 };
 
+/**
+ * Marks a tour resource as reopened
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const reopenTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const id = req.params.id as string;
+
   const tour = await Tour.findByIdAndUpdate(
-    { _id: req.params.id },
+    { _id: id },
     { $set: { status: "pending", isClosed: false } },
     {
       new: true,
@@ -226,7 +267,7 @@ const reopenTour = async (
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No cancelled tour found for id: ${req.params.id}`
+      `No cancelled tour found for id: ${id}`
     );
   }
 
@@ -234,20 +275,29 @@ const reopenTour = async (
 
   return res
     .status(HttpStatusCode.OK)
-    .json({ data: "Your tour has been successfully reopened" });
+    .json({ data: { message: "Your tour has been successfully reopened" } });
 };
 
+/**
+ * Retrieves realtors from  external IAM API service
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const getRealtors = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tour = await Tour.findById({ _id: req.params.id });
+  const id = req.params.id as string;
+
+  const tour = await Tour.findById({ _id: id });
 
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
 
@@ -255,7 +305,8 @@ const getRealtors = async (
     `www.ahia.com/iam/realtors?status=available&location=${tour.location}`,
     {
       "Content-Type": "application/json",
-      "Service-Name": "Tour_Service",
+      "Service-Name": Config.SERVICE.NAME,
+      "Service-Secret": Config.SERVICE.SECRET,
     }
   );
 
@@ -292,28 +343,25 @@ const getRealtors = async (
   return res.status(HttpStatusCode.OK).json({ data: body });
 };
 
+/**
+ * Selects a realtor from retrieved realtor collection
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const selectRealtor = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tourId = req.params.id;
+  const idempotencyKey = EnsureIdempotency(req, res);
+
+  const tourId = req.params.id as string;
 
   const { id, email } = req.query;
 
-  const idempotencyKey = req.headers["idempotency-key"] as string;
-
-  const verifyOperationIdempotency = await TourIdempotency.findOne({
-    key: idempotencyKey,
-  });
-
-  if (verifyOperationIdempotency) {
-    return res
-      .status(HttpStatusCode.CREATED)
-      .json(verifyOperationIdempotency.response);
-  }
-
-  await TourRealtor.create({
+  await Realtor.create({
     tourId: tourId,
     realtor: { id: id, email: email },
   });
@@ -321,10 +369,13 @@ const selectRealtor = async (
   // await Notify() // Send push notification to realtor about tour request
 
   const response = {
-    data: "Realtor has been notified of your request. Realtor's confirmation status will be communicated to you accordingly.",
+    data: {
+      message:
+        "Realtor has been notified of your request. Realtor's confirmation status will be communicated to you accordingly.",
+    },
   };
 
-  await TourIdempotency.create({
+  await Idempotency.create({
     key: idempotencyKey,
     response: response,
   });
@@ -332,29 +383,38 @@ const selectRealtor = async (
   return res.status(HttpStatusCode.CREATED).json(response);
 };
 
+/**
+ * Accept realtor request
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const acceptTourRequest = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const request = await TourRealtor.findOne({ tourId: req.params.id });
+  const id = req.params.id as string;
+
+  const request = await Realtor.findOne({ tourId: id });
 
   if (!request) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No realtor request found for tour: ${req.params.id}`
+      `No realtor request found for tour: ${id}`
     );
   }
 
   const tour = await Tour.findByIdAndUpdate(
-    { _id: req.params.id },
+    { _id: id },
     { $set: { realtor: request.realtor } }
   );
 
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
 
@@ -363,21 +423,30 @@ const acceptTourRequest = async (
   // await Notify() // Send realtor's acceptance push notification to customer
 
   return res.status(HttpStatusCode.MODIFIED).json({
-    data: `Congratulations, you have been added to tour: ${req.params.id}`,
+    data: { message: `Congratulations, you have been added to tour: ${id}` },
   });
 };
 
+/**
+ * Reject realtor request
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const rejectTourRequest = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const request = await TourRealtor.findOne({ tourId: req.params.id });
+  const id = req.params.id as string;
+
+  const request = await Realtor.findOne({ tourId: id });
 
   if (!request) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No realtor request found for tour: ${req.params.id}`
+      `No realtor request found for tour: ${id}`
     );
   }
 
@@ -386,33 +455,30 @@ const rejectTourRequest = async (
   // await Notify() // Send realtor's rejection push notification to customer
 
   return res.status(HttpStatusCode.MODIFIED).json({
-    data: `Successfully rejected realtor request for tour: ${req.params.id}`,
+    data: { message: `Successfully rejected realtor request for tour: ${id}` },
   });
 };
 
+/**
+ * Schedules tour date and time
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const scheduleTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tourId = req.params.id;
+  const id = req.params.id as string;
 
   const { date, time } = req.body;
 
-  const idempotencyKey = req.headers["idempotency-key"] as string;
-
-  const verifyOperationIdempotency = await TourIdempotency.findOne({
-    key: idempotencyKey,
-  });
-
-  if (verifyOperationIdempotency) {
-    return res
-      .status(HttpStatusCode.CREATED)
-      .json(verifyOperationIdempotency.response);
-  }
+  const idempotencyKey = EnsureIdempotency(req, res);
 
   const tour = await Tour.findByIdAndUpdate(
-    { _id: tourId },
+    { _id: id },
     { $set: { schedule: { date: date, time: time } } },
     { new: true }
   );
@@ -420,14 +486,14 @@ const scheduleTour = async (
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
   const response = {
-    data: "Your tour schedule have been successfully set.",
+    data: { message: "Your tour schedule have been successfully set." },
   };
 
-  await TourIdempotency.create({
+  await Idempotency.create({
     key: idempotencyKey,
     response: response,
   });
@@ -435,37 +501,37 @@ const scheduleTour = async (
   return res.status(HttpStatusCode.CREATED).json(response);
 };
 
+/**
+ *Proposes a reschedule to tour date and time
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const rescheduleTour = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tourId = req.params.id;
+  const id = req.params.id as string;
 
   const { date, time } = req.body;
 
-  const idempotencyKey = req.headers["idempotency-key"] as string;
+  const idempotencyKey = EnsureIdempotency(req, res);
 
-  const verifyOperationIdempotency = await TourIdempotency.findOne({
-    key: idempotencyKey,
-  });
-
-  if (verifyOperationIdempotency) {
-    return res
-      .status(HttpStatusCode.CREATED)
-      .json(verifyOperationIdempotency.response);
-  }
-
-  await TourSchedule.create({
-    tourId: tourId,
+  await Schedule.create({
+    tourId: id,
     propose: { date: date, time: time },
   });
 
   const response = {
-    data: "Your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
+    data: {
+      message:
+        "Your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
+    },
   };
 
-  await TourIdempotency.create({
+  await Idempotency.create({
     key: idempotencyKey,
     response: response,
   });
@@ -473,16 +539,23 @@ const rescheduleTour = async (
   return res.status(HttpStatusCode.CREATED).json(response);
 };
 
+/**
+ * Accepts proposed tour reschedule
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const acceptTourReschedule = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tourId = req.params.id;
+  const id = req.params.id as string;
 
-  const tourScheduleId = req.params.rescheduleId;
+  const scheduleId = req.params.rescheduleId;
 
-  const schedule = await TourSchedule.findById({ _id: tourScheduleId });
+  const schedule = await Schedule.findById({ _id: scheduleId });
 
   if (!schedule) {
     throw new NotFoundError(
@@ -492,7 +565,7 @@ const acceptTourReschedule = async (
   }
 
   const tour = await Tour.findByIdAndUpdate(
-    { _id: tourId },
+    { _id: id },
     {
       $set: {
         schedule: {
@@ -507,7 +580,7 @@ const acceptTourReschedule = async (
   if (!tour) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
+      `No tour found for id: ${id}`
     );
   }
 
@@ -515,18 +588,25 @@ const acceptTourReschedule = async (
 
   // await Notify(); // Send push notification to Customer and Realtor
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
 };
 
+/**
+ * Rejects proposed tour reschedule
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
 const rejectTourReschedule = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tourScheduleId = req.params.rescheduleId;
+  const scheduleId = req.params.rescheduleId as string;
 
-  const schedule = await TourSchedule.findByIdAndDelete({
-    _id: tourScheduleId,
+  const schedule = await Schedule.findByIdAndDelete({
+    _id: scheduleId,
   });
 
   if (!schedule) {
@@ -538,20 +618,7 @@ const rejectTourReschedule = async (
 
   // await Notify();  // Send push notification to Customer or Realtor
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
-};
-
-/**
- * Handle not allowed operations
- */
-const operationNotAllowed = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Response => {
-  return res.status(HttpStatusCode.METHOD_NOT_ALLOWED).json({
-    message: "operation not allowed",
-  });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
 };
 
 /**
@@ -568,11 +635,6 @@ const retrieveTourCollection = AsyncCatch(getTours, Retry.LinearJitterBackoff);
  * Retrieve a tour item using its :id.
  */
 const retrieveTourItem = AsyncCatch(getTour, Retry.LinearJitterBackoff);
-
-/**
- * Replace a tour item using its :id.
- */
-const replaceTourItem = AsyncCatch(replaceTour, Retry.ExponentialBackoff);
 
 /**
  * Updates a tour item using its :id.
@@ -649,7 +711,6 @@ export default {
   createTourCollection,
   retrieveTourCollection,
   retrieveTourItem,
-  replaceTourItem,
   updateTourItem,
   completeTourItem,
   cancelTourItem,
@@ -662,5 +723,4 @@ export default {
   rescheduleTourItem,
   acceptProposedTourReschedule,
   rejectProposedTourReschedule,
-  operationNotAllowed,
 };
