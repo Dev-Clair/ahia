@@ -9,7 +9,7 @@ TourRouterV1.route("/")
   .get(tourController.retrieveTourCollection)
   .post(
     validationMiddleware.validateCustomer,
-    tourMiddleWare.checkIdempotencyKey,
+    tourMiddleWare.isIdempotent,
     tourController.createTourCollection
   );
 
@@ -20,13 +20,11 @@ TourRouterV1.route("/:id")
     validationMiddleware.validateSingleParamId,
     tourController.retrieveTourItem
   )
-  .put(
-    validationMiddleware.validateSingleParamId,
-    tourController.replaceTourItem
-  )
+  .put(tourMiddleWare.isNotAllowed)
   .patch(
     validationMiddleware.validateSingleParamId,
-    tourMiddleWare.checkIdempotencyKey,
+    tourMiddleWare.isIdempotent,
+    tourMiddleWare.isUpdatable,
     tourController.updateTourItem
   );
 
@@ -68,14 +66,14 @@ TourRouterV1.route("/:id/realtor/reject").put(
 TourRouterV1.route("/:id/schedule").patch(
   validationMiddleware.validateSingleParamId,
   validationMiddleware.validateSchedule,
-  tourMiddleWare.checkIdempotencyKey,
+  tourMiddleWare.isIdempotent,
   tourController.scheduleTourItem
 );
 
 TourRouterV1.route("/:id/reschedule").post(
   validationMiddleware.validateSingleParamId,
   validationMiddleware.validateSchedule,
-  tourMiddleWare.checkIdempotencyKey,
+  tourMiddleWare.isIdempotent,
   tourController.rescheduleTourItem
 );
 
