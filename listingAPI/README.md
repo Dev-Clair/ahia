@@ -54,71 +54,71 @@ The ahia Listing Service API is a robust backend service designed to manage real
 
     1.1 Create a Listing
 
-        ```bash
-        POST /api/v1/listings
-        ```
+    ```
+    POST /api/v1/listings
+    ```
 
     1.2 Retrieve All Listings
 
-        ```bash
-        GET /api/v1/listings
-        ```
+    ```
+    GET /api/v1/listings
+    ```
 
     1.3 Retrieve a Listing by ID
 
-        ```bash
-        GET /api/v1/listings/:id
-        ```
+    ```
+    GET /api/v1/listings/:id
+    ```
 
     1.4 Update a Listing by ID
 
-        ```bash
-        PATCH /api/v1/listings/:id
-        ```
+    ```
+    PATCH /api/v1/listings/:id
+    ```
 
     1.5 Deletes a Listing by ID
 
-        ```bash
-        DELETE /api/v1/listings/:id
-        ```
+    ```
+    DELETE /api/v1/listings/:id
+    ```
 
     1.6 Checkout a Listing
 
-        ```bash
-        GET /api/v1/listings/:id/checkout
-        ```
+    ```
+    GET /api/v1/listings/:id/checkout
+    ```
 
     1.6 Validate a Listing Payment Status
 
-        ```bash
-        GET /api/v1/listings/:id/status
-        ```
+    ```
+    GET /api/v1/listings/:id/status
+    ```
 
 2.  Specialized Endpoints
 
     2.1 Top 5 Listings
 
-        ```bash
-        GET /api/v1/listings/top-5-listings?location=:location
-        ```
+    ```
+    GET /api/v1/listings/top-5-listings?location=:location
+    ```
 
     2.2 Exclusive Listings
 
-        ```bash
-        GET /api/v1/listings/exclusive-listings?location=:location&category=:category
-        ```
+    ```
+    GET /api/v1/listings/exclusive-listings?location=:location&category=:category
+    ```
 
     2.3 Hot Sales Listings
 
-        ```bash
-        GET /api/v1/listings/hot-sale?location=:location
-        ```
+    ```
+    GET /api/v1/listings/hot-sale?location=:location
+    ```
 
     2.4 Hot Lease Listings
 
-        ```bash
-        GET /api/v1/listings/hot-lease?location=:location
-        ```
+    ```
+    GET /api/v1/listings/hot-lease?location=:location
+    ```
 
 ## Error Handling
 
