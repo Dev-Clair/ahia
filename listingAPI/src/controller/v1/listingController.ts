@@ -84,7 +84,7 @@ const getListings = async (
 };
 
 /**
- * Retrieves collection of listings
+ * Retrieves collection of top 5 listings based on location
  * @param req
  * @param res
  * @param next
@@ -95,24 +95,25 @@ const getTop5Listings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { data, pagination } = await Features(
-    Listing,
-    { status: { approved: true } },
-    req
-  );
+  const { location } = req.query;
+
+  const listings = await Listing.find({
+    status: { approved: true },
+    location: location,
+  })
+    .sort({ createdAt: -1 })
+    .limit(5);
 
   return res.status(HttpStatusCode.OK).json({
-    data: data,
-    page: pagination.page,
-    limit: pagination.limit,
-    totalItems: pagination.totalItems,
-    totalPages: pagination.totalPages,
-    links: pagination.links,
+    results: listings.length,
+    data: {
+      listings,
+    },
   });
 };
 
 /**
- * Retrieves collection of listings
+ * Retrieves collection of exclusive listing offerings based on category and location
  * @param req
  * @param res
  * @param next
@@ -123,24 +124,26 @@ const getExclusiveListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { data, pagination } = await Features(
-    Listing,
-    { status: { approved: true } },
-    req
-  );
+  const { category, location } = req.query;
+
+  const listings = await Listing.find({
+    status: { approved: true },
+    category,
+    location,
+  })
+    .sort({ createdAt: -1 })
+    .limit(100);
 
   return res.status(HttpStatusCode.OK).json({
-    data: data,
-    page: pagination.page,
-    limit: pagination.limit,
-    totalItems: pagination.totalItems,
-    totalPages: pagination.totalPages,
-    links: pagination.links,
+    results: listings.length,
+    data: {
+      listings,
+    },
   });
 };
 
 /**
- * Retrieves collection of listings
+ * Retrieves collection of listing offerings available for sales based on location
  * @param req
  * @param res
  * @param next
@@ -151,19 +154,51 @@ const getHotSales = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { data, pagination } = await Features(
-    Listing,
-    { status: { approved: true } },
-    req
-  );
+  const { location } = req.query;
+
+  const listings = await Listing.find({
+    status: { approved: true },
+    purpose: "sell",
+    location,
+  })
+    .sort({ createdAt: -1 })
+    .limit(100);
 
   return res.status(HttpStatusCode.OK).json({
-    data: data,
-    page: pagination.page,
-    limit: pagination.limit,
-    totalItems: pagination.totalItems,
-    totalPages: pagination.totalPages,
-    links: pagination.links,
+    results: listings.length,
+    data: {
+      listings,
+    },
+  });
+};
+
+/**
+ * Retrieves collection of listing offerings available for lease/rent based on location
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getHotLeases = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { location } = req.query;
+
+  const listings = await Listing.find({
+    status: { approved: true },
+    purpose: "rent",
+    location,
+  })
+    .sort({ createdAt: -1 })
+    .limit(100);
+
+  return res.status(HttpStatusCode.OK).json({
+    results: listings.length,
+    data: {
+      listings,
+    },
   });
 };
 
@@ -351,6 +386,29 @@ const retrieveListingCollection = AsyncCatch(
 );
 
 /**
+ * Retrieve top five (5) listing offerings based on location
+ */
+const top5Listings = AsyncCatch(getTop5Listings, Retry.LinearJitterBackoff);
+
+/**
+ * Retrieve exclusive listing offerings based on category and location
+ */
+const exclusiveListings = AsyncCatch(
+  getExclusiveListings,
+  Retry.LinearJitterBackoff
+);
+
+/**
+ * Retrieve available listings for sale based on location
+ */
+const hotSales = AsyncCatch(getHotSales, Retry.LinearJitterBackoff);
+
+/**
+ * Retrieve available listings for rent based on location
+ */
+const hotLeases = AsyncCatch(getHotLeases, Retry.LinearJitterBackoff);
+
+/**
  * Retrieve a listing item using its :id
  */
 const retrieveListingItem = AsyncCatch(getListing, Retry.LinearJitterBackoff);
@@ -389,4 +447,8 @@ export default {
   deleteListingItem,
   checkoutListingItem,
   validateListingItemStatus,
+  top5Listings,
+  exclusiveListings,
+  hotSales,
+  hotLeases,
 };
