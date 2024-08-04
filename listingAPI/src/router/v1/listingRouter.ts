@@ -5,15 +5,25 @@ import ValidationMiddleware from "../../middleware/validationMiddleware";
 
 const ListingRouterV1 = Router();
 
-ListingRouterV1.route("/").get().post();
+ListingRouterV1.route("/")
+  .get(ListingController.retrieveListingCollection)
+  .post(ListingController.createListingCollection);
 
 ListingRouterV1.route("/search").get();
 
+ListingRouterV1.route("/top-5").get(ListingController.top5Listings);
+
+ListingRouterV1.route("/exclusive").get(ListingController.exclusiveListings);
+
+ListingRouterV1.route("/hot-sale").get(ListingController.hotSales);
+
+ListingRouterV1.route("/hot-lease").get(ListingController.hotLeases);
+
 ListingRouterV1.route("/:id")
-  .get()
+  .get(ListingController.retrieveListingItem)
   .put(ListingMiddleWare.isNotAllowed)
-  .patch()
-  .delete();
+  .patch(ListingController.updateListingItem)
+  .delete(ListingController.deleteListingItem);
 
 ListingRouterV1.route("/:id/checkout").get(
   ListingController.checkoutListingItem
