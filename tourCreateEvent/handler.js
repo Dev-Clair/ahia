@@ -10,11 +10,13 @@ exports.tour = async (event, context) => {
   try {
     const payload = JSON.parse(event.detail);
 
-    const url = `www.ahia.com/tours/`; // Development URL or Elastic Beanstalk Application Public Endpoint
+    const url = `127.0.0.1:5999/api/v1/tours`; // Development URL or Elastic Beanstalk Application Public Endpoint
 
-    const createTour = await new HttpClient(url, {
+    const httpClient = new HttpClient(url, {
       "Content-Type": "application/json",
-    }).Post(payload);
+    });
+
+    const createTour = await httpClient.Post(payload);
 
     if (createTour.statusCode !== 201)
       throw new Error(
