@@ -7,10 +7,10 @@ import Config from "../../config";
 
 const configuration: SESClientConfig = [
   {
-    region: Config.AWS_REGION,
+    region: Config.AWS.REGION,
     credentials: {
-      accessKeyId: Config.AWS_ACCESS_KEY_ID,
-      secretAccessKey: Config.AWS_SECRET_ACCESS_KEY,
+      accessKeyId: Config.AWS.ACCESS_KEY_ID,
+      secretAccessKey: Config.AWS.SECRET_ACCESS_KEY,
     },
   },
 ];
