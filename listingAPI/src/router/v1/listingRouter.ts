@@ -12,7 +12,7 @@ ListingRouterV1.route("/")
 
 ListingRouterV1.route("/search").get();
 
-ListingRouterV1.route("/top-5").get(ListingController.top5Listings);
+ListingRouterV1.route("/top-10").get(ListingController.topListings);
 
 ListingRouterV1.route("/exclusive").get(ListingController.exclusiveListings);
 
