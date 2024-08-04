@@ -26,7 +26,7 @@ const createListing = async (
   try {
     const idempotencyKey = await EnsureIdempotency(req, res);
 
-    const payload = req.body;
+    const payload = req.body as object;
 
     const provider = {
       id: `Provider-` + Math.random(),
@@ -242,7 +242,7 @@ const updateListing = async (
 
   const listing = await Listing.findByIdAndUpdate(
     { _id: req.params.id },
-    req.body,
+    req.body as object,
     {
       new: true,
     }
@@ -323,11 +323,11 @@ const checkoutListing = async (
         id: listing._id,
         name: listing.name,
         transactionReference: listing.status.id,
-        successUrl: `127.0.0.1:5999/api/v1/listings/${listing._id}`, // dev/test uri or elastic beanstalk public endpoint
+        successRedirectUrl: `${Config.SUCCESS_REDIRECT_URL}/${listing._id}`, // dev|test url or elastic beanstalk public endpoint
       })
     );
 
-    return res.redirect(301, `127.0.0.1:6999/payments`);
+    return res.redirect(301, Config.PAYMENT_SERVICE_URL);
   }
 
   return;
