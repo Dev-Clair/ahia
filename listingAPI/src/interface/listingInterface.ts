@@ -1,4 +1,4 @@
-import { Document, Schema } from "mongoose";
+import { Document } from "mongoose";
 
 export default interface ListingInterface extends Document {
   name: string;

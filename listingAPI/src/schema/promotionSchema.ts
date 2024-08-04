@@ -3,11 +3,11 @@ import PromotionInterface from "../interface/promotionInterface";
 
 const PromotionSchema: Schema<PromotionInterface> = new Schema(
   {
-    // listing: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: "Listing",
-    //   required: true,
-    // },
+    listing: {
+      type: Schema.Types.ObjectId,
+      ref: "Listing",
+      required: true,
+    },
     title: {
       type: String,
       trim: true,
