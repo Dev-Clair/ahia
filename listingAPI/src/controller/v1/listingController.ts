@@ -84,6 +84,90 @@ const getListings = async (
 };
 
 /**
+ * Retrieves collection of listings
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getTop5Listings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { data, pagination } = await Features(
+    Listing,
+    { status: { approved: true } },
+    req
+  );
+
+  return res.status(HttpStatusCode.OK).json({
+    data: data,
+    page: pagination.page,
+    limit: pagination.limit,
+    totalItems: pagination.totalItems,
+    totalPages: pagination.totalPages,
+    links: pagination.links,
+  });
+};
+
+/**
+ * Retrieves collection of listings
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getExclusiveListings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { data, pagination } = await Features(
+    Listing,
+    { status: { approved: true } },
+    req
+  );
+
+  return res.status(HttpStatusCode.OK).json({
+    data: data,
+    page: pagination.page,
+    limit: pagination.limit,
+    totalItems: pagination.totalItems,
+    totalPages: pagination.totalPages,
+    links: pagination.links,
+  });
+};
+
+/**
+ * Retrieves collection of listings
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getHotSales = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { data, pagination } = await Features(
+    Listing,
+    { status: { approved: true } },
+    req
+  );
+
+  return res.status(HttpStatusCode.OK).json({
+    data: data,
+    page: pagination.page,
+    limit: pagination.limit,
+    totalItems: pagination.totalItems,
+    totalPages: pagination.totalPages,
+    links: pagination.links,
+  });
+};
+
+/**
  * Retrieves a listing resource from collection
  * @param req
  * @param res

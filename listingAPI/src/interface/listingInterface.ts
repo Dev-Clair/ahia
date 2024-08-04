@@ -23,8 +23,6 @@ export default interface ListingInterface extends Document {
     type: string;
     coordinates: number[];
   };
-  // promotion: Schema.Types.ObjectId[];
-  // attachment: Schema.Types.ObjectId[];
   provider: {
     id: string;
     email: string;
