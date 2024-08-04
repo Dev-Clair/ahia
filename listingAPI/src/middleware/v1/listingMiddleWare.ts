@@ -38,7 +38,7 @@ const isIdempotent = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const getIdempotencyKey = req.headers["idempotency-key"] as string;
+  const getIdempotencyKey = req.headers["Idempotency-Key"] as string;
 
   if (!getIdempotencyKey) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({

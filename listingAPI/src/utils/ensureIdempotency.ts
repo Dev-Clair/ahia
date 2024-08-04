@@ -12,7 +12,7 @@ const EnsureIdempotency = async (
   req: Request,
   res: Response
 ): Promise<Response | string> => {
-  const idempotencyKey = (req.headers["idempotency-key"] as string) || "";
+  const idempotencyKey = (req.headers["Idempotency-Key"] as string) || "";
 
   const verifyOperationIdempotency = await Idempotency.findOne({
     key: idempotencyKey,
