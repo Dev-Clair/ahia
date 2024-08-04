@@ -36,7 +36,7 @@ The ahia Listing Service API is a robust backend service designed to manage real
 
 - **Specialized Endpoints**: Fetch top listings, exclusive listings, and hot sales/leases.
 
-- **Email Notifications**: Sends email notifications upon listing creation.
+- **Email Notifications**: Sends email notifications to providers upon listing creation.
 
 ## Installation
 
