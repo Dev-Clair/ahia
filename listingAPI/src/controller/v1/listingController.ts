@@ -1,4 +1,5 @@
 import AsyncCatch from "../../utils/asyncCatch";
+import CryptoHash from "../../utils/cryptoHash";
 import EnsureIdempotency from "../../utils/ensureIdempotency";
 import { NextFunction, Request, Response } from "express";
 import Config from "../../../config";
@@ -29,9 +30,11 @@ const createListing = async (
     const payload = req.body as object;
 
     const provider = {
-      id: `Provider-` + Math.random(),
-      email: `provider.` + Math.random() * 1000 + `@yahoo.com`,
-    }; // Replace with provider id & email either from auth payload
+      id: (req.headers["Provider-Id"] as string) || `Provider-` + Math.random(),
+      email:
+        (req.headers["Provider-Email"] as string) ||
+        `provider.` + Math.random() * 1000 + `@yahoo.com`,
+    };
 
     const listing = await Listing.create(
       Object.assign(payload, { provider: provider })
@@ -84,25 +87,25 @@ const getListings = async (
 };
 
 /**
- * Retrieves collection of top 5 listings based on location
+ * Retrieves collection of top (10) listings based on provider
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getTop5Listings = async (
+const getTopListings = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { location } = req.query;
+  const { provider } = req.query;
 
   const listings = await Listing.find({
     status: { approved: true },
-    location: location,
+    provider: { id: provider },
   })
     .sort({ createdAt: -1 })
-    .limit(5);
+    .limit(10);
 
   return res.status(HttpStatusCode.OK).json({
     results: listings.length,
@@ -214,12 +217,14 @@ const getListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const listing = await Listing.findById({ _id: req.params.id });
+  const id = req.params.id as string;
+
+  const listing = await Listing.findById({ _id: id });
 
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${req.params.id}`
+      `No listing found for id: ${id}`
     );
   }
 
@@ -238,10 +243,12 @@ const updateListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const id = req.params.id as string;
+
   const idempotencyKey = await EnsureIdempotency(req, res);
 
   const listing = await Listing.findByIdAndUpdate(
-    { _id: req.params.id },
+    { _id: id },
     req.body as object,
     {
       new: true,
@@ -251,11 +258,11 @@ const updateListing = async (
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${req.params.id}`
+      `No listing found for id: ${id}`
     );
   }
 
-  const response = { data: "Modified" };
+  const response = { data: { message: "Modified" } };
 
   await Idempotency.create({
     key: idempotencyKey,
@@ -277,16 +284,18 @@ const deleteListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const listing = await Listing.findByIdAndDelete({ _id: req.params.id });
+  const id = req.params.id as string;
+
+  const listing = await Listing.findByIdAndDelete({ _id: id });
 
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${req.params.id}`
+      `No listing found for id: ${id}`
     );
   }
 
-  return res.status(HttpStatusCode.MODIFIED).json(null);
+  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
 };
 
 /**
@@ -301,21 +310,23 @@ const checkoutListing = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const id = req.params.id as string;
+
   const listing = await Listing.findById({
-    _id: req.params.id,
+    _id: id,
   });
 
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${req.params.id}`
+      `No listing found for id: ${id}`
     );
   }
 
   if (listing.status.approved === false) {
     res.setHeader("Service-Name", Config.SERVICE.NAME);
 
-    res.setHeader("Service-Secret", Config.SERVICE.SECRET);
+    res.setHeader("Service-Secret", await CryptoHash(Config.SERVICE.SECRET));
 
     res.setHeader(
       "Payload",
@@ -345,14 +356,16 @@ const validateListingStatus = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const id = req.params.id as string;
+
   const listing = await Listing.findById({
-    _id: req.params.id,
+    _id: id,
   });
 
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${req.params.id}`
+      `No listing found for id: ${id}`
     );
   }
 
@@ -383,9 +396,9 @@ const createListings = AsyncCatch(
 const retrieveListings = AsyncCatch(getListings, Retry.LinearJitterBackoff);
 
 /**
- * Retrieve top five (5) listing offerings based on location
+ * Retrieve top ten (10) listing offerings based on location
  */
-const top5Listings = AsyncCatch(getTop5Listings, Retry.LinearJitterBackoff);
+const topListings = AsyncCatch(getTopListings, Retry.LinearJitterBackoff);
 
 /**
  * Retrieve exclusive listing offerings based on category and location
@@ -444,7 +457,7 @@ export default {
   deleteListingItem,
   checkoutListingItem,
   validateListingItemStatus,
-  top5Listings,
+  topListings,
   exclusiveListings,
   hotSales,
   hotLeases,
