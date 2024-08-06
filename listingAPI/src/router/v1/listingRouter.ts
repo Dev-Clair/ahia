@@ -3,12 +3,13 @@ import AttachmentController from "../../controller/attachmentController";
 import ListingController from "../../controller/v1/listingController";
 import ListingMiddleWare from "../../middleware/v1/listingMiddleWare";
 import ValidationMiddleware from "../../middleware/validationMiddleware";
+import IsGranted from "../../middleware/authMiddleware";
 
 const ListingRouterV1 = Router();
 
 ListingRouterV1.route("/")
   .get(ListingController.retrieveListings)
-  .post(ListingController.createListings);
+  .post(IsGranted("Provider"), ListingController.createListings);
 
 ListingRouterV1.route("/search").get();
 
