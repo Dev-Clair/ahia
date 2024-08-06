@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 
 /**
- * Creates a cryptographically secure hash of a secret and key
+ * Creates a cryptographically secure hash of a value/secret with an algorithm and key
  * @param secret
  * @param key
  * @returns Promise<string>
