@@ -1,27 +1,33 @@
 import { NextFunction, Request, Response } from "express";
+import HttpStatusCode from "../enum/httpStatusCode";
 import VerifyRole from "../controller/authController";
-
-const IsAuthenticated = (req: Request, res: Response, next: NextFunction) => {};
 
 /**
  * Ensures role based access to resource
  * @param role
- * @returns void
+ * @returns Promise<Response|void>
  */
 const IsGranted =
-  (roles: string[]) =>
-  (req: Request, res: Response, next: NextFunction): void => {
+  (role: string) =>
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     const userRole = req.headers["role"] as string;
 
-    roles.forEach(async (role) => {
-      try {
-        const status = await VerifyRole(userRole, role);
+    const status = await VerifyRole(userRole, role);
 
-        if (status) next();
-      } catch (err: any) {
-        next(err);
-      }
-    });
+    if (!status) {
+      return res.status(HttpStatusCode.UNAUTHORISED).json({
+        data: {
+          message: "Unauthorized!\nPermission Denied",
+          redirect: "home",
+        },
+      });
+    }
+
+    next();
   };
 
 export default IsGranted;
