@@ -1,17 +1,27 @@
 import { NextFunction, Request, Response } from "express";
-import ForbiddenError from "../error/forbiddenError";
-import HttpStatusCode from "../enum/httpStatusCode";
 import VerifyRole from "../controller/authController";
 
+const IsAuthenticated = (req: Request, res: Response, next: NextFunction) => {};
+
+/**
+ * Ensures role based access to resource
+ * @param role
+ * @returns void
+ */
 const IsGranted =
-  (role: string) => (req: Request, res: Response, next: NextFunction) => {
+  (roles: string[]) =>
+  (req: Request, res: Response, next: NextFunction): void => {
     const userRole = req.headers["role"] as string;
 
-    if (!VerifyRole(userRole, role)) {
-      throw new ForbiddenError(HttpStatusCode.FORBIDDEN, "");
-    }
+    roles.forEach(async (role) => {
+      try {
+        const status = await VerifyRole(userRole, role);
 
-    next();
+        if (status) next();
+      } catch (err: any) {
+        next(err);
+      }
+    });
   };
 
 export default IsGranted;
