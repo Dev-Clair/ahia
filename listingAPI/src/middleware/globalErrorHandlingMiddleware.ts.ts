@@ -10,9 +10,9 @@ class GlobalErrorHandlingMiddleware {
       `name: ${err.name}\nmessage: ${err.message}\nstack: ${err.stack}`
     );
 
-    const sender: string = Config.LISTING_ADMIN_EMAIL_I;
+    const sender: string = Config.LISTING.ADMIN_EMAIL_I;
 
-    const recipient: [string] = [Config.LISTING_ADMIN_EMAIL_II];
+    const recipient: [string] = [Config.LISTING.ADMIN_EMAIL_II];
 
     await Mail(
       sender,
