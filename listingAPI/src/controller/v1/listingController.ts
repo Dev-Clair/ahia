@@ -30,9 +30,9 @@ const createListing = async (
     const payload = req.body as object;
 
     const provider = {
-      id: (req.headers["Provider-Id"] as string) || `Provider-` + Math.random(),
+      id: (req.headers["provider-id"] as string) || `provider-` + Math.random(),
       email:
-        (req.headers["Provider-Email"] as string) ||
+        (req.headers["provider-email"] as string) ||
         `provider.` + Math.random() * 1000 + `@yahoo.com`,
     };
 

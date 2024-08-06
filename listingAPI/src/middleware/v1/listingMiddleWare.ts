@@ -40,7 +40,7 @@ const isIdempotent = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const getIdempotencyKey = req.headers["Idempotency-Key"] as string;
+  const getIdempotencyKey = req.headers["idempotency-key"] as string;
 
   if (!getIdempotencyKey) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -67,7 +67,7 @@ const isAllowedContentType = (
 ): Response | void => {
   const allowedContentTypes = ["application/json", "text/html", "text/plain"];
 
-  const getContentType = req.headers["Content-Type"] as string;
+  const getContentType = req.headers["content-type"] as string;
 
   if (!allowedContentTypes.includes(getContentType)) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
