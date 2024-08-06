@@ -326,7 +326,10 @@ const checkoutListing = async (
   if (listing.status.approved === false) {
     res.setHeader("Service-Name", Config.SERVICE.NAME);
 
-    res.setHeader("Service-Secret", await CryptoHash(Config.SERVICE.SECRET));
+    res.setHeader(
+      "Service-Secret",
+      await CryptoHash(Config.SERVICE.SECRET, Config.APP_SECRET)
+    );
 
     res.setHeader(
       "Payload",

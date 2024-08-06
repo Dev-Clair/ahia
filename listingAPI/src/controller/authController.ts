@@ -1,22 +1,30 @@
+import Config from "../../config";
 import CryptoHash from "../utils/cryptoHash";
+import HttpStatusCode from "../enum/httpStatusCode";
+import UnauthorisedError from "../error/unauthorizedError";
 
 /**
- * Verify if user has required permissions to acess a resource
+ * Verifies if user has required permissions to access a resource
  * @param hashedRole
  * @param expectedRole
- * @returns Promise<boolean>
+ * @returns Promise<boolean|Unauthorized>
  */
 const VerifyRole = async (
   hashedRole: string,
   expectedRole: string
-): Promise<boolean> => {
-  const expectedHash = await CryptoHash(expectedRole);
+): Promise<boolean | UnauthorisedError> => {
+  const expectedHash = await CryptoHash(expectedRole, Config.APP_SECRET);
 
-  if (hashedRole !== expectedHash) {
-    return false;
+  if (hashedRole === expectedHash) {
+    return true;
   }
 
-  return true;
+  throw new UnauthorisedError(
+    HttpStatusCode.UNAUTHORISED,
+    "Unathorized!\nPermission Denied",
+    false,
+    "login"
+  );
 };
 
 export default VerifyRole;
