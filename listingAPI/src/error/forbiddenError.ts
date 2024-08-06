@@ -2,8 +2,17 @@ import APIError from "./apiError";
 import HttpStatusCode from "../enum/httpStatusCode";
 
 class ForbiddenError extends APIError {
-  constructor(httpStatusCode: number | HttpStatusCode, message: string) {
-    super("FORBIDDEN", httpStatusCode, true, message);
+  public path: string;
+
+  constructor(
+    httpStatusCode: number | HttpStatusCode,
+    message: string,
+    isOperational: boolean,
+    path: string
+  ) {
+    super("FORBIDDEN", httpStatusCode, isOperational, message);
+
+    this.path = path;
   }
 }
 
