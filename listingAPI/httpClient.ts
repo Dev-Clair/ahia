@@ -1,12 +1,12 @@
-import https from "node:https";
 import crypto from "node:crypto";
+import https from "node:https";
 import Retry from "./src/utils/retry";
 
 interface HttpOptions {
   hostname: string;
   path: string;
   method?: string;
-  headers?: {};
+  headers?: Record<string, string>;
 }
 
 class HttpClient {
@@ -78,7 +78,7 @@ class HttpClient {
 
     if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH") {
       Object.assign(headers, {
-        "Idempotency-Key": this.generateIdempotencyKey(),
+        "idempotency-key": await this.generateIdempotencyKey(),
       });
     }
 
