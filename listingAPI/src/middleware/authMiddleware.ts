@@ -1,44 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import ForbiddenError from "../error/forbiddenError";
 import HttpStatusCode from "../enum/httpStatusCode";
+import VerifyRole from "../controller/authController";
 
-const IsGrantedAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.headers["Role"] as string;
+const IsGranted =
+  (role: string) => (req: Request, res: Response, next: NextFunction) => {
+    const userRole = req.headers["role"] as string;
 
-  if (userRole !== "Admin") {
-    throw new ForbiddenError(HttpStatusCode.FORBIDDEN, "Unauthorized");
-  }
+    if (!VerifyRole(userRole, role)) {
+      throw new ForbiddenError(HttpStatusCode.FORBIDDEN, "");
+    }
 
-  next();
-};
+    next();
+  };
 
-const IsGrantedProvider = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.headers["Role"] as string;
-
-  if (userRole !== "Provider") {
-    throw new ForbiddenError(HttpStatusCode.FORBIDDEN, "Unauthorized");
-  }
-};
-
-const IsGrantedRealtor = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.headers["Role"] as string;
-
-  if (userRole !== "Realtor") {
-    throw new ForbiddenError(HttpStatusCode.FORBIDDEN, "Unauthorized");
-  }
-};
-
-const IsGrantedCustomer = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.headers["Role"] as string;
-
-  if (userRole !== "Customer") {
-    throw new ForbiddenError(HttpStatusCode.FORBIDDEN, "Unauthorized");
-  }
-};
-
-export default {
-  IsGrantedAdmin,
-  IsGrantedProvider,
-  IsGrantedRealtor,
-  IsGrantedCustomer,
-};
+export default IsGranted;
