@@ -9,7 +9,7 @@ const ListingRouterV1 = Router();
 
 ListingRouterV1.route("/")
   .get(ListingController.retrieveListings)
-  .post(IsGranted(["Provider"]), ListingController.createListings);
+  .post(IsGranted("Provider"), ListingController.createListings);
 
 ListingRouterV1.route("/search").get();
 
