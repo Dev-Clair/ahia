@@ -3,13 +3,13 @@ import AttachmentController from "../../controller/attachmentController";
 import ListingController from "../../controller/v1/listingController";
 import ListingMiddleWare from "../../middleware/v1/listingMiddleWare";
 import ValidationMiddleware from "../../middleware/validationMiddleware";
-import IsGranted from "../../middleware/authMiddleware";
+import AuthMiddleWare from "../../middleware/authMiddleware";
 
 const ListingRouterV1 = Router();
 
 ListingRouterV1.route("/")
   .get(ListingController.retrieveListings)
-  .post(IsGranted("Provider"), ListingController.createListings);
+  .post(AuthMiddleWare.IsGranted("Provider"), ListingController.createListings);
 
 ListingRouterV1.route("/search").get();
 
@@ -24,33 +24,42 @@ ListingRouterV1.route("/hot-lease").get(ListingController.hotLeases);
 ListingRouterV1.route("/:id")
   .get(ListingController.retrieveListingItem)
   .put(ListingMiddleWare.isNotAllowed)
-  .patch(ListingMiddleWare.isUpdatable, ListingController.updateListingItem)
+  .patch(
+    AuthMiddleWare.IsGranted("Provider"),
+    ListingMiddleWare.isUpdatable,
+    ListingController.updateListingItem
+  )
   .delete(ListingController.deleteListingItem);
 
 ListingRouterV1.route("/:id/checkout").get(
+  AuthMiddleWare.IsGranted("Provider"),
   ListingController.checkoutListingItem
 );
 
 ListingRouterV1.route("/:id/status").get(
+  AuthMiddleWare.IsGranted("Provider"),
   ListingController.validateListingItemStatus
 );
 
 ListingRouterV1.route("/:id/attachments")
   .get(ListingMiddleWare.isNotAllowed)
-  .post(AttachmentController.createAttachments);
+  .post(
+    AuthMiddleWare.IsGranted("Provider"),
+    AttachmentController.createAttachments
+  );
 
 ListingRouterV1.route("/:id/attachments/:attachmentId")
   .get(ListingMiddleWare.isNotAllowed)
   .put(ListingMiddleWare.isNotAllowed)
   .delete(ListingMiddleWare.isNotAllowed);
 
-ListingRouterV1.route("/:id/promotions")
-  .get(ListingMiddleWare.isNotAllowed)
-  .post();
+// ListingRouterV1.route("/:id/promotions")
+//   .get(ListingMiddleWare.isNotAllowed)
+//   .post();
 
-ListingRouterV1.route("/:id/promotions/:promotionId")
-  .get()
-  .put(ListingMiddleWare.isNotAllowed)
-  .delete();
+// ListingRouterV1.route("/:id/promotions/:promotionId")
+//   .get()
+//   .put(ListingMiddleWare.isNotAllowed)
+// .delete();
 
 export default ListingRouterV1;

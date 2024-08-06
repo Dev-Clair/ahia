@@ -30,4 +30,4 @@ const IsGranted =
     next();
   };
 
-export default IsGranted;
+export default { IsGranted };
