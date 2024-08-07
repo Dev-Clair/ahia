@@ -71,7 +71,7 @@ class HttpClient {
 
     if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH") {
       Object.assign(headers, {
-        "idempotency-key": this.generateIdempotencyKey(),
+        "idempotency-key": await this.generateIdempotencyKey(),
       });
     }
 
