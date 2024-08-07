@@ -1,8 +1,14 @@
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 
-const CryptoHash = (secret: string): Promise<string> => {
+/**
+ * Creates a cryptographically secure hash of a value/secret with an algorithm and key
+ * @param secret
+ * @param key
+ * @returns Promise<string>
+ */
+const CryptoHash = (secret: string, key: string): Promise<string> => {
   return new Promise((resolve) => {
-    resolve(createHash("sha256").update(secret).digest("hex"));
+    resolve(createHmac("sha256", key).update(secret).digest("hex"));
   });
 };
 
