@@ -13,7 +13,7 @@ exports.tour = async (event, context) => {
     const url = `127.0.0.1:5999/api/v1/tours`; // Development URL or Elastic Beanstalk Application Public Endpoint
 
     const httpClient = new HttpClient(url, {
-      "Content-Type": "application/json",
+      "content-type": "application/json",
     });
 
     const createTour = await httpClient.Post(payload);
@@ -23,7 +23,7 @@ exports.tour = async (event, context) => {
         `Tour Creation Failed:\nURL: ${url}\nPayload: ${payload}\nError: ${createTour.body}`
       );
   } catch (err) {
-    Mail(sender, recipient, "TOUR EVENT CREATE ERROR", err.message);
+    Mail(sender, recipient, "EVENT: TOUR CREATION ERROR", err.message);
 
     console.error(err);
   }
