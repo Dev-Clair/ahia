@@ -8,7 +8,7 @@ import VerifyRole from "../controller/authController";
  * @returns Promise<Response|void>
  */
 const IsGranted =
-  (role: string) =>
+  (roles: string[]) =>
   async (
     req: Request,
     res: Response,
@@ -16,18 +16,20 @@ const IsGranted =
   ): Promise<Response | void> => {
     const userRole = req.headers["role"] as string;
 
-    const status = await VerifyRole(userRole, role);
+    for (let role of roles) {
+      const status = await VerifyRole(userRole, role);
 
-    if (!status) {
-      return res.status(HttpStatusCode.FORBIDDEN).json({
-        data: {
-          message:
-            "Forbidden!\nYou do not have the permissions to access this resource",
-        },
-      });
+      if (status) {
+        return next();
+      }
     }
 
-    next();
+    return res.status(HttpStatusCode.FORBIDDEN).json({
+      data: {
+        message:
+          "Forbidden!\nYou do not have the permission to access this resource",
+      },
+    });
   };
 
 export default { IsGranted };

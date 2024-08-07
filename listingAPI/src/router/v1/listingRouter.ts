@@ -9,7 +9,10 @@ const ListingRouterV1 = Router();
 
 ListingRouterV1.route("/")
   .get(ListingController.retrieveListings)
-  .post(AuthMiddleWare.IsGranted("Provider"), ListingController.createListings);
+  .post(
+    AuthMiddleWare.IsGranted(["Provider"]),
+    ListingController.createListings
+  );
 
 ListingRouterV1.route("/search").get();
 
@@ -25,26 +28,26 @@ ListingRouterV1.route("/:id")
   .get(ListingController.retrieveListingItem)
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
-    AuthMiddleWare.IsGranted("Provider"),
+    AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isUpdatable,
     ListingController.updateListingItem
   )
   .delete(ListingController.deleteListingItem);
 
 ListingRouterV1.route("/:id/checkout").get(
-  AuthMiddleWare.IsGranted("Provider"),
+  AuthMiddleWare.IsGranted(["Provider"]),
   ListingController.checkoutListingItem
 );
 
 ListingRouterV1.route("/:id/status").get(
-  AuthMiddleWare.IsGranted("Provider"),
+  AuthMiddleWare.IsGranted(["Provider"]),
   ListingController.validateListingItemStatus
 );
 
 ListingRouterV1.route("/:id/attachments")
   .get(ListingMiddleWare.isNotAllowed)
   .post(
-    AuthMiddleWare.IsGranted("Provider"),
+    AuthMiddleWare.IsGranted(["Provider"]),
     AttachmentController.createAttachments
   );
 
