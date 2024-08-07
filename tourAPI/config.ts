@@ -6,6 +6,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const Config = {
+  APP_SECRET: process.env.APP_SECRET || "",
   AWS: {
     REGION: process.env.AWS_REGION || "af-south-1",
     ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || "",
