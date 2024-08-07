@@ -19,10 +19,10 @@ const IsGranted =
     const status = await VerifyRole(userRole, role);
 
     if (!status) {
-      return res.status(HttpStatusCode.UNAUTHORISED).json({
+      return res.status(HttpStatusCode.FORBIDDEN).json({
         data: {
-          message: "Unauthorized!\nPermission Denied",
-          redirect: "home",
+          message:
+            "Forbidden!\nYou do not have the permissions to access this resource",
         },
       });
     }
