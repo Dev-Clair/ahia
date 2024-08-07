@@ -8,11 +8,11 @@ import Idempotency from "../model/idempotencyModel";
  * @param res
  * @returns Promise<Response | string>
  */
-const EnsureIdempotency = async (
+const GetIdempotencyKey = async (
   req: Request,
   res: Response
 ): Promise<Response | string> => {
-  const idempotencyKey = (req.headers["Idempotency-Key"] as string) || "";
+  const idempotencyKey = (req.headers["idempotency-key"] as string) || "";
 
   const verifyOperationIdempotency = await Idempotency.findOne({
     key: idempotencyKey,
@@ -27,4 +27,4 @@ const EnsureIdempotency = async (
   return idempotencyKey;
 };
 
-export default EnsureIdempotency;
+export default GetIdempotencyKey;
