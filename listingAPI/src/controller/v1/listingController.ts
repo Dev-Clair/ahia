@@ -5,7 +5,6 @@ import { NextFunction, Request, Response } from "express";
 import Config from "../../../config";
 import Features from "../../utils/feature";
 import HttpStatusCode from "../../enum/httpStatusCode";
-import Idempotency from "../../model/idempotencyModel";
 import Listing from "../../model/listingModel";
 import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
