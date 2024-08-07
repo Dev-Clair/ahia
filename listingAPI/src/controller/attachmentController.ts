@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import Attachment from "../model/attachmentModel";
-import EnsureIdempotency from "../utils/ensureIdempotency";
 import storageService from "../service/storageService";
 import Listing from "../model/listingModel";
-import Idempotency from "../model/idempotencyModel";
 import HttpStatusCode from "../enum/httpStatusCode";
 import NotFoundError from "../error/notfoundError";
+import GetIdempotencyKey from "../utils/getIdempotencyKey";
+import StoreIdempotencyKey from "../utils/storeIdempotencyKey";
 
 /**
  * Creates a new attachment resource in collection
@@ -19,7 +19,7 @@ const createAttachments = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = await EnsureIdempotency(req, res);
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
   const id = req.params.id;
 
@@ -49,10 +49,7 @@ const createAttachments = async (
     },
   };
 
-  await Idempotency.create({
-    key: idempotencyKey,
-    response: response,
-  });
+  await StoreIdempotencyKey(idempotencyKey, response);
 
   return res.status(HttpStatusCode.CREATED).json(response);
 };
