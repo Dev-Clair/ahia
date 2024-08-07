@@ -13,9 +13,7 @@ const VerifyRole = async (
 ): Promise<boolean> => {
   const expectedHash = await CryptoHash(expectedRole, Config.APP_SECRET);
 
-  if (hashedRole === expectedHash) return true;
-
-  return false;
+  return hashedRole === expectedHash;
 };
 
 export default VerifyRole;
