@@ -1,8 +1,8 @@
 import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
-import EnsureIdempotency from "../../utils/ensureIdempotency";
 import Config from "../../../config";
 import { NextFunction, Request, Response } from "express";
+import GetIdempotencyKey from "../../utils/getIdempotencyKey";
 import Features from "../../utils/feature";
 import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
@@ -10,13 +10,11 @@ import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import InternalServerError from "../../error/internalserverError";
-import DuplicateTransactionError from "../../error/duplicateTransactionError";
-import PaymentEventPayloadError from "../../error/paymentEventPayloadError";
 import Retry from "../../utils/retry";
 import Tour from "../../model/tourModel";
-import Idempotency from "../../model/idempotencyModel";
 import Realtor from "../../model/realtorModel";
 import Schedule from "../../model/scheduleModel";
+import StoreIdempotencyKey from "../../utils/storeIdempotencyKey";
 
 /**
  * Creates a new tour resource in collection
@@ -30,30 +28,15 @@ const createTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { customer, listings, transactionRef } = req.body;
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
-  if (!customer || !listings! || transactionRef) {
-    throw new PaymentEventPayloadError("Invalid request body data structure");
-  }
-
-  const verifyOperationIdempotency = await Idempotency.findOne({
-    key: transactionRef,
-  });
-
-  if (verifyOperationIdempotency) {
-    throw new DuplicateTransactionError(
-      `Duplicate transaction reference detected: ${transactionRef}`
-    );
-  }
+  const { customer, listings } = req.body;
 
   await Tour.create({ customer, listings });
 
-  const response = { data: "Created" };
+  const response = { data: { message: "Created" } };
 
-  await Idempotency.create({
-    key: transactionRef,
-    response: response,
-  });
+  await StoreIdempotencyKey(idempotencyKey, response);
 
   // await Mail(); // Send mail to customer confirming tour creation success
 
@@ -122,7 +105,7 @@ const updateTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = EnsureIdempotency(req, res);
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
   const id = req.params.id as string;
 
@@ -141,10 +124,7 @@ const updateTour = async (
 
   const response = { data: "Modified" };
 
-  await Idempotency.create({
-    key: idempotencyKey,
-    response: response,
-  });
+  await StoreIdempotencyKey(idempotencyKey, response);
 
   return res.status(HttpStatusCode.MODIFIED).json(response);
 };
@@ -306,9 +286,12 @@ const getRealtors = async (
     Config.IAM_SERVICE_URL +
       `/realtors?status=available&location=${tour.location}`,
     {
-      "Content-Type": "application/json",
-      "Service-Name": Config.SERVICE.NAME,
-      "Service-Secret": await CryptoHash(Config.SERVICE.SECRET),
+      "content-type": "application/json",
+      "service-name": Config.SERVICE.NAME,
+      "service-secret": await CryptoHash(
+        Config.SERVICE.SECRET,
+        Config.APP_SECRET
+      ),
     }
   );
 
@@ -357,7 +340,7 @@ const selectRealtor = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = EnsureIdempotency(req, res);
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
   const tourId = req.params.id as string;
 
@@ -377,10 +360,7 @@ const selectRealtor = async (
     },
   };
 
-  await Idempotency.create({
-    key: idempotencyKey,
-    response: response,
-  });
+  await StoreIdempotencyKey(idempotencyKey, response);
 
   return res.status(HttpStatusCode.CREATED).json(response);
 };
@@ -473,11 +453,11 @@ const scheduleTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+
   const id = req.params.id as string;
 
   const { date, time } = req.body;
-
-  const idempotencyKey = EnsureIdempotency(req, res);
 
   const tour = await Tour.findByIdAndUpdate(
     { _id: id },
@@ -495,10 +475,7 @@ const scheduleTour = async (
     data: { message: "Your tour schedule have been successfully set." },
   };
 
-  await Idempotency.create({
-    key: idempotencyKey,
-    response: response,
-  });
+  await StoreIdempotencyKey(idempotencyKey, response);
 
   return res.status(HttpStatusCode.CREATED).json(response);
 };
@@ -515,11 +492,11 @@ const rescheduleTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+
   const id = req.params.id as string;
 
   const { date, time } = req.body;
-
-  const idempotencyKey = EnsureIdempotency(req, res);
 
   await Schedule.create({
     tourId: id,
@@ -533,10 +510,7 @@ const rescheduleTour = async (
     },
   };
 
-  await Idempotency.create({
-    key: idempotencyKey,
-    response: response,
-  });
+  await StoreIdempotencyKey(idempotencyKey, response);
 
   return res.status(HttpStatusCode.CREATED).json(response);
 };
