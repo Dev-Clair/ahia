@@ -1,8 +1,19 @@
-import ForbiddenError from "../error/forbiddenError";
-import HttpStatusCode from "../enum/httpStatusCode";
+import Config from "../../config";
+import CryptoHash from "../utils/cryptoHash";
 
-async function isGranted(role: string) {
-  if (!role) {
-    throw new ForbiddenError(HttpStatusCode.FORBIDDEN, "Action Forbidden");
-  }
-}
+/**
+ * Verifies if user has required permissions to access a resource
+ * @param hashedRole
+ * @param expectedRole
+ * @returns Promise<boolean>
+ */
+const VerifyRole = async (
+  hashedRole: string,
+  expectedRole: string
+): Promise<boolean> => {
+  const expectedHash = await CryptoHash(expectedRole, Config.APP_SECRET);
+
+  return hashedRole === expectedHash;
+};
+
+export default VerifyRole;
