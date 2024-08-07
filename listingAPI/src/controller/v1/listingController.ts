@@ -1,6 +1,6 @@
 import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
-import EnsureIdempotency from "../../utils/ensureIdempotency";
+import GetIdempotencyKey from "../../utils/getIdempotencyKey";
 import { NextFunction, Request, Response } from "express";
 import Config from "../../../config";
 import Features from "../../utils/feature";
@@ -11,6 +11,7 @@ import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import Retry from "../../utils/retry";
+import StoreIdempotencyKey from "../../utils/storeIdempotencyKey";
 
 /**
  * Creates a new listing resource in collection
@@ -25,7 +26,7 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const idempotencyKey = await EnsureIdempotency(req, res);
+    const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
     const payload = req.body as object;
 
@@ -44,10 +45,7 @@ const createListing = async (
       data: { message: "Created", reference: listing.status.id },
     };
 
-    await Idempotency.create({
-      key: idempotencyKey,
-      response: response,
-    });
+    await StoreIdempotencyKey(idempotencyKey, response);
 
     // Send mail to provider confirming listing creation success with transaction reference and expiry date
     // await Mail();
@@ -245,7 +243,7 @@ const updateListing = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const idempotencyKey = await EnsureIdempotency(req, res);
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
   const listing = await Listing.findByIdAndUpdate(
     { _id: id },
@@ -264,10 +262,7 @@ const updateListing = async (
 
   const response = { data: { message: "Modified" } };
 
-  await Idempotency.create({
-    key: idempotencyKey,
-    response: response,
-  });
+  await StoreIdempotencyKey(idempotencyKey, response);
 
   return res.status(HttpStatusCode.MODIFIED).json(response);
 };
@@ -323,16 +318,16 @@ const checkoutListing = async (
     );
   }
 
-  if (listing.status.approved === false) {
-    res.setHeader("Service-Name", Config.SERVICE.NAME);
+  if (!listing.status.approved) {
+    res.setHeader("service-name", Config.SERVICE.NAME);
 
     res.setHeader(
-      "Service-Secret",
+      "service-secret",
       await CryptoHash(Config.SERVICE.SECRET, Config.APP_SECRET)
     );
 
     res.setHeader(
-      "Payload",
+      "payload",
       JSON.stringify({
         id: listing._id,
         name: listing.name,
@@ -372,7 +367,7 @@ const validateListingStatus = async (
     );
   }
 
-  if (listing.status.approved !== true) {
+  if (!listing.status.approved) {
     return res.status(HttpStatusCode.FORBIDDEN).json({
       data: {
         message: `${listing.name} has not been been approved for listing. Kindly pay the listing fee to approve this listing`,
@@ -381,7 +376,9 @@ const validateListingStatus = async (
   }
 
   return res.status(HttpStatusCode.OK).json({
-    message: `${listing.name} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
+    data: {
+      message: `${listing.name} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
+    },
   });
 };
 
