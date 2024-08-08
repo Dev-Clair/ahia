@@ -14,7 +14,7 @@ let errorCache = new Cache.SetCache();
 const sender = Config.LISTING_NOTIFICATION_EMAIL;
 
 const getMessage = (name, status) => {
-  return `The transaction reference ${
+  return `The listing reference ${
     status.id
   } for listing ${name.toUpperCase()} have expired and the listing have been deleted due to failure to make payment before the deadline ${new Date(
     status.expiry
