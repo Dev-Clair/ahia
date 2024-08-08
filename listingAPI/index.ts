@@ -29,19 +29,18 @@ try {
 } catch (err: any) {
   if (err instanceof ConnectionError) {
     const text = JSON.stringify({
+      name: err.name,
       message: err.message,
       description: err.description,
     });
 
     Mail(sender, recipient, err.name, text);
 
-    // process.exitCode = 1;
-
-    process.kill(process.pid, "SIGTERM");
+    mongoose.connection.close(true);
   }
 
   if (err instanceof MailerError) {
-    console.error(err);
+    Logger.error(err);
 
     process.kill(process.pid, "SIGTERM");
   }
@@ -50,20 +49,18 @@ try {
 const shutdown = () => {
   Logger.info("Shutting down gracefully...");
 
-  // Close open database connections
-  mongoose.connection.close(true);
-
-  // Close running server process
   server.closeAllConnections();
 };
 
 process.on("uncaughtException", (error) => {
   Logger.error("Uncaught Exception thrown:", error);
+
   process.exitCode = 1;
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+
   process.exitCode = 1;
 });
 
