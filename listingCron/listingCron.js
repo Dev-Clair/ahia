@@ -13,17 +13,21 @@ let errorCache = new Cache.SetCache();
 
 const sender = Config.LISTING_NOTIFICATION_EMAIL;
 
+const getMessage = (name, status) => {
+  return `The transaction reference ${
+    status.id
+  } for listing ${name.toUpperCase()} have expired and the listing have been deleted due to failure to make payment before the deadline ${new Date(
+    status.expiry
+  ).toDateString()}.\nKindly recreate listing and make payment with the new listing reference to enable visibility your listing.`;
+};
+
 const ListingCron = async () => {
   const listingGenerator = ListingGenerator();
 
   for await (const listing of listingGenerator) {
     const { id, name, provider, status } = listing;
 
-    const text = `The transaction reference ${
-      status.id
-    } for listing ${name.toUpperCase()} have expired and the listing have been deleted due to failure to make payment before the deadline ${new Date(
-      status.expiry
-    ).toDateString()}.\nKindly recreate listing and make payment with the new listing reference to enable visibility your listing.`;
+    const text = getMessage(name, status);
 
     try {
       await Listing.findByIdAndDelete({ _id: id });
