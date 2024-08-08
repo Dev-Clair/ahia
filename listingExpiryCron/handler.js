@@ -18,7 +18,7 @@ exports.cron = async (event, context) => {
     const message = JSON.stringify(cronLog);
 
     if (cronLog.status === false) {
-      await Mail(sender, recipient, "LISTING CRON LOG", message);
+      await Mail(sender, recipient, "LISTING EXPIRY CRON LOG", message);
     }
   } catch (err) {
     if (err instanceof ConnectionError) {
