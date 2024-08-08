@@ -1,3 +1,4 @@
+const timezone = require("moment-timezone");
 const Listing = require("./listingModel");
 
 const ListingGenerator = async function* () {
@@ -11,8 +12,8 @@ const ListingGenerator = async function* () {
 
   while (true) {
     const listings = await Listing.find({
-      reference: {
-        status: "pending",
+      status: {
+        approved: false,
         expiry: { $lte: new Date() },
       },
     })
@@ -20,16 +21,16 @@ const ListingGenerator = async function* () {
       .limit(pageSize);
 
     if (listings.length === 0 || !listings) {
-      console.log("No listing transactions are pending at the moment");
+      console.log("No listings are unapproved at the moment");
       break;
     }
 
     const now = new Date().getTime();
 
     for (const listing of listings) {
-      const { _id, name, provider, reference } = listing;
+      const { _id, name, provider, status } = listing;
 
-      const expiry = new Date(reference.expiry).getTime();
+      const expiry = new Date(status.expiry).getTime();
 
       const diff = expiry - now;
 
@@ -38,7 +39,7 @@ const ListingGenerator = async function* () {
           id: _id,
           name,
           provider,
-          reference,
+          status,
         };
       }
     }

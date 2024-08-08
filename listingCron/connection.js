@@ -6,6 +6,9 @@ const establishConnection = async (connectionUri) => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(connectionUri, {
       serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 120,
+      minPoolSize: 20,
+      socketTimeoutMS: 60000,
     });
   }
 };

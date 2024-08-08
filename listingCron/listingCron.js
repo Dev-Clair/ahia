@@ -17,18 +17,23 @@ const ListingCron = async () => {
   const listingGenerator = ListingGenerator();
 
   for await (const listing of listingGenerator) {
-    const { id, name, provider, reference } = listing;
+    const { id, name, provider, status } = listing;
 
     const text = `The transaction reference ${
-      reference.id
-    } for listing ${name} have expired and the listing ${name} have been deleted due to failure to make payment before the deadline ${new Date(
-      reference.expiry
-    ).toDateString()}.\nKindly recreate listing and make payment on the new listing reference to secure your listing.`;
+      status.id
+    } for listing ${name.toUpperCase()} have expired and the listing have been deleted due to failure to make payment before the deadline ${new Date(
+      status.expiry
+    ).toDateString()}.\nKindly recreate listing and make payment with the new listing reference to enable visibility your listing.`;
 
     try {
       await Listing.findByIdAndDelete({ _id: id });
 
-      await Mail(sender, [provider.email], `LISTING ${name} REMOVAL`, text);
+      await Mail(
+        sender,
+        [provider.email],
+        `LISTING ${name.toUpperCase()} REMOVAL`,
+        text
+      );
 
       successCount++;
     } catch (err) {
@@ -38,24 +43,26 @@ const ListingCron = async () => {
 
       errorCache.set(
         id,
-        `Failed to remove listing:\nName:${name}\nId:${id}\nError: ${err.message}`
+        `Failed to remove listing:\nName:${name.toUpperCase()}\nId:${id}\nError: ${
+          err.message
+        }`
       );
 
       failedCount++;
     }
-
-    return {
-      log: {
-        success: successCount,
-        failed: failedCount,
-      },
-      status: errorCache.size() === 0,
-      error: {
-        count: errorCache.size(),
-        errors: errorCache.entries(),
-      },
-    };
   }
+
+  return {
+    log: {
+      success: successCount,
+      failed: failedCount,
+    },
+    status: errorCache.size() === 0,
+    error: {
+      count: errorCache.size(),
+      errors: errorCache.entries(),
+    },
+  };
 };
 
 module.exports = ListingCron;
