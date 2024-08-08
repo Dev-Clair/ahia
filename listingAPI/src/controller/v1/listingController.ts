@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
 import GetIdempotencyKey from "../../utils/getIdempotencyKey";
@@ -17,12 +18,14 @@ import StoreIdempotencyKey from "../../utils/storeIdempotencyKey";
  * @param req
  * @param res
  * @param next
+ * @param session
  * @returns Promise<Response | void>
  */
 const createListing = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
+  session: mongoose.ClientSession
 ): Promise<Response | void> => {
   try {
     const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
@@ -36,15 +39,15 @@ const createListing = async (
         `provider.` + Math.random() * 1000 + `@yahoo.com`,
     };
 
-    const listing = await Listing.create(
-      Object.assign(payload, { provider: provider })
-    );
+    Object.assign(payload, { provider: provider });
+
+    const listing = await Listing.create([payload], { session });
 
     const response = {
       data: { message: "Created", reference: listing.status.id },
     };
 
-    await StoreIdempotencyKey(idempotencyKey, response);
+    await StoreIdempotencyKey(idempotencyKey, response, session);
 
     // Send mail to provider confirming listing creation success with transaction reference and expiry date
     // await Mail();
@@ -221,7 +224,7 @@ const getListing = async (
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${id}`
+      `No record found for listing: ${listing.name}`
     );
   }
 
@@ -233,12 +236,14 @@ const getListing = async (
  * @param req
  * @param res
  * @param next
+ * @param session
  * @returns Promise<Response | void>
  */
 const updateListing = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
+  session: mongoose.ClientSession
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
@@ -249,19 +254,20 @@ const updateListing = async (
     req.body as object,
     {
       new: true,
+      session,
     }
   );
 
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${id}`
+      `No record found for listing: ${listing.name}`
     );
   }
 
-  const response = { data: { message: "Modified" } };
+  const response = { data: "Modified" };
 
-  await StoreIdempotencyKey(idempotencyKey, response);
+  await StoreIdempotencyKey(idempotencyKey, response, session);
 
   return res.status(HttpStatusCode.MODIFIED).json(response);
 };
@@ -271,25 +277,27 @@ const updateListing = async (
  * @param req
  * @param res
  * @param next
+ * @param session
  * @returns Promise<Response | void>
  */
 const deleteListing = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
+  session: mongoose.ClientSession
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const listing = await Listing.findByIdAndDelete({ _id: id });
+  const listing = await Listing.findByIdAndDelete({ _id: id }, { session });
 
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${id}`
+      `No record found for listing: ${listing.name}`
     );
   }
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -313,7 +321,7 @@ const checkoutListing = async (
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${id}`
+      `No record found for listing: ${listing.name}`
     );
   }
 
@@ -330,8 +338,8 @@ const checkoutListing = async (
       JSON.stringify({
         id: listing._id,
         name: listing.name,
+        provider: { id: listing.provider.id, email: listing.provider.email },
         transactionReference: listing.status.id,
-        successRedirectUrl: `${Config.SUCCESS_REDIRECT_URL}/${listing._id}`, // dev|test url or elastic beanstalk public endpoint
       })
     );
 
@@ -362,7 +370,7 @@ const validateListingStatus = async (
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No listing found for id: ${id}`
+      `No record found for listing: ${listing.name}`
     );
   }
 
@@ -386,7 +394,9 @@ const validateListingStatus = async (
  */
 const createListings = AsyncCatch(
   createListing,
-  Retry.ExponentialJitterBackoff
+  Retry.ExponentialJitterBackoff,
+  undefined,
+  true
 );
 
 /**
@@ -427,7 +437,9 @@ const retrieveListingItem = AsyncCatch(getListing, Retry.LinearJitterBackoff);
  */
 const updateListingItem = AsyncCatch(
   updateListing,
-  Retry.ExponentialJitterBackoff
+  Retry.ExponentialJitterBackoff,
+  undefined,
+  true
 );
 
 /**
