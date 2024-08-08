@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: ahia listing service cron.
+Description: ahia listing service expiry cron.
 
 Parameters:
   AWSRegion:
@@ -16,16 +16,12 @@ Parameters:
     Type: String
   ListingAdminEmailI:
     Type: String
-  ListingAdminEmailII:
-    Type: String
-  ListingAdminEmailIII:
-    Type: String
 
 Resources:
-  AhiaListingServiceCronFunction:
+  AhiaListingServiceExpiryCronFunction:
     Type: "AWS::Lambda::Function"
     Properties:
-      FunctionName: "ahia-listing-service-cron"
+      FunctionName: "ahia-listing-service-expiry-cron"
       Handler: "handler.cron"
       Runtime: "nodejs20.x"
       MemorySize: 512
@@ -35,14 +31,12 @@ Resources:
           MONGO_URI: !Ref MongoUri
           LISTING_NOTIFICATION_EMAIL: !Ref ListingNotificationEmail
           LISTING_ADMIN_EMAIL_I: !Ref ListingAdminEmailI
-          LISTING_ADMIN_EMAIL_II: !Ref ListingAdminEmailII
-          LISTING_ADMIN_EMAIL_III: !Ref ListingAdminEmailIII
-      Role: !GetAtt AhiaListingServiceCronRole.Arn
+      Role: !GetAtt AhiaListingServiceExpiryCronRole.Arn
       Code:
         S3Bucket: " "
         S3Key: " "
 
-  AhiaListingServiceCronRole:
+  AhiaListingServiceExpiryCronRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -53,7 +47,7 @@ Resources:
               Service: "lambda.amazonaws.com"
             Action: "sts:AssumeRole"
       Policies:
-        - PolicyName: "ahia-listing-service-cron-policy"
+        - PolicyName: "ahia-listing-service-expiry-cron-policy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -67,7 +61,7 @@ Resources:
                 Action: "events:PutEvents"
                 Resource: "*"
 
-  AhiaListingServiceCronRule:
+  AhiaListingServiceExpiryCronRule:
     Type: "AWS::Events::Rule"
     Properties:
       EventBusName: !Ref AWSDefaultEventBus
@@ -75,13 +69,13 @@ Resources:
         source:
           - "aws"
       Targets:
-        - Arn: !GetAtt AhiaListingServiceCronFunction.Arn
-          Id: "AhiaListingServiceCronTarget"
+        - Arn: !GetAtt AhiaListingServiceExpiryCronFunction.Arn
+          Id: "AhiaListingServiceExpiryCronTarget"
 
-  AhiaListingServiceCronPermission:
+  AhiaListingServiceExpiryCronPermission:
     Type: "AWS::Lambda::Permission"
     Properties:
       Action: "lambda:InvokeFunction"
-      FunctionName: !Ref AhiaListingServiceCronFunction
+      FunctionName: !Ref AhiaListingServiceExpiryCronFunction
       Principal: "events.amazonaws.com"
-      SourceArn: !GetAtt AhiaListingServiceCronRule.Arn
+      SourceArn: !GetAtt AhiaListingServiceExpiryCronRule.Arn
