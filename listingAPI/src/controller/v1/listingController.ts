@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import AsyncCatch from "../../utils/asyncCatch";
+import Config from "../../../config";
 import CryptoHash from "../../utils/cryptoHash";
+import Features from "../../utils/feature";
 import GetIdempotencyKey from "../../utils/getIdempotencyKey";
 import { NextFunction, Request, Response } from "express";
-import Config from "../../../config";
-import Features from "../../utils/feature";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Listing from "../../model/listingModel";
 import Mail from "../../utils/mail";
@@ -18,43 +18,46 @@ import StoreIdempotencyKey from "../../utils/storeIdempotencyKey";
  * @param req
  * @param res
  * @param next
- * @param session
  * @returns Promise<Response | void>
  */
 const createListing = async (
   req: Request,
   res: Response,
-  next: NextFunction,
-  session: mongoose.ClientSession
+  next: NextFunction
 ): Promise<Response | void> => {
+  const session = await mongoose.startSession();
+
   try {
-    const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+    await session.withTransaction(async () => {
+      const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
-    const payload = req.body as object;
+      const payload = req.body as object;
 
-    const provider = {
-      id: (req.headers["provider-id"] as string) || `provider-` + Math.random(),
-      email:
-        (req.headers["provider-email"] as string) ||
-        `provider.` + Math.random() * 1000 + `@yahoo.com`,
-    };
+      const provider = {
+        id:
+          (req.headers["provider-id"] as string) || `provider-` + Math.random(),
+        email:
+          (req.headers["provider-email"] as string) ||
+          `provider.` + Math.random() * 1000 + `@yahoo.com`,
+      };
 
-    Object.assign(payload, { provider: provider });
+      Object.assign(payload, { provider: provider });
 
-    const listing = await Listing.create([payload], { session });
+      await Listing.create([payload], { session });
 
-    const response = {
-      data: { message: "Created", reference: listing.status.id },
-    };
+      const response = { data: "Created" };
 
-    await StoreIdempotencyKey(idempotencyKey, response, session);
+      await StoreIdempotencyKey(idempotencyKey, response, session);
 
-    // Send mail to provider confirming listing creation success with transaction reference and expiry date
-    // await Mail();
+      // Send mail to provider confirming listing creation success with transaction reference and expiry date
+      // await Mail();
 
-    return res.status(HttpStatusCode.CREATED).json(response);
-  } catch (err) {
+      return res.status(HttpStatusCode.CREATED).json(response);
+    });
+  } catch (err: any) {
     throw err;
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -116,22 +119,22 @@ const getTopListings = async (
 };
 
 /**
- * Retrieves collection of exclusive listing offerings based on category and location
+ * Retrieves collection of listing offerings available for lease/rent based on location
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getExclusiveListings = async (
+const getHotLeases = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { category, location } = req.query;
+  const { location } = req.query;
 
   const listings = await Listing.find({
     status: { approved: true },
-    category,
+    purpose: "lease",
     location,
   })
     .sort({ createdAt: -1 })
@@ -176,13 +179,13 @@ const getHotSales = async (
 };
 
 /**
- * Retrieves collection of listing offerings available for lease/rent based on location
+ * Retrieves collection of listing offerings based on type and location
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getHotLeases = async (
+const getOnGoingListings = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -191,7 +194,67 @@ const getHotLeases = async (
 
   const listings = await Listing.find({
     status: { approved: true },
-    purpose: "rent",
+    type: "on-going",
+    location,
+  })
+    .sort({ createdAt: -1 })
+    .limit(100);
+
+  return res.status(HttpStatusCode.OK).json({
+    results: listings.length,
+    data: {
+      listings,
+    },
+  });
+};
+
+/**
+ * Retrieves collection of listing offerings based on type and location
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getNowSellingListings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { location } = req.query;
+
+  const listings = await Listing.find({
+    status: { approved: true },
+    type: "now-selling",
+    location,
+  })
+    .sort({ createdAt: -1 })
+    .limit(100);
+
+  return res.status(HttpStatusCode.OK).json({
+    results: listings.length,
+    data: {
+      listings,
+    },
+  });
+};
+
+/**
+ * Retrieves collection of exclusive listing offerings based on category and location
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getExclusiveListings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { category, location } = req.query;
+
+  const listings = await Listing.find({
+    status: { approved: true },
+    category,
     location,
   })
     .sort({ createdAt: -1 })
@@ -224,7 +287,7 @@ const getListing = async (
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${listing.name}`
+      `No record found for listing: ${id}`
     );
   }
 
@@ -236,40 +299,48 @@ const getListing = async (
  * @param req
  * @param res
  * @param next
- * @param session
  * @returns Promise<Response | void>
  */
 const updateListing = async (
   req: Request,
   res: Response,
-  next: NextFunction,
-  session: mongoose.ClientSession
+  next: NextFunction
 ): Promise<Response | void> => {
-  const id = req.params.id as string;
+  const session = await mongoose.startSession();
 
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  try {
+    await session.withTransaction(async () => {
+      const id = req.params.id as string;
 
-  const listing = await Listing.findByIdAndUpdate(
-    { _id: id },
-    req.body as object,
-    {
-      new: true,
-      session,
-    }
-  );
+      const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
 
-  if (!listing) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${listing.name}`
-    );
+      const listing = await Listing.findByIdAndUpdate(
+        { _id: id },
+        req.body as object,
+        {
+          new: true,
+          session,
+        }
+      );
+
+      if (!listing) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No record found for listing: ${id}`
+        );
+      }
+
+      const response = { data: "Modified" };
+
+      await StoreIdempotencyKey(idempotencyKey, response, session);
+
+      return res.status(HttpStatusCode.MODIFIED).json(response);
+    });
+  } catch (err: any) {
+    throw err;
+  } finally {
+    await session.endSession();
   }
-
-  const response = { data: "Modified" };
-
-  await StoreIdempotencyKey(idempotencyKey, response, session);
-
-  return res.status(HttpStatusCode.MODIFIED).json(response);
 };
 
 /**
@@ -277,27 +348,35 @@ const updateListing = async (
  * @param req
  * @param res
  * @param next
- * @param session
  * @returns Promise<Response | void>
  */
 const deleteListing = async (
   req: Request,
   res: Response,
-  next: NextFunction,
-  session: mongoose.ClientSession
+  next: NextFunction
 ): Promise<Response | void> => {
-  const id = req.params.id as string;
+  const session = await mongoose.startSession();
 
-  const listing = await Listing.findByIdAndDelete({ _id: id }, { session });
+  try {
+    await session.withTransaction(async () => {
+      const id = req.params.id as string;
 
-  if (!listing) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${listing.name}`
-    );
+      const listing = await Listing.findByIdAndDelete({ _id: id }, { session });
+
+      if (!listing) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No record found for listing: ${id}`
+        );
+      }
+
+      return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+    });
+  } catch (err: any) {
+    throw err;
+  } finally {
+    await session.endSession();
   }
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -314,23 +393,21 @@ const checkoutListing = async (
 ): Promise<void> => {
   const id = req.params.id as string;
 
-  const listing = await Listing.findById({
-    _id: id,
-  });
+  const listing = await Listing.findById({ _id: id });
 
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${listing.name}`
+      `No record found for listing: ${id}`
     );
   }
 
   if (!listing.status.approved) {
-    res.setHeader("service-name", Config.SERVICE.NAME);
+    res.setHeader("service-name", Config.LISTING.SERVICE.NAME);
 
     res.setHeader(
       "service-secret",
-      await CryptoHash(Config.SERVICE.SECRET, Config.APP_SECRET)
+      await CryptoHash(Config.LISTING.SERVICE.SECRET, Config.APP_SECRET)
     );
 
     res.setHeader(
@@ -338,8 +415,7 @@ const checkoutListing = async (
       JSON.stringify({
         id: listing._id,
         name: listing.name,
-        provider: { id: listing.provider.id, email: listing.provider.email },
-        transactionReference: listing.status.id,
+        email: listing.provider.email,
       })
     );
 
@@ -350,13 +426,13 @@ const checkoutListing = async (
 };
 
 /**
- * Validates a listing payment status
+ * Verifies a listing approval status
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const validateListingStatus = async (
+const verifyListingApproval = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -370,22 +446,18 @@ const validateListingStatus = async (
   if (!listing) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${listing.name}`
+      `No record found for listing: ${id}`
     );
   }
 
   if (!listing.status.approved) {
     return res.status(HttpStatusCode.FORBIDDEN).json({
-      data: {
-        message: `${listing.name} has not been been approved for listing. Kindly pay the listing fee to approve this listing`,
-      },
+      data: `${listing.name} has not been been approved for listing. Kindly pay the listing fee to approve this listing`,
     });
   }
 
   return res.status(HttpStatusCode.OK).json({
-    data: {
-      message: `${listing.name} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
-    },
+    data: `${listing.name} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
   });
 };
 
@@ -394,9 +466,7 @@ const validateListingStatus = async (
  */
 const createListings = AsyncCatch(
   createListing,
-  Retry.ExponentialJitterBackoff,
-  undefined,
-  true
+  Retry.ExponentialJitterBackoff
 );
 
 /**
@@ -405,27 +475,34 @@ const createListings = AsyncCatch(
 const retrieveListings = AsyncCatch(getListings, Retry.LinearJitterBackoff);
 
 /**
- * Retrieve top ten (10) listing offerings based on location
+ * Retrieve top ten (10) listing offerings based on provider
  */
 const topListings = AsyncCatch(getTopListings, Retry.LinearJitterBackoff);
 
 /**
- * Retrieve exclusive listing offerings based on category and location
+ * Retrieve available listings for lease based on location
  */
-const exclusiveListings = AsyncCatch(
-  getExclusiveListings,
-  Retry.LinearJitterBackoff
-);
+const hotLease = AsyncCatch(getHotLeases, Retry.LinearJitterBackoff);
 
 /**
  * Retrieve available listings for sale based on location
  */
-const hotSales = AsyncCatch(getHotSales, Retry.LinearJitterBackoff);
+const hotSale = AsyncCatch(getHotSales, Retry.LinearJitterBackoff);
 
 /**
- * Retrieve available listings for rent based on location
+ * Retrieve available listings based on type and location
  */
-const hotLeases = AsyncCatch(getHotLeases, Retry.LinearJitterBackoff);
+const onGoing = AsyncCatch(getOnGoingListings, Retry.LinearJitterBackoff);
+
+/**
+ * Retrieve available listings based on type and location
+ */
+const nowSelling = AsyncCatch(getNowSellingListings, Retry.LinearJitterBackoff);
+
+/**
+ * Retrieve exclusive listing based on category and location
+ */
+const exclusive = AsyncCatch(getExclusiveListings, Retry.LinearJitterBackoff);
 
 /**
  * Retrieve a listing item using its :id
@@ -437,9 +514,7 @@ const retrieveListingItem = AsyncCatch(getListing, Retry.LinearJitterBackoff);
  */
 const updateListingItem = AsyncCatch(
   updateListing,
-  Retry.ExponentialJitterBackoff,
-  undefined,
-  true
+  Retry.ExponentialJitterBackoff
 );
 
 /**
@@ -453,10 +528,10 @@ const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
 const checkoutListingItem = AsyncCatch(checkoutListing);
 
 /**
- * Retrieve a listing item payment status using its reference :id
+ * Verifies a listing item approval status
  */
-const validateListingItemStatus = AsyncCatch(
-  validateListingStatus,
+const verifyListingItemApproval = AsyncCatch(
+  verifyListingApproval,
   Retry.LinearJitterBackoff
 );
 
@@ -467,9 +542,11 @@ export default {
   updateListingItem,
   deleteListingItem,
   checkoutListingItem,
-  validateListingItemStatus,
+  verifyListingItemApproval,
   topListings,
-  exclusiveListings,
-  hotSales,
-  hotLeases,
+  hotLease,
+  hotSale,
+  onGoing,
+  nowSelling,
+  exclusive,
 };
