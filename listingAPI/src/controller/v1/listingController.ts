@@ -452,12 +452,12 @@ const verifyListingApproval = async (
 
   if (!listing.status.approved) {
     return res.status(HttpStatusCode.FORBIDDEN).json({
-      data: `${listing.name} has not been been approved for listing. Kindly pay the listing fee to approve this listing`,
+      data: `${listing.name.toUpperCase()} has not been been approved for listing. Kindly pay the listing fee to approve this listing`,
     });
   }
 
   return res.status(HttpStatusCode.OK).json({
-    data: `${listing.name} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
+    data: `${listing.name.toUpperCase()} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
   });
 };
 
