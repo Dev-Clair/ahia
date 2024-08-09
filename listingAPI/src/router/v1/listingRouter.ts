@@ -43,7 +43,12 @@ ListingRouterV1.route("/:id/checkout").get(
   ListingController.checkoutListingItem
 );
 
-ListingRouterV1.route("/:id/status").get(
+ListingRouterV1.route("/:id/status/approve").get(
+  AuthMiddleWare.IsGranted(["Admin"]),
+  ListingController.approveListingItem
+);
+
+ListingRouterV1.route("/:id/status/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
   ListingController.verifyListingItemApproval
 );

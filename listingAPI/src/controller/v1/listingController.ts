@@ -426,6 +426,51 @@ const checkoutListing = async (
 };
 
 /**
+ * Approves a listing status
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const approveListing = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const name = req.query;
+
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      const listing = await Listing.findOne({ name: name });
+
+      if (!listing) {
+        throw new NotFoundError(
+          HttpStatusCode.NOT_FOUND,
+          `No record found for listing: ${name}`
+        );
+      }
+
+      listing.status.approved = true;
+
+      await listing.save({ session });
+
+      // Send mail to provider confirming listing approval success
+      // await Mail();
+
+      return res.status(HttpStatusCode.OK).json({
+        data: `Approval for ${listing.name.toUpperCase()} successful.`,
+      });
+    });
+  } catch (err) {
+    throw err;
+  } finally {
+    await session.endSession();
+  }
+};
+
+/**
  * Verifies a listing approval status
  * @param req
  * @param res
@@ -528,6 +573,14 @@ const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
 const checkoutListingItem = AsyncCatch(checkoutListing);
 
 /**
+ * Approves a listing item status
+ */
+const approveListingItem = AsyncCatch(
+  approveListing,
+  Retry.LinearJitterBackoff
+);
+
+/**
  * Verifies a listing item approval status
  */
 const verifyListingItemApproval = AsyncCatch(
@@ -542,6 +595,7 @@ export default {
   updateListingItem,
   deleteListingItem,
   checkoutListingItem,
+  approveListingItem,
   verifyListingItemApproval,
   topListings,
   hotLease,
