@@ -18,11 +18,15 @@ ListingRouterV1.route("/search").get();
 
 ListingRouterV1.route("/top-10").get(ListingController.topListings);
 
-ListingRouterV1.route("/exclusive").get(ListingController.exclusiveListings);
+ListingRouterV1.route("/hot-lease").get(ListingController.hotLease);
 
-ListingRouterV1.route("/hot-sale").get(ListingController.hotSales);
+ListingRouterV1.route("/hot-sale").get(ListingController.hotSale);
 
-ListingRouterV1.route("/hot-lease").get(ListingController.hotLeases);
+ListingRouterV1.route("/on-going").get(ListingController.onGoing);
+
+ListingRouterV1.route("/now-selling").get(ListingController.nowSelling);
+
+ListingRouterV1.route("/exclusive").get(ListingController.exclusive);
 
 ListingRouterV1.route("/:id")
   .get(ListingController.retrieveListingItem)
@@ -41,7 +45,7 @@ ListingRouterV1.route("/:id/checkout").get(
 
 ListingRouterV1.route("/:id/status").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  ListingController.validateListingItemStatus
+  ListingController.verifyListingItemApproval
 );
 
 ListingRouterV1.route("/:id/attachments")
@@ -55,14 +59,5 @@ ListingRouterV1.route("/:id/attachments/:attachmentId")
   .get(ListingMiddleWare.isNotAllowed)
   .put(ListingMiddleWare.isNotAllowed)
   .delete(ListingMiddleWare.isNotAllowed);
-
-// ListingRouterV1.route("/:id/promotions")
-//   .get(ListingMiddleWare.isNotAllowed)
-//   .post();
-
-// ListingRouterV1.route("/:id/promotions/:promotionId")
-//   .get()
-//   .put(ListingMiddleWare.isNotAllowed)
-// .delete();
 
 export default ListingRouterV1;
