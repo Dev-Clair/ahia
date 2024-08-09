@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Config = require("./config");
 const Connection = require("./connection");
 const ConnectionError = require("./connectionError");
