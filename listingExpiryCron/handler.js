@@ -12,7 +12,7 @@ const recipient = [Config.LISTING.ADMIN_EMAIL_I];
 
 exports.cron = async (event, context) => {
   try {
-    Connection(Config.MONGO_URI);
+    await Connection(Config.MONGO_URI);
 
     const cronLog = await ListingCron();
 
