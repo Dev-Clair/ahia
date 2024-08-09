@@ -5,9 +5,9 @@ const Mail = require("./mail");
 const MailerError = require("./mailerError");
 const ListingCron = require("./listingCron");
 
-const sender = Config.LISTING_NOTIFICATION_EMAIL || "";
+const sender = Config.LISTING.NOTIFICATION_EMAILNOTIFICATION_EMAIL;
 
-const recipient = [Config.LISTING_ADMIN_EMAIL_I];
+const recipient = [Config.LISTING.ADMIN_EMAIL_I];
 
 exports.cron = async (event, context) => {
   try {
@@ -22,7 +22,11 @@ exports.cron = async (event, context) => {
     }
   } catch (err) {
     if (err instanceof ConnectionError) {
-      const text = { message: err.message, description: err.description };
+      const text = {
+        name: err.name,
+        message: err.message,
+        description: err.description,
+      };
 
       await Mail(
         sender,

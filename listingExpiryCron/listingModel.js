@@ -21,12 +21,12 @@ const ListingSchema = new Schema(
     },
     purpose: {
       type: String,
-      enum: ["rent", "sell"],
+      enum: ["lease", "sell"],
       required: true,
     },
     type: {
       type: String,
-      enum: ["developed", "ongoing", "undeveloped"],
+      enum: ["on-going", "now-selling"],
       required: true,
     },
     category: {
@@ -41,7 +41,7 @@ const ListingSchema = new Schema(
       },
       category: {
         type: String,
-        enum: ["residential", "commercial"],
+        enum: ["residential", "commercial", "mixed"],
         required: true,
       },
     },

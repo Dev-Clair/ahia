@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Cache = require("./cache");
 const Config = require("./config");
 const Listing = require("./listingModel");
@@ -29,17 +30,21 @@ const ListingCron = async () => {
 
     const text = getMessage(name, status);
 
+    const session = await mongoose.startSession();
+
     try {
-      await Listing.findByIdAndDelete({ _id: id });
+      await session.withTransaction(async () => {
+        await Listing.findByIdAndDelete({ _id: id }, { session });
 
-      await Mail(
-        sender,
-        [provider.email],
-        `LISTING ${name.toUpperCase()} REMOVAL`,
-        text
-      );
+        await Mail(
+          sender,
+          [provider.email],
+          `LISTING ${name.toUpperCase()} REMOVAL`,
+          text
+        );
 
-      successCount++;
+        successCount++;
+      });
     } catch (err) {
       if (err instanceof MailerError) {
         throw err;
@@ -53,6 +58,8 @@ const ListingCron = async () => {
       );
 
       failedCount++;
+    } finally {
+      await session.endSession();
     }
   }
 
