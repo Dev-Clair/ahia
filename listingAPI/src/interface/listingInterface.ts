@@ -5,12 +5,12 @@ export default interface ListingInterface extends Document {
   description: string;
   slug: string;
   cost: number;
-  purpose: "rent" | "sell";
-  type: "developed" | "ongoing" | "undeveloped";
+  purpose: "lease" | "sell";
+  type: "on-going" | "now-selling";
   category: "economy" | "premium" | "luxury";
   use: {
     type: string; // "single-room" | "mini-flat" | "2-bedroom-flat" | "3-bedroom-flat" | "duplex" | "semi-detached" | "studio" | "short-lets" | "office" | "shop" | "event-halls" | "bare-land";
-    category: "residential" | "commercial";
+    category: "residential" | "commercial" | "mixed";
   };
   features: string[]; // landmark features
   address: {
