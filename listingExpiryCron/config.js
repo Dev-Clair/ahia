@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const Config = {
+  APP_SECRET: process.env.APP_SECRET,
   AWS: {
     ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
