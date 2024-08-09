@@ -22,8 +22,6 @@ const Config = {
   NODE_ENV: process.env.NODE_ENV || "test",
   PAYMENT_SERVICE_URL:
     process.env.PAYMENT_SERVICE_URL || "127.0.0.1:6999/api/v1/payments",
-  SUCCESS_REDIRECT_URL:
-    process.env.SUCCESS_REDIRECT_URL || "127.0.0.1:4999/api/v1/listings",
   SERVICE: {
     NAME: process.env.SERVICE_NAME || "",
     SECRET: process.env.SERVICE_SECRET || "",
@@ -35,6 +33,10 @@ const Config = {
   LISTING: {
     ADMIN_EMAIL_I: process.env.LISTING_ADMIN_EMAIL_I || "",
     ADMIN_EMAIL_II: process.env.LISTING_ADMIN_EMAIL_II || "",
+    SERVICE: {
+      NAME: process.env.SERVICE_NAME || "",
+      SECRET: process.env.SERVICE_SECRET || "",
+    },
   },
 };
 
