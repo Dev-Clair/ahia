@@ -64,6 +64,17 @@ exports.listing = async (event, context) => {
       process.kill(process.pid, SIGTERM);
     }
 
+    await Mail(
+      sender,
+      recipient,
+      err.name.toUpperCase(),
+      JSON.stringify({
+        name: err.name,
+        message: err.message,
+        description: err.description,
+      })
+    );
+
     console.error(err);
   } finally {
     await session.endSession();
