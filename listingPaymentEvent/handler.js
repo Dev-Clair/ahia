@@ -11,14 +11,14 @@ const sender = Config.LISTING.NOTIFICATION_EMAIL;
 const recipient = [Config.LISTING.ADMIN_EMAIL_I];
 
 exports.listing = async (event, context) => {
+  const eventBody = JSON.parse(event.detail);
+
   try {
     await Connection(Config.MONGO_URI);
 
     const session = await mongoose.startSession();
 
     await session.withTransaction(async () => {
-      const eventBody = JSON.parse(event.detail);
-
       const { serviceName, serviceSecret, payload } = eventBody;
 
       if (serviceName === Config.LISTING.SERVICE.NAME) {
@@ -50,7 +50,12 @@ exports.listing = async (event, context) => {
         description: err.description,
       };
 
-      await Mail(sender, recipient, err.name.toUpperCase(), err.message);
+      await Mail(
+        sender,
+        recipient,
+        err.name.toUpperCase(),
+        JSON.stringify(text)
+      );
     }
 
     if (err instanceof MailerError) {
