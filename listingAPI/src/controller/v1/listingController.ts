@@ -27,6 +27,8 @@ const createListing = async (
 ): Promise<Response | void> => {
   const session = await mongoose.startSession();
 
+  let response;
+
   try {
     await session.withTransaction(async () => {
       const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
@@ -45,15 +47,15 @@ const createListing = async (
 
       await Listing.create([payload], { session: session });
 
-      const response = { data: "Created" };
+      response = { data: "Created" };
 
       await StoreIdempotencyKey(idempotencyKey, response, session);
-
-      // Send mail to provider confirming listing creation success with transaction reference and expiry date
-      // await Mail();
-
-      return res.status(HttpStatusCode.CREATED).json(response);
     });
+
+    // Send mail to provider confirming listing creation success with transaction reference and expiry date
+    // await Mail();
+
+    return res.status(HttpStatusCode.CREATED).json(response);
   } catch (err: any) {
     throw err;
   } finally {
@@ -308,6 +310,8 @@ const updateListing = async (
 ): Promise<Response | void> => {
   const session = await mongoose.startSession();
 
+  let response;
+
   try {
     await session.withTransaction(async () => {
       const id = req.params.id as string;
@@ -330,12 +334,12 @@ const updateListing = async (
         );
       }
 
-      const response = { data: "Modified" };
+      response = { data: "Modified" };
 
       await StoreIdempotencyKey(idempotencyKey, response, session);
-
-      return res.status(HttpStatusCode.MODIFIED).json(response);
     });
+
+    return res.status(HttpStatusCode.MODIFIED).json(response);
   } catch (err: any) {
     throw err;
   } finally {
@@ -369,9 +373,9 @@ const deleteListing = async (
           `No record found for listing: ${id}`
         );
       }
-
-      return res.status(HttpStatusCode.MODIFIED).json({ data: null });
     });
+
+    return res.status(HttpStatusCode.MODIFIED).json({ data: null });
   } catch (err: any) {
     throw err;
   } finally {
@@ -437,7 +441,7 @@ const approveListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const name = req.query;
+  const { name } = req.query;
 
   const session = await mongoose.startSession();
 
@@ -455,13 +459,13 @@ const approveListing = async (
       listing.status.approved = true;
 
       await listing.save({ session });
+    });
 
-      // Send mail to provider confirming listing approval success
-      // await Mail();
+    // Send mail to provider confirming listing approval success
+    // await Mail();
 
-      return res.status(HttpStatusCode.OK).json({
-        data: `Approval for ${listing.name.toUpperCase()} successful.`,
-      });
+    return res.status(HttpStatusCode.OK).json({
+      data: `Approval for listing ${name} successful.`,
     });
   } catch (err) {
     throw err;
