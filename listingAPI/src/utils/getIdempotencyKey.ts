@@ -19,9 +19,7 @@ const GetIdempotencyKey = async (
   });
 
   if (verifyOperationIdempotency) {
-    return res
-      .status(HttpStatusCode.CREATED)
-      .json({ data: verifyOperationIdempotency.response });
+    return res.status(HttpStatusCode.CREATED).json({ data: null });
   }
 
   return idempotencyKey;

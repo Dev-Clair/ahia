@@ -9,14 +9,12 @@ import Idempotency from "../model/idempotencyModel";
  */
 const StoreIdempotencyKey = async (
   key: string,
-  response: any,
   session: mongoose.ClientSession
 ): Promise<void> => {
   await Idempotency.create(
     [
       {
         key: key,
-        response: response,
       },
     ],
     { session: session }
