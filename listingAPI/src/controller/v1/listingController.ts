@@ -41,15 +41,9 @@ const createListing = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    try {
-      await Listing.create([payload], { session: session });
+    await Listing.create([payload], { session: session });
 
-      await StoreIdempotencyKey(idempotencyKey, session);
-    } catch (err: any) {
-      throw err;
-    } finally {
-      await session.endSession();
-    }
+    await StoreIdempotencyKey(idempotencyKey, session);
   });
 
   // Send mail to provider confirming listing creation success with transaction reference and expiry date
@@ -310,29 +304,23 @@ const updateListing = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    try {
-      const listing = await Listing.findByIdAndUpdate(
-        { _id: id },
-        req.body as object,
-        {
-          new: true,
-          session,
-        }
-      );
-
-      if (!listing) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No record found for listing: ${id}`
-        );
+    const listing = await Listing.findByIdAndUpdate(
+      { _id: id },
+      req.body as object,
+      {
+        new: true,
+        session,
       }
+    );
 
-      await StoreIdempotencyKey(idempotencyKey, session);
-    } catch (err: any) {
-      throw err;
-    } finally {
-      await session.endSession();
+    if (!listing) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No record found for listing: ${id}`
+      );
     }
+
+    await StoreIdempotencyKey(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
@@ -355,19 +343,13 @@ const deleteListing = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    try {
-      const listing = await Listing.findByIdAndDelete({ _id: id }, { session });
+    const listing = await Listing.findByIdAndDelete({ _id: id }, { session });
 
-      if (!listing) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No record found for listing: ${id}`
-        );
-      }
-    } catch (err: any) {
-      throw err;
-    } finally {
-      await session.endSession();
+    if (!listing) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No record found for listing: ${id}`
+      );
     }
   });
 
@@ -437,24 +419,18 @@ const approveListing = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    try {
-      const listing = await Listing.findOne({ name: name }).session(session);
+    const listing = await Listing.findOne({ name: name }).session(session);
 
-      if (!listing) {
-        throw new NotFoundError(
-          HttpStatusCode.NOT_FOUND,
-          `No record found for listing: ${name}`
-        );
-      }
-
-      listing.status.approved = true;
-
-      await listing.save({ session });
-    } catch (err: any) {
-      throw err;
-    } finally {
-      await session.endSession();
+    if (!listing) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No record found for listing: ${name}`
+      );
     }
+
+    listing.status.approved = true;
+
+    await listing.save({ session });
   });
 
   // Send mail to provider confirming listing approval success
