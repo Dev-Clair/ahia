@@ -7,10 +7,6 @@ const IdempotencySchema: Schema<IdempotencyInterface> = new Schema({
     required: true,
     unique: true,
   },
-  response: {
-    type: Schema.Types.Mixed,
-    required: true,
-  },
   createdAt: {
     type: Date,
     default: Date.now,
