@@ -51,16 +51,16 @@ const createListing = async (
 
       await StoreIdempotencyKey(idempotencyKey, response, session);
     });
-
-    // Send mail to provider confirming listing creation success with transaction reference and expiry date
-    // await Mail();
-
-    return res.status(HttpStatusCode.CREATED).json(response);
   } catch (err: any) {
     throw err;
   } finally {
     await session.endSession();
   }
+
+  // Send mail to provider confirming listing creation success with transaction reference and expiry date
+  // await Mail();
+
+  return res.status(HttpStatusCode.CREATED).json(response);
 };
 
 /**
@@ -338,13 +338,13 @@ const updateListing = async (
 
       await StoreIdempotencyKey(idempotencyKey, response, session);
     });
-
-    return res.status(HttpStatusCode.MODIFIED).json(response);
   } catch (err: any) {
     throw err;
   } finally {
     await session.endSession();
   }
+
+  return res.status(HttpStatusCode.MODIFIED).json(response);
 };
 
 /**
@@ -374,13 +374,13 @@ const deleteListing = async (
         );
       }
     });
-
-    return res.status(HttpStatusCode.MODIFIED).json({ data: null });
   } catch (err: any) {
     throw err;
   } finally {
     await session.endSession();
   }
+
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -460,18 +460,18 @@ const approveListing = async (
 
       await listing.save({ session });
     });
-
-    // Send mail to provider confirming listing approval success
-    // await Mail();
-
-    return res.status(HttpStatusCode.OK).json({
-      data: `Approval for listing ${name} successful.`,
-    });
   } catch (err) {
     throw err;
   } finally {
     await session.endSession();
   }
+
+  // Send mail to provider confirming listing approval success
+  // await Mail();
+
+  return res.status(HttpStatusCode.OK).json({
+    data: `Approval for listing ${name} successful.`,
+  });
 };
 
 /**
