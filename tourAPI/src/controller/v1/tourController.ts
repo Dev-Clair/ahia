@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
 import Config from "../../../config";
@@ -32,17 +33,19 @@ const createTour = async (
 
   const { customer, listings } = req.body;
 
-  await Tour.create({ customer, listings });
+  const session = await mongoose.startSession();
 
-  const response = { data: { message: "Created" } };
+  await session.withTransaction(async () => {
+    await Tour.create([{ customer, listings }], { session: session });
 
-  await StoreIdempotencyKey(idempotencyKey, response);
+    await StoreIdempotencyKey(idempotencyKey, session);
+  });
 
   // await Mail(); // Send mail to customer confirming tour creation success
 
   // await Notify(); // Send push notification to customer to modify tour name, schedule tour date and time and select realtor
 
-  return res.status(HttpStatusCode.CREATED).json(response);
+  return res.status(HttpStatusCode.CREATED).json({ data: null });
 };
 
 /**
@@ -111,22 +114,25 @@ const updateTour = async (
 
   const payload = req.body as object;
 
-  const tour = await Tour.findByIdAndUpdate({ _id: id }, payload, {
-    new: true,
+  const session = await mongoose.startSession();
+
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndUpdate({ _id: id }, payload, {
+      new: true,
+      session,
+    });
+
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
+
+    await StoreIdempotencyKey(idempotencyKey, session);
   });
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
-    );
-  }
-
-  const response = { data: "Modified" };
-
-  await StoreIdempotencyKey(idempotencyKey, response);
-
-  return res.status(HttpStatusCode.MODIFIED).json(response);
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -143,16 +149,20 @@ const deleteTour = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const tour = await Tour.findByIdAndDelete({ _id: id });
+  const session = await mongoose.startSession();
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
-    );
-  }
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndDelete({ _id: id }, { session });
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
+  });
+
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -169,24 +179,29 @@ const completeTour = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const tour = await Tour.findByIdAndUpdate(
-    { _id: id },
-    { $set: { status: "completed", isClosed: true } },
-    {
-      new: true,
-    }
-  );
+  const session = await mongoose.startSession();
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndUpdate(
+      { _id: id },
+      { $set: { status: "completed", isClosed: true } },
+      {
+        new: true,
+        session,
+      }
     );
-  }
+
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
+  });
 
   // await Notify() // Send push notification confirming completion and requesting a review
 
-  return res.status(HttpStatusCode.OK).json({ data: { message: null } });
+  return res.status(HttpStatusCode.OK).json({ data: null });
 };
 
 /**
@@ -203,24 +218,29 @@ const cancelTour = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const tour = await Tour.findByIdAndUpdate(
-    { _id: id },
-    { $set: { status: "cancelled", isClosed: true } },
-    {
-      new: true,
-    }
-  );
+  const session = await mongoose.startSession();
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndUpdate(
+      { _id: id },
+      { $set: { status: "cancelled", isClosed: true } },
+      {
+        new: true,
+        session,
+      }
     );
-  }
+
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
+  });
 
   // await Notify() // Send push notification confirming cancellation and requesting a reason
 
-  return res.status(HttpStatusCode.OK).json({ data: { message: null } });
+  return res.status(HttpStatusCode.OK).json({ data: null });
 };
 
 /**
@@ -237,26 +257,29 @@ const reopenTour = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const tour = await Tour.findByIdAndUpdate(
-    { _id: id },
-    { $set: { status: "pending", isClosed: false } },
-    {
-      new: true,
-    }
-  );
+  const session = await mongoose.startSession();
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No cancelled tour found for id: ${id}`
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndUpdate(
+      { _id: id },
+      { $set: { status: "pending", isClosed: true } },
+      {
+        new: true,
+        session,
+      }
     );
-  }
+
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
+  });
 
   // await Notify() // Send push notification confirming reopening
 
-  return res
-    .status(HttpStatusCode.OK)
-    .json({ data: { message: "Your tour has been successfully reopened" } });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -282,18 +305,18 @@ const getRealtors = async (
     );
   }
 
-  const httpClient = new HttpClient(
+  const url =
     Config.IAM_SERVICE_URL +
-      `/realtors?status=available&location=${tour.location}`,
-    {
-      "content-type": "application/json",
-      "service-name": Config.SERVICE.NAME,
-      "service-secret": await CryptoHash(
-        Config.SERVICE.SECRET,
-        Config.APP_SECRET
-      ),
-    }
-  );
+    `/realtors?status=available&location=${tour.location}`;
+
+  const httpClient = new HttpClient(url, {
+    "content-type": "application/json",
+    "service-name": Config.TOUR.SERVICE.NAME,
+    "service-secret": await CryptoHash(
+      Config.TOUR.SERVICE.SECRET,
+      Config.APP_SECRET
+    ),
+  });
 
   const response = await httpClient.Get();
 
@@ -346,23 +369,25 @@ const selectRealtor = async (
 
   const { id, email } = req.query;
 
-  await Realtor.create({
-    tourId: tourId,
-    realtor: { id: id, email: email },
+  const session = await mongoose.startSession();
+
+  await session.withTransaction(async () => {
+    await Realtor.create(
+      [
+        {
+          tourId: tourId,
+          realtor: { id: id, email: email },
+        },
+      ],
+      { session: session }
+    );
+
+    await StoreIdempotencyKey(idempotencyKey, session);
   });
 
   // await Notify() // Send push notification to realtor about tour request
 
-  const response = {
-    data: {
-      message:
-        "Realtor has been notified of your request. Realtor's confirmation status will be communicated to you accordingly.",
-    },
-  };
-
-  await StoreIdempotencyKey(idempotencyKey, response);
-
-  return res.status(HttpStatusCode.CREATED).json(response);
+  return res.status(HttpStatusCode.CREATED).json({ data: null });
 };
 
 /**
@@ -388,25 +413,28 @@ const acceptTourRequest = async (
     );
   }
 
-  const tour = await Tour.findByIdAndUpdate(
-    { _id: id },
-    { $set: { realtor: request.realtor } }
-  );
+  const session = await mongoose.startSession();
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndUpdate(
+      { _id: id },
+      { $set: { realtor: request.realtor } },
+      { new: true, session }
     );
-  }
 
-  await request.deleteOne();
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
+
+    await request.deleteOne({ session });
+  });
 
   // await Notify() // Send realtor's acceptance push notification to customer
 
-  return res.status(HttpStatusCode.MODIFIED).json({
-    data: { message: `Congratulations, you have been added to tour: ${id}` },
-  });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -432,13 +460,15 @@ const rejectTourRequest = async (
     );
   }
 
-  await request.deleteOne();
+  const session = await mongoose.startSession();
+
+  await session.withTransaction(async () => {
+    await request.deleteOne({ session });
+  });
 
   // await Notify() // Send realtor's rejection push notification to customer
 
-  return res.status(HttpStatusCode.MODIFIED).json({
-    data: { message: `Successfully rejected realtor request for tour: ${id}` },
-  });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -459,29 +489,30 @@ const scheduleTour = async (
 
   const { date, time } = req.body;
 
-  const tour = await Tour.findByIdAndUpdate(
-    { _id: id },
-    { $set: { schedule: { date: date, time: time } } },
-    { new: true }
-  );
+  const session = await mongoose.startSession();
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndUpdate(
+      { _id: id },
+      { $set: { schedule: { date: date, time: time } } },
+      { new: true, session }
     );
-  }
-  const response = {
-    data: { message: "Your tour schedule have been successfully set." },
-  };
 
-  await StoreIdempotencyKey(idempotencyKey, response);
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
 
-  return res.status(HttpStatusCode.CREATED).json(response);
+    await StoreIdempotencyKey(idempotencyKey, session);
+  });
+
+  return res.status(HttpStatusCode.CREATED).json({ data: null });
 };
 
 /**
- *Proposes a reschedule to tour date and time
+ * Proposes a reschedule to tour date and time
  * @param req
  * @param res
  * @param next
@@ -498,21 +529,23 @@ const rescheduleTour = async (
 
   const { date, time } = req.body;
 
-  await Schedule.create({
-    tourId: id,
-    propose: { date: date, time: time },
+  const session = await mongoose.startSession();
+
+  await session.withTransaction(async () => {
+    await Schedule.create(
+      [
+        {
+          tourId: id,
+          propose: { date: date, time: time },
+        },
+      ],
+      { session: session }
+    );
+
+    await StoreIdempotencyKey(idempotencyKey, session);
   });
 
-  const response = {
-    data: {
-      message:
-        "Your tour reschedule proposal have been set. We will inform you on the status of the proposal shortly.",
-    },
-  };
-
-  await StoreIdempotencyKey(idempotencyKey, response);
-
-  return res.status(HttpStatusCode.CREATED).json(response);
+  return res.status(HttpStatusCode.CREATED).json({ data: null });
 };
 
 /**
@@ -540,31 +573,35 @@ const acceptTourReschedule = async (
     );
   }
 
-  const tour = await Tour.findByIdAndUpdate(
-    { _id: id },
-    {
-      $set: {
-        schedule: {
-          date: schedule.propose.date,
-          time: schedule.propose.time,
+  const session = await mongoose.startSession();
+
+  await session.withTransaction(async () => {
+    const tour = await Tour.findByIdAndUpdate(
+      { _id: id },
+      {
+        $set: {
+          schedule: {
+            date: schedule.propose.date,
+            time: schedule.propose.time,
+          },
         },
       },
-    },
-    { new: true }
-  );
-
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
+      { new: true, session }
     );
-  }
 
-  await schedule.deleteOne();
+    if (!tour) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        `No tour found for id: ${id}`
+      );
+    }
+
+    await schedule.deleteOne({ session });
+  });
 
   // await Notify(); // Send push notification to Customer and Realtor
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -581,16 +618,23 @@ const rejectTourReschedule = async (
 ): Promise<Response | void> => {
   const scheduleId = req.params.rescheduleId as string;
 
-  const schedule = await Schedule.findByIdAndDelete({
-    _id: scheduleId,
-  });
+  const session = await mongoose.startSession();
 
-  if (!schedule) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      "schedule not found or already processed."
+  await session.withTransaction(async () => {
+    const schedule = await Schedule.findByIdAndDelete(
+      {
+        _id: scheduleId,
+      },
+      { session }
     );
-  }
+
+    if (!schedule) {
+      throw new NotFoundError(
+        HttpStatusCode.NOT_FOUND,
+        "schedule not found or already processed."
+      );
+    }
+  });
 
   // await Notify();  // Send push notification to Customer or Realtor
 
