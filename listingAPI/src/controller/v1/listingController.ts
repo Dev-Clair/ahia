@@ -25,42 +25,37 @@ const createListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+
+  const payload = req.body as object;
+
+  const provider = {
+    id: (req.headers["provider-id"] as string) || `provider-` + Math.random(),
+    email:
+      (req.headers["provider-email"] as string) ||
+      `provider.` + Math.random() * 1000 + `@yahoo.com`,
+  };
+
+  Object.assign(payload, { provider: provider });
+
   const session = await mongoose.startSession();
 
-  let response;
-
-  try {
-    await session.withTransaction(async () => {
-      const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
-
-      const payload = req.body as object;
-
-      const provider = {
-        id:
-          (req.headers["provider-id"] as string) || `provider-` + Math.random(),
-        email:
-          (req.headers["provider-email"] as string) ||
-          `provider.` + Math.random() * 1000 + `@yahoo.com`,
-      };
-
-      Object.assign(payload, { provider: provider });
-
+  await session.withTransaction(async () => {
+    try {
       await Listing.create([payload], { session: session });
 
-      response = { data: "Created" };
-
-      await StoreIdempotencyKey(idempotencyKey, response, session);
-    });
-  } catch (err: any) {
-    throw err;
-  } finally {
-    await session.endSession();
-  }
+      await StoreIdempotencyKey(idempotencyKey, session);
+    } catch (err: any) {
+      throw err;
+    } finally {
+      await session.endSession();
+    }
+  });
 
   // Send mail to provider confirming listing creation success with transaction reference and expiry date
   // await Mail();
 
-  return res.status(HttpStatusCode.CREATED).json(response);
+  return res.status(HttpStatusCode.CREATED).json({ data: null });
 };
 
 /**
@@ -308,16 +303,14 @@ const updateListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const id = req.params.id as string;
+
+  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+
   const session = await mongoose.startSession();
 
-  let response;
-
-  try {
-    await session.withTransaction(async () => {
-      const id = req.params.id as string;
-
-      const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
-
+  await session.withTransaction(async () => {
+    try {
       const listing = await Listing.findByIdAndUpdate(
         { _id: id },
         req.body as object,
@@ -334,17 +327,15 @@ const updateListing = async (
         );
       }
 
-      response = { data: "Modified" };
+      await StoreIdempotencyKey(idempotencyKey, session);
+    } catch (err: any) {
+      throw err;
+    } finally {
+      await session.endSession();
+    }
+  });
 
-      await StoreIdempotencyKey(idempotencyKey, response, session);
-    });
-  } catch (err: any) {
-    throw err;
-  } finally {
-    await session.endSession();
-  }
-
-  return res.status(HttpStatusCode.MODIFIED).json(response);
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -359,12 +350,12 @@ const deleteListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
+  const id = req.params.id as string;
+
   const session = await mongoose.startSession();
 
-  try {
-    await session.withTransaction(async () => {
-      const id = req.params.id as string;
-
+  await session.withTransaction(async () => {
+    try {
       const listing = await Listing.findByIdAndDelete({ _id: id }, { session });
 
       if (!listing) {
@@ -373,12 +364,12 @@ const deleteListing = async (
           `No record found for listing: ${id}`
         );
       }
-    });
-  } catch (err: any) {
-    throw err;
-  } finally {
-    await session.endSession();
-  }
+    } catch (err: any) {
+      throw err;
+    } finally {
+      await session.endSession();
+    }
+  });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
@@ -445,8 +436,8 @@ const approveListing = async (
 
   const session = await mongoose.startSession();
 
-  try {
-    await session.withTransaction(async () => {
+  await session.withTransaction(async () => {
+    try {
       const listing = await Listing.findOne({ name: name }).session(session);
 
       if (!listing) {
@@ -459,12 +450,12 @@ const approveListing = async (
       listing.status.approved = true;
 
       await listing.save({ session });
-    });
-  } catch (err) {
-    throw err;
-  } finally {
-    await session.endSession();
-  }
+    } catch (err: any) {
+      throw err;
+    } finally {
+      await session.endSession();
+    }
+  });
 
   // Send mail to provider confirming listing approval success
   // await Mail();
