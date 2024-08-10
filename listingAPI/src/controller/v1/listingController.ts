@@ -43,7 +43,7 @@ const createListing = async (
 
       Object.assign(payload, { provider: provider });
 
-      await Listing.create([payload], { session });
+      await Listing.create([payload], { session: session });
 
       const response = { data: "Created" };
 
@@ -96,7 +96,7 @@ const getListings = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const getTopListings = async (
+const getTop10Listings = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -125,7 +125,7 @@ const getTopListings = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const getHotLeases = async (
+const getAvailableLeases = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -155,7 +155,7 @@ const getHotLeases = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const getHotSales = async (
+const getAvailableSales = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -443,7 +443,7 @@ const approveListing = async (
 
   try {
     await session.withTransaction(async () => {
-      const listing = await Listing.findOne({ name: name });
+      const listing = await Listing.findOne({ name: name }).session(session);
 
       if (!listing) {
         throw new NotFoundError(
@@ -522,17 +522,20 @@ const retrieveListings = AsyncCatch(getListings, Retry.LinearJitterBackoff);
 /**
  * Retrieve top ten (10) listing offerings based on provider
  */
-const topListings = AsyncCatch(getTopListings, Retry.LinearJitterBackoff);
+const top10Listings = AsyncCatch(getTop10Listings, Retry.LinearJitterBackoff);
 
 /**
  * Retrieve available listings for lease based on location
  */
-const hotLease = AsyncCatch(getHotLeases, Retry.LinearJitterBackoff);
+const availableLeases = AsyncCatch(
+  getAvailableLeases,
+  Retry.LinearJitterBackoff
+);
 
 /**
  * Retrieve available listings for sale based on location
  */
-const hotSale = AsyncCatch(getHotSales, Retry.LinearJitterBackoff);
+const availableSales = AsyncCatch(getAvailableSales, Retry.LinearJitterBackoff);
 
 /**
  * Retrieve available listings based on type and location
@@ -597,9 +600,9 @@ export default {
   checkoutListingItem,
   approveListingItem,
   verifyListingItemApproval,
-  topListings,
-  hotLease,
-  hotSale,
+  top10Listings,
+  availableLeases,
+  availableSales,
   onGoing,
   nowSelling,
   exclusive,

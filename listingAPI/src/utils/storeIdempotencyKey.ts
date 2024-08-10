@@ -19,7 +19,7 @@ const StoreIdempotencyKey = async (
         response: response,
       },
     ],
-    { session }
+    { session: session }
   );
 };
 
