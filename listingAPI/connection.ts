@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import ConnectionError from "./src/error/connectionError";
 import Retry from "./src/utils/retry";
 
+/**
+ * Establishes connection to database
+ * @param connectionUri
+ */
 const establishConnection = async (connectionUri: string): Promise<void> => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(connectionUri, {
@@ -13,6 +17,10 @@ const establishConnection = async (connectionUri: string): Promise<void> => {
   }
 };
 
+/**
+ * Provides connection resource with round robin retry strategy on failure
+ * @param connectionUri
+ */
 const Connection = async (connectionUri: string): Promise<void> => {
   try {
     await Retry.ExponentialBackoff(() => establishConnection(connectionUri));

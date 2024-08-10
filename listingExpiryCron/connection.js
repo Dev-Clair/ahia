@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const ConnectionError = require("./connectionError");
 const Retry = require("./retry");
 
+/**
+ * Establishes connection to database
+ * @param {*} connectionUri
+ */
 const establishConnection = async (connectionUri) => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(connectionUri, {
@@ -13,6 +17,10 @@ const establishConnection = async (connectionUri) => {
   }
 };
 
+/**
+ * Provides connection resource with round robin retry strategy on failure
+ * @param {*} connectionUri
+ */
 const Connection = async (connectionUri) => {
   try {
     await Retry.ExponentialBackoff(() => establishConnection(connectionUri));
