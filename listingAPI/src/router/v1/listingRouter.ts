@@ -16,11 +16,13 @@ ListingRouterV1.route("/")
 
 ListingRouterV1.route("/search").get();
 
-ListingRouterV1.route("/top-10").get(ListingController.topListings);
+ListingRouterV1.route("/top-10").get(ListingController.top10Listings);
 
-ListingRouterV1.route("/hot-lease").get(ListingController.hotLease);
+ListingRouterV1.route("/lease/available").get(
+  ListingController.availableLeases
+);
 
-ListingRouterV1.route("/hot-sale").get(ListingController.hotSale);
+ListingRouterV1.route("/sell/available").get(ListingController.availableSales);
 
 ListingRouterV1.route("/on-going").get(ListingController.onGoing);
 
