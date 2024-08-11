@@ -2,7 +2,9 @@
 
 ## Overview
 
-The ahia Tour Service API is a robust backend service designed to manage real estate tour bookings and appointments. It provides endpoints for creating, retrieving, updating, and deleting tours, as well as specialized endpoints for booking realtors and rescheduling tours. This API ensures idempotency, uses transactions, and supports features like pagination and geospatial queries.
+The ahia Tour Service API is a robust backend service designed to manage real estate tour bookings and appointments on the ahia marketplace platform. It provides endpoints for creating, retrieving, updating, and deleting tours, as well as specialized endpoints for booking realtors and rescheduling tours.
+This API ensures idempotency, uses transactions, and supports features like pagination and geospatial queries.
+Authorization and authentication is enabled by an identity server which manages user account and permissions.
 
 ## Table of Contents
 
