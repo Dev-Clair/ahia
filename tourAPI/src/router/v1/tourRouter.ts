@@ -69,13 +69,13 @@ TourRouterV1.route("/:id/realtors")
     TourController.selectTourRealtor
   );
 
-TourRouterV1.route("/:id/realtor/accept").put(
+TourRouterV1.route("/:id/realtors/accept").put(
   AuthMiddleware.IsGranted(["Realtor"]),
   ValidationMiddleware.validateSingleParamId,
   TourController.acceptProposedTourRequest
 );
 
-TourRouterV1.route("/:id/realtor/reject").put(
+TourRouterV1.route("/:id/realtors/reject").put(
   AuthMiddleware.IsGranted(["Realtor"]),
   ValidationMiddleware.validateSingleParamId,
   TourController.rejectProposedTourRequest
