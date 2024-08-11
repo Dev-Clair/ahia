@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import AsyncCatch from "../../utils/asyncCatch";
 import Config from "../../../config";
 import CryptoHash from "../../utils/cryptoHash";
+import EnsureIdempotency from "../../utils/ensureIdempotency";
 import Features from "../../utils/feature";
-import GetIdempotencyKey from "../../utils/getIdempotencyKey";
 import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Listing from "../../model/listingModel";
@@ -11,7 +11,8 @@ import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import Retry from "../../utils/retry";
-import StoreIdempotencyKey from "../../utils/storeIdempotencyKey";
+import VerifyIdempotency from "../../utils/verifyIdempotency";
+import ConflictError from "../../error/conflictError";
 
 /**
  * Creates a new listing resource in collection
@@ -25,7 +26,14 @@ const createListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await VerifyIdempotency(idempotencyKey)) {
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
+  }
 
   const payload = req.body as object;
 
@@ -43,7 +51,7 @@ const createListing = async (
   await session.withTransaction(async () => {
     await Listing.create([payload], { session: session });
 
-    await StoreIdempotencyKey(idempotencyKey, session);
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
   // Send mail to provider confirming listing creation success with transaction reference and expiry date
@@ -78,6 +86,25 @@ const getListings = async (
     totalPages: pagination.totalPages,
     links: pagination.links,
   });
+};
+
+/**
+ * Retrieves collection of listings based on search
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getListingsSearch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const query = req.query.search as string;
+
+  const listings = await Listing.find({ $text: { $search: query } });
+
+  return res.status(HttpStatusCode.OK).json({ data: listings });
 };
 
 /**
@@ -297,9 +324,16 @@ const updateListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const id = req.params.id as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  if (await VerifyIdempotency(idempotencyKey)) {
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
+  }
+
+  const id = req.params.id as string;
 
   const session = await mongoose.startSession();
 
@@ -320,7 +354,7 @@ const updateListing = async (
       );
     }
 
-    await StoreIdempotencyKey(idempotencyKey, session);
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
@@ -491,6 +525,14 @@ const createListings = AsyncCatch(
 const retrieveListings = AsyncCatch(getListings, Retry.LinearJitterBackoff);
 
 /**
+ * Retrieve collection of listings based on search
+ */
+const retrieveListingsSearch = AsyncCatch(
+  getListingsSearch,
+  Retry.LinearJitterBackoff
+);
+
+/**
  * Retrieve top ten (10) listing offerings based on provider
  */
 const top10Listings = AsyncCatch(getTop10Listings, Retry.LinearJitterBackoff);
@@ -565,6 +607,7 @@ const verifyListingItemApproval = AsyncCatch(
 export default {
   createListings,
   retrieveListings,
+  retrieveListingsSearch,
   retrieveListingItem,
   updateListingItem,
   deleteListingItem,

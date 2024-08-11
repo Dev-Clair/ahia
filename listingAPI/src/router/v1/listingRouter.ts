@@ -14,7 +14,7 @@ ListingRouterV1.route("/")
     ListingController.createListings
   );
 
-ListingRouterV1.route("/search").get();
+ListingRouterV1.route("/search").get(ListingController.retrieveListingsSearch);
 
 ListingRouterV1.route("/top-10").get(ListingController.top10Listings);
 
@@ -45,7 +45,7 @@ ListingRouterV1.route("/:id/checkout").get(
   ListingController.checkoutListingItem
 );
 
-ListingRouterV1.route("/:id/status/approve").get(
+ListingRouterV1.route("/:id/status/approve").patch(
   AuthMiddleWare.IsGranted(["Admin"]),
   ListingController.approveListingItem
 );
