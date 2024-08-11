@@ -2,7 +2,9 @@
 
 ## Overview
 
-The ahia Listing Service API is a robust backend service designed to manage real estate listings. It provides endpoints for creating, retrieving, updating, and deleting listings, as well as specialized endpoints for fetching top listings, exclusive listings, hot sales and leases. This API ensures idempotency, handles listing approval and payment checkout, and supports features like pagination and geospatial queries.
+The ahia Listing Service API is a robust backend service designed to manage real estate listings on the ahia marketplace. It provides endpoints for creating, retrieving, updating, and deleting listings, as well as specialized endpoints for fetching top listings, exclusive listings, hot sales and leases. This API ensures idempotency, handles listing approval and payment checkout, and supports features like pagination and geospatial queries.
+This API ensures idempotency, uses transactions, and supports features like pagination and geospatial queries.
+Authorization and authentication is enabled by an identity server which manages user account and permissions.
 
 ## Table of Contents
 
@@ -26,9 +28,9 @@ The ahia Listing Service API is a robust backend service designed to manage real
 
 - **Idempotency**: Ensures idempotent operations for create and update requests.
 
-- **Geospatial Queries**: Supports 2dsphere indexing for location-based queries.
+- **Transactions**: Uses database transactions to maintain data accuracy and integrity.
 
-- **Listing Approval**: Handles listing approval and payment validation.
+- **Geospatial Queries**: Supports 2dsphere indexing for location-based queries.
 
 - **Pagination**: Provides pagination for listing collections.
 
@@ -64,34 +66,46 @@ The ahia Listing Service API is a robust backend service designed to manage real
     GET /api/v1/listings
     ```
 
-    1.3 Retrieve a Listing by ID
+    1.3 Retrieves Listings based on search
+
+    ```
+    GET /api/v1/listings/search
+    ```
+
+    1.4 Retrieve a Listing by ID
 
     ```
     GET /api/v1/listings/:id
     ```
 
-    1.4 Update a Listing by ID
+    1.5 Update a Listing by ID
 
     ```
     PATCH /api/v1/listings/:id
     ```
 
-    1.5 Deletes a Listing by ID
+    1.6 Deletes a Listing by ID
 
     ```
     DELETE /api/v1/listings/:id
     ```
 
-    1.6 Checkout a Listing
+    1.7 Listing checkout
 
     ```
     GET /api/v1/listings/:id/checkout
     ```
 
-    1.6 Validate a Listing Payment Status
+    1.8 Approves a Listing Payment Status
 
     ```
-    GET /api/v1/listings/:id/status
+    GET /api/v1/listings/:id/status/approvve
+    ```
+
+    1.6 Verifies a Listing Payment Status
+
+    ```
+    GET /api/v1/listings/:id/status/verify
     ```
 
 2.  Specialized Endpoints
