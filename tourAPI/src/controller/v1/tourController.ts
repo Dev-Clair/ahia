@@ -81,6 +81,63 @@ const getTours = async (
 };
 
 /**
+ * Retrieves collection of tours based on search
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getToursSearch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const query = req.query.search as string;
+
+  const tours = await Tour.find({ $text: { $search: query } });
+
+  return res.status(HttpStatusCode.OK).json({ data: tours });
+};
+
+/**
+ * Retrieves customer's tour history
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getToursByCustomer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { customerId } = req.query;
+
+  const tours = (await Tour.find({ customer: { id: customerId } })) ?? [];
+
+  return res.status(HttpStatusCode.OK).json({ data: tours });
+};
+
+/**
+ * Retrieves realtor's tour history
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getToursByRealtor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const { realtorId } = req.query;
+
+  const tours = (await Tour.find({ customer: { id: realtorId } })) ?? [];
+
+  return res.status(HttpStatusCode.OK).json({ data: tours });
+};
+
+/**
  * Retrieves a tour resource from collection
  * @param req
  * @param res
@@ -680,12 +737,36 @@ const rejectTourReschedule = async (
 /**
  * Create a new tour in collection.
  */
-const createTourCollection = AsyncCatch(createTour, Retry.ExponentialBackoff);
+const createTours = AsyncCatch(createTour, Retry.ExponentialBackoff);
 
 /**
  * Retrieve collection of tours.
  */
-const retrieveTourCollection = AsyncCatch(getTours, Retry.LinearJitterBackoff);
+const retrieveTours = AsyncCatch(getTours, Retry.LinearJitterBackoff);
+
+/**
+ * Retrieve tour search.
+ */
+const retrieveToursSearch = AsyncCatch(
+  getToursSearch,
+  Retry.LinearJitterBackoff
+);
+
+/**
+ * Retrieve customer's tour history.
+ */
+const retrieveToursByCustomer = AsyncCatch(
+  getToursByCustomer,
+  Retry.LinearJitterBackoff
+);
+
+/**
+ * Retrieve realtor's tour history.
+ */
+const retrieveToursByRealtor = AsyncCatch(
+  getToursByRealtor,
+  Retry.LinearJitterBackoff
+);
 
 /**
  * Retrieve a tour item using its :id.
@@ -764,10 +845,14 @@ const acceptProposedTourReschedule = AsyncCatch(acceptTourReschedule);
 const rejectProposedTourReschedule = AsyncCatch(rejectTourReschedule);
 
 export default {
-  createTourCollection,
-  retrieveTourCollection,
+  createTours,
+  retrieveTours,
+  retrieveToursSearch,
+  retrieveToursByCustomer,
+  retrieveToursByRealtor,
   retrieveTourItem,
   updateTourItem,
+  deleteTourItem,
   completeTourItem,
   cancelTourItem,
   reopenTourItem,

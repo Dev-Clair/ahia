@@ -7,20 +7,27 @@ import ValidationMiddleware from "../../middleware/validationMiddleware";
 const TourRouterV1 = Router();
 
 TourRouterV1.route("/")
-  .get(
-    AuthMiddleware.IsGranted(["Admin"]),
-    TourController.retrieveTourCollection
-  )
+  .get(AuthMiddleware.IsGranted(["Admin"]), TourController.retrieveTours)
   .post(
     ValidationMiddleware.validateCustomer,
     TourMiddleWare.isAllowedContentType,
     TourMiddleWare.isIdempotent,
-    TourController.createTourCollection
+    TourController.createTours
   );
 
 TourRouterV1.route("/search").get(
   AuthMiddleware.IsGranted(["Admin"]),
-  TourController.retrieveTourCollection
+  TourController.retrieveToursSearch
+);
+
+TourRouterV1.route("/customer").get(
+  // AuthMiddleware.IsGranted([""]),
+  TourController.retrieveToursByCustomer
+);
+
+TourRouterV1.route("/realtor").get(
+  // AuthMiddleware.IsGranted([""]),
+  TourController.retrieveToursByCustomer
 );
 
 TourRouterV1.route("/:id")
@@ -37,6 +44,11 @@ TourRouterV1.route("/:id")
     TourMiddleWare.isIdempotent,
     TourMiddleWare.isUpdatable,
     TourController.updateTourItem
+  )
+  .delete(
+    AuthMiddleware.IsGranted(["Admin"]),
+    ValidationMiddleware.validateSingleParamId,
+    TourController.deleteTourItem
   );
 
 TourRouterV1.route("/:id/status/complete").patch(
