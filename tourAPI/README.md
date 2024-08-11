@@ -52,7 +52,7 @@ Authorization and authentication is enabled by an identity server which manages 
 
 1.  CRUD Endpoints
 
-    1.1 Create a TOur
+    1.1 Create a Tour
 
     ```
     POST /api/v1/tourss
@@ -64,19 +64,25 @@ Authorization and authentication is enabled by an identity server which manages 
     GET /api/v1/tours
     ```
 
-    1.3 Retrieve a Tour by ID
+    1.3 Retrieve Tours Search
+
+    ```
+    GET /api/v1/tours/search
+    ```
+
+    1.4 Retrieve a Tour by ID
 
     ```
     GET /api/v1/tours/:id
     ```
 
-    1.4 Update a Tour by ID
+    1.5 Update a Tour by ID
 
     ```
     PATCH /api/v1/tours/:id
     ```
 
-    1.5 Deletes a Tour by ID
+    1.6 Deletes a Tour by ID
 
     ```
     DELETE /api/v1/tours/:id
@@ -84,67 +90,79 @@ Authorization and authentication is enabled by an identity server which manages 
 
 2.  Specialized Endpoints
 
-    2.1 Mark a Tour as complete
+    2.1 Select all tour bookings for a customer
+
+    ```
+    GET /api/v1/tours/customer?customerId=:customerId
+    ```
+
+    2.2 Select all tour assignments for a realtor
+
+    ```
+    GET /api/v1/tours/realtor?realtorId=:realtorId
+    ```
+
+    2.3 Mark a Tour as complete
 
     ```
     PATCH /api/v1/tours/:id/status/complete
     ```
 
-    2.2 Mark a Tour as cancelled
+    2.4 Mark a Tour as cancelled
 
     ```
     PATCH /api/v1/tours/:id/status/cancel
     ```
 
-    2.3 Mark a Tour as reopened
+    2.5 Mark a Tour as reopened
 
     ```
     PATCH /api/v1/tours/:id/status/reopen
     ```
 
-    2.4 Search available realtors based on tour location
+    2.6 Search available realtors based on tour location
 
     ```
     GET /api/v1/tours/:id/realtors
     ```
 
-    2.5 Select/Request a realtor
+    2.7 Select/Request a realtor
 
     ```
     POST /api/v1/tours/:id/realtors
     ```
 
-    2.6 Accept realtor request
+    2.8 Accept realtor request
 
     ```
     PUT /api/v1/tours/:id/realtors/accept
     ```
 
-    2.7 Reject realtor request
+    2.9 Reject realtor request
 
     ```
     PUT /api/v1/tours/:id/realtors/reject
     ```
 
-    2.8 Schedule tour date and time
+    2.10 Schedule tour date and time
 
     ```
     PUT /api/v1/tours/:id/schedule
     ```
 
-    2.9 Reschedule tour date and time
+    2.11 Reschedule tour date and time
 
     ```
     POST /api/v1/tours/:id/reschedule
     ```
 
-    3.0 Accept proposed tour reschedule
+    2.12 Accept proposed tour reschedule
 
     ```
     PUT /api/v1/tours/:id/reschedule/:rescheduleId/accept
     ```
 
-    3.1 Reject proposed tour reschedule
+    2.13 Reject proposed tour reschedule
 
     ```
     PUT /api/v1/tours/:id/reschedule/:rescheduleId/reject
