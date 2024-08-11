@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
 import Config from "../../../config";
+import ConflictError from "../../error/conflictError";
 import { NextFunction, Request, Response } from "express";
 import EnsureIdempotency from "../../utils/ensureIdempotency";
 import Features from "../../utils/feature";
@@ -32,9 +33,10 @@ const createTour = async (
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
   if (await VerifyIdempotency(idempotencyKey)) {
-    return res
-      .status(HttpStatusCode.CONFLICT)
-      .json({ data: "Duplicate request detected" });
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
   }
 
   const { customer, listings } = req.body;
@@ -117,9 +119,10 @@ const updateTour = async (
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
   if (await VerifyIdempotency(idempotencyKey)) {
-    return res
-      .status(HttpStatusCode.CONFLICT)
-      .json({ data: "Duplicate request detected" });
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
   }
 
   const id = req.params.id as string;
@@ -378,9 +381,10 @@ const selectRealtor = async (
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
   if (await VerifyIdempotency(idempotencyKey)) {
-    return res
-      .status(HttpStatusCode.CONFLICT)
-      .json({ data: "Duplicate request detected" });
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
   }
 
   const tourId = req.params.id as string;
@@ -504,9 +508,10 @@ const scheduleTour = async (
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
   if (await VerifyIdempotency(idempotencyKey)) {
-    return res
-      .status(HttpStatusCode.CONFLICT)
-      .json({ data: "Duplicate request detected" });
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
   }
 
   const id = req.params.id as string;
@@ -550,9 +555,10 @@ const rescheduleTour = async (
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
   if (await VerifyIdempotency(idempotencyKey)) {
-    return res
-      .status(HttpStatusCode.CONFLICT)
-      .json({ data: "Duplicate request detected" });
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
   }
 
   const id = req.params.id as string;
@@ -592,9 +598,9 @@ const acceptTourReschedule = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const scheduleId = req.params.rescheduleId;
+  const rescheduleId = req.params.rescheduleId as string;
 
-  const schedule = await Schedule.findById({ _id: scheduleId });
+  const schedule = await Schedule.findById({ _id: rescheduleId });
 
   if (!schedule) {
     throw new NotFoundError(
@@ -646,14 +652,14 @@ const rejectTourReschedule = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const scheduleId = req.params.rescheduleId as string;
+  const rescheduleId = req.params.rescheduleId as string;
 
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
     const schedule = await Schedule.findByIdAndDelete(
       {
-        _id: scheduleId,
+        _id: rescheduleId,
       },
       { session }
     );
