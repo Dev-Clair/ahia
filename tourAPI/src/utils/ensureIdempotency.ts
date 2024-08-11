@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 import Idempotency from "../model/idempotencyModel";
 
 /**
- * Stores idempotency key
+ * Ensures operation idempotency
  * @param req
  * @param res
  * @returns Promise<void>
  */
-const StoreIdempotencyKey = async (
+const EnsureIdempotency = async (
   key: string,
   session: mongoose.ClientSession
 ): Promise<void> => {
@@ -21,4 +21,4 @@ const StoreIdempotencyKey = async (
   );
 };
 
-export default StoreIdempotencyKey;
+export default EnsureIdempotency;
