@@ -1,4 +1,4 @@
-import process from "process";
+import process from "node:process";
 import dotenv from "dotenv";
 
 if (process.env.NODE_ENV !== "production") {
