@@ -1,5 +1,4 @@
-node_modules
-.serverless
-.env
 .ebextensions
-/ssl
+.env
+node_modules
+/ssl/*.pem
