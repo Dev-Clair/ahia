@@ -1,11 +1,13 @@
+import mongoose from "mongoose";
 import { NextFunction, Request, Response } from "express";
 import Attachment from "../model/attachmentModel";
+import ConflictError from "../error/conflictError";
+import EnsureIdempotency from "../utils/ensureIdempotency";
 import storageService from "../service/storageService";
 import Listing from "../model/listingModel";
 import HttpStatusCode from "../enum/httpStatusCode";
 import NotFoundError from "../error/notfoundError";
-import GetIdempotencyKey from "../utils/getIdempotencyKey";
-import StoreIdempotencyKey from "../utils/storeIdempotencyKey";
+import VerifyIdempotency from "../utils/verifyIdempotency";
 
 /**
  * Creates a new attachment resource in collection
@@ -19,7 +21,14 @@ const createAttachments = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await VerifyIdempotency(idempotencyKey)) {
+    throw new ConflictError(
+      HttpStatusCode.CONFLICT,
+      "Duplicate request detected"
+    );
+  }
 
   const id = req.params.id;
 
@@ -36,22 +45,20 @@ const createAttachments = async (
 
   const key = await storageService.upload(id, type, category, body);
 
-  const attachment = await Attachment.create({
-    name: name,
-    type: type,
-    category: category,
-    key: key,
+  const session = await mongoose.startSession();
+
+  await session.withTransaction(async () => {
+    await Attachment.create({
+      name: name,
+      type: type,
+      category: category,
+      key: key,
+    });
+
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
-  const response = {
-    data: {
-      message: `${attachment.name.toUpperCase()} successfully uploaded`,
-    },
-  };
-
-  await StoreIdempotencyKey(idempotencyKey, response);
-
-  return res.status(HttpStatusCode.CREATED).json(response);
+  return res.status(HttpStatusCode.CREATED).json({ data: null });
 };
 
 // /**
