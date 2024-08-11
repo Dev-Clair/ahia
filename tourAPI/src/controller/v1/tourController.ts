@@ -3,7 +3,7 @@ import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
 import Config from "../../../config";
 import { NextFunction, Request, Response } from "express";
-import GetIdempotencyKey from "../../utils/getIdempotencyKey";
+import EnsureIdempotency from "../../utils/ensureIdempotency";
 import Features from "../../utils/feature";
 import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
@@ -15,7 +15,7 @@ import Retry from "../../utils/retry";
 import Tour from "../../model/tourModel";
 import Realtor from "../../model/realtorModel";
 import Schedule from "../../model/scheduleModel";
-import StoreIdempotencyKey from "../../utils/storeIdempotencyKey";
+import VerifyIdempotency from "../../utils/verifyIdempotency";
 
 /**
  * Creates a new tour resource in collection
@@ -29,7 +29,13 @@ const createTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await VerifyIdempotency(idempotencyKey)) {
+    return res
+      .status(HttpStatusCode.CONFLICT)
+      .json({ data: "Duplicate request detected" });
+  }
 
   const { customer, listings } = req.body;
 
@@ -38,7 +44,7 @@ const createTour = async (
   await session.withTransaction(async () => {
     await Tour.create([{ customer, listings }], { session: session });
 
-    await StoreIdempotencyKey(idempotencyKey, session);
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
   // await Mail(); // Send mail to customer confirming tour creation success
@@ -108,7 +114,13 @@ const updateTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await VerifyIdempotency(idempotencyKey)) {
+    return res
+      .status(HttpStatusCode.CONFLICT)
+      .json({ data: "Duplicate request detected" });
+  }
 
   const id = req.params.id as string;
 
@@ -129,7 +141,7 @@ const updateTour = async (
       );
     }
 
-    await StoreIdempotencyKey(idempotencyKey, session);
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
@@ -363,7 +375,13 @@ const selectRealtor = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await VerifyIdempotency(idempotencyKey)) {
+    return res
+      .status(HttpStatusCode.CONFLICT)
+      .json({ data: "Duplicate request detected" });
+  }
 
   const tourId = req.params.id as string;
 
@@ -382,7 +400,7 @@ const selectRealtor = async (
       { session: session }
     );
 
-    await StoreIdempotencyKey(idempotencyKey, session);
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
   // await Notify() // Send push notification to realtor about tour request
@@ -483,7 +501,13 @@ const scheduleTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await VerifyIdempotency(idempotencyKey)) {
+    return res
+      .status(HttpStatusCode.CONFLICT)
+      .json({ data: "Duplicate request detected" });
+  }
 
   const id = req.params.id as string;
 
@@ -505,7 +529,7 @@ const scheduleTour = async (
       );
     }
 
-    await StoreIdempotencyKey(idempotencyKey, session);
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.CREATED).json({ data: null });
@@ -523,7 +547,13 @@ const rescheduleTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const idempotencyKey = (await GetIdempotencyKey(req, res)) as string;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await VerifyIdempotency(idempotencyKey)) {
+    return res
+      .status(HttpStatusCode.CONFLICT)
+      .json({ data: "Duplicate request detected" });
+  }
 
   const id = req.params.id as string;
 
@@ -542,7 +572,7 @@ const rescheduleTour = async (
       { session: session }
     );
 
-    await StoreIdempotencyKey(idempotencyKey, session);
+    await EnsureIdempotency(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.CREATED).json({ data: null });
