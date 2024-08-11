@@ -83,6 +83,7 @@ const TourSchema: Schema<TourInterface> = new Schema({
 });
 
 TourSchema.index({
+  name: "text",
   "customer.id": "text",
   "realtor.id": "text",
   "customer.email": "text",
