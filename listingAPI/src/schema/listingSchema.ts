@@ -114,7 +114,13 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
   { timestamps: true }
 );
 
-ListingSchema.index({ location: "2dsphere" });
+ListingSchema.index({
+  name: "text",
+  description: "text",
+  type: "text",
+  features: "text",
+  location: "2dsphere",
+});
 
 ListingSchema.pre("save", function (next) {
   if (!this.isModified("slug")) {
