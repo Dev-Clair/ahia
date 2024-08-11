@@ -14,7 +14,7 @@ const AsyncCatch = (
     next: NextFunction
   ) => Promise<Response | void>,
   Retry?: Function,
-  RetryOptions?: {}
+  RetryOptions?: object
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const executeOperation = () => Operation(req, res, next);
