@@ -48,10 +48,6 @@ const customerSchema = z.object({
       })
     )
     .nonempty("A new tour must have a collection of listings id and location"),
-  transactionRef: z.string({
-    required_error: "Transaction reference is required",
-    invalid_type_error: "Transaction reference must be a string",
-  }),
 });
 
 const scheduleSchema = z.object({
