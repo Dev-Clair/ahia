@@ -4,14 +4,14 @@ import CryptoHash from "../../utils/cryptoHash";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
 import { NextFunction, Request, Response } from "express";
-import Features from "../../utils/feature";
 import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Idempotent from "../../utils/idempotency";
+import InternalServerError from "../../error/internalserverError";
 import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
-import InternalServerError from "../../error/internalserverError";
+import { QueryBuilder } from "../../utils/queryBuilder";
 import Retry from "../../utils/retry";
 import Tour from "../../model/tourModel";
 import Realtor from "../../model/realtorModel";
@@ -67,16 +67,15 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { data, pagination } = await Features(Tour, {}, req);
+  const queryBuilder = new QueryBuilder(Tour.find(), req.query ?? {});
 
-  return res.status(HttpStatusCode.OK).json({
-    data: data,
-    page: pagination.page,
-    limit: pagination.limit,
-    totalItems: pagination.totalItems,
-    totalPages: pagination.totalPages,
-    links: pagination.links,
-  });
+  const tours = await queryBuilder.filter().sort().paginate();
+
+  const { data, pagination } = tours;
+
+  return res
+    .status(HttpStatusCode.OK)
+    .json({ data: data, pagination: pagination });
 };
 
 /**
@@ -93,9 +92,18 @@ const getToursSearch = async (
 ): Promise<Response | void> => {
   const query = req.query.search as string;
 
-  const tours = await Tour.find({ $text: { $search: query } });
+  const queryBuilder = new QueryBuilder(
+    Tour.find(),
+    { $text: { $search: query } } ?? {}
+  );
 
-  return res.status(HttpStatusCode.OK).json({ data: tours });
+  const tours = await queryBuilder.filter().sort().paginate();
+
+  const { data, pagination } = tours;
+
+  return res
+    .status(HttpStatusCode.OK)
+    .json({ data: data, pagination: pagination });
 };
 
 /**
@@ -112,7 +120,9 @@ const getToursByCustomer = async (
 ): Promise<Response | void> => {
   const { customerId } = req.query;
 
-  const tours = (await Tour.find({ customer: { id: customerId } })) ?? [];
+  const queryBuilder = new QueryBuilder(Tour.find(), { customerId });
+
+  const tours = await queryBuilder.filter().sort().exec();
 
   return res.status(HttpStatusCode.OK).json({ data: tours });
 };
@@ -131,7 +141,9 @@ const getToursByRealtor = async (
 ): Promise<Response | void> => {
   const { realtorId } = req.query;
 
-  const tours = (await Tour.find({ customer: { id: realtorId } })) ?? [];
+  const queryBuilder = new QueryBuilder(Tour.find(), { realtorId });
+
+  const tours = await queryBuilder.filter().sort().exec();
 
   return res.status(HttpStatusCode.OK).json({ data: tours });
 };
