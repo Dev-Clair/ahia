@@ -67,7 +67,9 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryBuilder = new QueryBuilder(Tour.find(), req.query ?? {});
+  const queryString = req.query;
+
+  const queryBuilder = new QueryBuilder(Tour.find(), queryString ?? {});
 
   const tours = await queryBuilder.filter().sort().paginate();
 
@@ -90,11 +92,11 @@ const getToursSearch = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const query = req.query.search as string;
+  const searchQuery = req.query.search as string;
 
   const queryBuilder = new QueryBuilder(
     Tour.find(),
-    { $text: { $search: query } } ?? {}
+    { $text: { $search: searchQuery } } ?? {}
   );
 
   const tours = await queryBuilder.filter().sort().paginate();
