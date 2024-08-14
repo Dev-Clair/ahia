@@ -75,16 +75,7 @@ export class QueryBuilder<T> {
    * Handles pagination operation
    * @returns Promise of type data and pagination metadata
    */
-  async paginate(): Promise<{
-    data: T[];
-    pagination: {
-      totalItems: number;
-      totalPages: number;
-      currentPage: number;
-      nextPage: number | null;
-      prevPage: number | null;
-    };
-  }> {
+  async paginate(): Promise<PaginationResult<T>> {
     const page = parseInt(this.queryString.page || "1", 10);
 
     const limit = parseInt(this.queryString.limit || "100", 10);
