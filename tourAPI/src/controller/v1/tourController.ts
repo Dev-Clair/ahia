@@ -4,10 +4,10 @@ import CryptoHash from "../../utils/cryptoHash";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
 import { NextFunction, Request, Response } from "express";
-import EnsureIdempotency from "../../utils/ensureIdempotency";
 import Features from "../../utils/feature";
 import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
+import Idempotent from "../../utils/idempotency";
 import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
@@ -16,7 +16,6 @@ import Retry from "../../utils/retry";
 import Tour from "../../model/tourModel";
 import Realtor from "../../model/realtorModel";
 import Schedule from "../../model/scheduleModel";
-import VerifyIdempotency from "../../utils/verifyIdempotency";
 
 /**
  * Creates a new tour resource in collection
@@ -32,7 +31,7 @@ const createTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await VerifyIdempotency(idempotencyKey)) {
+  if (await Idempotent.Verify(idempotencyKey)) {
     throw new ConflictError(
       HttpStatusCode.CONFLICT,
       "Duplicate request detected"
@@ -46,7 +45,7 @@ const createTour = async (
   await session.withTransaction(async () => {
     await Tour.create([{ customer, listings }], { session: session });
 
-    await EnsureIdempotency(idempotencyKey, session);
+    await Idempotent.Ensure(idempotencyKey, session);
   });
 
   // await Mail(); // Send mail to customer confirming tour creation success
@@ -175,7 +174,7 @@ const updateTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await VerifyIdempotency(idempotencyKey)) {
+  if (await Idempotent.Verify(idempotencyKey)) {
     throw new ConflictError(
       HttpStatusCode.CONFLICT,
       "Duplicate request detected"
@@ -201,7 +200,7 @@ const updateTour = async (
       );
     }
 
-    await EnsureIdempotency(idempotencyKey, session);
+    await Idempotent.Ensure(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
@@ -437,7 +436,7 @@ const selectRealtor = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await VerifyIdempotency(idempotencyKey)) {
+  if (await Idempotent.Verify(idempotencyKey)) {
     throw new ConflictError(
       HttpStatusCode.CONFLICT,
       "Duplicate request detected"
@@ -461,7 +460,7 @@ const selectRealtor = async (
       { session: session }
     );
 
-    await EnsureIdempotency(idempotencyKey, session);
+    await Idempotent.Ensure(idempotencyKey, session);
   });
 
   // await Notify() // Send push notification to realtor about tour request
@@ -564,7 +563,7 @@ const scheduleTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await VerifyIdempotency(idempotencyKey)) {
+  if (await Idempotent.Verify(idempotencyKey)) {
     throw new ConflictError(
       HttpStatusCode.CONFLICT,
       "Duplicate request detected"
@@ -591,7 +590,7 @@ const scheduleTour = async (
       );
     }
 
-    await EnsureIdempotency(idempotencyKey, session);
+    await Idempotent.Ensure(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.CREATED).json({ data: null });
@@ -611,7 +610,7 @@ const rescheduleTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await VerifyIdempotency(idempotencyKey)) {
+  if (await Idempotent.Verify(idempotencyKey)) {
     throw new ConflictError(
       HttpStatusCode.CONFLICT,
       "Duplicate request detected"
@@ -635,7 +634,7 @@ const rescheduleTour = async (
       { session: session }
     );
 
-    await EnsureIdempotency(idempotencyKey, session);
+    await Idempotent.Ensure(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.CREATED).json({ data: null });
