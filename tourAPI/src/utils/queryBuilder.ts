@@ -1,4 +1,4 @@
-import { Query, Model } from "mongoose";
+import { Query } from "mongoose";
 
 interface QueryString {
   page?: string;
@@ -73,16 +73,25 @@ export class QueryBuilder<T> {
 
   /**
    * Handles pagination operation
-   * @returns this
+   * @returns Promise of type data and pagination metadata
    */
-  async paginate(model: Model<T>): Promise<PaginationResult<T>> {
+  async paginate(): Promise<{
+    data: T[];
+    pagination: {
+      totalItems: number;
+      totalPages: number;
+      currentPage: number;
+      nextPage: number | null;
+      prevPage: number | null;
+    };
+  }> {
     const page = parseInt(this.queryString.page || "1", 10);
 
     const limit = parseInt(this.queryString.limit || "100", 10);
 
     const skip = (page - 1) * limit;
 
-    const totalItems = await model.countDocuments(this.query);
+    const totalItems = await this.query.countDocuments();
 
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -106,7 +115,7 @@ export class QueryBuilder<T> {
    * Executes the query
    * @returns Promise of type any
    */
-  exec(): Query<T[], T> {
+  exec(): Promise<T[]> {
     return this.query;
   }
 }
