@@ -1,4 +1,5 @@
 import { Query } from "mongoose";
+import { Request } from "express";
 
 interface QueryString {
   page?: string;
@@ -14,8 +15,10 @@ interface PaginationResult<T> {
     totalItems: number;
     totalPages: number;
     currentPage: number;
-    nextPage: number | null;
-    prevPage: number | null;
+    links: {
+      next: string | null;
+      prev: string | null;
+    };
   };
 }
 /**
@@ -75,29 +78,43 @@ export class QueryBuilder<T> {
    * Handles pagination operation
    * @returns Promise of type data and pagination metadata
    */
-  async paginate(): Promise<PaginationResult<T>> {
+  async paginate(req: Request): Promise<PaginationResult<T>> {
     const page = parseInt(this.queryString.page || "1", 10);
 
-    const limit = parseInt(this.queryString.limit || "100", 10);
+    const limit = parseInt(this.queryString.limit || "2", 10);
 
     const skip = (page - 1) * limit;
-
-    const totalItems = await this.query.countDocuments();
-
-    const totalPages = Math.ceil(totalItems / limit);
 
     this.query = this.query.skip(skip).limit(limit);
 
     const data = await this.query;
+
+    const totalItems = data.length;
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const currentPage = page;
+
+    const nextPage = page < totalPages ? currentPage + 1 : null;
+
+    const prevPage = page > 1 ? currentPage - 1 : null;
+
+    const baseUrl = `${req.protocol}://${req.get("host")}${req.baseUrl}${
+      req.path
+    }`;
+
+    const links = {
+      next: nextPage ? `${baseUrl}?page=${nextPage}&limit=${limit}` : null,
+      prev: prevPage ? `${baseUrl}?page=${prevPage}&limit=${limit}` : null,
+    };
 
     return {
       data,
       pagination: {
         totalItems,
         totalPages,
-        currentPage: page,
-        nextPage: page < totalPages ? page + 1 : null,
-        prevPage: page > 1 ? page - 1 : null,
+        currentPage,
+        links,
       },
     };
   }
