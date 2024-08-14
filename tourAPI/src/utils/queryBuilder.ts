@@ -1,18 +1,37 @@
+import { Query, Model } from "mongoose";
+
+interface QueryString {
+  page?: string;
+  sort?: string;
+  limit?: string;
+  fields?: string;
+  [key: string]: any;
+}
+
+interface PaginationResult<T> {
+  data: T[];
+  pagination: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
+}
 /**
  * @class QueryBuilder
  * Handles pagination, sorting and filtering of collection operations
  */
-class QueryBuilder<T> {
-  private query: any;
+export class QueryBuilder<T> {
+  private query: Query<T[], T>;
 
-  private queryString: any;
+  private queryString: QueryString;
 
-  constructor(query: any, queryString: any) {
+  constructor(query: Query<T[], T>, queryString: QueryString) {
     this.query = query;
 
     this.queryString = queryString;
   }
-
   /**
    * Handles filtering operation
    * @returns this
@@ -26,7 +45,10 @@ class QueryBuilder<T> {
 
     let queryStr = JSON.stringify(queryObj);
 
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    queryStr = queryStr.replace(
+      /\b(eq|ne|gte|gt|lte|lt|in|nin)\b/g,
+      (match) => `$${match}`
+    );
 
     this.query = this.query.find(JSON.parse(queryStr));
 
@@ -53,25 +75,38 @@ class QueryBuilder<T> {
    * Handles pagination operation
    * @returns this
    */
-  paginate(): this {
-    const page = parseInt(this.queryString.page, 10) || 1;
+  async paginate(model: Model<T>): Promise<PaginationResult<T>> {
+    const page = parseInt(this.queryString.page || "1", 10);
 
-    const limit = parseInt(this.queryString.limit, 10) || 100;
+    const limit = parseInt(this.queryString.limit || "100", 10);
 
     const skip = (page - 1) * limit;
 
+    const totalItems = await model.countDocuments(this.query);
+
+    const totalPages = Math.ceil(totalItems / limit);
+
     this.query = this.query.skip(skip).limit(limit);
 
-    return this;
+    const data = await this.query;
+
+    return {
+      data,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        nextPage: page < totalPages ? page + 1 : null,
+        prevPage: page > 1 ? page - 1 : null,
+      },
+    };
   }
 
   /**
    * Executes the query
    * @returns Promise of type any
    */
-  exec(): Promise<T[]> {
+  exec(): Query<T[], T> {
     return this.query;
   }
 }
-
-export default QueryBuilder;
