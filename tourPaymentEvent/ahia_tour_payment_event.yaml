@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: ahia tour create event service.
+Description: ahia tour payment event service.
 
 Parameters:
   AWSRegion:
@@ -12,22 +12,22 @@ Parameters:
     Type: String
 
 Resources:
-  AhiaTourCreateEventFunction:
+  AhiaTourPaymentEventFunction:
     Type: "AWS::Lambda::Function"
     Properties:
-      FunctionName: "ahia-tour-create-event"
+      FunctionName: "ahia-tour-payment-event"
       Handler: "handler.tour"
       Runtime: "nodejs20.x"
       MemorySize: 128
       Environment:
         Variables:
           NODE_ENV: !Ref NodeEnv
-      Role: !GetAtt AhiaTourCreateEventRole.Arn
+      Role: !GetAtt AhiaTourPaymentEventRole.Arn
       Code:
         S3Bucket: " "
         S3Key: " "
 
-  AhiaTourCreateEventRole:
+  AhiaTourPaymentEventRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -38,21 +38,21 @@ Resources:
               Service: "lambda.amazonaws.com"
             Action: "sts:AssumeRole"
       Policies:
-        - PolicyName: "ahia-tour-create-event-policy"
+        - PolicyName: "ahia-tour-payment-event-policy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
                 Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
+                  - "logs:PaymentLogGroup"
+                  - "logs:PaymentLogStream"
                   - "logs:PutLogEvents"
                 Resource: "arn:aws:logs:*:*:*"
               - Effect: "Allow"
                 Action: "events:PutEvents"
                 Resource: "*"
 
-  AhiaTourCreateEventRule:
+  AhiaTourPaymentEventRule:
     Type: "AWS::Events::Rule"
     Properties:
       EventBusName: !Ref AWSPaymentEventBus
@@ -60,13 +60,13 @@ Resources:
         source:
           - "mongodb-atlas"
       Targets:
-        - Arn: !GetAtt AhiaTourCreateEventFunction.Arn
-          Id: "AhiaTourCreateEventTarget"
+        - Arn: !GetAtt AhiaTourPaymentEventFunction.Arn
+          Id: "AhiaTourPaymentEventTarget"
 
-  AhiaTourCreateEventPermission:
+  AhiaTourPaymentEventPermission:
     Type: "AWS::Lambda::Permission"
     Properties:
       Action: "lambda:InvokeFunction"
-      FunctionName: !Ref AhiaTourCreateEventFunction
+      FunctionName: !Ref AhiaTourPaymentEventFunction
       Principal: "events.amazonaws.com"
-      SourceArn: !GetAtt AhiaTourCreateEventRule.Arn
+      SourceArn: !GetAtt AhiaTourPaymentEventRule.Arn

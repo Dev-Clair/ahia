@@ -1,5 +1,5 @@
 {
-  "name": "tourcreateevent",
+  "name": "tourpaymentevent",
   "version": "1.0.0",
   "description": "'AWS Lambda Resource Integrated with Eventbridge'",
   "main": "handler.js",
@@ -10,7 +10,7 @@
     "ahia",
     "tour",
     "service",
-    "create",
+    "payment",
     "event"
   ],
   "author": "Aniogbu  Samuel",
