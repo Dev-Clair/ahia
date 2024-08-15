@@ -1,12 +1,12 @@
 import { Schema } from "mongoose";
-import TourScheduleInterface from "../interface/tourScheduleInterface";
+import ScheduleCacheInterface from "../interface/scheduleCache";
 
-const TourScheduleSchema: Schema<TourScheduleInterface> = new Schema({
+const ScheduleCacheSchema: Schema<ScheduleCacheInterface> = new Schema({
   tourId: {
     type: String,
     required: true,
   },
-  propose: {
+  schedule: {
     date: {
       type: Date,
       required: true,
@@ -22,4 +22,4 @@ const TourScheduleSchema: Schema<TourScheduleInterface> = new Schema({
   },
 });
 
-export default TourScheduleSchema;
+export default ScheduleCacheSchema;

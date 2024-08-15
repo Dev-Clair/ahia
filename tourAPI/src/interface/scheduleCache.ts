@@ -1,8 +1,8 @@
 import { Document } from "mongoose";
 
-export default interface TourScheduleInterface extends Document {
+export default interface ScheduleCacheInterface extends Document {
   tourId: string;
-  propose: {
+  schedule: {
     date: Date;
     time: string;
   };
