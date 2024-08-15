@@ -38,17 +38,15 @@ exports.tour = async (event, context) => {
     console.log(operation);
   } catch (err) {
     if (err instanceof ConnectionError) {
-      const text = {
-        name: err.name,
-        message: err.message,
-        description: err.description,
-      };
-
       await Mail(
         sender,
         recipient,
         err.name.toUpperCase(),
-        JSON.stringify(text)
+        JSON.stringify({
+          name: err.name,
+          message: err.message,
+          description: err.description,
+        })
       );
     }
 
