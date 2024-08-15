@@ -1,8 +1,8 @@
 const URL = require("node:url").URL;
-const Cache = require("./cache");
-const Config = require("./config");
-const Mail = require("./mail");
-const MailerError = require("./mailerError");
+const Cache = require("../src/service/cache");
+const Config = require("../config");
+const Mail = require("../src/utils/mail");
+const MailerError = require("../src/error/mailerError");
 
 class TourNotificationManager {
   constructor() {

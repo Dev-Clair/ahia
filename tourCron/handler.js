@@ -1,9 +1,9 @@
 const Config = require("./config");
 const Connection = require("./connection");
-const ConnectionError = require("./connectionError");
-const Mail = require("./mail");
-const MailerError = require("./mailerError");
-const TourNotification = require("./tourNotification");
+const ConnectionError = require("./src/error/connectionError");
+const Mail = require("./src/utils/mail");
+const MailerError = require("./src/error/mailerError");
+const TourNotification = require("./cron/tourNotification");
 
 const sender = Config.TOUR_NOTIFICATION_EMAIL || "";
 
@@ -13,22 +13,20 @@ exports.cron = async (event, context) => {
   try {
     Connection(Config.MONGO_URI);
 
-    const cronLog = await TourNotification();
+    const cron = await TourNotification();
 
-    const message = JSON.stringify(cronLog);
+    const message = JSON.stringify(cron);
 
-    if (cronLog.status === false) {
+    if (cron.status === false) {
       await Mail(sender, recipient, "TOUR NOTIFICATION: CRON LOG", message);
     }
   } catch (err) {
     if (err instanceof ConnectionError) {
-      const text = { message: err.message, description: err.description };
-
       await Notify(
         sender,
         recipient,
         err.name.toUpperCase(),
-        JSON.stringify(text)
+        JSON.stringify({ message: err.message, description: err.description })
       );
     }
 

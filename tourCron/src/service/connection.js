@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const ConnectionError = require("./connectionError");
+const ConnectionError = require("./src/error/connectionError");
 const Retry = require("./retry");
 
 const establishConnection = async (connectionUri) => {

@@ -1,4 +1,4 @@
-const TourGenerator = require("./tourGenerator");
+const TourGenerator = require("./cron/tourGenerator");
 const TourNotificationManager = require("./tourNotificationManager");
 
 const TourNotification = async () => {

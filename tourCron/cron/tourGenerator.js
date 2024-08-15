@@ -1,4 +1,4 @@
-const Tour = require("./tourModel");
+const Tour = require("../src/model/tourModel");
 
 const TourGenerator = async function* () {
   const pageSize = 100;
