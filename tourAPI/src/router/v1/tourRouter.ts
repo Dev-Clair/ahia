@@ -88,13 +88,19 @@ TourRouterV1.route("/:id/realtors")
 TourRouterV1.route("/:id/realtors/accept").put(
   AuthMiddleware.IsGranted(["Realtor"]),
   ValidationMiddleware.validateSingleParamId,
-  TourController.acceptProposedTourRequest
+  TourController.acceptRealtorRequest
 );
 
 TourRouterV1.route("/:id/realtors/reject").put(
   AuthMiddleware.IsGranted(["Realtor"]),
   ValidationMiddleware.validateSingleParamId,
-  TourController.rejectProposedTourRequest
+  TourController.rejectRealtorRequest
+);
+
+TourRouterV1.route("/:id/realtors/exit").put(
+  AuthMiddleware.IsGranted(["Realtor"]),
+  ValidationMiddleware.validateSingleParamId,
+  TourController.exitTourItem
 );
 
 TourRouterV1.route("/:id/schedule").patch(

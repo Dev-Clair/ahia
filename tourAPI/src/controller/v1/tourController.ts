@@ -586,6 +586,44 @@ const rejectTourRequest = async (
 };
 
 /**
+ * Exits or removes a realtor from a tour
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const exitTour = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const id = req.params.id as string;
+
+  const tour = await Tour.findOne({ _id: id, status: "pending" });
+
+  if (!tour) {
+    throw new NotFoundError(
+      HttpStatusCode.NOT_FOUND,
+      `No record found for tour: ${id}`
+    );
+  }
+
+  const session = await mongoose.startSession();
+
+  await session.withTransaction(async () => {
+    tour.$set(tour.realtor.id, undefined);
+
+    tour.$set(tour.realtor.email, undefined);
+
+    await tour.save({ session });
+  });
+
+  // await Notify() // Notify customer on realtor's tour exit
+
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+};
+
+/**
  * Schedules tour date and time
  * @param req
  * @param res
@@ -846,18 +884,17 @@ const selectTourRealtor = AsyncCatch(selectRealtor);
 /**
  * accept tour realtor request
  */
-const acceptProposedTourRequest = AsyncCatch(
-  acceptTourRequest,
-  Retry.LinearBackoff
-);
+const acceptRealtorRequest = AsyncCatch(acceptTourRequest, Retry.LinearBackoff);
 
 /**
  * reject tour realtor request
  */
-const rejectProposedTourRequest = AsyncCatch(
-  rejectTourRequest,
-  Retry.LinearBackoff
-);
+const rejectRealtorRequest = AsyncCatch(rejectTourRequest, Retry.LinearBackoff);
+
+/**
+ * exit from a tour
+ */
+const exitTourItem = AsyncCatch(exitTour, Retry.LinearBackoff);
 
 /**
  * schedule a new tour.
@@ -893,8 +930,9 @@ export default {
   reopenTourItem,
   retrieveAvailableRealtors,
   selectTourRealtor,
-  acceptProposedTourRequest,
-  rejectProposedTourRequest,
+  acceptRealtorRequest,
+  rejectRealtorRequest,
+  exitTourItem,
   scheduleTourItem,
   rescheduleTourItem,
   acceptProposedTourReschedule,
