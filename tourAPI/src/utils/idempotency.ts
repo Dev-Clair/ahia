@@ -21,8 +21,8 @@ class Idempotent {
 
   /**
    * Ensures operation idempotency
-   * @param req
-   * @param res
+   * @param string
+   * @param session
    * @returns Promise<void>
    */
   static async Ensure(
