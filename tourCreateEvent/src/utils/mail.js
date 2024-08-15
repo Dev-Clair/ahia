@@ -1,6 +1,6 @@
-const Mailer = require("./mailer");
-const MailerError = require("./mailerError");
-const Retry = require("./retry");
+const Mailer = require("./../../mailer");
+const MailerError = require("./src/error/mailerError");
+const Retry = require("./src/utils/retry");
 
 const Mail = async (sender, recipient, subject, text) => {
   try {
