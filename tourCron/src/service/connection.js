@@ -1,15 +1,26 @@
 const mongoose = require("mongoose");
-const ConnectionError = require("./src/error/connectionError");
-const Retry = require("./retry");
+const ConnectionError = require("../error/connectionError");
+const Retry = require("../utils/retry");
 
+/**
+ * Establishes connection to database
+ * @param {*} connectionUri
+ */
 const establishConnection = async (connectionUri) => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(connectionUri, {
       serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 120,
+      minPoolSize: 20,
+      socketTimeoutMS: 60000,
     });
   }
 };
 
+/**
+ * Provides connection resource with round robin retry strategy on failure
+ * @param {*} connectionUri
+ */
 const Connection = async (connectionUri) => {
   try {
     await Retry.ExponentialBackoff(() => establishConnection(connectionUri));
