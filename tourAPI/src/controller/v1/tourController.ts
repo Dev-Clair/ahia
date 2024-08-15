@@ -13,9 +13,9 @@ import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import { QueryBuilder } from "../../utils/queryBuilder";
 import Retry from "../../utils/retry";
-import Tour from "../../model/tourModel";
-import Realtor from "../../model/realtorModel";
-import Schedule from "../../model/scheduleModel";
+import Tour from "../../model/tour";
+import RealtorCache from "../../model/realtorCache";
+import ScheduleCache from "../../model/scheduleCache";
 
 /**
  * Creates a new tour resource in collection
@@ -486,7 +486,7 @@ const selectRealtor = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    await Realtor.create(
+    await RealtorCache.create(
       [
         {
           tourId: tourId,
@@ -518,7 +518,7 @@ const acceptTourRequest = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const request = await Realtor.findOne({ tourId: id });
+  const request = await RealtorCache.findOne({ tourId: id });
 
   if (!request) {
     throw new NotFoundError(
@@ -565,7 +565,7 @@ const rejectTourRequest = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const request = await Realtor.findOne({ tourId: id });
+  const request = await RealtorCache.findOne({ tourId: id });
 
   if (!request) {
     throw new NotFoundError(
@@ -660,11 +660,11 @@ const rescheduleTour = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    await Schedule.create(
+    await ScheduleCache.create(
       [
         {
           tourId: id,
-          propose: { date: date, time: time },
+          schedule: { date: date, time: time },
         },
       ],
       { session: session }
@@ -692,7 +692,7 @@ const acceptTourReschedule = async (
 
   const rescheduleId = req.params.rescheduleId as string;
 
-  const schedule = await Schedule.findById({ _id: rescheduleId });
+  const schedule = await ScheduleCache.findById({ _id: rescheduleId });
 
   if (!schedule) {
     throw new NotFoundError(
@@ -709,8 +709,8 @@ const acceptTourReschedule = async (
       {
         $set: {
           schedule: {
-            date: schedule.propose.date,
-            time: schedule.propose.time,
+            date: schedule.schedule.date,
+            time: schedule.schedule.time,
           },
         },
       },
@@ -749,7 +749,7 @@ const rejectTourReschedule = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    const schedule = await Schedule.findByIdAndDelete(
+    const schedule = await ScheduleCache.findByIdAndDelete(
       {
         _id: rescheduleId,
       },
