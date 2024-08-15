@@ -87,11 +87,11 @@ export class QueryBuilder<T> {
         fields = element.split(",").join(" ");
       });
 
-      fields.concat(" -__v");
+      fields.concat(" -__v -createdAt -updatedAt");
 
       this.query = this.query.select(fields);
     } else {
-      this.query = this.query.select("-__v");
+      this.query = this.query.select("-__v -createdAt -updatedAt");
     }
 
     return this;
