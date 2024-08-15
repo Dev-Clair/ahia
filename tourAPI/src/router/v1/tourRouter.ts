@@ -98,7 +98,7 @@ TourRouterV1.route("/:id/realtors/reject").put(
 );
 
 TourRouterV1.route("/:id/realtors/exit").put(
-  AuthMiddleware.IsGranted(["Realtor"]),
+  AuthMiddleware.IsGranted(["Customer", "Realtor"]),
   ValidationMiddleware.validateSingleParamId,
   TourController.exitTourItem
 );
