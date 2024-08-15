@@ -1,6 +1,6 @@
 import { Document } from "mongoose";
 
-export default interface TourIdempotencyInterface extends Document {
+export default interface IdempotencyInterface extends Document {
   key: string;
   createdAt: Date;
 }
