@@ -26,21 +26,21 @@ App.use(
     if (GlobalErrorHandler.isSyntaxError(err)) {
       return res
         .status(HttpStatusCode.BAD_REQUEST)
-        .json({ data: { name: err.name, message: "Bad or Malformed JSON" } });
+        .json({ error: { name: err.name, message: "Bad or Malformed JSON" } });
     }
 
     if (GlobalErrorHandler.isSafeError(err)) {
       if (err.name === "ValidationError") {
         return res.status(HttpStatusCode.UNPROCESSABLE_ENTITY).json({
-          data: { name: err.name, message: err.message },
+          error: { name: err.name, message: err.message },
         });
       } else if (err.name === "CastError") {
         return res.status(HttpStatusCode.UNPROCESSABLE_ENTITY).json({
-          data: { name: err.name, message: "Invalid ID format" },
+          error: { name: err.name, message: "Invalid ID format" },
         });
       } else {
         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          data: {
+          err: {
             name: err.name,
             message:
               "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly",
@@ -59,7 +59,7 @@ App.use(
 
     if (!res.headersSent) {
       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-        data: {
+        error: {
           name: "INTERNAL SERVER ERROR",
           message:
             "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly",
@@ -71,7 +71,7 @@ App.use(
 
 App.all("*", (req: Request, res: Response, next: NextFunction) => {
   return res.status(HttpStatusCode.NOT_FOUND).json({
-    data: `No resource or route defined for ${req.originalUrl}`,
+    error: `No resource or route defined for ${req.originalUrl}`,
   });
 });
 
