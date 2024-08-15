@@ -21,6 +21,7 @@ interface PaginationResult<T> {
     };
   };
 }
+
 /**
  * @class QueryBuilder
  * Handles pagination, sorting and filtering of collection operations
@@ -75,21 +76,45 @@ export class QueryBuilder<T> {
   }
 
   /**
+   * Handles projection: specifies fields to be included or excluded in the return query
+   * @returns this
+   */
+  select(): this {
+    if (this.queryString.fields) {
+      const fields = this.queryString.fields.split(",").join(" ");
+
+      this.query = this.query.select(fields);
+    } else {
+      this.query = this.query.select("-__v");
+    }
+
+    return this;
+  }
+
+  /**
    * Handles pagination operation
    * @returns Promise of type data and pagination metadata
    */
-  async paginate(req: Request): Promise<PaginationResult<T>> {
-    const page = parseInt(this.queryString.page || "1", 10);
+  async paginate(
+    protocol: string,
+    host: string | undefined,
+    baseURL: string,
+    path: string
+  ): Promise<PaginationResult<T>> {
+    const page = Math.max(parseInt(this.queryString.page || "1", 10));
 
-    const limit = parseInt(this.queryString.limit || "2", 10);
+    const limit = Math.max(parseInt(this.queryString.limit || "2", 10));
 
     const skip = (page - 1) * limit;
 
+    const countQuery = this.query.model.find(this.query.getQuery());
+
     this.query = this.query.skip(skip).limit(limit);
 
-    const data = await this.query;
-
-    const totalItems = data.length;
+    const [data, totalItems] = await Promise.all([
+      this.query,
+      countQuery.countDocuments(),
+    ]);
 
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -99,9 +124,7 @@ export class QueryBuilder<T> {
 
     const prevPage = page > 1 ? currentPage - 1 : null;
 
-    const baseUrl = `${req.protocol}://${req.get("host")}${req.baseUrl}${
-      req.path
-    }`;
+    const baseUrl = `${protocol}://${host}${baseURL}${path}`;
 
     const links = {
       next: nextPage ? `${baseUrl}?page=${nextPage}&limit=${limit}` : null,
