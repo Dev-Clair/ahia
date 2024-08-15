@@ -79,9 +79,15 @@ export class QueryBuilder<T> {
    * Handles projection: specifies fields to be included or excluded in the return query
    * @returns this
    */
-  select(): this {
-    if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(",").join(" ");
+  select(selection: string[]): this {
+    let fields: string = "";
+
+    if (selection.length !== 0) {
+      selection.forEach((element) => {
+        fields = element.split(",").join(" ");
+      });
+
+      fields.concat(" -__v");
 
       this.query = this.query.select(fields);
     } else {
