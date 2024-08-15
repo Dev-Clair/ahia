@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import TourInterface from "../interface/tourInterface";
+import TourInterface from "../interface/tour";
 import { getCenterOfBounds } from "geolib";
 
 const TourSchema: Schema<TourInterface> = new Schema({

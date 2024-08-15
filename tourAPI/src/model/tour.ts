@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import TourSchema from "../schema/tourSchema";
-import TourInterface from "../interface/tourInterface";
+import TourSchema from "../schema/tour";
+import TourInterface from "../interface/tour";
 
 const Tour = mongoose.model<TourInterface>("Tour", TourSchema);
 
