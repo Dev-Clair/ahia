@@ -2,7 +2,6 @@ const Config = require("./config");
 const Connection = require("./connection");
 const ConnectionError = require("./src/error/connectionError");
 const Mail = require("./src/utils/mail");
-const MailerError = require("./src/error/mailerError");
 const TourNotification = require("./cron/tourNotification");
 
 const sender = Config.TOUR.NOTIFICATION_EMAIL || "";
@@ -30,37 +29,18 @@ exports.cron = async (event, context) => {
       );
     }
 
-    if (err instanceof MailerError) {
-      console.log(err.name, err.message);
-
-      process.kill(process.pid, SIGTERM);
-    }
-
-    // Set up node-mailer as failure notification service
-    // const text = { message: err.message, trace: err.stack };
-
-    // await Mail(sender, recipient, "CRITICAL ERROR", JSON.stringify(text));
+    console.log(err.name, err.message);
   }
-};
-
-const shutdown = () => {
-  console.log("Closing all open connections");
-
-  mongoose.connection.close(true);
-
-  process.exitCode = 1;
 };
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception thrown:", error);
-  shutdown();
+
+  process.exitCode = 1;
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  shutdown();
-});
 
-process.on("SIGTERM", () => {
-  shutdown();
+  process.exitCode = 1;
 });
