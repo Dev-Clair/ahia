@@ -19,7 +19,8 @@ const isSecure = (
 
   if (getProtocol !== "https" || getSecurity === false) {
     return res.status(HttpStatusCode.FORBIDDEN).json({
-      data: {
+      error: {
+        name: "Forbidden",
         message: "Connection is not secure. SSL required",
       },
     });
@@ -40,11 +41,12 @@ const isIdempotent = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const getIdempotencyKey = req.headers["Idempotency-Key"] as string;
+  const getIdempotencyKey = req.headers["idempotency-key"] as string;
 
   if (!getIdempotencyKey) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
       data: {
+        name: "Bad Request",
         message: "Idempotency key is required",
       },
     });
@@ -67,11 +69,14 @@ const isAllowedContentType = (
 ): Response | void => {
   const allowedContentTypes = ["application/json", "text/html", "text/plain"];
 
-  const getContentType = req.headers["Content-Type"] as string;
+  const getContentType = req.headers["content-type"] as string;
+
+  console.log(getContentType);
 
   if (!allowedContentTypes.includes(getContentType)) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
-      data: {
+      error: {
+        name: "Bad Request",
         message: "Invalid content type",
         expected: "application/json",
         received: `${getContentType}`,
@@ -111,6 +116,7 @@ const isUpdatable = (
   updateFields.forEach((element) => {
     if (!allowedFields.includes(element)) {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
+        name: "Bad Request",
         message: `Updates are not allowed on field ${element}`,
       });
     }
@@ -132,8 +138,9 @@ const isNotAllowed = (
   next: NextFunction
 ): Response => {
   return res.status(HttpStatusCode.METHOD_NOT_ALLOWED).json({
-    data: {
-      message: "operation not allowed",
+    error: {
+      name: "Method Not Allowed",
+      message: "Operation not allowed",
     },
   });
 };
