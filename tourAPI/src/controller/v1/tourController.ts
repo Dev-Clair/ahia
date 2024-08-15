@@ -67,11 +67,15 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query;
+  const queryString = req.query ?? {};
 
-  const queryBuilder = new QueryBuilder(Tour.find(), queryString ?? {});
+  const queryBuilder = new QueryBuilder(Tour.find(), queryString);
 
-  const tours = await queryBuilder.filter().sort().paginate();
+  const tours = await queryBuilder
+    .filter()
+    .sort()
+    .select(["-isClosed, -customer.email, -realtor.email"])
+    .paginate(req.protocol, req.get("host"), req.baseUrl, req.path);
 
   const { data, pagination } = tours;
 
@@ -92,14 +96,17 @@ const getToursSearch = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const searchQuery = req.query.search as string;
+  const searchQuery = (req.query.search as string) ?? "";
 
-  const queryBuilder = new QueryBuilder(
-    Tour.find(),
-    { $text: { $search: searchQuery } } ?? {}
-  );
+  const queryBuilder = new QueryBuilder(Tour.find(), {
+    $text: { $search: searchQuery },
+  });
 
-  const tours = await queryBuilder.filter().sort().paginate();
+  const tours = await queryBuilder
+    .filter()
+    .sort()
+    .select(["-isClosed, -customer.email, -realtor.email"])
+    .paginate(req.protocol, req.get("host"), req.baseUrl, req.path);
 
   const { data, pagination } = tours;
 
@@ -124,7 +131,11 @@ const getToursByCustomer = async (
 
   const queryBuilder = new QueryBuilder(Tour.find(), { customerId });
 
-  const tours = await queryBuilder.filter().sort().exec();
+  const tours = await queryBuilder
+    .filter()
+    .sort()
+    // .select()
+    .exec();
 
   return res.status(HttpStatusCode.OK).json({ data: tours });
 };
@@ -145,7 +156,11 @@ const getToursByRealtor = async (
 
   const queryBuilder = new QueryBuilder(Tour.find(), { realtorId });
 
-  const tours = await queryBuilder.filter().sort().exec();
+  const tours = await queryBuilder
+    .filter()
+    .sort()
+    // .select()
+    .exec();
 
   return res.status(HttpStatusCode.OK).json({ data: tours });
 };

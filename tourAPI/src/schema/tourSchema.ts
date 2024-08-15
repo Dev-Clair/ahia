@@ -5,7 +5,7 @@ import { getCenterOfBounds } from "geolib";
 const TourSchema: Schema<TourInterface> = new Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
   },
   customer: {
     id: {
@@ -40,11 +40,11 @@ const TourSchema: Schema<TourInterface> = new Schema({
     type: {
       type: String,
       enum: ["Point"],
-      required: true,
+      required: false,
     },
     coordinates: {
       type: [Number],
-      required: true,
+      required: false,
     },
   },
   realtor: {
@@ -92,7 +92,7 @@ TourSchema.index({
 });
 
 TourSchema.pre("save", function (next) {
-  if (!this.isModified(this.name)) {
+  if (!this.isModified("name")) {
     this.name = `Tour_${this.customer.id}`;
   }
 
@@ -100,20 +100,20 @@ TourSchema.pre("save", function (next) {
 });
 
 TourSchema.pre("save", function (next) {
-  if (this.isModified("listings")) {
+  if (!this.listings || this.listings.length === 0) {
     return next(new Error("Listings are required to calculate tour location"));
   }
 
-  const coordinates = this.listings.map((listings) => ({
-    latitude: listings.location.coordinates[1],
-    longitude: listings.location.coordinates[0],
+  const coordinates = this.listings.map((listing) => ({
+    latitude: listing.location.coordinates[1],
+    longitude: listing.location.coordinates[0],
   }));
 
   const centroid = getCenterOfBounds(coordinates);
 
   this.location = {
     type: "Point",
-    coordinates: [centroid.latitude, centroid.longitude],
+    coordinates: [centroid.longitude, centroid.latitude],
   };
 
   next();

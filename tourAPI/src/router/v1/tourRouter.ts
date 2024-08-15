@@ -7,9 +7,13 @@ import ValidationMiddleware from "../../middleware/validationMiddleware";
 const TourRouterV1 = Router();
 
 TourRouterV1.route("/")
-  .get(AuthMiddleware.IsGranted(["Admin"]), TourController.retrieveTours)
+  .get(
+    // AuthMiddleware.IsGranted(["Admin"]),
+    TourController.retrieveTours
+  )
   .post(
-    ValidationMiddleware.validateCustomer,
+    // AuthMiddleware.IsGranted(["Admin"]),
+    // ValidationMiddleware.validateCustomer,
     TourMiddleWare.isAllowedContentType,
     TourMiddleWare.isIdempotent,
     TourController.createTours
@@ -32,13 +36,13 @@ TourRouterV1.route("/realtor").get(
 
 TourRouterV1.route("/:id")
   .get(
-    AuthMiddleware.IsGranted(["Customer"]),
+    // AuthMiddleware.IsGranted(["Customer"]),
     ValidationMiddleware.validateSingleParamId,
     TourController.retrieveTourItem
   )
   .put(TourMiddleWare.isNotAllowed)
   .patch(
-    AuthMiddleware.IsGranted(["Customer"]),
+    // AuthMiddleware.IsGranted(["Customer"]),
     ValidationMiddleware.validateSingleParamId,
     TourMiddleWare.isAllowedContentType,
     TourMiddleWare.isIdempotent,
