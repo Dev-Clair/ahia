@@ -3,7 +3,7 @@ import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
-import { NextFunction, query, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Idempotent from "../../utils/idempotency";
@@ -101,11 +101,11 @@ const getToursSearch = async (
 ): Promise<Response | void> => {
   const searchQuery = (req.query.search as string) ?? "";
 
-  const query = Tour.find({
+  const search = Tour.find({
     $text: { $search: searchQuery },
   });
 
-  const queryBuilder = new QueryBuilder(query, {});
+  const queryBuilder = new QueryBuilder(search, {});
 
   const tours = await queryBuilder
     .sort()
@@ -518,12 +518,12 @@ const acceptTourRequest = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const request = await RealtorCache.findOne({ tourId: id });
+  const realtorCache = await RealtorCache.findOne({ tourId: id });
 
-  if (!request) {
+  if (!realtorCache) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No realtor request found for tour: ${id}`
+      `No realtor was found for tour: ${id}`
     );
   }
 
@@ -532,7 +532,7 @@ const acceptTourRequest = async (
   await session.withTransaction(async () => {
     const tour = await Tour.findByIdAndUpdate(
       { _id: id },
-      { $set: { realtor: request.realtor } },
+      { $set: { realtor: realtorCache.realtor } },
       { new: true, session }
     );
 
@@ -543,7 +543,7 @@ const acceptTourRequest = async (
       );
     }
 
-    await request.deleteOne({ session });
+    await realtorCache.deleteOne({ session });
   });
 
   // await Notify() // Send realtor's acceptance push notification to customer
@@ -565,19 +565,19 @@ const rejectTourRequest = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const request = await RealtorCache.findOne({ tourId: id });
+  const realtorCache = await RealtorCache.findOne({ tourId: id });
 
-  if (!request) {
+  if (!realtorCache) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      `No realtor request found for tour: ${id}`
+      `No realtor was found for tour: ${id}`
     );
   }
 
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    await request.deleteOne({ session });
+    await realtorCache.deleteOne({ session });
   });
 
   // await Notify() // Send realtor's rejection push notification to customer
@@ -730,12 +730,12 @@ const acceptTourReschedule = async (
 
   const rescheduleId = req.params.rescheduleId as string;
 
-  const schedule = await ScheduleCache.findById({ _id: rescheduleId });
+  const scheduleCache = await ScheduleCache.findById({ _id: rescheduleId });
 
-  if (!schedule) {
+  if (!scheduleCache) {
     throw new NotFoundError(
       HttpStatusCode.NOT_FOUND,
-      "schedule not found or already processed."
+      "schedule not found or has already been processed."
     );
   }
 
@@ -747,8 +747,8 @@ const acceptTourReschedule = async (
       {
         $set: {
           schedule: {
-            date: schedule.schedule.date,
-            time: schedule.schedule.time,
+            date: scheduleCache.schedule.date,
+            time: scheduleCache.schedule.time,
           },
         },
       },
@@ -762,7 +762,7 @@ const acceptTourReschedule = async (
       );
     }
 
-    await schedule.deleteOne({ session });
+    await scheduleCache.deleteOne({ session });
   });
 
   // await Notify(); // Send push notification to Customer and Realtor
@@ -787,17 +787,17 @@ const rejectTourReschedule = async (
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    const schedule = await ScheduleCache.findByIdAndDelete(
+    const scheduleCache = await ScheduleCache.findByIdAndDelete(
       {
         _id: rescheduleId,
       },
       { session }
     );
 
-    if (!schedule) {
+    if (!scheduleCache) {
       throw new NotFoundError(
         HttpStatusCode.NOT_FOUND,
-        "schedule not found or already processed."
+        "schedule not found or has already been processed."
       );
     }
   });
