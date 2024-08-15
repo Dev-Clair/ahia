@@ -3,7 +3,7 @@ import AsyncCatch from "../../utils/asyncCatch";
 import CryptoHash from "../../utils/cryptoHash";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, query, Request, Response } from "express";
 import HttpClient from "../../../httpClient";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Idempotent from "../../utils/idempotency";
@@ -75,13 +75,16 @@ const getTours = async (
     .filter()
     .sort()
     .select(["-isClosed, -customer.email, -realtor.email"])
-    .paginate(req.protocol, req.get("host"), req.baseUrl, req.path);
+    .paginate({
+      protocol: req.protocol,
+      host: req.get("host"),
+      baseUrl: req.baseUrl,
+      path: req.path,
+    });
 
-  const { data, pagination } = tours;
+  const { data, metaData } = tours;
 
-  return res
-    .status(HttpStatusCode.OK)
-    .json({ data: data, pagination: pagination });
+  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
 };
 
 /**
@@ -98,21 +101,25 @@ const getToursSearch = async (
 ): Promise<Response | void> => {
   const searchQuery = (req.query.search as string) ?? "";
 
-  const queryBuilder = new QueryBuilder(Tour.find(), {
+  const query = Tour.find({
     $text: { $search: searchQuery },
   });
 
+  const queryBuilder = new QueryBuilder(query, {});
+
   const tours = await queryBuilder
-    .filter()
     .sort()
     .select(["-isClosed, -customer.email, -realtor.email"])
-    .paginate(req.protocol, req.get("host"), req.baseUrl, req.path);
+    .paginate({
+      protocol: req.protocol,
+      host: req.get("host"),
+      baseUrl: req.baseUrl,
+      path: req.path,
+    });
 
-  const { data, pagination } = tours;
+  const { data, metaData } = tours;
 
-  return res
-    .status(HttpStatusCode.OK)
-    .json({ data: data, pagination: pagination });
+  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
 };
 
 /**
@@ -127,9 +134,9 @@ const getToursByCustomer = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { customerId } = req.query;
+  const queryString = req.query;
 
-  const queryBuilder = new QueryBuilder(Tour.find(), { customerId });
+  const queryBuilder = new QueryBuilder(Tour.find(), queryString);
 
   const tours = await queryBuilder
     .filter()
@@ -152,9 +159,9 @@ const getToursByRealtor = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { realtorId } = req.query;
+  const queryString = req.query;
 
-  const queryBuilder = new QueryBuilder(Tour.find(), { realtorId });
+  const queryBuilder = new QueryBuilder(Tour.find(), queryString);
 
   const tours = await queryBuilder
     .filter()

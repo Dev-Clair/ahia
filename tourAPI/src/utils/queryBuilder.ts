@@ -1,5 +1,4 @@
 import { Query } from "mongoose";
-import { Request } from "express";
 
 interface QueryString {
   page?: string;
@@ -9,9 +8,16 @@ interface QueryString {
   [key: string]: any;
 }
 
+interface PaginationParams {
+  protocol: string;
+  host?: string;
+  baseUrl: string;
+  path: string;
+}
+
 interface PaginationResult<T> {
   data: T[];
-  pagination: {
+  metaData: {
     totalItems: number;
     totalPages: number;
     currentPage: number;
@@ -29,32 +35,33 @@ interface PaginationResult<T> {
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
 
-  private queryString: QueryString;
+  private queryString: QueryString = {};
 
   constructor(query: Query<T[], T>, queryString: QueryString) {
     this.query = query;
 
     this.queryString = queryString;
   }
+
   /**
    * Handles filtering operation
    * @returns this
    */
   filter(): this {
-    const queryObj = { ...this.queryString };
+    const queryObject = { ...this.queryString };
 
     const excludedFields = ["page", "sort", "limit", "fields"];
 
-    excludedFields.forEach((el) => delete queryObj[el]);
+    excludedFields.forEach((el) => delete queryObject[el]);
 
-    let queryStr = JSON.stringify(queryObj);
+    let queryString = JSON.stringify(queryObject);
 
-    queryStr = queryStr.replace(
+    queryString = queryString.replace(
       /\b(eq|ne|gte|gt|lte|lt|in|nin)\b/g,
       (match) => `$${match}`
     );
 
-    this.query = this.query.find(JSON.parse(queryStr));
+    this.query = this.query.find(JSON.parse(queryString));
 
     return this;
   }
@@ -99,27 +106,23 @@ export class QueryBuilder<T> {
 
   /**
    * Handles pagination operation
+   * @param PaginationParams
    * @returns Promise of type data and pagination metadata
    */
-  async paginate(
-    protocol: string,
-    host: string | undefined,
-    baseURL: string,
-    path: string
-  ): Promise<PaginationResult<T>> {
+  async paginate(params: PaginationParams): Promise<PaginationResult<T>> {
     const page = Math.max(parseInt(this.queryString.page || "1", 10));
 
     const limit = Math.max(parseInt(this.queryString.limit || "2", 10));
 
     const skip = (page - 1) * limit;
 
-    const countQuery = this.query.model.find(this.query.getQuery());
+    const queryCount = this.query.model.find(this.query.getQuery());
 
     this.query = this.query.skip(skip).limit(limit);
 
     const [data, totalItems] = await Promise.all([
       this.query,
-      countQuery.countDocuments(),
+      queryCount.countDocuments(),
     ]);
 
     const totalPages = Math.ceil(totalItems / limit);
@@ -128,18 +131,20 @@ export class QueryBuilder<T> {
 
     const nextPage = page < totalPages ? currentPage + 1 : null;
 
-    const prevPage = page > 1 ? currentPage - 1 : null;
+    const previousPage = page > 1 ? currentPage - 1 : null;
 
-    const baseUrl = `${protocol}://${host}${baseURL}${path}`;
+    const { protocol, host, baseUrl, path } = params;
+
+    const url = `${protocol}://${host}${baseUrl}${path}`;
 
     const links = {
-      next: nextPage ? `${baseUrl}?page=${nextPage}&limit=${limit}` : null,
-      prev: prevPage ? `${baseUrl}?page=${prevPage}&limit=${limit}` : null,
+      next: nextPage ? `${url}?page=${nextPage}&limit=${limit}` : null,
+      prev: previousPage ? `${url}?page=${previousPage}&limit=${limit}` : null,
     };
 
     return {
       data,
-      pagination: {
+      metaData: {
         totalItems,
         totalPages,
         currentPage,
