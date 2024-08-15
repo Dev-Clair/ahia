@@ -103,8 +103,6 @@ const isUpdatable = (
     "name",
     "schedule.date",
     "schedule.time",
-    "propose.date",
-    "propose.time",
     "realtor.id",
     "realtor.email",
   ];
