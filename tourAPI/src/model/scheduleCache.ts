@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import ScheduleCacheSchema from "../schema/scheduleCache";
 import ScheduleCacheInterface from "../interface/scheduleCache";
 
-const Schedule = mongoose.model<ScheduleCacheInterface>(
-  "Schedule",
+const ScheduleCache = mongoose.model<ScheduleCacheInterface>(
+  "ScheduleCache",
   ScheduleCacheSchema
 );
-export default Schedule;
+export default ScheduleCache;
