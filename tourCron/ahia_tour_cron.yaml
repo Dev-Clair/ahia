@@ -44,10 +44,14 @@ Resources:
           APP_SECRET: !Ref AppSecret
           AWS_ACCESS_KEY_ID: !Ref AWSAccessKeyId
           AWS_DEFAULT_EVENT_BUS: !Ref AWSDefaultEventBus
-          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
           AWS_REGION: !Ref AWSRegion
+          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
           MONGO_URI: !Ref MongoUri
           NODE_ENV: !Ref NodeEnv
+          TOUR_ADMIN_EMAIL: !Ref TourAdminEmail
+          TOUR_NOTIFICATION_EMAIL: !Ref TourNotificationEmail
+          TOUR_SERVICE_NAME: !Ref TourServiceName
+          TOUR_SERVICE_SECRET: !Ref TourServiceSecret
       Role: !GetAtt AhiaTourServiceCronRole.Arn
       Code:
         S3Bucket: !Ref AWSS3Bucket
