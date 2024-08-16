@@ -2,59 +2,73 @@ const mongoose = require("mongoose");
 const Config = require("./config");
 const Connection = require("./connection");
 const ConnectionError = require("./src/error/connectionError");
-const CryptoHash = require("./src/utils/cryptoHash");
 const Listing = require("./src/model/listingModel");
 const Mail = require("./src/utils/mail");
+const MailerError = require("./src/error/mailerError");
+const Retry = require("./src/utils/retry");
+const VerifySecret = require("./src/utils/verifySecret");
 
 const sender = Config.LISTING.NOTIFICATION_EMAIL;
 
 const recipient = [Config.LISTING.ADMIN_EMAIL];
 
 exports.listing = async (event, context) => {
-  const eventBody = JSON.parse(event.detail);
-
   try {
+    const { serviceName, serviceSecret, payload } = event.detail;
+
+    let listingData;
+
+    if (serviceName === Config.LISTING.SERVICE.NAME)
+      listingData = (await VerifySecret(
+        serviceSecret,
+        Config.LISTING.SERVICE.SECRET,
+        Config.APP_SECRET
+      ))
+        ? JSON.parse(payload)
+        : null;
+
+    if (listingData === null)
+      throw new Error(
+        `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
+      );
+
     await Connection(Config.MONGO_URI);
+
+    const { id, name, email } = listingData;
 
     const session = await mongoose.startSession();
 
-    await session.withTransaction(async () => {
-      const { serviceName, serviceSecret, payload } = eventBody;
+    const approveStatus = await session.withTransaction(async () => {
+      const listing = await Listing.findByIdAndUpdate(
+        { _id: id },
+        { $set: { status: { approved: true } } },
+        { new: true, session }
+      );
 
-      if (serviceName === Config.LISTING.SERVICE.NAME) {
-        const verifySecret =
-          serviceSecret ===
-          (await CryptoHash(Config.LISTING.SERVICE.SECRET, Config.APP_SECRET));
-
-        if (verifySecret) {
-          const listing = await Listing.findByIdAndUpdate(
-            { _id: payload.id },
-            { $set: { status: { approved: true } } },
-            { new: true, session }
-          );
-
-          await Mail(
-            sender,
-            [listing.provider.email],
-            "LISTING APPROVAL",
-            `Your listing ${listing.name.toUpperCase()} has been approved for listing.\nKindly proceed to add attachments and create promotions for your listing.`
-          );
-        }
-      }
+      if (!listing) throw new Error(`No record found for listing ${id}`);
     });
+
+    await Mail(
+      sender,
+      [email],
+      "LISTING APPROVAL",
+      `Your listing ${name.toUpperCase()} has been approved for listing. Kindly proceed to add attachments and create promotions for your listing.`
+    );
+
+    const status = Retry.ExponentialJitterBackoff(() => approveStatus);
+
+    console.log(status);
   } catch (err) {
     if (err instanceof ConnectionError) {
-      const text = {
-        name: err.name,
-        message: err.message,
-        description: err.description,
-      };
-
       await Mail(
         sender,
         recipient,
         err.name.toUpperCase(),
-        JSON.stringify(text)
+        JSON.stringify({
+          name: err.name,
+          message: err.message,
+          description: err.description,
+        })
       );
     }
 
@@ -67,38 +81,28 @@ exports.listing = async (event, context) => {
     await Mail(
       sender,
       recipient,
-      err.name.toUpperCase(),
+      "LiISTING: STATUS UPDATE ERROR",
       JSON.stringify({
         name: err.name,
         message: err.message,
-        description: err.description,
+        payload: listingData,
       })
     );
 
     console.error(err);
-  } finally {
-    await session.endSession();
   }
-};
-
-const shutdown = () => {
-  console.log("Closing all open connections");
-
-  mongoose.connection.close(true);
-
-  process.exitCode = 1;
 };
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception thrown:", error);
-  shutdown();
+
+  process.exitCode = 1;
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  shutdown();
+
+  process.exitCode = 1;
 });
 
-process.on("SIGTERM", () => {
-  shutdown();
-});
+process.on("SIGTERM", () => (process.exitCode = 1));
