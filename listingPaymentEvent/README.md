@@ -2,7 +2,7 @@
 
 - title: AWS Lambda Resource Integrated with Eventbridge
 
-- description: Propagates eventbridge events from the ahia payment service database trigger to listing payment lambda forr processing.
+- description: Processes eventbridge events from the ahia payment service database triggers.
 
 - framework: AWS Cloudformation
 
