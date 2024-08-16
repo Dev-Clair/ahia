@@ -4,9 +4,10 @@ const ConnectionError = require("./src/error/connectionError");
 const DuplicateEventError = require("./src/error/duplicateeventError");
 const Idempotent = require("./src/utils/idempotent");
 const Mail = require("./mail");
+const MailerError = require("./src/error/mailerError");
 const Retry = require("./src/utils/retry");
 const Tour = require("./src/model/tourModel");
-const VerifyAppSecret = require("./src/utils/verifyAppSecret");
+const VerifySecret = require("./src/utils/verifySecret");
 
 const sender = Config.TOUR_NOTIFICATION_EMAIL;
 
@@ -19,7 +20,11 @@ exports.tour = async (event, context) => {
     let tourData;
 
     if (serviceName === Config.TOUR.SERVICE.NAME)
-      tourData = (await VerifyAppSecret(serviceSecret))
+      tourData = (await VerifySecret(
+        serviceSecret,
+        Config.TOUR.SERVICE.SECRET,
+        Config.APP_SECRET
+      ))
         ? JSON.parse(payload)
         : null;
 
@@ -45,9 +50,7 @@ exports.tour = async (event, context) => {
       await Idempotent.Ensure(paymentReference, session);
     });
 
-    const tour = Retry.ExponentialJitterBackoff(() => createTour);
-
-    console.log(tour);
+    await Retry.ExponentialJitterBackoff(() => createTour);
   } catch (err) {
     if (err instanceof ConnectionError) {
       await Mail(
@@ -60,6 +63,12 @@ exports.tour = async (event, context) => {
           description: err.description,
         })
       );
+    }
+
+    if (err instanceof MailerError) {
+      console.error(err.name, err.message);
+
+      process.kill(process.pid, SIGTERM);
     }
 
     await Mail(
@@ -76,3 +85,17 @@ exports.tour = async (event, context) => {
     console.error(err);
   }
 };
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception thrown:", error);
+
+  process.exitCode = 1;
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+
+  process.exitCode = 1;
+});
+
+process.on("SIGTERM", () => (process.exitCode = 1));
