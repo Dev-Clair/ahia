@@ -2,7 +2,7 @@
 
 - title: 'AWS Lambda Resource Integrated with Eventbridge'
 
-- description: Propagates third party event change streams to self contained microservices api deployed on elastic beanstalk.
+- description: Processes eventbridge events from the ahia payment service mongoDb database.
 
 - framework: AWS Cloudformation
 
