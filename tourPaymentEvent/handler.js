@@ -10,7 +10,7 @@ const VerifyAppSecret = require("./src/utils/verifyAppSecret");
 
 const sender = Config.TOUR_NOTIFICATION_EMAIL;
 
-const recipient = [Config.TOUR_ADMIN_EMAIL_I];
+const recipient = [Config.TOUR_ADMIN_EMAIL];
 
 exports.tour = async (event, context) => {
   try {
@@ -39,15 +39,15 @@ exports.tour = async (event, context) => {
 
     const session = await mongoose.startSession();
 
-    const transaction = await session.withTransaction(async () => {
+    const createTour = await session.withTransaction(async () => {
       await Tour.create([{ customer, listings }], { session: session });
 
       await Idempotent.Ensure(paymentReference, session);
     });
 
-    const operation = Retry.ExponentialJitterBackoff(() => transaction);
+    const tour = Retry.ExponentialJitterBackoff(() => createTour);
 
-    console.log(operation);
+    console.log(tour);
   } catch (err) {
     if (err instanceof ConnectionError) {
       await Mail(
