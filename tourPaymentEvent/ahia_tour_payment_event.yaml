@@ -3,12 +3,32 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: ahia tour payment event service.
 
 Parameters:
+  AppSecret:
+    Type: String
+  AWSAccessKeyId:
+    Type: String
+  AWSSecretAccessKey:
+    Type: String
+  AWSPaymentEventBus:
+    Type: String
   AWSRegion:
     Type: String
     Default: "af-south-1"
-  AWSPaymentEventBus:
+  AWSS3Bucket:
+    Type: String
+  AWSS3Key:
+    Type: String
+  MongoUri:
     Type: String
   NodeEnv:
+    Type: String
+  TourAdminEmail:
+    Type: String
+  TourNotificationEmail:
+    Type: String
+  TourServiceName:
+    Type: String
+  TourServiceSecret:
     Type: String
 
 Resources:
@@ -21,11 +41,17 @@ Resources:
       MemorySize: 128
       Environment:
         Variables:
+          APP_SECRET: !Ref AppSecret
+          AWS_ACCESS_KEY_ID: !Ref AWSAccessKeyId
+          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
+          AWS_PAYMENT_EVENT_BUS: !Ref AWSPaymentEventBus
+          AWS_REGION: !Ref AWSRegion
+          MONGO_URI: !Ref MongoUri
           NODE_ENV: !Ref NodeEnv
       Role: !GetAtt AhiaTourPaymentEventRole.Arn
       Code:
-        S3Bucket: " "
-        S3Key: " "
+        S3Bucket: !Ref AWSS3Bucket
+        S3Key: !Ref AWSS3Key
 
   AhiaTourPaymentEventRole:
     Type: "AWS::IAM::Role"
