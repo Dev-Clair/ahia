@@ -55,9 +55,7 @@ exports.listing = async (event, context) => {
       `Your listing ${name.toUpperCase()} has been approved for listing. Kindly proceed to add attachments and create promotions for your listing.`
     );
 
-    const status = Retry.ExponentialJitterBackoff(() => approveStatus);
-
-    console.log(status);
+    await Retry.ExponentialJitterBackoff(() => approveStatus);
   } catch (err) {
     if (err instanceof ConnectionError) {
       await Mail(
