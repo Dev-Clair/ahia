@@ -6,6 +6,7 @@ const Idempotent = require("./src/utils/idempotent");
 const Mail = require("./mail");
 const Retry = require("./src/utils/retry");
 const Tour = require("./src/model/tourModel");
+const VerifyAppSecret = require("./src/utils/verifyAppSecret");
 
 const sender = Config.TOUR_NOTIFICATION_EMAIL;
 
@@ -13,17 +14,28 @@ const recipient = [Config.TOUR_ADMIN_EMAIL_I];
 
 exports.tour = async (event, context) => {
   try {
+    const { serviceName, serviceSecret, payload } = event.detail;
+
+    let tourData;
+
+    if (serviceName === Config.TOUR.SERVICE.NAME)
+      tourData = (await VerifyAppSecret(serviceSecret))
+        ? JSON.parse(payload)
+        : null;
+
+    if (tourData === null)
+      throw new Error(
+        `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
+      );
+
     await Connection(Config.MONGO_URI);
 
-    const payload = JSON.parse(event.detail);
+    const { customer, listings, paymentReference } = tourData;
 
-    const { customer, listings, paymentReference } = payload;
-
-    if (await Idempotent.Verify(paymentReference)) {
+    if (await Idempotent.Verify(paymentReference))
       throw new DuplicateEventError(
         `Duplicate event detected for payment reference: ${paymentReference}`
       );
-    }
 
     const session = await mongoose.startSession();
 
@@ -50,11 +62,15 @@ exports.tour = async (event, context) => {
       );
     }
 
-    Mail(
+    await Mail(
       sender,
       recipient,
       "EVENT: TOUR CREATION ERROR",
-      JSON.stringify({ name: err.name, message: err.message, payload: payload })
+      JSON.stringify({
+        name: err.name,
+        message: err.message,
+        payload: tourData,
+      })
     );
 
     console.error(err);
