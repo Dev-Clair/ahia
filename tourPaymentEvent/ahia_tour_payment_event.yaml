@@ -38,7 +38,7 @@ Resources:
       FunctionName: "ahia-tour-payment-event"
       Handler: "handler.tour"
       Runtime: "nodejs20.x"
-      MemorySize: 128
+      MemorySize: 256
       Environment:
         Variables:
           APP_SECRET: !Ref AppSecret
