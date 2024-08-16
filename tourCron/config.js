@@ -1,4 +1,4 @@
-const process = require("process");
+const process = require("node:process");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -13,7 +13,7 @@ const Config = {
   MONGO_URI: process.env.MONGO_URI || "",
   NODE_ENV: process.env.NODE_ENV || "",
   TOUR: {
-    ADMIN_EMAIL_I: process.env.TOUR_ADMIN_EMAIL_I || "",
+    ADMIN_EMAIL: process.env.TOUR_ADMIN_EMAIL || "",
     NOTIFICATION_EMAIL: process.env.TOUR_NOTIFICATION_EMAIL || "",
     SERVICE: {
       NAME: process.env.SERVICE_NAME,
