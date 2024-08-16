@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
 const Config = require("./config");
 const Connection = require("./connection");
-const ConnectionError = require("./connectionError");
-const CryptoHash = require("./cryptoHash");
-const Listing = require("./listingModel");
-const Mail = require("./mail");
+const ConnectionError = require("./src/error/connectionError");
+const CryptoHash = require("./src/utils/cryptoHash");
+const Listing = require("./src/model/listingModel");
+const Mail = require("./src/utils/mail");
 
 const sender = Config.LISTING.NOTIFICATION_EMAIL;
 
-const recipient = [Config.LISTING.ADMIN_EMAIL_I];
+const recipient = [Config.LISTING.ADMIN_EMAIL];
 
 exports.listing = async (event, context) => {
   const eventBody = JSON.parse(event.detail);
