@@ -81,7 +81,7 @@ exports.listing = async (event, context) => {
     await Mail(
       sender,
       recipient,
-      "LiISTING: STATUS UPDATE ERROR",
+      "EVENT: LISTING STATUS UPDATE ERROR",
       JSON.stringify({
         name: err.name,
         message: err.message,
