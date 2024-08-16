@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const ConnectionError = require("./connectionError");
-const Retry = require("./retry");
+const ConnectionError = require("../error/connectionError");
+const Retry = require("../utils/retry");
 
 /**
  * Establishes connection to database

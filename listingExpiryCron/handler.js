@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 const Config = require("./config");
-const Connection = require("./connection");
-const ConnectionError = require("./connectionError");
+const Connection = require("./src/service/connection");
+const ConnectionError = require("./src/error/connectionError");
 const Mail = require("./mail");
-const MailerError = require("./mailerError");
-const ListingCron = require("./listingCron");
+const MailerError = require("./src/error/mailerError");
+const ListingCron = require("./cron/listingCron");
 
 const sender = Config.LISTING.NOTIFICATION_EMAILNOTIFICATION_EMAIL;
 

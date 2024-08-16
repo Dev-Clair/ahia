@@ -1,5 +1,5 @@
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
-const Config = require("./config");
+const Config = require("../../config");
 
 const configuration = [
   {

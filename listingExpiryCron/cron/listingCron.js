@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
-const Cache = require("./cache");
-const Config = require("./config");
-const Listing = require("./listingModel");
+const Cache = require("../src/service/cache");
+const Config = require("../config");
+const Listing = require("../src/model/listingModel");
 const ListingGenerator = require("./listingGenerator");
-const Mail = require("./mail");
-const MailerError = require("./mailerError");
+const Mail = require("../src/utils/mail");
+const MailerError = require("../src/error/mailerError");
+const Retry = require("../src/utils/retry");
 
 let successCount = 0;
 
@@ -30,36 +31,35 @@ const ListingCron = async () => {
 
     const text = getMessage(name, status);
 
-    const session = await mongoose.startSession();
-
     try {
-      await session.withTransaction(async () => {
-        await Listing.findByIdAndDelete({ _id: id }, { session });
+      const session = await mongoose.startSession();
 
-        await Mail(
-          sender,
-          [provider.email],
-          `LISTING ${name.toUpperCase()} REMOVAL`,
-          text
+      const removeListing = await session.withTransaction(async () => {
+        const listing = await Listing.findByIdAndDelete(
+          { _id: id },
+          { session }
         );
 
-        successCount++;
+        if (!listing) throw new Error(`No record found for listing ${id}`);
       });
-    } catch (err) {
-      if (err instanceof MailerError) {
-        throw err;
-      }
 
+      await Retry.ExponentialBackoff(() => removeListing);
+
+      await Mail(
+        sender,
+        [provider.email],
+        `LISTING ${name.toUpperCase()} REMOVAL`,
+        text
+      );
+
+      successCount++;
+    } catch (err) {
       errorCache.set(
-        id,
-        `Failed to remove listing:\nName:${name.toUpperCase()}\nId:${id}\nError: ${
-          err.message
-        }`
+        err.name,
+        `Failed to remove listing:\nError: ${err.message}`
       );
 
       failedCount++;
-    } finally {
-      await session.endSession();
     }
   }
 

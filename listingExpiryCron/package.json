@@ -1,5 +1,5 @@
 {
-  "name": "listingexpirycron",
+  "name": "listingcron",
   "version": "1.0.0",
   "description": "AWS Node Scheduled Cron",
   "main": "handler.js",
