@@ -45,7 +45,7 @@ const isIdempotent = (
 
   if (!getIdempotencyKey) {
     return res.status(HttpStatusCode.BAD_REQUEST).json({
-      data: {
+      error: {
         name: "Bad Request",
         message: "Idempotency key is required",
       },
@@ -77,9 +77,7 @@ const isAllowedContentType = (
     return res.status(HttpStatusCode.BAD_REQUEST).json({
       error: {
         name: "Bad Request",
-        message: "Invalid content type",
-        expected: "application/json",
-        received: `${getContentType}`,
+        message: `Invalid content type, expected: "application/json" but received: ${getContentType}`,
       },
     });
   }
@@ -114,8 +112,10 @@ const isUpdatable = (
   updateFields.forEach((element) => {
     if (!allowedFields.includes(element)) {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
-        name: "Bad Request",
-        message: `Updates are not allowed on field ${element}`,
+        error: {
+          name: "Bad Request",
+          message: `Updates are not allowed on field ${element}`,
+        },
       });
     }
   });
