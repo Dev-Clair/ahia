@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Idempotency from "../model/idempotency";
+import Idempotency from "../model/idempotencyModel";
 
 class Idempotent {
   /**
