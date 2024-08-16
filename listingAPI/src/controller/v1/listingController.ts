@@ -3,16 +3,15 @@ import AsyncCatch from "../../utils/asyncCatch";
 import Config from "../../../config";
 import CryptoHash from "../../utils/cryptoHash";
 import ConflictError from "../../error/conflictError";
-import EnsureIdempotency from "../../utils/ensureIdempotency";
-import Features from "../../utils/feature";
 import { NextFunction, Request, Response } from "express";
 import HttpStatusCode from "../../enum/httpStatusCode";
 import Listing from "../../model/listingModel";
 import Mail from "../../utils/mail";
 import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
+import { QueryBuilder } from "../../utils/queryBuilder";
 import Retry from "../../utils/retry";
-import VerifyIdempotency from "../../utils/verifyIdempotency";
+import Idempotent from "../../utils/idempotency";
 
 /**
  * Creates a new listing resource in collection
@@ -28,7 +27,7 @@ const createListing = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await VerifyIdempotency(idempotencyKey)) {
+  if (await Idempotent.Verify(idempotencyKey)) {
     throw new ConflictError(
       HttpStatusCode.CONFLICT,
       "Duplicate request detected"
@@ -51,7 +50,7 @@ const createListing = async (
   await session.withTransaction(async () => {
     await Listing.create([payload], { session: session });
 
-    await EnsureIdempotency(idempotencyKey, session);
+    await Idempotent.Ensure(idempotencyKey, session);
   });
 
   // Send mail to provider confirming listing creation success with transaction reference and expiry date
@@ -72,20 +71,29 @@ const getListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { data, pagination } = await Features(
-    Listing,
-    { status: { approved: true } },
-    req
+  const queryString = req.query ?? {};
+
+  const queryBuilder = new QueryBuilder(
+    Listing.find({
+      status: { approved: true },
+    }),
+    queryString
   );
 
-  return res.status(HttpStatusCode.OK).json({
-    data: data,
-    page: pagination.page,
-    limit: pagination.limit,
-    totalItems: pagination.totalItems,
-    totalPages: pagination.totalPages,
-    links: pagination.links,
-  });
+  const listings = await queryBuilder
+    .filter()
+    .sort()
+    .select(["-status -provider.email"])
+    .paginate({
+      protocol: req.protocol,
+      host: req.get("host"),
+      baseUrl: req.baseUrl,
+      path: req.path,
+    });
+
+  const { data, metaData } = listings;
+
+  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
 };
 
 /**
@@ -100,9 +108,51 @@ const getListingsSearch = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const query = req.query.search as string;
+  const searchQuery = (req.query.search as string) ?? "";
 
-  const listings = await Listing.find({ $text: { $search: query } });
+  const search = Listing.find({
+    $text: { $search: searchQuery },
+  });
+
+  const queryBuilder = new QueryBuilder(search, {});
+
+  const listings = await queryBuilder
+    .filter()
+    .sort()
+    .select(["-status -provider.email"])
+    .paginate({
+      protocol: req.protocol,
+      host: req.get("host"),
+      baseUrl: req.baseUrl,
+      path: req.path,
+    });
+
+  const { data, metaData } = listings;
+
+  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
+};
+
+/**
+ * Retrieves provider's listing
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getListingsByProvider = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const queryString = req.query;
+
+  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+
+  const listings = await queryBuilder
+    .filter()
+    .sort()
+    .select(["-status -provider.email"])
+    .exec();
 
   return res.status(HttpStatusCode.OK).json({ data: listings });
 };
@@ -326,7 +376,7 @@ const updateListing = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await VerifyIdempotency(idempotencyKey)) {
+  if (await Idempotent.Verify(idempotencyKey)) {
     throw new ConflictError(
       HttpStatusCode.CONFLICT,
       "Duplicate request detected"
@@ -354,7 +404,7 @@ const updateListing = async (
       );
     }
 
-    await EnsureIdempotency(idempotencyKey, session);
+    await Idempotent.Ensure(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
@@ -533,6 +583,14 @@ const retrieveListingsSearch = AsyncCatch(
 );
 
 /**
+ * Retrieves collection of provider's listing
+ */
+const retrieveListingsByProvider = AsyncCatch(
+  getListingsByProvider,
+  Retry.LinearJitterBackoff
+);
+
+/**
  * Retrieve top ten (10) listing offerings based on provider
  */
 const top10Listings = AsyncCatch(getTop10Listings, Retry.LinearJitterBackoff);
@@ -608,6 +666,7 @@ export default {
   createListings,
   retrieveListings,
   retrieveListingsSearch,
+  retrieveListingsByProvider,
   retrieveListingItem,
   updateListingItem,
   deleteListingItem,

@@ -1,5 +1,4 @@
 import { Router } from "express";
-import AttachmentController from "../../controller/attachmentController";
 import ListingController from "../../controller/v1/listingController";
 import ListingMiddleWare from "../../middleware/v1/listingMiddleWare";
 import ValidationMiddleware from "../../middleware/validationMiddleware";
@@ -15,6 +14,10 @@ ListingRouterV1.route("/")
   );
 
 ListingRouterV1.route("/search").get(ListingController.retrieveListingsSearch);
+
+ListingRouterV1.route("/provider").get(
+  ListingController.retrieveListingsByProvider
+);
 
 ListingRouterV1.route("/top-10").get(ListingController.top10Listings);
 
@@ -54,17 +57,5 @@ ListingRouterV1.route("/:id/status/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
   ListingController.verifyListingItemApproval
 );
-
-ListingRouterV1.route("/:id/attachments")
-  .get(ListingMiddleWare.isNotAllowed)
-  .post(
-    AuthMiddleWare.IsGranted(["Provider"]),
-    AttachmentController.createAttachments
-  );
-
-ListingRouterV1.route("/:id/attachments/:attachmentId")
-  .get(ListingMiddleWare.isNotAllowed)
-  .put(ListingMiddleWare.isNotAllowed)
-  .delete(ListingMiddleWare.isNotAllowed);
 
 export default ListingRouterV1;
