@@ -44,8 +44,8 @@ Resources:
           APP_SECRET: !Ref AppSecret
           AWS_ACCESS_KEY_ID: !Ref AWSAccessKeyId
           AWS_DEFAULT_EVENT_BUS: !Ref AWSDefaultEventBus
-          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
           AWS_REGION: !Ref AWSRegion
+          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
           LISTING_ADMIN_EMAIL: !Ref ListingAdminEmail
           LISTING_NOTIFICATION_EMAIL: !Ref ListingNotificationEmail
           LISTING_SERVICE_NAME: !Ref ListingServiceName

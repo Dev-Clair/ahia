@@ -43,9 +43,9 @@ Resources:
         Variables:
           APP_SECRET: !Ref AppSecret
           AWS_ACCESS_KEY_ID: !Ref AWSAccessKeyId
-          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
           AWS_PAYMENT_EVENT_BUS: !Ref AWSPaymentEventBus
           AWS_REGION: !Ref AWSRegion
+          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
           MONGO_URI: !Ref MongoUri
           NODE_ENV: !Ref NodeEnv
           LISTING_ADMIN_EMAIL: !Ref ListingAdminEmail
