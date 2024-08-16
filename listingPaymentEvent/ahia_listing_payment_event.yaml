@@ -35,8 +35,8 @@ Resources:
   AhiaListingPaymentEventFunction:
     Type: "AWS::Lambda::Function"
     Properties:
-      FunctionName: "ahia-tour-create-event"
-      Handler: "handler.tour"
+      FunctionName: "ahia-listing-service-payment-event"
+      Handler: "handler.listing"
       Runtime: "nodejs20.x"
       MemorySize: 256
       Environment:
