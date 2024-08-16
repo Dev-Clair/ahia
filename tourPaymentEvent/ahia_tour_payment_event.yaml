@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: ahia tour payment event service.
+Description: ahia tour service payment event.
 
 Parameters:
   AppSecret:

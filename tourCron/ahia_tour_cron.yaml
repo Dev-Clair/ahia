@@ -3,22 +3,32 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: ahia tour service cron.
 
 Parameters:
+  AppSecret:
+    Type: String
+  AWSAccessKeyId:
+    Type: String
+  AWSDefaultEventBus:
+    Type: String
+  AWSSecretAccessKey:
+    Type: String
   AWSRegion:
     Type: String
     Default: "af-south-1"
-  AWSDefaultEventBus:
+  AWSS3Bucket:
     Type: String
-  NodeEnv:
+  AWSS3Key:
     Type: String
   MongoUri:
     Type: String
+  NodeEnv:
+    Type: String
+  TourAdminEmail:
+    Type: String
   TourNotificationEmail:
     Type: String
-  TourAdminEmailI:
+  TourServiceName:
     Type: String
-  TourAdminEmailII:
-    Type: String
-  TourAdminEmailIII:
+  TourServiceSecret:
     Type: String
 
 Resources:
@@ -31,16 +41,17 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          NODE_ENV: !Ref NodeEnv
+          APP_SECRET: !Ref AppSecret
+          AWS_ACCESS_KEY_ID: !Ref AWSAccessKeyId
+          AWS_DEFAULT_EVENT_BUS: !Ref AWSDefaultEventBus
+          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
+          AWS_REGION: !Ref AWSRegion
           MONGO_URI: !Ref MongoUri
-          TOUR_NOTIFICATION_EMAIL: !Ref TourNotificationEmail
-          TOUR_ADMIN_EMAIL_I: !Ref TourAdminEmailI
-          TOUR_ADMIN_EMAIL_II: !Ref TourAdminEmailII
-          TOUR_ADMIN_EMAIL_III: !Ref TourAdminEmailIII
+          NODE_ENV: !Ref NodeEnv
       Role: !GetAtt AhiaTourServiceCronRole.Arn
       Code:
-        S3Bucket: " "
-        S3Key: " "
+        S3Bucket: !Ref AWSS3Bucket
+        S3Key: !Ref AWSS3Key
 
   AhiaTourServiceCronRole:
     Type: "AWS::IAM::Role"
