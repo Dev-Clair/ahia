@@ -48,14 +48,14 @@ exports.listing = async (event, context) => {
       if (!listing) throw new Error(`No record found for listing ${id}`);
     });
 
+    await Retry.ExponentialJitterBackoff(() => approveStatus);
+
     await Mail(
       sender,
       [email],
       "LISTING APPROVAL",
       `Your listing ${name.toUpperCase()} has been approved for listing. Kindly proceed to add attachments and create promotions for your listing.`
     );
-
-    await Retry.ExponentialJitterBackoff(() => approveStatus);
   } catch (err) {
     if (err instanceof ConnectionError) {
       await Mail(
@@ -71,7 +71,7 @@ exports.listing = async (event, context) => {
     }
 
     if (err instanceof MailerError) {
-      console.log(err.name, err.message);
+      console.error(err.name, err.message);
 
       process.kill(process.pid, SIGTERM);
     }
