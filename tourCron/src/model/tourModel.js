@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const TourSchema = new Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
   },
   customer: {
     id: {
@@ -38,11 +38,11 @@ const TourSchema = new Schema({
     type: {
       type: String,
       enum: ["Point"],
-      required: true,
+      required: false,
     },
     coordinates: {
       type: [Number],
-      required: true,
+      required: false,
     },
   },
   realtor: {
