@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const Config = require("./config");
 const Connection = require("./src/service/connection");
 const ConnectionError = require("./src/error/connectionError");
@@ -6,9 +5,9 @@ const Mail = require("./mail");
 const MailerError = require("./src/error/mailerError");
 const ListingCron = require("./cron/listingCron");
 
-const sender = Config.LISTING.NOTIFICATION_EMAILNOTIFICATION_EMAIL;
+const sender = Config.LISTING.NOTIFICATION_EMAIL;
 
-const recipient = [Config.LISTING.ADMIN_EMAIL_I];
+const recipient = [Config.LISTING.ADMIN_EMAIL];
 
 exports.cron = async (event, context) => {
   try {
@@ -16,24 +15,25 @@ exports.cron = async (event, context) => {
 
     const cronLog = await ListingCron();
 
-    const message = JSON.stringify(cronLog);
-
     if (cronLog.status === false) {
-      await Mail(sender, recipient, "LISTING EXPIRY CRON LOG", message);
+      await Mail(
+        sender,
+        recipient,
+        "LISTING EXPIRY CRON LOG",
+        JSON.stringify(cronLog)
+      );
     }
   } catch (err) {
     if (err instanceof ConnectionError) {
-      const text = {
-        name: err.name,
-        message: err.message,
-        description: err.description,
-      };
-
       await Mail(
         sender,
         recipient,
         err.name.toUpperCase(),
-        JSON.stringify(text)
+        JSON.stringify({
+          name: err.name,
+          message: err.message,
+          description: err.description,
+        })
       );
     }
 
@@ -42,32 +42,19 @@ exports.cron = async (event, context) => {
 
       process.kill(process.pid, SIGTERM);
     }
-
-    // Set up node-mailer as failure notification service
-    // const text = { message: err.message, trace: err.stack };
-
-    // await Mail(sender, recipient, "CRITICAL ERROR", JSON.stringify(text));
   }
-};
-
-const shutdown = () => {
-  console.log("Closing all open connections");
-
-  mongoose.connection.close(true);
-
-  process.exitCode = 1;
 };
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception thrown:", error);
-  shutdown();
+
+  process.exitCode = 1;
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  shutdown();
+
+  process.exitCode = 1;
 });
 
-process.on("SIGTERM", () => {
-  shutdown();
-});
+process.on("SIGTERM", () => (process.exitCode = 1));
