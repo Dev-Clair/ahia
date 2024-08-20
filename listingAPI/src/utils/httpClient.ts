@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import https from "node:https";
-import Retry from "./src/utils/retry";
+import Retry from "../utils/retry";
 
 interface HttpOptions {
   hostname: string;
