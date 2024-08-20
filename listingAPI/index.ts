@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
-import Connection from "./connection";
-import ConnectionError from "./src/error/connectionError";
+import DbConnectionService from "./src/service/dbConnectionService";
+import DbConnectionError from "./src/error/dbConnectionError";
+import HttpServer from "./src/utils/httpServer";
 import Logger from "./src/service/loggerService";
 import Mail from "./src/utils/mail";
 import MailerError from "./src/error/mailerError";
-import HttpServer from "./src/utils/httpServer";
 import SSL from "./ssl/ssl";
 
 const sender: string = Config.LISTING.ADMIN_EMAIL_I;
@@ -25,9 +25,9 @@ try {
     server.startHTTPS(Config.PORT.HTTPS);
   }
 
-  Connection(Config.MONGO_URI);
+  DbConnectionService(Config.MONGO_URI);
 } catch (err: any) {
-  if (err instanceof ConnectionError) {
+  if (err instanceof DbConnectionError) {
     const text = JSON.stringify({
       name: err.name,
       message: err.message,
