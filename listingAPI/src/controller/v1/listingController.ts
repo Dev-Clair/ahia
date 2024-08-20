@@ -1,17 +1,15 @@
 import mongoose from "mongoose";
 import AsyncCatch from "../../utils/asyncCatch";
 import Config from "../../../config";
-import CryptoHash from "../../utils/cryptoHash";
 import ConflictError from "../../error/conflictError";
 import { NextFunction, Request, Response } from "express";
-import HttpStatusCode from "../../enum/httpStatusCode";
+import HttpStatusCode from "../../enum/httpCode";
+import IdempotencyManager from "../../utils/idempotencyManager";
 import Listing from "../../model/listingModel";
-import Mail from "../../utils/mail";
-import Notify from "../../utils/notify";
 import NotFoundError from "../../error/notfoundError";
 import { QueryBuilder } from "../../utils/queryBuilder";
 import Retry from "../../utils/retry";
-import Idempotent from "../../utils/idempotency";
+import SecretManager from "../../utils/secretManager";
 
 /**
  * Creates a new listing resource in collection
@@ -27,12 +25,8 @@ const createListing = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await Idempotent.Verify(idempotencyKey)) {
-    throw new ConflictError(
-      HttpStatusCode.CONFLICT,
-      "Duplicate request detected"
-    );
-  }
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
 
   const payload = req.body as object;
 
@@ -50,11 +44,8 @@ const createListing = async (
   await session.withTransaction(async () => {
     await Listing.create([payload], { session: session });
 
-    await Idempotent.Ensure(idempotencyKey, session);
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
-
-  // Send mail to provider confirming listing creation success with transaction reference and expiry date
-  // await Mail();
 
   return res.status(HttpStatusCode.CREATED).json({ data: null });
 };
@@ -97,7 +88,7 @@ const getListings = async (
 };
 
 /**
- * Retrieves collection of listings based on search
+ * Retrieves collection of listings based on search query
  * @param req
  * @param res
  * @param next
@@ -114,7 +105,7 @@ const getListingsSearch = async (
     $text: { $search: searchQuery },
   });
 
-  const queryBuilder = new QueryBuilder(search, {});
+  const queryBuilder = new QueryBuilder(search);
 
   const listings = await queryBuilder
     .filter()
@@ -158,96 +149,42 @@ const getListingsByProvider = async (
 };
 
 /**
- * Retrieves collection of top (10) listings based on provider
+ * Retrieves collection of listings near user's curremt location
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getTop10Listings = async (
+const getListingsNearme = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { provider } = req.query;
+  const queryString = req.query;
 
-  const listings = await Listing.find({
-    status: { approved: true },
-    provider: { id: provider },
-  })
-    .sort({ createdAt: -1 })
-    .limit(10);
+  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+
+  const listings = await queryBuilder
+    .geoNear()
+    .sort()
+    .select(["-status -provider.email"])
+    .paginate({
+      protocol: req.protocol,
+      host: req.get("host"),
+      baseUrl: req.baseUrl,
+      path: req.path,
+    });
+
+  const { data, metaData } = listings;
 
   return res.status(HttpStatusCode.OK).json({
-    results: listings.length,
-    data: {
-      listings,
-    },
+    data: data,
+    metaData: metaData,
   });
 };
 
 /**
- * Retrieves collection of listing offerings available for lease/rent based on location
- * @param req
- * @param res
- * @param next
- * @returns Promise<Response | void>
- */
-const getAvailableLeases = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  const { location } = req.query;
-
-  const listings = await Listing.find({
-    status: { approved: true },
-    purpose: "lease",
-    location,
-  })
-    .sort({ createdAt: -1 })
-    .limit(100);
-
-  return res.status(HttpStatusCode.OK).json({
-    results: listings.length,
-    data: {
-      listings,
-    },
-  });
-};
-
-/**
- * Retrieves collection of listing offerings available for sales based on location
- * @param req
- * @param res
- * @param next
- * @returns Promise<Response | void>
- */
-const getAvailableSales = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  const { location } = req.query;
-
-  const listings = await Listing.find({
-    status: { approved: true },
-    purpose: "sell",
-    location,
-  })
-    .sort({ createdAt: -1 })
-    .limit(100);
-
-  return res.status(HttpStatusCode.OK).json({
-    results: listings.length,
-    data: {
-      listings,
-    },
-  });
-};
-
-/**
- * Retrieves collection of listing offerings based on type and location
+ * Retrieves collection of listings based on type and location
  * @param req
  * @param res
  * @param next
@@ -258,22 +195,7 @@ const getOnGoingListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { location } = req.query;
-
-  const listings = await Listing.find({
-    status: { approved: true },
-    type: "on-going",
-    location,
-  })
-    .sort({ createdAt: -1 })
-    .limit(100);
-
-  return res.status(HttpStatusCode.OK).json({
-    results: listings.length,
-    data: {
-      listings,
-    },
-  });
+  const queryString = { status: { approved: true }, type: "on-going" };
 };
 
 /**
@@ -288,26 +210,11 @@ const getNowSellingListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { location } = req.query;
-
-  const listings = await Listing.find({
-    status: { approved: true },
-    type: "now-selling",
-    location,
-  })
-    .sort({ createdAt: -1 })
-    .limit(100);
-
-  return res.status(HttpStatusCode.OK).json({
-    results: listings.length,
-    data: {
-      listings,
-    },
-  });
+  const queryString = { status: { approved: true }, type: "now-selling" };
 };
 
 /**
- * Retrieves collection of exclusive listing offerings based on category and location
+ * Retrieves collection of exclusive listing offerings based on category
  * @param req
  * @param res
  * @param next
@@ -318,22 +225,9 @@ const getExclusiveListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { category, location } = req.query;
+  const { category } = req.query;
 
-  const listings = await Listing.find({
-    status: { approved: true },
-    category,
-    location,
-  })
-    .sort({ createdAt: -1 })
-    .limit(100);
-
-  return res.status(HttpStatusCode.OK).json({
-    results: listings.length,
-    data: {
-      listings,
-    },
-  });
+  const queryString = { status: { approved: true }, category };
 };
 
 /**
@@ -352,12 +246,7 @@ const getListing = async (
 
   const listing = await Listing.findById({ _id: id });
 
-  if (!listing) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${id}`
-    );
-  }
+  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
   return res.status(HttpStatusCode.OK).json({ data: listing });
 };
@@ -376,12 +265,8 @@ const updateListing = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await Idempotent.Verify(idempotencyKey)) {
-    throw new ConflictError(
-      HttpStatusCode.CONFLICT,
-      "Duplicate request detected"
-    );
-  }
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
 
   const id = req.params.id as string;
 
@@ -397,14 +282,9 @@ const updateListing = async (
       }
     );
 
-    if (!listing) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No record found for listing: ${id}`
-      );
-    }
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-    await Idempotent.Ensure(idempotencyKey, session);
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
@@ -429,12 +309,7 @@ const deleteListing = async (
   await session.withTransaction(async () => {
     const listing = await Listing.findByIdAndDelete({ _id: id }, { session });
 
-    if (!listing) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No record found for listing: ${id}`
-      );
-    }
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
   });
 
   return res.status(HttpStatusCode.MODIFIED).json({ data: null });
@@ -456,19 +331,17 @@ const checkoutListing = async (
 
   const listing = await Listing.findById({ _id: id });
 
-  if (!listing) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${id}`
-    );
-  }
+  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
   if (!listing.status.approved) {
     res.setHeader("service-name", Config.LISTING.SERVICE.NAME);
 
     res.setHeader(
       "service-secret",
-      await CryptoHash(Config.LISTING.SERVICE.SECRET, Config.APP_SECRET)
+      await SecretManager.HashSecret(
+        Config.LISTING.SERVICE.SECRET,
+        Config.APP_SECRET
+      )
     );
 
     res.setHeader(
@@ -498,31 +371,30 @@ const approveListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { name } = req.query;
+  const idempotencyKey = req.headers["idempotency-key"] as string;
+
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
+
+  const id = req.params.id as string;
+
+  const { approval } = req.body;
 
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
-    const listing = await Listing.findOne({ name: name }).session(session);
+    const listing = await Listing.findByIdAndUpdate(
+      { _id: id },
+      { $set: { status: { approved: approval } } },
+      { new: true, session }
+    );
 
-    if (!listing) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No record found for listing: ${name}`
-      );
-    }
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-    listing.status.approved = true;
-
-    await listing.save({ session });
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  // Send mail to provider confirming listing approval success
-  // await Mail();
-
-  return res.status(HttpStatusCode.OK).json({
-    data: `Approval for listing ${name} successful.`,
-  });
+  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -543,12 +415,7 @@ const verifyListingApproval = async (
     _id: id,
   });
 
-  if (!listing) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No record found for listing: ${id}`
-    );
-  }
+  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
   if (!listing.status.approved) {
     return res.status(HttpStatusCode.FORBIDDEN).json({
@@ -557,7 +424,7 @@ const verifyListingApproval = async (
   }
 
   return res.status(HttpStatusCode.OK).json({
-    data: `${listing.name.toUpperCase()} have been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
+    data: `${listing.name.toUpperCase()} has been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
   });
 };
 
@@ -591,37 +458,36 @@ const retrieveListingsByProvider = AsyncCatch(
 );
 
 /**
- * Retrieve top ten (10) listing offerings based on provider
+ * Retrieve available listing offerings based on user's location
  */
-const top10Listings = AsyncCatch(getTop10Listings, Retry.LinearJitterBackoff);
-
-/**
- * Retrieve available listings for lease based on location
- */
-const availableLeases = AsyncCatch(
-  getAvailableLeases,
+const retrieveListingsNearMe = AsyncCatch(
+  getListingsNearme,
   Retry.LinearJitterBackoff
 );
 
 /**
- * Retrieve available listings for sale based on location
+ * Retrieve available listings based on type -on going- and location
  */
-const availableSales = AsyncCatch(getAvailableSales, Retry.LinearJitterBackoff);
+const retrieveOnGoingListings = AsyncCatch(
+  getOnGoingListings,
+  Retry.LinearJitterBackoff
+);
 
 /**
- * Retrieve available listings based on type and location
+ * Retrieve available listings based on type -now selling- and location
  */
-const onGoing = AsyncCatch(getOnGoingListings, Retry.LinearJitterBackoff);
-
-/**
- * Retrieve available listings based on type and location
- */
-const nowSelling = AsyncCatch(getNowSellingListings, Retry.LinearJitterBackoff);
+const retrieveNowSellingListings = AsyncCatch(
+  getNowSellingListings,
+  Retry.LinearJitterBackoff
+);
 
 /**
  * Retrieve exclusive listing based on category and location
  */
-const exclusive = AsyncCatch(getExclusiveListings, Retry.LinearJitterBackoff);
+const retrieveExclusiveListings = AsyncCatch(
+  getExclusiveListings,
+  Retry.LinearJitterBackoff
+);
 
 /**
  * Retrieve a listing item using its :id
@@ -667,16 +533,14 @@ export default {
   retrieveListings,
   retrieveListingsSearch,
   retrieveListingsByProvider,
+  retrieveListingsNearMe,
+  retrieveOnGoingListings,
+  retrieveNowSellingListings,
+  retrieveExclusiveListings,
   retrieveListingItem,
   updateListingItem,
   deleteListingItem,
   checkoutListingItem,
   approveListingItem,
   verifyListingItemApproval,
-  top10Listings,
-  availableLeases,
-  availableSales,
-  onGoing,
-  nowSelling,
-  exclusive,
 };
