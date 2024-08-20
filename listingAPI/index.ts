@@ -6,7 +6,7 @@ import ConnectionError from "./src/error/connectionError";
 import Logger from "./src/service/loggerService";
 import Mail from "./src/utils/mail";
 import MailerError from "./src/error/mailerError";
-import HttpServer from "./httpServer";
+import HttpServer from "./src/utils/httpServer";
 import SSL from "./ssl/ssl";
 
 const sender: string = Config.LISTING.ADMIN_EMAIL_I;
