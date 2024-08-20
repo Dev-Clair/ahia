@@ -35,12 +35,41 @@ interface PaginationResult<T> {
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
 
-  private queryString: QueryString = {};
+  private queryString: QueryString;
 
-  constructor(query: Query<T[], T>, queryString: QueryString) {
+  constructor(query: Query<T[], T>, queryString?: QueryString) {
     this.query = query;
 
-    this.queryString = queryString;
+    this.queryString = queryString ?? {};
+  }
+
+  /**
+   * Handles geospatial queries: Near Operations
+   * @returns this
+   */
+  geoNear(): this {
+    if (this.queryString.lat && this.queryString.long) {
+      const latitude = parseFloat(this.queryString.lat as string);
+
+      const longitude = parseFloat(this.queryString.long as string);
+
+      const distance =
+        parseFloat(this.queryString.distance as string) ?? 5000.0;
+
+      this.query = this.query.find({
+        location: {
+          $geoNear: {
+            $geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude],
+            },
+          },
+          $maxDistance: distance,
+        },
+      });
+    }
+
+    return this;
   }
 
   /**
@@ -61,45 +90,9 @@ export class QueryBuilder<T> {
       (match) => `$${match}`
     );
 
-    this.query = this.query.find(JSON.parse(queryString));
+    const parsedQueryString = JSON.parse(queryString);
 
-    return this;
-  }
-
-  /**
-   * Handles sorting operation
-   * @returns this
-   */
-  sort(): this {
-    if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(",").join(" ");
-
-      this.query = this.query.sort(sortBy);
-    } else {
-      this.query = this.query.sort("-createdAt");
-    }
-
-    return this;
-  }
-
-  /**
-   * Handles projection: specifies fields to be included or excluded in the return query
-   * @returns this
-   */
-  select(selection: string[]): this {
-    let fields: string = "";
-
-    if (selection.length !== 0) {
-      selection.forEach((element) => {
-        fields = element.split(",").join(" ");
-      });
-
-      fields + " " + "-__v -createdAt -updatedAt";
-
-      this.query = this.query.select(fields);
-    } else {
-      this.query = this.query.select("-__v -createdAt -updatedAt");
-    }
+    this.query = this.query.find(parsedQueryString);
 
     return this;
   }
@@ -151,6 +144,52 @@ export class QueryBuilder<T> {
         links,
       },
     };
+  }
+
+  /**
+   * Handles search: retrieves selection that match search criteria
+   * @returns this
+   */
+  search(): this {
+    return this;
+  }
+
+  /**
+   * Handles projection: specifies fields to be included or excluded in the return query
+   * @returns this
+   */
+  select(selection: string[]): this {
+    let fields: string = "";
+
+    if (selection.length !== 0) {
+      selection.forEach((element) => {
+        fields = element.split(",").join(" ");
+      });
+
+      fields + " " + "-__v -createdAt -updatedAt";
+
+      this.query = this.query.select(fields);
+    } else {
+      this.query = this.query.select("-__v -createdAt -updatedAt");
+    }
+
+    return this;
+  }
+
+  /**
+   * Handles sorting operation
+   * @returns this
+   */
+  sort(): this {
+    if (this.queryString.sort) {
+      const sortBy = this.queryString.sort.split(",").join(" ");
+
+      this.query = this.query.sort(sortBy);
+    } else {
+      this.query = this.query.sort("-createdAt");
+    }
+
+    return this;
   }
 
   /**
