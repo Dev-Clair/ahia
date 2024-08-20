@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import ConnectionError from "./src/error/connectionError";
-import Retry from "./src/utils/retry";
+import ConnectionError from "../error/dbConnectionError";
+import Retry from "../utils/retry";
 
 /**
  * Establishes connection to database
@@ -21,7 +21,7 @@ const establishConnection = async (connectionUri: string): Promise<void> => {
  * Provides connection resource with round robin retry strategy on failure
  * @param connectionUri
  */
-const Connection = async (connectionUri: string): Promise<void> => {
+const DbConnectionService = async (connectionUri: string): Promise<void> => {
   try {
     await Retry.ExponentialBackoff(() => establishConnection(connectionUri));
   } catch (err: any) {
@@ -52,4 +52,4 @@ mongoose.connection.on("reconnected", () => {
   console.log(`Database reconnection successful`);
 });
 
-export default Connection;
+export default DbConnectionService;
