@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 import VerifyRole from "../controller/authController";
 
 /**
@@ -24,10 +25,11 @@ const IsGranted =
       }
     }
 
-    return res.status(HttpStatusCode.FORBIDDEN).json({
-      data: {
+    return res.status(HttpCode.FORBIDDEN).json({
+      error: {
+        name: HttpStatus.FORBIDDEN,
         message:
-          "Forbidden!\nYou do not have the permission to access this resource",
+          "Forbidden! You do not have the permission to access this resource",
       },
     });
   };
