@@ -76,10 +76,11 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
       type: {
         type: String,
         enum: ["Point"],
+        default: "Point",
         required: false,
       },
       coordinates: {
-        type: Number,
+        type: [Number],
         required: false,
       },
     },
@@ -117,6 +118,7 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
 ListingSchema.index({
   name: "text",
   description: "text",
+  slug: "text",
   type: "text",
   features: "text",
   location: "2dsphere",
