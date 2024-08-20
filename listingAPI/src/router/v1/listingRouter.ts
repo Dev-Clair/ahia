@@ -10,6 +10,7 @@ ListingRouterV1.route("/")
   .get(ListingController.retrieveListings)
   .post(
     AuthMiddleWare.IsGranted(["Provider"]),
+    ValidationMiddleware.validateBody,
     ListingController.createListings
   );
 
@@ -20,12 +21,6 @@ ListingRouterV1.route("/provider").get(
 );
 
 ListingRouterV1.route("/top-10").get(ListingController.top10Listings);
-
-ListingRouterV1.route("/lease/available").get(
-  ListingController.availableLeases
-);
-
-ListingRouterV1.route("/sell/available").get(ListingController.availableSales);
 
 ListingRouterV1.route("/on-going").get(ListingController.onGoing);
 
@@ -39,22 +34,26 @@ ListingRouterV1.route("/:id")
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isUpdatable,
+    ValidationMiddleware.validateID,
     ListingController.updateListingItem
   )
   .delete(ListingController.deleteListingItem);
 
 ListingRouterV1.route("/:id/checkout").get(
   AuthMiddleWare.IsGranted(["Provider"]),
+  ValidationMiddleware.validateID,
   ListingController.checkoutListingItem
 );
 
 ListingRouterV1.route("/:id/status/approve").patch(
   AuthMiddleWare.IsGranted(["Admin"]),
+  ValidationMiddleware.validateID,
   ListingController.approveListingItem
 );
 
 ListingRouterV1.route("/:id/status/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
+  ValidationMiddleware.validateID,
   ListingController.verifyListingItemApproval
 );
 
