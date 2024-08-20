@@ -1,9 +1,9 @@
 import APIError from "./apiError";
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
 
 class BadRequestError extends APIError {
-  constructor(httpStatusCode: number | HttpStatusCode, message: string) {
-    super("BAD REQUEST", httpStatusCode, true, message);
+  constructor(httpCode: number | HttpCode, message: string) {
+    super("BAD REQUEST", httpCode, true, message);
   }
 }
 

@@ -1,4 +1,4 @@
-class ConnectionError extends Error {
+class DbConnectionError extends Error {
   public readonly name;
 
   public readonly description;
@@ -12,4 +12,4 @@ class ConnectionError extends Error {
   }
 }
 
-export default ConnectionError;
+export default DbConnectionError;

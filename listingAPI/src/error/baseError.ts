@@ -1,13 +1,14 @@
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
 abstract class BaseError extends Error {
-  public readonly name: string;
-  public readonly httpStatusCode: number | HttpStatusCode;
+  public readonly name: string | HttpStatus;
+  public readonly code: number | HttpCode;
   public readonly isOperational: boolean;
 
   constructor(
-    name: string,
-    httpStatusCode: number | HttpStatusCode,
+    name: string | HttpStatus,
+    code: number | HttpCode,
     isOperational: boolean,
     message: string
   ) {
@@ -15,7 +16,7 @@ abstract class BaseError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
 
     this.name = name;
-    this.httpStatusCode = httpStatusCode;
+    this.code = code;
     this.isOperational = isOperational;
 
     Error.captureStackTrace(this);

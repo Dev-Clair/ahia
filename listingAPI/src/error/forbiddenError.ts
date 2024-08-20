@@ -1,9 +1,10 @@
 import APIError from "./apiError";
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
 class ForbiddenError extends APIError {
-  constructor(httpStatusCode: number | HttpStatusCode, message: string) {
-    super("FORBIDDEN", httpStatusCode, true, message);
+  constructor(message: string) {
+    super(HttpStatus.FORBIDDEN, HttpCode.FORBIDDEN, true, message);
   }
 }
 
