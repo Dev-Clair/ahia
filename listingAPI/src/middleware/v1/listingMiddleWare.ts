@@ -88,7 +88,39 @@ const isAllowedContentType = (
 };
 
 /**
- * Verifies request body contains fields that are updatable
+ * Verifies request body contains fields that can be created
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response | void
+ */
+const isCreatable = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Response | void => {
+  const allowedFields = "status.approved";
+
+  const getRequestBody = req.body as object;
+
+  const createFields = Object.keys(getRequestBody);
+
+  createFields.forEach((element) => {
+    if (element === allowedFields) {
+      return res.status(HttpCode.BAD_REQUEST).json({
+        error: {
+          name: HttpStatus.BAD_REQUEST,
+          message: `Insertion is not allowed on field ${element}`,
+        },
+      });
+    }
+  });
+
+  next();
+};
+
+/**
+ * Verifies request body contains fields that can be updated
  * @param req
  * @param res
  * @param next
@@ -117,7 +149,7 @@ const isUpdatable = (
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Updates are not allowed on field ${element}`,
+          message: `Modification is not allowed on field ${element}`,
         },
       });
     }
@@ -150,6 +182,7 @@ export default {
   isSecure,
   isIdempotent,
   isAllowedContentType,
+  isCreatable,
   isUpdatable,
   isNotAllowed,
 };
