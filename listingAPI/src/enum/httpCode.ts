@@ -1,4 +1,4 @@
-enum HttpStatusCode {
+enum HttpCode {
   OK = 200,
   CREATED = 201,
   MODIFIED = 204,
@@ -6,10 +6,10 @@ enum HttpStatusCode {
   UNAUTHORISED = 401,
   FORBIDDEN = 403,
   NOT_FOUND = 404,
-  METHOD_NOT_ALLOWED = 405,
+  NOT_ALLOWED = 405,
   CONFLICT = 409,
   UNPROCESSABLE_ENTITY = 422,
   INTERNAL_SERVER_ERROR = 500,
 }
 
-export default HttpStatusCode;
+export default HttpCode;
