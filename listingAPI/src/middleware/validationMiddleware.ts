@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
-const singleParamIdSchema = z.object({
+const IdSchema = z.object({
   id: z.string({
     required_error: "ID is required",
     invalid_type_error: "ID must be a string",
@@ -10,21 +11,56 @@ const singleParamIdSchema = z.object({
   // .uuid({ message: "Invalid ID format" }),
 });
 
-const identitySchema = z.object({
-  id: z.string({
-    required_error: "ID is required",
-    invalid_type_error: "ID must be a string",
+const BodySchema = z.object({
+  name: z.string({
+    required_error: "name is required",
+    invalid_type_error: "name must be a string",
   }),
-  // .uuid({ message: "Invalid ID format" }),
-  email: z
-    .string({
-      required_error: "Email is required",
-      invalid_type_error: "Email must be a string",
+  description: z.string({
+    required_error: "description is required",
+    invalid_type_error: "description must be a string",
+  }),
+  cost: z.number({
+    required_error: "cost is required",
+    invalid_type_error: "cost cannot be a negative number",
+  }),
+  purpose: z.enum(["lease", "sell"]),
+  type: z.enum(["on-going", "now-selling"]),
+  category: z.enum(["economy", "premium", "luxury"]),
+  use: z.object({
+    type: z.string({
+      required_error: "use type is required",
+      invalid_type_error: "use type must be a string",
+    }),
+    category: z.enum(["residential", "commercial", "mixed"]),
+  }),
+  features: z.array(
+    z.string({
+      required_error: "features is required",
+      invalid_type_error: "features must be a string",
     })
-    .email({ message: "Invalid email format" }),
+  ),
+  address: z.object({
+    street: z.string({
+      required_error: "street is required",
+      invalid_type_error: "street must be a string",
+    }),
+    zone: z.string({
+      required_error: "zone is required",
+      invalid_type_error: "zone must be a string",
+    }),
+    countyLGA: z.string({
+      required_error: "countyLGA is required",
+      invalid_type_error: "countyLGA must be a string",
+    }),
+    state: z.string({
+      required_error: "state is required",
+      invalid_type_error: "state must be a string",
+    }),
+  }),
 });
 
-const validateParams =
+const validateID =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -33,11 +69,14 @@ const validateParams =
       next();
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(HttpStatusCode.BAD_REQUEST).json({
-          errors: err.errors.map((error) => ({
-            path: error.path,
-            message: error.message,
-          })),
+        return res.status(HttpCode.BAD_REQUEST).json({
+          error: {
+            name: HttpStatus.BAD_REQUEST,
+            errors: err.errors.map((error) => ({
+              path: error.path,
+              message: error.message,
+            })),
+          },
         });
       }
       next(err);
@@ -53,19 +92,21 @@ const validateBody =
       next();
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(HttpStatusCode.BAD_REQUEST).json({
-          errors: err.errors.map((error) => ({
-            path: error.path,
-            message: error.message,
-          })),
+        return res.status(HttpCode.BAD_REQUEST).json({
+          error: {
+            name: HttpStatus.BAD_REQUEST,
+            errors: err.errors.map((error) => ({
+              path: error.path,
+              message: error.message,
+            })),
+          },
         });
       }
       next(err);
     }
   };
 
-export const validateSingleParamId = validateParams(singleParamIdSchema);
-
 export default {
-  validateSingleParamId,
+  validateID: validateID(IdSchema),
+  validateBody: validateBody(BodySchema),
 };
