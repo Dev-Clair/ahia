@@ -1,17 +1,16 @@
+import sentry from "./sentry";
+import * as Sentry from "@sentry/node";
+import process from "node:process";
 import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
 import DbConnectionService from "./src/service/dbConnectionService";
-import DbConnectionError from "./src/error/dbConnectionError";
+import DbConnectionServiceError from "./src/error/dbConnectionServiceError";
 import HttpServer from "./src/utils/httpServer";
 import Logger from "./src/service/loggerService";
-import Mail from "./src/utils/mail";
-import MailerError from "./src/error/mailerError";
 import SSL from "./ssl/ssl";
 
-const sender: string = Config.LISTING.ADMIN_EMAIL_I;
-
-const recipient: [string] = [Config.LISTING.ADMIN_EMAIL_II];
+sentry(Config.SENTRY_DSN, Config.NODE_ENV);
 
 const server = new HttpServer(
   App,
@@ -27,42 +26,30 @@ try {
 
   DbConnectionService(Config.MONGO_URI);
 } catch (err: any) {
-  if (err instanceof DbConnectionError) {
-    const text = JSON.stringify({
-      name: err.name,
-      message: err.message,
-      description: err.description,
+  if (err instanceof DbConnectionServiceError)
+    Sentry.withScope((scope) => {
+      scope.setTag("Database Error", "Critical");
+
+      scope.setContext("details", {
+        name: err.name,
+        message: err.message,
+        description: err.description,
+        stack: err.stack,
+      });
+
+      Sentry.captureException(err);
     });
-
-    Mail(sender, recipient, err.name, text);
-
-    mongoose.connection.close(true);
-  }
-
-  if (err instanceof MailerError) {
-    Logger.error(err);
-
-    process.kill(process.pid, "SIGTERM");
-  }
 }
 
 const shutdown = () => {
   Logger.info("Shutting down gracefully...");
 
+  mongoose.connection.close(true);
+
   server.closeAllConnections();
+
+  Sentry.close();
 };
-
-process.on("uncaughtException", (error) => {
-  Logger.error("Uncaught Exception thrown:", error);
-
-  process.exitCode = 1;
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
-
-  process.exitCode = 1;
-});
 
 process.on("SIGINT", () => {
   shutdown();
@@ -70,4 +57,20 @@ process.on("SIGINT", () => {
 
 process.on("SIGTERM", () => {
   shutdown();
+});
+
+mongoose.connection.on("connecting", () => {
+  console.log(`Attempting connection to database`);
+});
+
+mongoose.connection.on("connected", () => {
+  console.log(`Database connection successful`);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.error(`Database connection failure`);
+});
+
+mongoose.connection.on("reconnected", () => {
+  console.log(`Database reconnection successful`);
 });

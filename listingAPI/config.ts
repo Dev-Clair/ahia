@@ -22,8 +22,6 @@ const Config = {
     KEY: process.env.GOOGLE_MAP_API_KEY,
   },
   LISTING: {
-    ADMIN_EMAIL_I: process.env.LISTING_ADMIN_EMAIL_I || "",
-    ADMIN_EMAIL_II: process.env.LISTING_ADMIN_EMAIL_II || "",
     SERVICE: {
       NAME: process.env.LISTING_SERVICE_NAME || "",
       SECRET: process.env.LISTING_SERVICE_SECRET || "",
@@ -37,6 +35,7 @@ const Config = {
     HTTP: process.env.HTTP_PORT || 4999,
     HTTPS: process.env.HTTPS_PORT || 5000,
   },
+  SENTRY_DSN: process.env.SENTRY_DSN || "",
   SSL: {
     KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
     CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import express, { Request, Response, NextFunction } from "express";
 import express_mongo_sanitize from "express-mongo-sanitize";
 import helmet from "helmet";
@@ -9,6 +10,8 @@ import HttpStatus from "./src/enum/httpStatus";
 import ListingRouter from "./src/router";
 
 const App = express();
+
+App.use(Sentry.expressErrorHandler());
 
 App.use(express.json());
 
