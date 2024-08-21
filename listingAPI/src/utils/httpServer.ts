@@ -5,13 +5,13 @@ import { Express } from "express";
 class HttpServer {
   private app: Express;
 
-  private sslOptions: Object;
+  private sslOptions: object;
 
   private httpServer: http.Server | null = null;
 
   private httpsServer: https.Server | null = null;
 
-  constructor(App: Express, SSLOptions: Object) {
+  constructor(App: Express, SSLOptions: object) {
     this.app = App;
 
     this.sslOptions = SSLOptions;
