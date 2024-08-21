@@ -10,6 +10,7 @@ import NotFoundError from "../../error/notfoundError";
 import { QueryBuilder } from "../../utils/queryBuilder";
 import Retry from "../../utils/retry";
 import SecretManager from "../../utils/secretManager";
+import PaymentRequiredError from "../../error/paymentrequiredError";
 
 /**
  * Creates a new listing resource in collection
@@ -418,9 +419,9 @@ const verifyListingApproval = async (
   if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
   if (!listing.status.approved) {
-    return res.status(HttpStatusCode.FORBIDDEN).json({
-      data: `${listing.name.toUpperCase()} has not been been approved for listing. Kindly pay the listing fee to approve this listing`,
-    });
+    throw new PaymentRequiredError(
+      `${listing.name.toUpperCase()} has not been been approved for listing. Kindly pay the listing fee to approve this listing`
+    );
   }
 
   return res.status(HttpStatusCode.OK).json({
