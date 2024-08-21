@@ -1,11 +1,11 @@
 import {
-  // DeleteObjectCommand,
-  // GetObjectCommand,
-  // ListObjectsV2Command,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { nanoid } from "nanoid";
+import { randomUUID } from "node:crypto";
 import Config from "../../config";
 
 class StorageService {
@@ -22,21 +22,16 @@ class StorageService {
         },
       },
     ]),
-    bucket: string = Config.AWS.S3_BUCKET_NAME
+    bucket: string = Config.AWS.S3_BUCKET.NAME
   ) {
     this.s3 = s3;
 
     this.bucket = bucket;
   }
 
-  public async upload(
-    id: string,
-    type: string,
-    category: string,
-    body: any
-  ): Promise<string | void> {
+  public async upload(id: string, body: any): Promise<string | void> {
     try {
-      const key = `${category}/${id}/${type}/${nanoid()}`;
+      const key = `${id}/${randomUUID()}`;
 
       const input = {
         Bucket: this.bucket,
@@ -49,7 +44,7 @@ class StorageService {
 
       const response = await this.s3.send(command);
 
-      if ("VersionId" in Object.keys(response)) {
+      if (Object.keys(response).includes("VersionId")) {
         return key;
       }
     } catch (err: any) {
@@ -57,60 +52,60 @@ class StorageService {
     }
   }
 
-  // public async download(key: string, start: string = "0", end: string = "9") {
-  //   try {
-  //     const streamRange = `bytes=${start}-${end}`;
+  public async download(key: string, start: string = "0", end: string = "9") {
+    try {
+      const streamRange = `bytes=${start}-${end}`;
 
-  //     const input = {
-  //       Bucket: this.bucket,
-  //       Key: key,
-  //       Range: streamRange,
-  //     };
-  //     const command = new GetObjectCommand(input);
+      const input = {
+        Bucket: this.bucket,
+        Key: key,
+        Range: streamRange,
+      };
+      const command = new GetObjectCommand(input);
 
-  //     const response = await this.s3.send(command);
+      const response = await this.s3.send(command);
 
-  //     return response.Body;
-  //   } catch (err: any) {
-  //     throw err;
-  //   }
-  // }
+      return response.Body;
+    } catch (err: any) {
+      throw err;
+    }
+  }
 
-  // public async remove(key: string): Promise<boolean | undefined> {
-  //   try {
-  //     const input = {
-  //       Bucket: this.bucket,
-  //       Key: key,
-  //     };
+  public async remove(key: string): Promise<boolean | undefined> {
+    try {
+      const input = {
+        Bucket: this.bucket,
+        Key: key,
+      };
 
-  //     const command = new DeleteObjectCommand(input);
+      const command = new DeleteObjectCommand(input);
 
-  //     const response = await this.s3.send(command);
+      const response = await this.s3.send(command);
 
-  //     return response.DeleteMarker;
-  //   } catch (err: any) {
-  //     throw err;
-  //   }
-  // }
+      return response.DeleteMarker;
+    } catch (err: any) {
+      throw err;
+    }
+  }
 
-  // public async *retrieveCollection(
-  //   prefix: string
-  // ): AsyncGenerator<string | undefined, any, unknown> {
-  //   const input = {
-  //     Bucket: this.bucket,
-  //     Prefix: prefix,
-  //   };
+  public async *retrieveCollection(
+    prefix: string
+  ): AsyncGenerator<string | undefined, any, unknown> {
+    const input = {
+      Bucket: this.bucket,
+      Prefix: prefix,
+    };
 
-  //   const command = new ListObjectsV2Command(input);
+    const command = new ListObjectsV2Command(input);
 
-  //   const response = await this.s3.send(command);
+    const response = await this.s3.send(command);
 
-  //   const keys = response.Contents?.map((item) => item.Key) ?? [];
+    const keys = response.Contents?.map((item) => item.Key) ?? [];
 
-  //   for (const key of keys) {
-  //     yield key;
-  //   }
-  // }
+    for (const key of keys) {
+      yield key;
+    }
+  }
 }
 
 const storageService = new StorageService();

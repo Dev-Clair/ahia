@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import ConnectionError from "../error/dbConnectionError";
+import DbConnectionServiceError from "../error/dbConnectionServiceError";
 import Retry from "../utils/retry";
 
 /**
@@ -28,28 +28,12 @@ const DbConnectionService = async (connectionUri: string): Promise<void> => {
     try {
       await Retry.LinearJitterBackoff(() => establishConnection(connectionUri));
     } catch (err: any) {
-      throw new ConnectionError(
+      throw new DbConnectionServiceError(
         err.message,
         "Retry strategies failed. Could not establish connection to the database"
       );
     }
   }
 };
-
-mongoose.connection.on("connecting", () => {
-  console.log(`Attempting connection to database`);
-});
-
-mongoose.connection.on("connected", () => {
-  console.log(`Database connection successful`);
-});
-
-mongoose.connection.on("disconnected", () => {
-  console.error(`Database connection failure`);
-});
-
-mongoose.connection.on("reconnected", () => {
-  console.log(`Database reconnection successful`);
-});
 
 export default DbConnectionService;
