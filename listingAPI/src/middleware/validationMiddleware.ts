@@ -69,9 +69,9 @@ const validateID =
       next();
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(HttpCode.BAD_REQUEST).json({
+        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
           error: {
-            name: HttpStatus.BAD_REQUEST,
+            name: HttpStatus.UNPROCESSABLE_ENTITY,
             errors: err.errors.map((error) => ({
               path: error.path,
               message: error.message,
@@ -92,9 +92,9 @@ const validateBody =
       next();
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(HttpCode.BAD_REQUEST).json({
+        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
           error: {
-            name: HttpStatus.BAD_REQUEST,
+            name: HttpStatus.UNPROCESSABLE_ENTITY,
             errors: err.errors.map((error) => ({
               path: error.path,
               message: error.message,
