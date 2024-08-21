@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import DbConnectionServiceError from "../error/dbConnectionServiceError";
+import DbConnectionServiceError from "../error/dbconnectionserviceError";
 import Retry from "../utils/retry";
 
 /**

@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
 import DbConnectionService from "./src/service/dbConnectionService";
-import DbConnectionServiceError from "./src/error/dbConnectionServiceError";
+import DbConnectionServiceError from "./src/error/dbconnectionserviceError";
 import HttpServer from "./src/utils/httpServer";
 import Logger from "./src/service/loggerService";
 import SSL from "./ssl/ssl";
