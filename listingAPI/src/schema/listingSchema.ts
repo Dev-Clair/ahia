@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { Schema } from "mongoose";
 import ListingInterface from "../interface/listingInterface";
-import { nanoid } from "nanoid";
 import slugify from "slugify";
 
 const ListingSchema: Schema<ListingInterface> = new Schema(
@@ -139,7 +139,7 @@ ListingSchema.pre("save", function (next) {
 
 ListingSchema.pre("save", function (next) {
   if (!this.isModified(this.status.id)) {
-    this.status.id = nanoid();
+    this.status.id = randomUUID();
   }
 
   next();

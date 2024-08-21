@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { Schema } from "mongoose";
 import AttachmentInterface from "../interface/attachmentInterface";
-import { nanoid } from "nanoid";
 
 const AttachmentSchema: Schema<AttachmentInterface> = new Schema(
   {
@@ -34,7 +34,7 @@ const AttachmentSchema: Schema<AttachmentInterface> = new Schema(
 
 AttachmentSchema.pre("save", function (next) {
   if (!this.isModified(this.name)) {
-    this.name = `attachment_${nanoid()}`;
+    this.name = `attachment_${randomUUID()}`;
   }
 
   next();
