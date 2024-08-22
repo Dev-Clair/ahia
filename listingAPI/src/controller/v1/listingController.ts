@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import AsyncCatch from "../../utils/asyncCatch";
+import AsyncWrapper from "../../utils/asyncWrapper";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
 import { NextFunction, Request, Response } from "express";
@@ -7,10 +7,10 @@ import HttpStatusCode from "../../enum/httpCode";
 import IdempotencyManager from "../../utils/idempotencyManager";
 import Listing from "../../model/listingModel";
 import NotFoundError from "../../error/notfoundError";
-import { QueryBuilder } from "../../utils/queryBuilder";
-import Retry from "../../utils/retry";
-import SecretManager from "../../utils/secretManager";
 import PaymentRequiredError from "../../error/paymentrequiredError";
+import { QueryBuilder } from "../../utils/queryBuilder";
+import Retry from "../../utils/failureRetry";
+import SecretManager from "../../utils/secretManager";
 
 /**
  * Creates a new listing resource in collection
@@ -432,7 +432,7 @@ const verifyListingApproval = async (
 /**
  * Create a new listing in collection
  */
-const createListings = AsyncCatch(
+const createListings = AsyncWrapper.Catch(
   createListing,
   Retry.ExponentialJitterBackoff
 );
@@ -440,12 +440,15 @@ const createListings = AsyncCatch(
 /**
  * Retrieve collection of listings
  */
-const retrieveListings = AsyncCatch(getListings, Retry.LinearJitterBackoff);
+const retrieveListings = AsyncWrapper.Catch(
+  getListings,
+  Retry.LinearJitterBackoff
+);
 
 /**
  * Retrieve collection of listings based on search
  */
-const retrieveListingsSearch = AsyncCatch(
+const retrieveListingsSearch = AsyncWrapper.Catch(
   getListingsSearch,
   Retry.LinearJitterBackoff
 );
@@ -453,7 +456,7 @@ const retrieveListingsSearch = AsyncCatch(
 /**
  * Retrieves collection of provider's listing
  */
-const retrieveListingsByProvider = AsyncCatch(
+const retrieveListingsByProvider = AsyncWrapper.Catch(
   getListingsByProvider,
   Retry.LinearJitterBackoff
 );
@@ -461,7 +464,7 @@ const retrieveListingsByProvider = AsyncCatch(
 /**
  * Retrieve available listing offerings based on user's location
  */
-const retrieveListingsNearMe = AsyncCatch(
+const retrieveListingsNearMe = AsyncWrapper.Catch(
   getListingsNearme,
   Retry.LinearJitterBackoff
 );
@@ -469,7 +472,7 @@ const retrieveListingsNearMe = AsyncCatch(
 /**
  * Retrieve available listings based on type -on going- and location
  */
-const retrieveOnGoingListings = AsyncCatch(
+const retrieveOnGoingListings = AsyncWrapper.Catch(
   getOnGoingListings,
   Retry.LinearJitterBackoff
 );
@@ -477,7 +480,7 @@ const retrieveOnGoingListings = AsyncCatch(
 /**
  * Retrieve available listings based on type -now selling- and location
  */
-const retrieveNowSellingListings = AsyncCatch(
+const retrieveNowSellingListings = AsyncWrapper.Catch(
   getNowSellingListings,
   Retry.LinearJitterBackoff
 );
@@ -485,7 +488,7 @@ const retrieveNowSellingListings = AsyncCatch(
 /**
  * Retrieve exclusive listing based on category and location
  */
-const retrieveExclusiveListings = AsyncCatch(
+const retrieveExclusiveListings = AsyncWrapper.Catch(
   getExclusiveListings,
   Retry.LinearJitterBackoff
 );
@@ -493,12 +496,15 @@ const retrieveExclusiveListings = AsyncCatch(
 /**
  * Retrieve a listing item using its :id
  */
-const retrieveListingItem = AsyncCatch(getListing, Retry.LinearJitterBackoff);
+const retrieveListingItem = AsyncWrapper.Catch(
+  getListing,
+  Retry.LinearJitterBackoff
+);
 
 /**
  * Updates a listing item using its :id.
  */
-const updateListingItem = AsyncCatch(
+const updateListingItem = AsyncWrapper.Catch(
   updateListing,
   Retry.ExponentialJitterBackoff
 );
@@ -506,17 +512,20 @@ const updateListingItem = AsyncCatch(
 /**
  * Deletes a listing item using its :id
  */
-const deleteListingItem = AsyncCatch(deleteListing, Retry.LinearBackoff);
+const deleteListingItem = AsyncWrapper.Catch(
+  deleteListing,
+  Retry.LinearBackoff
+);
 
 /**
  * Handles interface with payment service for listing transactions
  */
-const checkoutListingItem = AsyncCatch(checkoutListing);
+const checkoutListingItem = AsyncWrapper.Catch(checkoutListing);
 
 /**
  * Approves a listing item status
  */
-const approveListingItem = AsyncCatch(
+const approveListingItem = AsyncWrapper.Catch(
   approveListing,
   Retry.LinearJitterBackoff
 );
@@ -524,7 +533,7 @@ const approveListingItem = AsyncCatch(
 /**
  * Verifies a listing item approval status
  */
-const verifyListingItemApproval = AsyncCatch(
+const verifyListingItemApproval = AsyncWrapper.Catch(
   verifyListingApproval,
   Retry.LinearJitterBackoff
 );
