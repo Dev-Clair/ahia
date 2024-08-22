@@ -12,6 +12,22 @@ import SSL from "./ssl/ssl";
 
 sentry(Config.SENTRY_DSN, Config.NODE_ENV);
 
+process.on("unhandledRejection", (reason, promise) => {
+  Sentry.captureException(reason);
+
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+
+  process.exitCode = 1;
+});
+
+process.on("uncaughtException", (error) => {
+  Sentry.captureException(error);
+
+  console.error("Uncaught Exception thrown:", error);
+
+  process.exitCode = 1;
+});
+
 const server = new HttpServer(
   App,
   SSL(Config.SSL.KEY_FILE_PATH, Config.SSL.CERT_FILE_PATH)
