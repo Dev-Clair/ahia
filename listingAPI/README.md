@@ -36,9 +36,7 @@ Authorization and authentication is enabled by an identity server which manages 
 
 - **CRUD Endpoints**: Read, Create, Update and Delete.
 
-- **Specialized Endpoints**: Fetch top listings, exclusive listings, and hot sales/leases.
-
-- **Email Notifications**: Sends email notifications to providers upon listing creation.
+- **Specialized Endpoints**: Fetch customizable listing info based on pre-defined endpoints.
 
 ## Installation
 
@@ -90,53 +88,60 @@ Authorization and authentication is enabled by an identity server which manages 
     DELETE /api/v1/listings/:id
     ```
 
-    1.7 Listing checkout
+2.  Specialized Endpoints
+
+    2.1 Listings Near Me
+
+    ```
+    GET /api/v1/listings/near-me
+    ```
+
+    2.2 Listings by Provider
+
+    ```
+    GET /api/v1/listings/provider/:providerId
+    ```
+
+    2.3 Listings By Type
+
+    ```
+    GET /api/v1/listings/type/:type
+    ```
+
+    2.4 Listings By Category
+
+    ```
+    GET /api/v1/listings/category/:category
+    ```
+
+    2.5 Listing To Payment Checkout
 
     ```
     GET /api/v1/listings/:id/checkout
     ```
 
-    1.8 Approves a Listing Payment Status
+    2.6 Approves a Listing's Payment Status
 
     ```
-    GET /api/v1/listings/:id/status/approvve
+    GET /api/v1/listings/:id/status/approve
     ```
 
-    1.6 Verifies a Listing Payment Status
+    2.7 Verifies a Listing's Approval Status
 
     ```
-    GET /api/v1/listings/:id/status/verify
-    ```
-
-2.  Specialized Endpoints
-
-    2.1 Top Listings by Provider
-
-    ```
-    GET /api/v1/listings/top-10?provider=:provider
-    ```
-
-    2.2 Exclusive Listings
-
-    ```
-    GET /api/v1/listings/exclusive?location=:location&category=:category
-    ```
-
-    2.3 Hot Sales Listings
-
-    ```
-    GET /api/v1/listings/hot-sale?location=:location
-    ```
-
-    2.4 Hot Lease Listings
-
-    ```
-    GET /api/v1/listings/hot-lease?location=:location
+    PATCH /api/v1/listings/:id/status/verify
     ```
 
 ## Error Handling
 
-Custom errors are handled by middleware. If an error occurs, it returns a structured JSON response with the error message and status code.
+Errors are handled by an in-app custom error middleware and sentry express error handler.
+
+        |   Type    |   Handler |
+        |   --------------- | ----------------------------------  |
+        |   Operational |   Custom Error Handling Middleware    |
+        |   Non-Operational |   Custom Error Handling Middleware  |
+        |   UnCaught Exception  |   Sentry  |
+        |   Unhandled Rejection |   Sentry  |
 
 ## Contributing
 
