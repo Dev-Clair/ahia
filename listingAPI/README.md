@@ -136,12 +136,13 @@ Authorization and authentication is enabled by an identity server which manages 
 
 Errors are handled by an in-app custom error middleware and sentry express error handler.
 
-        |   Type    |   Handler |
-        |   --------------- | ----------------------------------  |
-        |   Operational |   Custom Error Handling Middleware    |
-        |   Non-Operational |   Custom Error Handling Middleware  |
-        |   UnCaught Exception  |   Sentry  |
-        |   Unhandled Rejection |   Sentry  |
+        |            Type       |               Handler                 |
+        |---------------------- | --------------------------------------|
+        |   Operational         |   Custom Error Handling Middleware    |
+        |   Non-Operational     |   Custom Error Handling Middleware    |
+        |   UnCaught Exception  |           Sentry                      |
+        |   Unhandled Rejection |           Sentry                      |
+        |   General App Error   |           Sentry                      |
 
 ## Contributing
 
