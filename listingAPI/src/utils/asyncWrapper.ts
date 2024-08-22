@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 /**
  * Propagates operational and non-operational errors to the custom global error handling middleware.
+ *
  */
 class AsyncWrapper {
   /**
@@ -9,9 +10,9 @@ class AsyncWrapper {
    * @param Operation
    * @param Retry
    * @param RetryOptions
-   * @returns Promise<Response|void>
+   * @returns Function
    */
-  static async Catch(
+  static Catch(
     Operation: (
       req: Request,
       res: Response,
