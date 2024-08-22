@@ -27,6 +27,10 @@ export default interface ListingInterface extends Document {
     id: string;
     email: string;
   };
+  media: {
+    image: string;
+    video: string;
+  };
   status: {
     id: string;
     approved: boolean;

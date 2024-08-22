@@ -94,6 +94,16 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
         required: true,
       },
     },
+    media: {
+      picture: {
+        type: String,
+        required: false,
+      },
+      video: {
+        type: String,
+        required: false,
+      },
+    },
     status: {
       id: {
         type: String,
