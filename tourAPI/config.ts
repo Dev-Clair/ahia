@@ -12,13 +12,18 @@ const Config = {
     SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || "",
     REGION: process.env.AWS_REGION || "af-south-1",
   },
+  GOOGLE_MAP_API: {
+    GEOCODE_URL: process.env.GOOGLE_MAP_API_GEOCODE_URL,
+    PLACE_URL: process.env.GOOGLE_MAP_API_PLACE_URL,
+    KEY: process.env.GOOGLE_MAP_API_KEY,
+  },
+  IAM_SERVICE_URL: process.env.IAM_SERVICE_URL || "127.0.0.1:3999/api/v1/iam",
+  MONGO_URI: process.env.MONGO_URI || "",
+  NODE_ENV: process.env.NODE_ENV || "test",
   PORT: {
     HTTP: process.env.HTTP_PORT || 5999,
     HTTPS: process.env.HTTPS_PORT || 6000,
   },
-  MONGO_URI: process.env.MONGO_URI || "",
-  NODE_ENV: process.env.NODE_ENV || "test",
-  IAM_SERVICE_URL: process.env.IAM_SERVICE_URL || "127.0.0.1:3999/api/v1/iam",
   SENTRY_DSN: process.env.SENTRY_DSN || "",
   SSL: {
     KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
