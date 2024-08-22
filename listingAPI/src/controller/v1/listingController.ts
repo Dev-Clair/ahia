@@ -67,13 +67,13 @@ const getListings = async (
 ): Promise<Response | void> => {
   const queryString = { ...req.query, status: { approved: true } };
 
-  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
 
   const listings = await queryBuilder
-    .filter()
-    .sort()
-    .select(["-status -provider.email"])
-    .paginate({
+    .Filter()
+    .Sort()
+    .Select(["-status -provider.email"])
+    .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
       baseUrl: req.baseUrl,
@@ -105,12 +105,12 @@ const getListingsSearch = async (
     $text: { $search: searchQuery },
   });
 
-  const queryBuilder = new QueryBuilder(search);
+  const queryBuilder = QueryBuilder.Make(search);
 
   const listings = await queryBuilder
-    .sort()
-    .select(["-status -provider.email"])
-    .paginate({
+    .Sort()
+    .Select(["-status -provider.email"])
+    .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
       baseUrl: req.baseUrl,
@@ -136,13 +136,13 @@ const getListingsNearme = async (
 ): Promise<Response | void> => {
   const queryString = { ...req.query, status: { approved: true } };
 
-  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
 
   const listings = await queryBuilder
-    .geoNear()
-    .sort()
-    .select(["-status -provider.email"])
-    .paginate({
+    .GeoNear()
+    .Sort()
+    .Select(["-status -provider.email"])
+    .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
       baseUrl: req.baseUrl,
@@ -176,13 +176,13 @@ const getListingsByProvider = async (
     provider: { id: providerId },
   };
 
-  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
 
   const listings = await queryBuilder
-    .filter()
-    .sort()
-    .select(["-status -provider.email"])
-    .exec();
+    .Filter()
+    .Sort()
+    .Select(["-status -provider.email"])
+    .Exec();
 
   return res.status(HttpStatusCode.OK).json({ data: listings });
 };
@@ -211,12 +211,12 @@ const getListingsByType = async (
     type: type,
   };
 
-  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
 
   const listings = await queryBuilder
-    .sort()
-    .select(["-status -provider.email"])
-    .paginate({
+    .Sort()
+    .Select(["-status -provider.email"])
+    .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
       baseUrl: req.baseUrl,
@@ -252,12 +252,12 @@ const getListingsbyCategory = async (
 
   const queryString = { status: { approved: true }, category: category };
 
-  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
 
   const listings = await queryBuilder
-    .sort()
-    .select(["-status -provider.email"])
-    .paginate({
+    .Sort()
+    .Select(["-status -provider.email"])
+    .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
       baseUrl: req.baseUrl,

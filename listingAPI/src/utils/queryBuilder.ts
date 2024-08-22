@@ -31,6 +31,7 @@ interface PaginationResult<T> {
 /**
  * @class QueryBuilder
  * Improves query performance
+ * @method create - factory
  * @method exec - executes
  * @method filter - filtering
  * @method geoNear - geospatial (near queries)
@@ -50,10 +51,23 @@ export class QueryBuilder<T> {
   }
 
   /**
+   * Creates and returns new instance of the QueryBuilder class
+   * @param query
+   * @param queryString
+   * @returns QueryBuilder
+   */
+  static Make<T>(
+    query: Query<T[], T>,
+    queryString?: QueryString
+  ): QueryBuilder<T> {
+    return new QueryBuilder(query, queryString);
+  }
+
+  /**
    * Executes the query
    * @returns Promise of type any
    */
-  exec(): Promise<T[]> {
+  public Exec(): Promise<T[]> {
     return this.query;
   }
 
@@ -61,7 +75,7 @@ export class QueryBuilder<T> {
    * Handles filtering operation
    * @returns this
    */
-  filter(): this {
+  public Filter(): this {
     const queryObject = { ...this.queryString };
 
     const excludedFields = ["page", "sort", "limit", "fields"];
@@ -86,7 +100,7 @@ export class QueryBuilder<T> {
    * Handles geospatial queries: Near Query
    * @returns this
    */
-  geoNear(): this {
+  public GeoNear(): this {
     if (this.queryString.lat && this.queryString.long) {
       const latitude = parseFloat(this.queryString.lat as string);
 
@@ -116,7 +130,9 @@ export class QueryBuilder<T> {
    * @param PaginationParams
    * @returns Promise of type data and pagination metadata
    */
-  async paginate(params: PaginationParams): Promise<PaginationResult<T>> {
+  public async Paginate(
+    params: PaginationParams
+  ): Promise<PaginationResult<T>> {
     const page = Math.max(parseInt(this.queryString.page || "1", 10));
 
     const limit = Math.max(parseInt(this.queryString.limit || "2", 10));
@@ -164,7 +180,7 @@ export class QueryBuilder<T> {
    * Handles projection: specifies fields to be included or excluded in the return query
    * @returns this
    */
-  select(selection: string[]): this {
+  public Select(selection: string[]): this {
     let fields: string = "";
 
     if (selection.length !== 0) {
@@ -186,7 +202,7 @@ export class QueryBuilder<T> {
    * Handles sorting operation
    * @returns this
    */
-  sort(): this {
+  public Sort(): this {
     if (this.queryString.sort) {
       const sortBy = this.queryString.sort.split(",").join(" ");
 
@@ -196,18 +212,5 @@ export class QueryBuilder<T> {
     }
 
     return this;
-  }
-
-  /**
-   * Creates an instance of the QueryBuilder class
-   * @param query
-   * @param queryString
-   * @returns QueryBuilder
-   */
-  static factory<T>(
-    query: Query<T[], T>,
-    queryString?: QueryString
-  ): QueryBuilder<T> {
-    return new QueryBuilder(query, queryString);
   }
 }
