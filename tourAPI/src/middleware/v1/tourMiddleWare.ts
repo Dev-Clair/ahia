@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import HttpStatusCode from "../../enum/httpStatusCode";
+import HttpCode from "../../enum/httpCode";
+import HttpStatus from "../../enum/httpStatus";
 
 /**
  * Verifies request security
@@ -18,9 +19,9 @@ const isSecure = (
   const getSecurity = req.secure;
 
   if (getProtocol !== "https" || getSecurity === false) {
-    return res.status(HttpStatusCode.FORBIDDEN).json({
+    return res.status(HttpCode.FORBIDDEN).json({
       error: {
-        name: "Forbidden",
+        name: HttpStatus.FORBIDDEN,
         message: "Connection is not secure. SSL required",
       },
     });
@@ -44,9 +45,9 @@ const isIdempotent = (
   const getIdempotencyKey = req.headers["idempotency-key"] as string;
 
   if (!getIdempotencyKey) {
-    return res.status(HttpStatusCode.BAD_REQUEST).json({
+    return res.status(HttpCode.BAD_REQUEST).json({
       error: {
-        name: "Bad Request",
+        name: HttpStatus.BAD_REQUEST,
         message: "Idempotency key is required",
       },
     });
@@ -67,16 +68,14 @@ const isAllowedContentType = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const allowedContentTypes = ["application/json", "text/html", "text/plain"];
+  const allowedContentTypes = ["application/json"];
 
   const getContentType = req.headers["content-type"] as string;
 
-  console.log(getContentType);
-
   if (!allowedContentTypes.includes(getContentType)) {
-    return res.status(HttpStatusCode.BAD_REQUEST).json({
+    return res.status(HttpCode.BAD_REQUEST).json({
       error: {
-        name: "Bad Request",
+        name: HttpStatus.BAD_REQUEST,
         message: `Invalid content type, expected: "application/json" but received: ${getContentType}`,
       },
     });
@@ -111,9 +110,9 @@ const isUpdatable = (
 
   updateFields.forEach((element) => {
     if (!allowedFields.includes(element)) {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
+      return res.status(HttpCode.BAD_REQUEST).json({
         error: {
-          name: "Bad Request",
+          name: HttpStatus.BAD_REQUEST,
           message: `Updates are not allowed on field ${element}`,
         },
       });
@@ -135,9 +134,9 @@ const isNotAllowed = (
   res: Response,
   next: NextFunction
 ): Response => {
-  return res.status(HttpStatusCode.METHOD_NOT_ALLOWED).json({
+  return res.status(HttpCode.NOT_ALLOWED).json({
     error: {
-      name: "Method Not Allowed",
+      name: HttpStatus.NOT_ALLOWED,
       message: "Operation not allowed",
     },
   });

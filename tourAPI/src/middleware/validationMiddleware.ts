@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
 const singleParamIdSchema = z.object({
   id: z.string({
@@ -76,7 +77,8 @@ const validateParams =
       next();
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(HttpStatusCode.BAD_REQUEST).json({
+        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
+          name: HttpStatus.UNPROCESSABLE_ENTITY,
           errors: err.errors.map((error) => ({
             path: error.path,
             message: error.message,
@@ -96,7 +98,8 @@ const validateBody =
       next();
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(HttpStatusCode.BAD_REQUEST).json({
+        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
+          name: HttpStatus.UNPROCESSABLE_ENTITY,
           errors: err.errors.map((error) => ({
             path: error.path,
             message: error.message,

@@ -1,8 +1,7 @@
+import * as Sentry from "@sentry/node";
 import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
-import Config from "../../config";
 import Logger from "../service/loggerService";
-import Mail from "../utils/mail";
 
 class GlobalErrorHandlingMiddleware {
   public static async handleError(err: Error): Promise<void> {
@@ -10,16 +9,17 @@ class GlobalErrorHandlingMiddleware {
       `name: ${err.name}\nmessage: ${err.message}\nstack: ${err.stack}`
     );
 
-    const sender: string = Config.TOUR.ADMIN_EMAIL_I;
+    Sentry.withScope((scope) => {
+      scope.setTag("APIError", "Untrusted");
 
-    const recipient: [string] = [Config.TOUR.ADMIN_EMAIL_II];
+      scope.setContext("details", {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+      });
 
-    await Mail(
-      sender,
-      recipient,
-      err.name,
-      JSON.stringify({ message: err.message, stack: err.stack })
-    );
+      Sentry.captureException(err);
+    });
   }
 
   public static isTrustedError(err: APIError | Error): boolean {
