@@ -1,17 +1,32 @@
+import sentry from "./sentry";
+import * as Sentry from "@sentry/node";
+import process from "node:process";
 import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
-import Connection from "./connection";
-import ConnectionError from "./src/error/connectionError";
+import DbService from "./src/service/dbService";
+import DbServiceError from "./src/error/dbserviceError";
+import HttpServer from "./src/utils/httpServer";
 import Logger from "./src/service/loggerService";
-import Mail from "./src/utils/mail";
-import MailerError from "./src/error/mailerError";
-import HttpServer from "./httpServer";
 import SSL from "./ssl/ssl";
 
-const sender: string = Config.TOUR.ADMIN_EMAIL_I;
+sentry(Config.SENTRY_DSN, Config.NODE_ENV);
 
-const recipient: [string] = [Config.TOUR.ADMIN_EMAIL_II];
+process.on("unhandledRejection", (reason, promise) => {
+  Sentry.captureException(reason);
+
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+
+  process.exitCode = 1;
+});
+
+process.on("uncaughtException", (error) => {
+  Sentry.captureException(error);
+
+  console.error("Uncaught Exception thrown:", error);
+
+  process.exitCode = 1;
+});
 
 const server = new HttpServer(
   App,
@@ -19,58 +34,53 @@ const server = new HttpServer(
 );
 
 try {
-  if (Config.NODE_ENV === "test") {
-    server.startHTTP(Config.PORT.HTTP);
-  } else {
-    server.startHTTPS(Config.PORT.HTTPS);
-  }
+  Config.NODE_ENV === "test"
+    ? server.startHTTP(Config.PORT.HTTP)
+    : server.startHTTPS(Config.PORT.HTTPS);
 
-  Connection(Config.MONGO_URI);
+  DbService.Connection(Config.MONGO_URI);
 } catch (err: any) {
-  if (err instanceof ConnectionError) {
-    const text = JSON.stringify({
-      message: err.message,
-      description: err.description,
+  if (err instanceof DbServiceError)
+    Sentry.withScope((scope) => {
+      scope.setTag("Database Error", "Critical");
+
+      scope.setContext("details", {
+        name: err.name,
+        message: err.message,
+        description: err.description,
+        stack: err.stack,
+      });
+
+      Sentry.captureException(err);
     });
-
-    Mail(sender, recipient, err.name, text);
-
-    // process.exitCode = 1;
-
-    process.kill(process.pid, "SIGTERM");
-  }
-
-  if (err instanceof MailerError) {
-    console.error(err);
-
-    process.kill(process.pid, "SIGTERM");
-  }
 }
 
 const shutdown = () => {
   Logger.info("Shutting down gracefully...");
 
-  // Close open database connections
   mongoose.connection.close(true);
 
-  // Close running server process
   server.closeAllConnections();
+
+  Sentry.close();
 };
 
-process.on("uncaughtException", (error) => {
-  Logger.error("Uncaught Exception thrown:", error);
-  process.exitCode = 1;
+mongoose.connection.on("connecting", () => {
+  console.log(`Attempting connection to database`);
 });
 
-process.on("unhandledRejection", (reason, promise) => {
-  Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
-  process.exitCode = 1;
+mongoose.connection.on("connected", () => {
+  console.log(`Database connection successful`);
 });
 
-process.on("SIGINT", () => {
-  shutdown();
+mongoose.connection.on("disconnected", () => {
+  console.error(`Database connection failure`);
 });
 
-process.on("SIGTERM", () => {
-  shutdown();
+mongoose.connection.on("reconnected", () => {
+  console.log(`Database reconnection successful`);
 });
+
+process.on("SIGINT", () => shutdown());
+
+process.on("SIGTERM", () => shutdown());
