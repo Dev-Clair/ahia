@@ -93,13 +93,13 @@ Authorization and authentication is enabled by an identity server which manages 
     2.1 Select all tour bookings for a customer
 
     ```
-    GET /api/v1/tours/customer?customerId=:customerId
+    GET /api/v1/tours/customer/:customerId
     ```
 
     2.2 Select all tour assignments for a realtor
 
     ```
-    GET /api/v1/tours/realtor?realtorId=:realtorId
+    GET /api/v1/tours/realtor/:realtorId
     ```
 
     2.3 Mark a Tour as complete
@@ -170,7 +170,15 @@ Authorization and authentication is enabled by an identity server which manages 
 
 ## Error Handling
 
-Custom errors are handled by middleware. If an error occurs, it returns a structured JSON response with the error message and status code.
+Errors are handled by an in-app custom error middleware and sentry express error handler.
+
+        |            Type       |               Handler                 |
+        |---------------------- | --------------------------------------|
+        |   Operational         |   Custom Error Handling Middleware    |
+        |   Non-Operational     |   Custom Error Handling Middleware    |
+        |   UnCaught Exception  |           Sentry                      |
+        |   Unhandled Rejection |           Sentry                      |
+        |   General App Error   |           Sentry                      |
 
 ## Contributing
 
