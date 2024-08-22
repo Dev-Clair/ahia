@@ -30,7 +30,13 @@ interface PaginationResult<T> {
 
 /**
  * @class QueryBuilder
- * Handles pagination, sorting and filtering of collection operations
+ * Improves query performance
+ * @method exec - executes
+ * @method filter - filtering
+ * @method geoNear - geospatial (near queries)
+ * @method paginate - pagination
+ * @method select - projection
+ * @method sort - sorting
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
@@ -44,32 +50,11 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Handles geospatial queries: Near Operations
-   * @returns this
+   * Executes the query
+   * @returns Promise of type any
    */
-  geoNear(): this {
-    if (this.queryString.lat && this.queryString.long) {
-      const latitude = parseFloat(this.queryString.lat as string);
-
-      const longitude = parseFloat(this.queryString.long as string);
-
-      const distance =
-        parseFloat(this.queryString.distance as string) ?? 5000.0;
-
-      this.query = this.query.find({
-        location: {
-          $geoNear: {
-            $geometry: {
-              type: "Point",
-              coordinates: [longitude, latitude],
-            },
-          },
-          $maxDistance: distance,
-        },
-      });
-    }
-
-    return this;
+  exec(): Promise<T[]> {
+    return this.query;
   }
 
   /**
@@ -93,6 +78,35 @@ export class QueryBuilder<T> {
     const parsedQueryString = JSON.parse(queryString);
 
     this.query = this.query.find(parsedQueryString);
+
+    return this;
+  }
+
+  /**
+   * Handles geospatial queries: Near Query
+   * @returns this
+   */
+  geoNear(): this {
+    if (this.queryString.lat && this.queryString.long) {
+      const latitude = parseFloat(this.queryString.lat as string);
+
+      const longitude = parseFloat(this.queryString.long as string);
+
+      const distance =
+        parseFloat(this.queryString.distance as string) ?? 2000.0;
+
+      this.query = this.query.find({
+        location: {
+          $geoNear: {
+            $geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude],
+            },
+          },
+          $maxDistance: distance,
+        },
+      });
+    }
 
     return this;
   }
@@ -147,14 +161,6 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Handles search: retrieves selection that match search criteria
-   * @returns this
-   */
-  search(): this {
-    return this;
-  }
-
-  /**
    * Handles projection: specifies fields to be included or excluded in the return query
    * @returns this
    */
@@ -190,13 +196,5 @@ export class QueryBuilder<T> {
     }
 
     return this;
-  }
-
-  /**
-   * Executes the query
-   * @returns Promise of type any
-   */
-  exec(): Promise<T[]> {
-    return this.query;
   }
 }

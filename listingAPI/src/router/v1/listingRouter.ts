@@ -17,22 +17,18 @@ ListingRouterV1.route("/")
 
 ListingRouterV1.route("/search").get(ListingController.retrieveListingsSearch);
 
-ListingRouterV1.route("/provider").get(
+ListingRouterV1.route("/near-me").get(ListingController.retrieveListingsNearMe);
+
+ListingRouterV1.route("/provider/:providerId").get(
   ListingController.retrieveListingsByProvider
 );
 
-ListingRouterV1.route("/near-me").get(ListingController.retrieveListingsNearMe);
-
-ListingRouterV1.route("/on-going").get(
-  ListingController.retrieveOnGoingListings
+ListingRouterV1.route("/type/:type").get(
+  ListingController.retrieveListingsByType
 );
 
-ListingRouterV1.route("/now-selling").get(
-  ListingController.retrieveNowSellingListings
-);
-
-ListingRouterV1.route("/exclusive").get(
-  ListingController.retrieveExclusiveListings
+ListingRouterV1.route("/category/:category").get(
+  ListingController.retrieveListingsByCategory
 );
 
 ListingRouterV1.route("/:id")

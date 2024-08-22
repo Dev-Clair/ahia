@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 import AsyncWrapper from "../../utils/asyncWrapper";
+import BadRequestError from "../../error/badrequestError";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
-import { NextFunction, Request, Response } from "express";
+import ForbiddenError from "../../error/forbiddenError";
 import HttpStatusCode from "../../enum/httpCode";
 import IdempotencyManager from "../../utils/idempotencyManager";
 import Listing from "../../model/listingModel";
+import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../../error/notfoundError";
 import PaymentRequiredError from "../../error/paymentrequiredError";
 import { QueryBuilder } from "../../utils/queryBuilder";
@@ -63,14 +65,9 @@ const getListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query ?? {};
+  const queryString = { ...req.query, status: { approved: true } };
 
-  const queryBuilder = new QueryBuilder(
-    Listing.find({
-      status: { approved: true },
-    }),
-    queryString
-  );
+  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .filter()
@@ -100,7 +97,9 @@ const getListingsSearch = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const searchQuery = (req.query.search as string) ?? "";
+  const searchQuery = req.query.search as string;
+
+  if (!searchQuery) throw new BadRequestError(`Kindly enter a text to search`);
 
   const search = Listing.find({
     $text: { $search: searchQuery },
@@ -109,7 +108,6 @@ const getListingsSearch = async (
   const queryBuilder = new QueryBuilder(search);
 
   const listings = await queryBuilder
-    .filter()
     .sort()
     .select(["-status -provider.email"])
     .paginate({
@@ -125,31 +123,6 @@ const getListingsSearch = async (
 };
 
 /**
- * Retrieves provider's listing
- * @param req
- * @param res
- * @param next
- * @returns Promise<Response | void>
- */
-const getListingsByProvider = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  const queryString = req.query;
-
-  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
-
-  const listings = await queryBuilder
-    .filter()
-    .sort()
-    .select(["-status -provider.email"])
-    .exec();
-
-  return res.status(HttpStatusCode.OK).json({ data: listings });
-};
-
-/**
  * Retrieves collection of listings near user's curremt location
  * @param req
  * @param res
@@ -161,7 +134,7 @@ const getListingsNearme = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query;
+  const queryString = { ...req.query, status: { approved: true } };
 
   const queryBuilder = new QueryBuilder(Listing.find(), queryString);
 
@@ -185,50 +158,118 @@ const getListingsNearme = async (
 };
 
 /**
- * Retrieves collection of listings based on type and location
+ * Retrieves provider's listing
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getOnGoingListings = async (
+const getListingsByProvider = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = { status: { approved: true }, type: "on-going" };
+  const providerId = req.params.providerId as string;
+
+  const queryString = {
+    status: { approved: true },
+    provider: { id: providerId },
+  };
+
+  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+
+  const listings = await queryBuilder
+    .filter()
+    .sort()
+    .select(["-status -provider.email"])
+    .exec();
+
+  return res.status(HttpStatusCode.OK).json({ data: listings });
 };
 
 /**
- * Retrieves collection of listing offerings based on type and location
+ * Retrieves collection of listings based on type : on-going | now-selling
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getNowSellingListings = async (
+const getListingsByType = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = { status: { approved: true }, type: "now-selling" };
+  const type = req.params.type as string;
+
+  const AllowedTypes = ["on-going", "now-selling"];
+
+  if (!AllowedTypes.includes(type))
+    throw new ForbiddenError(`Forbidden action from ${req.ip}`);
+
+  const queryString = {
+    status: { approved: true },
+    type: type,
+  };
+
+  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+
+  const listings = await queryBuilder
+    .sort()
+    .select(["-status -provider.email"])
+    .paginate({
+      protocol: req.protocol,
+      host: req.get("host"),
+      baseUrl: req.baseUrl,
+      path: req.path,
+    });
+
+  const { data, metaData } = listings;
+
+  return res.status(HttpStatusCode.OK).json({
+    data: data,
+    metaData: metaData,
+  });
 };
 
 /**
- * Retrieves collection of exclusive listing offerings based on category
+ * Retrieves collection of exclusive listing offerings based on category: economy | premium | luxury
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getExclusiveListings = async (
+const getListingsbyCategory = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const { category } = req.query;
+  const category = req.params.category as string;
 
-  const queryString = { status: { approved: true }, category };
+  const AllowedCategories = ["economy", "premium", "luxury"];
+
+  if (!AllowedCategories.includes(category))
+    throw new ForbiddenError(`Forbidden action from ${req.ip}`);
+
+  const queryString = { status: { approved: true }, category: category };
+
+  const queryBuilder = new QueryBuilder(Listing.find(), queryString);
+
+  const listings = await queryBuilder
+    .sort()
+    .select(["-status -provider.email"])
+    .paginate({
+      protocol: req.protocol,
+      host: req.get("host"),
+      baseUrl: req.baseUrl,
+      path: req.path,
+    });
+
+  const { data, metaData } = listings;
+
+  return res.status(HttpStatusCode.OK).json({
+    data: data,
+    metaData: metaData,
+  });
 };
 
 /**
@@ -454,14 +495,6 @@ const retrieveListingsSearch = AsyncWrapper.Catch(
 );
 
 /**
- * Retrieves collection of provider's listing
- */
-const retrieveListingsByProvider = AsyncWrapper.Catch(
-  getListingsByProvider,
-  Retry.LinearJitterBackoff
-);
-
-/**
  * Retrieve available listing offerings based on user's location
  */
 const retrieveListingsNearMe = AsyncWrapper.Catch(
@@ -470,26 +503,26 @@ const retrieveListingsNearMe = AsyncWrapper.Catch(
 );
 
 /**
- * Retrieve available listings based on type -on going- and location
+ * Retrieves collection of provider's listing
  */
-const retrieveOnGoingListings = AsyncWrapper.Catch(
-  getOnGoingListings,
+const retrieveListingsByProvider = AsyncWrapper.Catch(
+  getListingsByProvider,
   Retry.LinearJitterBackoff
 );
 
 /**
- * Retrieve available listings based on type -now selling- and location
+ * Retrieve available listings based on type: on-going | now-selling
  */
-const retrieveNowSellingListings = AsyncWrapper.Catch(
-  getNowSellingListings,
+const retrieveListingsByType = AsyncWrapper.Catch(
+  getListingsByType,
   Retry.LinearJitterBackoff
 );
 
 /**
- * Retrieve exclusive listing based on category and location
+ * Retrieve exclusive listing based on category
  */
-const retrieveExclusiveListings = AsyncWrapper.Catch(
-  getExclusiveListings,
+const retrieveListingsByCategory = AsyncWrapper.Catch(
+  getListingsbyCategory,
   Retry.LinearJitterBackoff
 );
 
@@ -542,11 +575,10 @@ export default {
   createListings,
   retrieveListings,
   retrieveListingsSearch,
-  retrieveListingsByProvider,
   retrieveListingsNearMe,
-  retrieveOnGoingListings,
-  retrieveNowSellingListings,
-  retrieveExclusiveListings,
+  retrieveListingsByProvider,
+  retrieveListingsByType,
+  retrieveListingsByCategory,
   retrieveListingItem,
   updateListingItem,
   deleteListingItem,
