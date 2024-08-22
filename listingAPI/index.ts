@@ -4,8 +4,8 @@ import process from "node:process";
 import mongoose from "mongoose";
 import App from "./app";
 import Config from "./config";
-import DbConnectionService from "./src/service/dbConnectionService";
-import DbConnectionServiceError from "./src/error/dbconnectionserviceError";
+import DbService from "./src/service/dbService";
+import DbServiceError from "./src/error/dbserviceError";
 import HttpServer from "./src/utils/httpServer";
 import Logger from "./src/service/loggerService";
 import SSL from "./ssl/ssl";
@@ -22,9 +22,9 @@ try {
     ? server.startHTTP(Config.PORT.HTTP)
     : server.startHTTPS(Config.PORT.HTTPS);
 
-  DbConnectionService(Config.MONGO_URI);
+  DbService.Connection(Config.MONGO_URI);
 } catch (err: any) {
-  if (err instanceof DbConnectionServiceError)
+  if (err instanceof DbServiceError)
     Sentry.withScope((scope) => {
       scope.setTag("Database Error", "Critical");
 
