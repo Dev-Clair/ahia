@@ -99,22 +99,32 @@ const isCreatable = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const allowedFields = "status.approved";
+  const notAllowedFields = [
+    "media.picture",
+    "media.video",
+    "status.approved",
+    "status.expiry",
+  ];
 
   const getRequestBody = req.body as object;
 
   const createFields = Object.keys(getRequestBody);
 
+  const createErrorCache: string[] = [];
+
   createFields.forEach((element) => {
-    if (element === allowedFields) {
-      return res.status(HttpCode.BAD_REQUEST).json({
-        error: {
-          name: HttpStatus.BAD_REQUEST,
-          message: `Insertion is not allowed on field ${element}`,
-        },
-      });
-    }
+    if (notAllowedFields.includes(element)) createErrorCache.push(element);
   });
+
+  if (createErrorCache.length !== 0)
+    return res.status(HttpCode.BAD_REQUEST).json({
+      error: {
+        name: HttpStatus.BAD_REQUEST,
+        message: `Insertions are not allowed on fields: ${{
+          ...createErrorCache,
+        }}`,
+      },
+    });
 
   next();
 };
@@ -144,16 +154,21 @@ const isUpdatable = (
 
   const updateFields = Object.keys(getRequestBody);
 
+  const updateErrorCache: string[] = [];
+
   updateFields.forEach((element) => {
-    if (!allowedFields.includes(element)) {
-      return res.status(HttpCode.BAD_REQUEST).json({
-        error: {
-          name: HttpStatus.BAD_REQUEST,
-          message: `Modification is not allowed on field ${element}`,
-        },
-      });
-    }
+    if (!allowedFields.includes(element)) updateErrorCache.push(element);
   });
+
+  if (updateErrorCache.length !== 0)
+    return res.status(HttpCode.BAD_REQUEST).json({
+      error: {
+        name: HttpStatus.BAD_REQUEST,
+        message: `Updates are not allowed on fields: ${{
+          ...updateErrorCache,
+        }}`,
+      },
+    });
 
   next();
 };

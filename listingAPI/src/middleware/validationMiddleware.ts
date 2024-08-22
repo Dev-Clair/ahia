@@ -8,7 +8,6 @@ const IdSchema = z.object({
     required_error: "ID is required",
     invalid_type_error: "ID must be a string",
   }),
-  // .uuid({ message: "Invalid ID format" }),
 });
 
 const BodySchema = z.object({
@@ -64,7 +63,7 @@ const validateID =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.params);
+      schema.parse(req.params.id);
 
       next();
     } catch (err) {

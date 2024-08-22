@@ -29,7 +29,7 @@ const IsGranted =
       error: {
         name: HttpStatus.FORBIDDEN,
         message:
-          "Forbidden! You do not have the permission to access this resource",
+          "Forbidden! You do not have the permissions to access this resource",
       },
     });
   };
