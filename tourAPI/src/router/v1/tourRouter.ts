@@ -1,6 +1,6 @@
 import { Router } from "express";
-import TourController from "../../controller/v1/tourController";
 import AuthMiddleware from "../../middleware/authMiddleware";
+import TourController from "../../controller/v1/tourController";
 import TourMiddleWare from "../../middleware/v1/tourMiddleWare";
 import ValidationMiddleware from "../../middleware/validationMiddleware";
 
@@ -24,12 +24,12 @@ TourRouterV1.route("/search").get(
   TourController.retrieveToursSearch
 );
 
-TourRouterV1.route("/customer").get(
+TourRouterV1.route("/customer/:customerId").get(
   // AuthMiddleware.IsGranted([""]),
   TourController.retrieveToursByCustomer
 );
 
-TourRouterV1.route("/realtor").get(
+TourRouterV1.route("/realtor/:realtorId").get(
   // AuthMiddleware.IsGranted([""]),
   TourController.retrieveToursByCustomer
 );

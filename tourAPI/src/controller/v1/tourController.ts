@@ -1,21 +1,20 @@
 import mongoose from "mongoose";
-import AsyncCatch from "../../utils/asyncCatch";
-import CryptoHash from "../../utils/cryptoHash";
+import AsyncWrapper from "../../utils/asyncWrapper";
+import BadRequestError from "../../error/badrequestError";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
-import { NextFunction, Request, Response } from "express";
-import HttpClient from "../../../httpClient";
-import HttpStatusCode from "../../enum/httpStatusCode";
-import Idempotent from "../../utils/idempotency";
+import FailureRetry from "../../utils/failureRetry";
+import HttpClient from "../../utils/httpClient";
+import HttpCode from "../../enum/httpCode";
+import IdempotencyManager from "../../utils/idempotencyManager";
 import InternalServerError from "../../error/internalserverError";
-import Mail from "../../utils/mail";
-import Notify from "../../utils/notify";
+import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../../error/notfoundError";
 import { QueryBuilder } from "../../utils/queryBuilder";
-import Retry from "../../utils/retry";
-import Tour from "../../model/tour";
 import RealtorCache from "../../model/realtorCache";
 import ScheduleCache from "../../model/scheduleCache";
+import SecretManager from "../../utils/secretManager";
+import Tour from "../../model/tour";
 
 /**
  * Creates a new tour resource in collection
@@ -31,12 +30,8 @@ const createTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await Idempotent.Verify(idempotencyKey)) {
-    throw new ConflictError(
-      HttpStatusCode.CONFLICT,
-      "Duplicate request detected"
-    );
-  }
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
 
   const { customer, listings } = req.body;
 
@@ -45,14 +40,10 @@ const createTour = async (
   await session.withTransaction(async () => {
     await Tour.create([{ customer, listings }], { session: session });
 
-    await Idempotent.Ensure(idempotencyKey, session);
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  // await Mail(); // Send mail to customer confirming tour creation success
-
-  // await Notify(); // Send push notification to customer to modify tour name, schedule tour date and time and select realtor
-
-  return res.status(HttpStatusCode.CREATED).json({ data: null });
+  return res.status(HttpCode.CREATED).json({ data: null });
 };
 
 /**
@@ -67,15 +58,15 @@ const getTours = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query ?? {};
+  const queryString = req.query;
 
-  const queryBuilder = new QueryBuilder(Tour.find(), queryString);
+  const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
 
   const tours = await queryBuilder
-    .filter()
-    .sort()
-    .select(["-isClosed, -customer.email, -realtor.email"])
-    .paginate({
+    .Filter()
+    .Sort()
+    .Select(["-isClosed, -customer.email, -realtor.email"])
+    .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
       baseUrl: req.baseUrl,
@@ -84,7 +75,7 @@ const getTours = async (
 
   const { data, metaData } = tours;
 
-  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
+  return res.status(HttpCode.OK).json({ data: data, metaData: metaData });
 };
 
 /**
@@ -99,18 +90,20 @@ const getToursSearch = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const searchQuery = (req.query.search as string) ?? "";
+  const searchQuery = req.query.search as string;
+
+  if (!searchQuery) throw new BadRequestError("Kindly enter a text to search");
 
   const search = Tour.find({
     $text: { $search: searchQuery },
   });
 
-  const queryBuilder = new QueryBuilder(search, {});
+  const queryBuilder = QueryBuilder.Make(search);
 
   const tours = await queryBuilder
-    .sort()
-    .select(["-isClosed, -customer.email, -realtor.email"])
-    .paginate({
+    .Sort()
+    .Select(["-isClosed, -customer.email, -realtor.email"])
+    .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
       baseUrl: req.baseUrl,
@@ -119,7 +112,7 @@ const getToursSearch = async (
 
   const { data, metaData } = tours;
 
-  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
+  return res.status(HttpCode.OK).json({ data: data, metaData: metaData });
 };
 
 /**
@@ -134,17 +127,21 @@ const getToursByCustomer = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query;
+  const customerId = req.params.customerId as string;
 
-  const queryBuilder = new QueryBuilder(Tour.find(), queryString);
+  const queryString = {
+    customer: { id: customerId },
+  };
+
+  const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
 
   const tours = await queryBuilder
-    .filter()
-    .sort()
-    // .select()
-    .exec();
+    .Filter()
+    .Sort()
+    .Select(["-status -customer.email -realtor.email"])
+    .Exec();
 
-  return res.status(HttpStatusCode.OK).json({ data: tours });
+  return res.status(HttpCode.OK).json({ data: tours });
 };
 
 /**
@@ -159,17 +156,21 @@ const getToursByRealtor = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query;
+  const realtorId = req.params.realtorId as string;
 
-  const queryBuilder = new QueryBuilder(Tour.find(), queryString);
+  const queryString = {
+    realtor: { id: realtorId },
+  };
+
+  const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
 
   const tours = await queryBuilder
-    .filter()
-    .sort()
-    // .select()
-    .exec();
+    .Filter()
+    .Sort()
+    .Select(["-status -customer.email -realtor.email"])
+    .Exec();
 
-  return res.status(HttpStatusCode.OK).json({ data: tours });
+  return res.status(HttpCode.OK).json({ data: tours });
 };
 
 /**
@@ -186,14 +187,10 @@ const getTour = async (
 ): Promise<Response | void> => {
   const tour = await Tour.findById({ _id: req.params.id });
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${req.params.id}`
-    );
-  }
+  if (!tour)
+    throw new NotFoundError(`No record found for tour: ${req.params.id}`);
 
-  return res.status(HttpStatusCode.OK).json({ data: tour });
+  return res.status(HttpCode.OK).json({ data: tour });
 };
 
 /**
@@ -210,12 +207,8 @@ const updateTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await Idempotent.Verify(idempotencyKey)) {
-    throw new ConflictError(
-      HttpStatusCode.CONFLICT,
-      "Duplicate request detected"
-    );
-  }
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
 
   const id = req.params.id as string;
 
@@ -229,17 +222,12 @@ const updateTour = async (
       session,
     });
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
-    await Idempotent.Ensure(idempotencyKey, session);
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -261,15 +249,10 @@ const deleteTour = async (
   await session.withTransaction(async () => {
     const tour = await Tour.findByIdAndDelete({ _id: id }, { session });
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
   });
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -298,17 +281,10 @@ const completeTour = async (
       }
     );
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
   });
 
-  // await Notify() // Send push notification confirming completion and requesting a review
-
-  return res.status(HttpStatusCode.OK).json({ data: null });
+  return res.status(HttpCode.OK).json({ data: null });
 };
 
 /**
@@ -337,17 +313,10 @@ const cancelTour = async (
       }
     );
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
   });
 
-  // await Notify() // Send push notification confirming cancellation and requesting a reason
-
-  return res.status(HttpStatusCode.OK).json({ data: null });
+  return res.status(HttpCode.OK).json({ data: null });
 };
 
 /**
@@ -376,17 +345,10 @@ const reopenTour = async (
       }
     );
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
   });
 
-  // await Notify() // Send push notification confirming reopening
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -405,12 +367,7 @@ const getRealtors = async (
 
   const tour = await Tour.findById({ _id: id });
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No tour found for id: ${id}`
-    );
-  }
+  if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
   const url =
     Config.IAM_SERVICE_URL +
@@ -419,7 +376,7 @@ const getRealtors = async (
   const httpClient = new HttpClient(url, {
     "content-type": "application/json",
     "service-name": Config.TOUR.SERVICE.NAME,
-    "service-secret": await CryptoHash(
+    "service-secret": await SecretManager.HashSecret(
       Config.TOUR.SERVICE.SECRET,
       Config.APP_SECRET
     ),
@@ -429,18 +386,16 @@ const getRealtors = async (
 
   const { statusCode, body } = response;
 
-  if (statusCode !== HttpStatusCode.OK) {
-    if (statusCode === HttpStatusCode.FORBIDDEN) {
+  if (statusCode !== HttpCode.OK) {
+    if (statusCode === HttpCode.FORBIDDEN) {
       throw new InternalServerError(
-        HttpStatusCode.INTERNAL_SERVER_ERROR,
         false,
         "Oops! Sorry an error occured on our end, we will resolve it and notify you to retry shortly."
       );
     }
 
-    if (statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
+    if (statusCode === HttpCode.INTERNAL_SERVER_ERROR) {
       throw new InternalServerError(
-        HttpStatusCode.INTERNAL_SERVER_ERROR,
         true,
         "Oops! Sorry an error occured on our end, we cannot process your request at this time. Please try again shortly."
       );
@@ -448,14 +403,13 @@ const getRealtors = async (
 
     if (body.length === 0) {
       throw new InternalServerError(
-        HttpStatusCode.INTERNAL_SERVER_ERROR,
         false,
         "Oops! Sorry, we could not find any available realtors within your designated location. Please try again shortly."
       );
     }
   }
 
-  return res.status(HttpStatusCode.OK).json({ data: body });
+  return res.status(HttpCode.OK).json({ data: body });
 };
 
 /**
@@ -472,12 +426,8 @@ const selectRealtor = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await Idempotent.Verify(idempotencyKey)) {
-    throw new ConflictError(
-      HttpStatusCode.CONFLICT,
-      "Duplicate request detected"
-    );
-  }
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
 
   const tourId = req.params.id as string;
 
@@ -496,12 +446,10 @@ const selectRealtor = async (
       { session: session }
     );
 
-    await Idempotent.Ensure(idempotencyKey, session);
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  // await Notify() // Send push notification to realtor about tour request
-
-  return res.status(HttpStatusCode.CREATED).json({ data: null });
+  return res.status(HttpCode.CREATED).json({ data: null });
 };
 
 /**
@@ -520,12 +468,8 @@ const acceptTourRequest = async (
 
   const realtorCache = await RealtorCache.findOne({ tourId: id });
 
-  if (!realtorCache) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No realtor was found for tour: ${id}`
-    );
-  }
+  if (!realtorCache)
+    throw new NotFoundError(`No realtor was found for tour: ${id}`);
 
   const session = await mongoose.startSession();
 
@@ -536,19 +480,12 @@ const acceptTourRequest = async (
       { new: true, session }
     );
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No tour found for id: ${id}`);
 
     await realtorCache.deleteOne({ session });
   });
 
-  // await Notify() // Send realtor's acceptance push notification to customer
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -567,12 +504,8 @@ const rejectTourRequest = async (
 
   const realtorCache = await RealtorCache.findOne({ tourId: id });
 
-  if (!realtorCache) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No realtor was found for tour: ${id}`
-    );
-  }
+  if (!realtorCache)
+    throw new NotFoundError(`No realtor was found for tour: ${id}`);
 
   const session = await mongoose.startSession();
 
@@ -580,9 +513,7 @@ const rejectTourRequest = async (
     await realtorCache.deleteOne({ session });
   });
 
-  // await Notify() // Send realtor's rejection push notification to customer
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -601,12 +532,7 @@ const exitTour = async (
 
   const tour = await Tour.findOne({ _id: id, status: "pending" });
 
-  if (!tour) {
-    throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
-      `No record found for tour: ${id}`
-    );
-  }
+  if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
   const session = await mongoose.startSession();
 
@@ -618,9 +544,7 @@ const exitTour = async (
     await tour.save({ session });
   });
 
-  // await Notify() // Notify customer on realtor's tour exit
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -637,12 +561,8 @@ const scheduleTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await Idempotent.Verify(idempotencyKey)) {
-    throw new ConflictError(
-      HttpStatusCode.CONFLICT,
-      "Duplicate request detected"
-    );
-  }
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
 
   const id = req.params.id as string;
 
@@ -657,17 +577,12 @@ const scheduleTour = async (
       { new: true, session }
     );
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No tour found for id: ${id}`);
 
-    await Idempotent.Ensure(idempotencyKey, session);
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  return res.status(HttpStatusCode.CREATED).json({ data: null });
+  return res.status(HttpCode.CREATED).json({ data: null });
 };
 
 /**
@@ -684,12 +599,8 @@ const rescheduleTour = async (
 ): Promise<Response | void> => {
   const idempotencyKey = req.headers["idempotency-key"] as string;
 
-  if (await Idempotent.Verify(idempotencyKey)) {
-    throw new ConflictError(
-      HttpStatusCode.CONFLICT,
-      "Duplicate request detected"
-    );
-  }
+  if (await IdempotencyManager.Verify(idempotencyKey))
+    throw new ConflictError("Duplicate request detected");
 
   const id = req.params.id as string;
 
@@ -708,10 +619,10 @@ const rescheduleTour = async (
       { session: session }
     );
 
-    await Idempotent.Ensure(idempotencyKey, session);
+    await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  return res.status(HttpStatusCode.CREATED).json({ data: null });
+  return res.status(HttpCode.CREATED).json({ data: null });
 };
 
 /**
@@ -732,12 +643,10 @@ const acceptTourReschedule = async (
 
   const scheduleCache = await ScheduleCache.findById({ _id: rescheduleId });
 
-  if (!scheduleCache) {
+  if (!scheduleCache)
     throw new NotFoundError(
-      HttpStatusCode.NOT_FOUND,
       "schedule not found or has already been processed."
     );
-  }
 
   const session = await mongoose.startSession();
 
@@ -755,19 +664,12 @@ const acceptTourReschedule = async (
       { new: true, session }
     );
 
-    if (!tour) {
-      throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        `No tour found for id: ${id}`
-      );
-    }
+    if (!tour) throw new NotFoundError(`No tour found for id: ${id}`);
 
     await scheduleCache.deleteOne({ session });
   });
 
-  // await Notify(); // Send push notification to Customer and Realtor
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -794,127 +696,159 @@ const rejectTourReschedule = async (
       { session }
     );
 
-    if (!scheduleCache) {
+    if (!scheduleCache)
       throw new NotFoundError(
-        HttpStatusCode.NOT_FOUND,
-        "schedule not found or has already been processed."
+        "schedule not found or has already been processed"
       );
-    }
   });
 
-  // await Notify();  // Send push notification to Customer or Realtor
-
-  return res.status(HttpStatusCode.MODIFIED).json({ data: { message: null } });
+  return res.status(HttpCode.MODIFIED).json({ data: { message: null } });
 };
 
 /**
  * Create a new tour in collection.
  */
-const createTours = AsyncCatch(createTour, Retry.ExponentialBackoff);
+const createTours = AsyncWrapper.Catch(
+  createTour,
+  FailureRetry.ExponentialBackoff
+);
 
 /**
  * Retrieve collection of tours.
  */
-const retrieveTours = AsyncCatch(getTours, Retry.LinearJitterBackoff);
+const retrieveTours = AsyncWrapper.Catch(
+  getTours,
+  FailureRetry.LinearJitterBackoff
+);
 
 /**
  * Retrieve tour search.
  */
-const retrieveToursSearch = AsyncCatch(
+const retrieveToursSearch = AsyncWrapper.Catch(
   getToursSearch,
-  Retry.LinearJitterBackoff
+  FailureRetry.LinearJitterBackoff
 );
 
 /**
  * Retrieve customer's tour history.
  */
-const retrieveToursByCustomer = AsyncCatch(
+const retrieveToursByCustomer = AsyncWrapper.Catch(
   getToursByCustomer,
-  Retry.LinearJitterBackoff
+  FailureRetry.LinearJitterBackoff
 );
 
 /**
  * Retrieve realtor's tour history.
  */
-const retrieveToursByRealtor = AsyncCatch(
+const retrieveToursByRealtor = AsyncWrapper.Catch(
   getToursByRealtor,
-  Retry.LinearJitterBackoff
+  FailureRetry.LinearJitterBackoff
 );
 
 /**
  * Retrieve a tour item using its :id.
  */
-const retrieveTourItem = AsyncCatch(getTour, Retry.LinearJitterBackoff);
+const retrieveTourItem = AsyncWrapper.Catch(
+  getTour,
+  FailureRetry.LinearJitterBackoff
+);
 
 /**
  * Updates a tour item using its :id.
  */
-const updateTourItem = AsyncCatch(updateTour, Retry.LinearBackoff);
+const updateTourItem = AsyncWrapper.Catch(
+  updateTour,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * Deletes a tour item using its :id.
  */
-const deleteTourItem = AsyncCatch(deleteTour, Retry.LinearBackoff);
+const deleteTourItem = AsyncWrapper.Catch(
+  deleteTour,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * Complete a tour item using its :id.
  */
-const completeTourItem = AsyncCatch(completeTour, Retry.LinearBackoff);
+const completeTourItem = AsyncWrapper.Catch(
+  completeTour,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * Cancels a tour item using its :id.
  */
-const cancelTourItem = AsyncCatch(cancelTour, Retry.LinearBackoff);
+const cancelTourItem = AsyncWrapper.Catch(
+  cancelTour,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * reopens a cancelled tour using its :id.
  */
-const reopenTourItem = AsyncCatch(reopenTour, Retry.LinearBackoff);
+const reopenTourItem = AsyncWrapper.Catch(
+  reopenTour,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * retrieve realtors based on availability and tour location
  */
-const retrieveAvailableRealtors = AsyncCatch(getRealtors);
+const retrieveAvailableRealtors = AsyncWrapper.Catch(getRealtors);
 
 /**
  * select a realtor from collection based on availability and tour location
  */
-const selectTourRealtor = AsyncCatch(selectRealtor);
+const selectTourRealtor = AsyncWrapper.Catch(selectRealtor);
 
 /**
  * accept tour realtor request
  */
-const acceptRealtorRequest = AsyncCatch(acceptTourRequest, Retry.LinearBackoff);
+const acceptRealtorRequest = AsyncWrapper.Catch(
+  acceptTourRequest,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * reject tour realtor request
  */
-const rejectRealtorRequest = AsyncCatch(rejectTourRequest, Retry.LinearBackoff);
+const rejectRealtorRequest = AsyncWrapper.Catch(
+  rejectTourRequest,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * exit from a tour
  */
-const exitTourItem = AsyncCatch(exitTour, Retry.LinearBackoff);
+const exitTourItem = AsyncWrapper.Catch(exitTour, FailureRetry.LinearBackoff);
 
 /**
  * schedule a new tour.
  */
-const scheduleTourItem = AsyncCatch(scheduleTour, Retry.LinearBackoff);
+const scheduleTourItem = AsyncWrapper.Catch(
+  scheduleTour,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * reschedules an existing tour.
  */
-const rescheduleTourItem = AsyncCatch(rescheduleTour, Retry.LinearBackoff);
+const rescheduleTourItem = AsyncWrapper.Catch(
+  rescheduleTour,
+  FailureRetry.LinearBackoff
+);
 
 /**
  * accepts proposed tour schedule.
  */
-const acceptProposedTourReschedule = AsyncCatch(acceptTourReschedule);
+const acceptProposedTourReschedule = AsyncWrapper.Catch(acceptTourReschedule);
 
 /**
  * rejects proposed tour schedule.
  */
-const rejectProposedTourReschedule = AsyncCatch(rejectTourReschedule);
+const rejectProposedTourReschedule = AsyncWrapper.Catch(rejectTourReschedule);
 
 export default {
   createTours,
