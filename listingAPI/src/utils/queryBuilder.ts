@@ -197,4 +197,17 @@ export class QueryBuilder<T> {
 
     return this;
   }
+
+  /**
+   * Creates an instance of the QueryBuilder class
+   * @param query
+   * @param queryString
+   * @returns QueryBuilder
+   */
+  static factory<T>(
+    query: Query<T[], T>,
+    queryString?: QueryString
+  ): QueryBuilder<T> {
+    return new QueryBuilder(query, queryString);
+  }
 }
