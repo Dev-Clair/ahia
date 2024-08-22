@@ -1,9 +1,10 @@
 import APIError from "./apiError";
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
 class ConflictError extends APIError {
-  constructor(httpStatusCode: number | HttpStatusCode, message: string) {
-    super("CONFLICT", httpStatusCode, true, message);
+  constructor(message: string) {
+    super(HttpStatus.CONFLICT, HttpCode.CONFLICT, true, message);
   }
 }
 

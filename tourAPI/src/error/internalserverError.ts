@@ -1,13 +1,15 @@
 import APIError from "./apiError";
-import HttpStatusCode from "../enum/httpStatusCode";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
 class InternalServerError extends APIError {
-  constructor(
-    httpStatusCode: number | HttpStatusCode,
-    isOperational: boolean,
-    message: string
-  ) {
-    super("INTERNAL SERVER ERROR", httpStatusCode, isOperational, message);
+  constructor(isOperational: boolean, message: string) {
+    super(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      HttpCode.INTERNAL_SERVER_ERROR,
+      isOperational,
+      message
+    );
   }
 }
 
