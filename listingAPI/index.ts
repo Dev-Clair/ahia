@@ -18,11 +18,9 @@ const server = new HttpServer(
 );
 
 try {
-  if (Config.NODE_ENV === "test") {
-    server.startHTTP(Config.PORT.HTTP);
-  } else {
-    server.startHTTPS(Config.PORT.HTTPS);
-  }
+  Config.NODE_ENV === "test"
+    ? server.startHTTP(Config.PORT.HTTP)
+    : server.startHTTPS(Config.PORT.HTTPS);
 
   DbConnectionService(Config.MONGO_URI);
 } catch (err: any) {
@@ -51,14 +49,6 @@ const shutdown = () => {
   Sentry.close();
 };
 
-process.on("SIGINT", () => {
-  shutdown();
-});
-
-process.on("SIGTERM", () => {
-  shutdown();
-});
-
 mongoose.connection.on("connecting", () => {
   console.log(`Attempting connection to database`);
 });
@@ -74,3 +64,7 @@ mongoose.connection.on("disconnected", () => {
 mongoose.connection.on("reconnected", () => {
   console.log(`Database reconnection successful`);
 });
+
+process.on("SIGINT", () => shutdown());
+
+process.on("SIGTERM", () => shutdown());
