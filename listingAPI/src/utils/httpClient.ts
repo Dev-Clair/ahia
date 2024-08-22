@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import https from "node:https";
-import Retry from "../utils/retry";
+import FailureRetry from "./failureRetry";
 
 interface HttpOptions {
   hostname: string;
@@ -88,7 +88,7 @@ class HttpClient {
 
     Object.assign(options, { headers: headers });
 
-    return Retry.ExponentialBackoff(() => this.call(options, payload));
+    return FailureRetry.ExponentialBackoff(() => this.call(options, payload));
   }
 
   public Get(): Promise<any> {

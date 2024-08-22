@@ -1,7 +1,7 @@
 import AsyncRetry from "async-retry";
 import Logger from "../service/loggerService";
 
-class Retry {
+class FailureRetry {
   static async ExponentialBackoff(
     operation: any,
     options = { retries: 3, factor: 2, minTimeout: 5000 }
@@ -101,4 +101,4 @@ class Retry {
   }
 }
 
-export default Retry;
+export default FailureRetry;
