@@ -30,24 +30,52 @@ interface PaginationResult<T> {
 
 /**
  * @class QueryBuilder
- * Handles pagination, sorting and filtering of collection operations
+ * Improves query performance
+ * @method create - factory
+ * @method exec - executes
+ * @method filter - filtering
+ * @method geoNear - geospatial (near queries)
+ * @method paginate - pagination
+ * @method select - projection
+ * @method sort - sorting
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
 
-  private queryString: QueryString = {};
+  private queryString: QueryString;
 
-  constructor(query: Query<T[], T>, queryString: QueryString) {
+  constructor(query: Query<T[], T>, queryString?: QueryString) {
     this.query = query;
 
-    this.queryString = queryString;
+    this.queryString = queryString ?? {};
+  }
+
+  /**
+   * Creates and returns new instance of the QueryBuilder class
+   * @param query
+   * @param queryString
+   * @returns QueryBuilder
+   */
+  static Make<T>(
+    query: Query<T[], T>,
+    queryString?: QueryString
+  ): QueryBuilder<T> {
+    return new QueryBuilder(query, queryString);
+  }
+
+  /**
+   * Executes the query
+   * @returns Promise of type any
+   */
+  public Exec(): Promise<T[]> {
+    return this.query;
   }
 
   /**
    * Handles filtering operation
    * @returns this
    */
-  filter(): this {
+  public Filter(): this {
     const queryObject = { ...this.queryString };
 
     const excludedFields = ["page", "sort", "limit", "fields"];
@@ -61,44 +89,37 @@ export class QueryBuilder<T> {
       (match) => `$${match}`
     );
 
-    this.query = this.query.find(JSON.parse(queryString));
+    const parsedQueryString = JSON.parse(queryString);
+
+    this.query = this.query.find(parsedQueryString);
 
     return this;
   }
 
   /**
-   * Handles sorting operation
+   * Handles geospatial queries: Near Query
    * @returns this
    */
-  sort(): this {
-    if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(",").join(" ");
+  public GeoNear(): this {
+    if (this.queryString.lat && this.queryString.long) {
+      const latitude = parseFloat(this.queryString.lat as string);
 
-      this.query = this.query.sort(sortBy);
-    } else {
-      this.query = this.query.sort("-createdAt");
-    }
+      const longitude = parseFloat(this.queryString.long as string);
 
-    return this;
-  }
+      const distance =
+        parseFloat(this.queryString.distance as string) ?? 2000.0;
 
-  /**
-   * Handles projection: specifies fields to be included or excluded in the return query
-   * @returns this
-   */
-  select(selection: string[]): this {
-    let fields: string = "";
-
-    if (selection.length !== 0) {
-      selection.forEach((element) => {
-        fields = element.split(",").join(" ");
+      this.query = this.query.find({
+        location: {
+          $geoNear: {
+            $geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude],
+            },
+          },
+          $maxDistance: distance,
+        },
       });
-
-      fields + " " + "-__v -createdAt -updatedAt";
-
-      this.query = this.query.select(fields);
-    } else {
-      this.query = this.query.select("-__v -createdAt -updatedAt");
     }
 
     return this;
@@ -109,7 +130,9 @@ export class QueryBuilder<T> {
    * @param PaginationParams
    * @returns Promise of type data and pagination metadata
    */
-  async paginate(params: PaginationParams): Promise<PaginationResult<T>> {
+  public async Paginate(
+    params: PaginationParams
+  ): Promise<PaginationResult<T>> {
     const page = Math.max(parseInt(this.queryString.page || "1", 10));
 
     const limit = Math.max(parseInt(this.queryString.limit || "2", 10));
@@ -154,10 +177,40 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Executes the query
-   * @returns Promise of type any
+   * Handles projection: specifies fields to be included or excluded in the return query
+   * @returns this
    */
-  exec(): Promise<T[]> {
-    return this.query;
+  public Select(selection: string[]): this {
+    let fields: string = "";
+
+    if (selection.length !== 0) {
+      selection.forEach((element) => {
+        fields = element.split(",").join(" ");
+      });
+
+      fields + " " + "-__v -createdAt -updatedAt";
+
+      this.query = this.query.select(fields);
+    } else {
+      this.query = this.query.select("-__v -createdAt -updatedAt");
+    }
+
+    return this;
+  }
+
+  /**
+   * Handles sorting operation
+   * @returns this
+   */
+  public Sort(): this {
+    if (this.queryString.sort) {
+      const sortBy = this.queryString.sort.split(",").join(" ");
+
+      this.query = this.query.sort(sortBy);
+    } else {
+      this.query = this.query.sort("-createdAt");
+    }
+
+    return this;
   }
 }
