@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import https from "node:https";
 import FailureRetry from "./failureRetry";
+import HttpCode from "../enum/httpCode";
 
 interface HttpOptions {
   hostname: string;
@@ -46,13 +47,24 @@ class HttpClient {
 
         res.on("end", () => {
           try {
-            const parsedData = JSON.parse(data);
+            if (res.headers["content-type"] === "application/json") {
+              const parsedData = JSON.parse(data);
+
+              resolve({
+                headers: res.headers,
+                statusCode: res.statusCode,
+                body: parsedData,
+              });
+            }
+
             resolve({
+              headers: res.headers,
               statusCode: res.statusCode,
-              body: parsedData,
+              body: data,
             });
           } catch (error) {
             resolve({
+              headers: res.headers,
               statusCode: res.statusCode,
               body: data,
             });
@@ -62,7 +74,8 @@ class HttpClient {
 
       req.on("error", (err) => {
         reject({
-          statusCode: 500,
+          headers: req.getHeaders,
+          statusCode: HttpCode.INTERNAL_SERVER_ERROR,
           body: "Error: " + err.message,
         });
       });
