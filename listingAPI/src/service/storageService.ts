@@ -4,6 +4,7 @@ import {
   ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
+  S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { randomUUID } from "node:crypto";
 import Config from "../../config";
@@ -12,23 +13,18 @@ class StorageService {
   private s3: S3Client;
 
   private bucket: string;
-  constructor(
-    s3: S3Client = new S3Client([
-      {
-        region: Config.AWS.REGION,
-        credentials: {
-          accessKeyId: Config.AWS.ACCESS_KEY_ID,
-          secretAccessKey: Config.AWS.SECRET_ACCESS_KEY,
-        },
-      },
-    ]),
-    bucket: string = Config.AWS.S3_BUCKET.NAME
-  ) {
-    this.s3 = s3;
+  constructor(configuration: S3ClientConfig, bucketName: string) {
+    this.s3 = new S3Client(configuration);
 
-    this.bucket = bucket;
+    this.bucket = bucketName;
   }
 
+  /**
+   * Uploads an object to the s3 storage bucket
+   * @param id
+   * @param body
+   * @returns Promise<string | void>
+   */
   public async upload(id: string, body: any): Promise<string | void> {
     try {
       const key = `${id}/${randomUUID()}`;
@@ -52,6 +48,13 @@ class StorageService {
     }
   }
 
+  /**
+   *
+   * @param key
+   * @param start
+   * @param end
+   * @returns
+   */
   public async download(key: string, start: string = "0", end: string = "9") {
     try {
       const streamRange = `bytes=${start}-${end}`;
@@ -88,6 +91,11 @@ class StorageService {
     }
   }
 
+  /**
+   * Retrieves a collection of object names from the storage bucket
+   * @param prefix
+   * @returns Asyncgenerator
+   */
   public async *retrieveCollection(
     prefix: string
   ): AsyncGenerator<string | undefined, any, unknown> {
@@ -106,8 +114,22 @@ class StorageService {
       yield key;
     }
   }
+
+  /**
+   * Creates and returns a new instance of the Storage class.
+   * @returns StorageService
+   */
+  public static Make(): StorageService {
+    const configuration: S3ClientConfig = {
+      region: Config.AWS.REGION,
+      credentials: {
+        accessKeyId: Config.AWS.IAM.ACCESS_KEY_ID,
+        secretAccessKey: Config.AWS.IAM.SECRET_ACCESS_KEY,
+      },
+    };
+
+    return new StorageService(configuration, Config.AWS.S3_BUCKET.NAME);
+  }
 }
 
-const storageService = new StorageService();
-
-export default storageService;
+export default StorageService;
