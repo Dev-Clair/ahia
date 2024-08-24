@@ -31,13 +31,13 @@ interface PaginationResult<T> {
 /**
  * @class QueryBuilder
  * Improves query performance
- * @method create - factory
  * @method exec - executes
  * @method filter - filtering
  * @method geoNear - geospatial (near queries)
  * @method paginate - pagination
  * @method select - projection
  * @method sort - sorting
+ * @method make - factory
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
@@ -51,24 +51,11 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Creates and returns new instance of the QueryBuilder class
-   * @param query
-   * @param queryString
-   * @returns QueryBuilder
-   */
-  static Make<T>(
-    query: Query<T[], T>,
-    queryString?: QueryString
-  ): QueryBuilder<T> {
-    return new QueryBuilder(query, queryString);
-  }
-
-  /**
    * Executes the query
    * @returns Promise of type any
    */
   public Exec(): Promise<T[]> {
-    return this.query;
+    return this.query.exec();
   }
 
   /**
@@ -101,10 +88,10 @@ export class QueryBuilder<T> {
    * @returns this
    */
   public GeoNear(): this {
-    if (this.queryString.lat && this.queryString.long) {
+    if (this.queryString.lat && this.queryString.lng) {
       const latitude = parseFloat(this.queryString.lat as string);
 
-      const longitude = parseFloat(this.queryString.long as string);
+      const longitude = parseFloat(this.queryString.lng as string);
 
       const distance =
         parseFloat(this.queryString.distance as string) ?? 2000.0;
@@ -181,19 +168,9 @@ export class QueryBuilder<T> {
    * @returns this
    */
   public Select(selection: string[]): this {
-    let fields: string = "";
+    const fields = [...selection, "-__v -createdAt -updatedAt"].join(" ");
 
-    if (selection.length !== 0) {
-      selection.forEach((element) => {
-        fields = element.split(",").join(" ");
-      });
-
-      fields + " " + "-__v -createdAt -updatedAt";
-
-      this.query = this.query.select(fields);
-    } else {
-      this.query = this.query.select("-__v -createdAt -updatedAt");
-    }
+    this.query = this.query.select(fields);
 
     return this;
   }
@@ -202,15 +179,26 @@ export class QueryBuilder<T> {
    * Handles sorting operation
    * @returns this
    */
-  public Sort(): this {
-    if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(",").join(" ");
+  public Sort(defaultSortField = "-createdAt"): this {
+    const sortBy = this.queryString.sort
+      ? this.queryString.sort.split(",").join(" ")
+      : defaultSortField;
 
-      this.query = this.query.sort(sortBy);
-    } else {
-      this.query = this.query.sort("-createdAt");
-    }
+    this.query = this.query.sort(sortBy);
 
     return this;
+  }
+
+  /**
+   * Creates and returns new instance of the QueryBuilder class
+   * @param query
+   * @param queryString
+   * @returns QueryBuilder
+   */
+  static Make<T>(
+    query: Query<T[], T>,
+    queryString?: QueryString
+  ): QueryBuilder<T> {
+    return new QueryBuilder(query, queryString);
   }
 }
