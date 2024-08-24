@@ -8,8 +8,16 @@ if (process.env.NODE_ENV !== "production") {
 const Config = {
   APP_SECRET: process.env.APP_SECRET || "",
   AWS: {
-    ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || "",
-    SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || "",
+    CLOUDWATCH: {
+      LOGS: {
+        GROUP_NAME: process.env.AWS_CLOUDWATCH_LOGS_GROUP_NAME || "",
+        STREAM_NAME: process.env.AWS_CLOUDWATCH_LOGS_STREAM_NAME || "",
+      },
+    },
+    IAM: {
+      ACCESS_KEY_ID: process.env.AWS_IAM_ACCESS_KEY_ID || "",
+      SECRET_ACCESS_KEY: process.env.AWS_IAM_SECRET_ACCESS_KEY || "",
+    },
     S3_BUCKET: {
       NAME: process.env.AWS_S3_BUCKET_NAME || "",
       KEY: process.env.AWS_S3_BUCKET_KEY || "",
