@@ -31,13 +31,13 @@ interface PaginationResult<T> {
 /**
  * @class QueryBuilder
  * Improves query performance
- * @method create - factory
- * @method exec - executes
- * @method filter - filtering
- * @method geoNear - geospatial (near queries)
- * @method paginate - pagination
- * @method select - projection
- * @method sort - sorting
+ * @method Exec - executes
+ * @method Filter - filtering
+ * @method GeoNear - geospatial (near queries)
+ * @method Paginate - pagination
+ * @method Select - projection
+ * @method Sort - sorting
+ * @method Make - factory
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
@@ -51,28 +51,15 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Creates and returns new instance of the QueryBuilder class
-   * @param query
-   * @param queryString
-   * @returns QueryBuilder
-   */
-  static Make<T>(
-    query: Query<T[], T>,
-    queryString?: QueryString
-  ): QueryBuilder<T> {
-    return new QueryBuilder(query, queryString);
-  }
-
-  /**
    * Executes the query
    * @returns Promise of type any
    */
   public Exec(): Promise<T[]> {
-    return this.query;
+    return this.query.exec();
   }
 
   /**
-   * Handles filtering operation
+   * Handles query filtering
    * @returns this
    */
   public Filter(): this {
@@ -101,10 +88,10 @@ export class QueryBuilder<T> {
    * @returns this
    */
   public GeoNear(): this {
-    if (this.queryString.lat && this.queryString.long) {
-      const latitude = parseFloat(this.queryString.lat as string);
+    if (this.queryString.lnglat) {
+      const lng = parseFloat(this.queryString.lng as string);
 
-      const longitude = parseFloat(this.queryString.long as string);
+      const lat = parseFloat(this.queryString.lat as string);
 
       const distance =
         parseFloat(this.queryString.distance as string) ?? 2000.0;
@@ -114,7 +101,7 @@ export class QueryBuilder<T> {
           $geoNear: {
             $geometry: {
               type: "Point",
-              coordinates: [longitude, latitude],
+              coordinates: [lng, lat],
             },
           },
           $maxDistance: distance,
@@ -126,16 +113,16 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Handles pagination operation
+   * Handles query pagination
    * @param PaginationParams
    * @returns Promise of type data and pagination metadata
    */
   public async Paginate(
     params: PaginationParams
   ): Promise<PaginationResult<T>> {
-    const page = Math.max(parseInt(this.queryString.page || "1", 10));
+    const page = parseInt(this.queryString.page || "1", 10);
 
-    const limit = Math.max(parseInt(this.queryString.limit || "2", 10));
+    const limit = parseInt(this.queryString.limit || "2", 10);
 
     const skip = (page - 1) * limit;
 
@@ -177,40 +164,45 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Handles projection: specifies fields to be included or excluded in the return query
+   * Handles query projection
    * @returns this
    */
-  public Select(selection: string[]): this {
-    let fields: string = "";
+  public Select(selection: string[] = [""]): this {
+    const fields = [
+      this.queryString.fields,
+      ...selection,
+      "-__v -createdAt -updatedAt",
+    ].join(" ");
 
-    if (selection.length !== 0) {
-      selection.forEach((element) => {
-        fields = element.split(",").join(" ");
-      });
-
-      fields + " " + "-__v -createdAt -updatedAt";
-
-      this.query = this.query.select(fields);
-    } else {
-      this.query = this.query.select("-__v -createdAt -updatedAt");
-    }
+    this.query = this.query.select(fields);
 
     return this;
   }
 
   /**
-   * Handles sorting operation
+   * Handles query sorting
    * @returns this
    */
-  public Sort(): this {
-    if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(",").join(" ");
+  public Sort(defaultSortField = "-createdAt"): this {
+    const sortBy = this.queryString.sort
+      ? this.queryString.sort.split(",").join(" ")
+      : defaultSortField;
 
-      this.query = this.query.sort(sortBy);
-    } else {
-      this.query = this.query.sort("-createdAt");
-    }
+    this.query = this.query.sort(sortBy);
 
     return this;
+  }
+
+  /**
+   * Creates and returns a new instance of the QueryBuilder class
+   * @param query
+   * @param queryString
+   * @returns QueryBuilder
+   */
+  static Make<T>(
+    query: Query<T[], T>,
+    queryString?: QueryString
+  ): QueryBuilder<T> {
+    return new QueryBuilder(query, queryString);
   }
 }
