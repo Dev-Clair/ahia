@@ -38,7 +38,7 @@ try {
     ? server.startHTTP(Config.PORT.HTTP)
     : server.startHTTPS(Config.PORT.HTTPS);
 
-  DbService.Connection(Config.MONGO_URI);
+  DbService.Make(Config.MONGO_URI).getConnection();
 } catch (err: any) {
   if (err instanceof DbServiceError)
     Sentry.withScope((scope) => {
