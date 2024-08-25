@@ -9,6 +9,14 @@ import {
 import { randomUUID } from "node:crypto";
 import Config from "../../config";
 
+/**
+ * Storage service
+ * @method upload
+ * @method download
+ * @method remove
+ * @method *retrieveCollection
+ * @method Make
+ */
 class StorageService {
   private s3: S3Client;
 
@@ -49,7 +57,7 @@ class StorageService {
   }
 
   /**
-   *
+   * Retrieves an object from the bucket
    * @param key
    * @param start
    * @param end
@@ -74,6 +82,11 @@ class StorageService {
     }
   }
 
+  /**
+   * Removes an object from the bucket
+   * @param key
+   * @returns
+   */
   public async remove(key: string): Promise<boolean | undefined> {
     try {
       const input = {

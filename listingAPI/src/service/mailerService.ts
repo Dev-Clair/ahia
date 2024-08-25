@@ -7,6 +7,11 @@ import {
 } from "@aws-sdk/client-ses";
 import Config from "../../config";
 
+/**
+ * Mailer service
+ * @method sendMail
+ * @method Make
+ */
 class MailerService {
   private client: SESClient;
 
@@ -66,7 +71,7 @@ class MailerService {
   }
 
   /**
-   * Creates and returns a new instance of the MailerService class.
+   * Creates and returns a new instance of the MailerService class
    * @returns MailerService
    */
   public static Make(): MailerService {

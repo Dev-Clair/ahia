@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import DbServiceError from "../error/dbserviceError";
 import FailureRetry from "../utils/failureRetry";
 
+/**
+ * Database Service
+ * @method connect
+ * @method getConnection
+ * @method Make
+ */
 class DbService {
   private connectionUri: string;
 
@@ -10,7 +16,7 @@ class DbService {
   }
 
   /**
-   * Establishes connection to the database.
+   * Establishes connection to the database
    * @private
    */
   private async connect(): Promise<void> {
@@ -25,7 +31,8 @@ class DbService {
   }
 
   /**
-   * Provides connection resource with round-robin retry strategy on failure.
+   * Provides connection resource with round-robin retry strategy on failure
+   * @public
    */
   public async getConnection(): Promise<void> {
     try {
@@ -43,7 +50,7 @@ class DbService {
   }
 
   /**
-   * Creates and returns new instance of the DbService class.
+   * Creates and returns a new instance of the DbService class
    * @param connectionUri
    * @returns DbService
    */
