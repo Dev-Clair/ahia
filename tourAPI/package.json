@@ -17,6 +17,7 @@
   "license": "ISC",
   "description": "tour api service for ahia marketplace",
   "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.637.0",
     "@aws-sdk/client-ses": "^3.600.0",
     "@sentry/node": "^8.26.0",
     "async-retry": "^1.3.3",
