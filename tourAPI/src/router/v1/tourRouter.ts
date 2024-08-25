@@ -7,13 +7,10 @@ import ValidationMiddleware from "../../middleware/validationMiddleware";
 const TourRouterV1 = Router();
 
 TourRouterV1.route("/")
-  .get(
-    // AuthMiddleware.IsGranted(["Admin"]),
-    TourController.retrieveTours
-  )
+  .get(AuthMiddleware.IsGranted(["Admin"]), TourController.retrieveTours)
   .post(
-    // AuthMiddleware.IsGranted(["Admin"]),
-    // ValidationMiddleware.validateCustomer,
+    AuthMiddleware.IsGranted(["Admin"]),
+    ValidationMiddleware.validateCustomer,
     TourMiddleWare.isAllowedContentType,
     TourMiddleWare.isIdempotent,
     TourController.createTours
@@ -25,24 +22,24 @@ TourRouterV1.route("/search").get(
 );
 
 TourRouterV1.route("/customer/:customerId").get(
-  // AuthMiddleware.IsGranted([""]),
+  AuthMiddleware.IsGranted(["Customer"]),
   TourController.retrieveToursByCustomer
 );
 
 TourRouterV1.route("/realtor/:realtorId").get(
-  // AuthMiddleware.IsGranted([""]),
+  AuthMiddleware.IsGranted(["Realtor"]),
   TourController.retrieveToursByCustomer
 );
 
 TourRouterV1.route("/:id")
   .get(
-    // AuthMiddleware.IsGranted(["Customer"]),
+    AuthMiddleware.IsGranted(["Customer"]),
     ValidationMiddleware.validateSingleParamId,
     TourController.retrieveTourItem
   )
   .put(TourMiddleWare.isNotAllowed)
   .patch(
-    // AuthMiddleware.IsGranted(["Customer"]),
+    AuthMiddleware.IsGranted(["Customer"]),
     ValidationMiddleware.validateSingleParamId,
     TourMiddleWare.isAllowedContentType,
     TourMiddleWare.isIdempotent,
@@ -97,10 +94,10 @@ TourRouterV1.route("/:id/realtors/reject").put(
   TourController.rejectRealtorRequest
 );
 
-TourRouterV1.route("/:id/realtors/exit").put(
+TourRouterV1.route("/:id/realtors/remove").put(
   AuthMiddleware.IsGranted(["Customer", "Realtor"]),
   ValidationMiddleware.validateSingleParamId,
-  TourController.exitTourItem
+  TourController.removeTourRealtor
 );
 
 TourRouterV1.route("/:id/schedule").patch(
