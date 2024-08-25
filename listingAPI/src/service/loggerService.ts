@@ -12,6 +12,12 @@ interface CloudWatchLogsConfigOptions {
   logStreamName: string;
 }
 
+/**
+ * Cloudwatch Logs Transport
+ * @method initializeSequenceToken
+ * @method log
+ * @method Make
+ */
 class CloudWatchLogsTransport extends transports.Stream {
   private cloudWatchLogsClient: CloudWatchLogsClient;
 
@@ -36,6 +42,10 @@ class CloudWatchLogsTransport extends transports.Stream {
     this.initializeSequenceToken();
   }
 
+  /**
+   * Retrieves and initializes the sequence to ensure log orderings
+   * @private
+   */
   private async initializeSequenceToken() {
     try {
       const describeLogStreamsCommand = new DescribeLogStreamsCommand({
@@ -58,7 +68,7 @@ class CloudWatchLogsTransport extends transports.Stream {
   }
 
   /**
-   *
+   * Sends logs to cloudwatch
    * @param info
    * @param callback
    */
@@ -112,7 +122,7 @@ class CloudWatchLogsTransport extends transports.Stream {
   }
 }
 
-const { combine, timestamp, printf, colorize } = format;
+const { combine, timestamp, printf } = format;
 
 const logFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} ${level}: ${message}`;
@@ -121,12 +131,8 @@ const logFormat = printf(({ level, message, timestamp }) => {
 const Logger = createLogger({
   level: "info",
   format: combine(timestamp(), logFormat),
-  transports: [
-    new transports.Console({
-      format: combine(colorize(), logFormat),
-    }),
-    CloudWatchLogsTransport.Make(),
-  ],
+  transports: [CloudWatchLogsTransport.Make()],
+  defaultMeta: Config.LISTING.SERVICE.NAME,
 });
 
 export default Logger;

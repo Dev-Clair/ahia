@@ -23,7 +23,7 @@ process.on("unhandledRejection", (reason, promise) => {
 process.on("uncaughtException", (error) => {
   Sentry.captureException(error);
 
-  console.error("Uncaught Exception thrown:", error);
+  Logger.error("Uncaught Exception thrown:", error);
 
   process.exitCode = 1;
 });
@@ -66,19 +66,19 @@ const shutdown = () => {
 };
 
 mongoose.connection.on("connecting", () => {
-  console.log(`Attempting connection to database`);
+  Logger.info(`Attempting connection to database`);
 });
 
 mongoose.connection.on("connected", () => {
-  console.log(`Database connection successful`);
+  Logger.info(`Database connection successful`);
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.error(`Database connection failure`);
+  Logger.error(`Database connection failure`);
 });
 
 mongoose.connection.on("reconnected", () => {
-  console.log(`Database reconnection successful`);
+  Logger.info(`Database reconnection successful`);
 });
 
 process.on("SIGINT", () => shutdown());
