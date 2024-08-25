@@ -65,7 +65,7 @@ const getTours = async (
   const tours = await queryBuilder
     .Filter()
     .Sort()
-    .Select(["-isClosed, -customer.email, -realtor.email"])
+    .Select()
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -102,7 +102,7 @@ const getToursSearch = async (
 
   const tours = await queryBuilder
     .Sort()
-    .Select(["-isClosed, -customer.email, -realtor.email"])
+    .Select()
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -135,11 +135,7 @@ const getToursByCustomer = async (
 
   const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
 
-  const tours = await queryBuilder
-    .Filter()
-    .Sort()
-    .Select(["-status -customer.email -realtor.email"])
-    .Exec();
+  const tours = await queryBuilder.Filter().Sort().Select().Exec();
 
   return res.status(HttpCode.OK).json({ data: tours });
 };
@@ -164,11 +160,7 @@ const getToursByRealtor = async (
 
   const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
 
-  const tours = await queryBuilder
-    .Filter()
-    .Sort()
-    .Select(["-status -customer.email -realtor.email"])
-    .Exec();
+  const tours = await queryBuilder.Filter().Sort().Select().Exec();
 
   return res.status(HttpCode.OK).json({ data: tours });
 };
@@ -371,15 +363,19 @@ const getRealtors = async (
 
   const url =
     Config.IAM_SERVICE_URL +
-    `/realtors?status=available&location=${tour.location}`;
+    `/realtors?status=available&lng=${tour.location.coordinates[0]}&lat=${tour.location.coordinates[1]}`;
+
+  const serviceName = Config.TOUR.SERVICE.NAME;
+
+  const serviceSecret = await SecretManager.HashSecret(
+    Config.TOUR.SERVICE.SECRET,
+    Config.APP_SECRET
+  );
 
   const httpClient = new HttpClient(url, {
     "content-type": "application/json",
-    "service-name": Config.TOUR.SERVICE.NAME,
-    "service-secret": await SecretManager.HashSecret(
-      Config.TOUR.SERVICE.SECRET,
-      Config.APP_SECRET
-    ),
+    "service-name": serviceName,
+    "service-secret": serviceSecret,
   });
 
   const response = await httpClient.Get();
@@ -517,13 +513,13 @@ const rejectTourRequest = async (
 };
 
 /**
- * Exits or removes a realtor from a tour
+ * Removes realtor from a tour
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const exitTour = async (
+const removeRealtor = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -706,7 +702,7 @@ const rejectTourReschedule = async (
 };
 
 /**
- * Create a new tour in collection.
+ * Create a new tour in collection
  */
 const createTours = AsyncWrapper.Catch(
   createTour,
@@ -714,7 +710,7 @@ const createTours = AsyncWrapper.Catch(
 );
 
 /**
- * Retrieve collection of tours.
+ * Retrieve collection of tours
  */
 const retrieveTours = AsyncWrapper.Catch(
   getTours,
@@ -722,7 +718,7 @@ const retrieveTours = AsyncWrapper.Catch(
 );
 
 /**
- * Retrieve tour search.
+ * Retrieve tour search
  */
 const retrieveToursSearch = AsyncWrapper.Catch(
   getToursSearch,
@@ -730,7 +726,7 @@ const retrieveToursSearch = AsyncWrapper.Catch(
 );
 
 /**
- * Retrieve customer's tour history.
+ * Retrieve customer's tour history
  */
 const retrieveToursByCustomer = AsyncWrapper.Catch(
   getToursByCustomer,
@@ -738,7 +734,7 @@ const retrieveToursByCustomer = AsyncWrapper.Catch(
 );
 
 /**
- * Retrieve realtor's tour history.
+ * Retrieve realtor's tour history
  */
 const retrieveToursByRealtor = AsyncWrapper.Catch(
   getToursByRealtor,
@@ -746,7 +742,7 @@ const retrieveToursByRealtor = AsyncWrapper.Catch(
 );
 
 /**
- * Retrieve a tour item using its :id.
+ * Retrieve a tour item using its :id
  */
 const retrieveTourItem = AsyncWrapper.Catch(
   getTour,
@@ -754,7 +750,7 @@ const retrieveTourItem = AsyncWrapper.Catch(
 );
 
 /**
- * Updates a tour item using its :id.
+ * Updates a tour item using its :id
  */
 const updateTourItem = AsyncWrapper.Catch(
   updateTour,
@@ -762,7 +758,7 @@ const updateTourItem = AsyncWrapper.Catch(
 );
 
 /**
- * Deletes a tour item using its :id.
+ * Deletes a tour item using its :id
  */
 const deleteTourItem = AsyncWrapper.Catch(
   deleteTour,
@@ -770,7 +766,7 @@ const deleteTourItem = AsyncWrapper.Catch(
 );
 
 /**
- * Complete a tour item using its :id.
+ * Complete a tour item using its :id
  */
 const completeTourItem = AsyncWrapper.Catch(
   completeTour,
@@ -778,7 +774,7 @@ const completeTourItem = AsyncWrapper.Catch(
 );
 
 /**
- * Cancels a tour item using its :id.
+ * Cancels a tour item using its :id
  */
 const cancelTourItem = AsyncWrapper.Catch(
   cancelTour,
@@ -786,7 +782,7 @@ const cancelTourItem = AsyncWrapper.Catch(
 );
 
 /**
- * reopens a cancelled tour using its :id.
+ * reopens a cancelled tour using its :id
  */
 const reopenTourItem = AsyncWrapper.Catch(
   reopenTour,
@@ -820,12 +816,15 @@ const rejectRealtorRequest = AsyncWrapper.Catch(
 );
 
 /**
- * exit from a tour
+ * removes realtor from tour
  */
-const exitTourItem = AsyncWrapper.Catch(exitTour, FailureRetry.LinearBackoff);
+const removeTourRealtor = AsyncWrapper.Catch(
+  removeRealtor,
+  FailureRetry.LinearBackoff
+);
 
 /**
- * schedule a new tour.
+ * schedule a new tour
  */
 const scheduleTourItem = AsyncWrapper.Catch(
   scheduleTour,
@@ -833,7 +832,7 @@ const scheduleTourItem = AsyncWrapper.Catch(
 );
 
 /**
- * reschedules an existing tour.
+ * reschedules an existing tour
  */
 const rescheduleTourItem = AsyncWrapper.Catch(
   rescheduleTour,
@@ -841,12 +840,12 @@ const rescheduleTourItem = AsyncWrapper.Catch(
 );
 
 /**
- * accepts proposed tour schedule.
+ * accepts proposed tour schedule
  */
 const acceptProposedTourReschedule = AsyncWrapper.Catch(acceptTourReschedule);
 
 /**
- * rejects proposed tour schedule.
+ * rejects proposed tour schedule
  */
 const rejectProposedTourReschedule = AsyncWrapper.Catch(rejectTourReschedule);
 
@@ -866,7 +865,7 @@ export default {
   selectTourRealtor,
   acceptRealtorRequest,
   rejectRealtorRequest,
-  exitTourItem,
+  removeTourRealtor,
   scheduleTourItem,
   rescheduleTourItem,
   acceptProposedTourReschedule,
