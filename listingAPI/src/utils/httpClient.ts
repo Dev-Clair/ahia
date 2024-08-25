@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { randomUUID } from "node:crypto";
 import https from "node:https";
 import FailureRetry from "./failureRetry";
 import HttpCode from "../enum/httpCode";
@@ -27,13 +27,7 @@ class HttpClient {
   }
 
   private generateIdempotencyKey(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(16, (err, buf) => {
-        if (err) reject(err);
-
-        resolve(buf.toString("hex"));
-      });
-    });
+    return new Promise((resolve) => resolve(randomUUID()));
   }
 
   private async call(options: HttpOptions, payload?: any): Promise<any> {
