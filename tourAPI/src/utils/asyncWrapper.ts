@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 /**
- * Propagates operational and non-operational errors to the custom global error handling middleware.
- *
+ * Propagates operational and non-operational errors to the custom global error handling middleware
  */
 class AsyncWrapper {
   /**
