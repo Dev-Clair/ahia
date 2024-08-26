@@ -10,51 +10,82 @@ import HttpServer from "./src/utils/httpServer";
 import Logger from "./src/service/loggerService";
 import SSL from "./ssl/ssl";
 
-sentry(Config.SENTRY_DSN, Config.NODE_ENV);
+/**
+ *
+ * Initialize Sentry
+ *
+ */
+sentry(Config.TOUR.SERVICE.SENTRY_DSN, Config.NODE_ENV);
 
-process.on("unhandledRejection", (reason, promise) => {
-  Sentry.captureException(reason);
+process
+  .on("unhandledRejection", (reason, promise) => {
+    Sentry.captureException(reason);
 
-  Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+    Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
 
-  process.exitCode = 1;
-});
+    process.exitCode = 1;
+  })
+  .on("uncaughtException", (error) => {
+    Sentry.captureException(error);
 
-process.on("uncaughtException", (error) => {
-  Sentry.captureException(error);
+    Logger.error("Uncaught Exception thrown:", error);
 
-  Logger.error("Uncaught Exception thrown:", error);
+    process.exitCode = 1;
+  })
+  .on("SIGINT", () => shutdown())
+  .on("SIGUSR1", () => shutdown())
+  .on("SIGUP", () => shutdown())
+  .on("SIGTERM", () => shutdown());
 
-  process.exitCode = 1;
-});
+mongoose.connection
+  .on("connecting", () => Logger.info(`Attempting connection to database`))
+  .on("connected", () => Logger.info(`Database connection successful`))
+  .on("disconnected", () => Logger.info(`Database connection failure`))
+  .on("reconnected", () => Logger.info(`Database reconnection successful`));
 
+/**
+ *
+ * Bootstrap Application
+ *
+ */
 const server = new HttpServer(
   App,
   SSL(Config.SSL.KEY_FILE_PATH, Config.SSL.CERT_FILE_PATH)
 );
 
-try {
-  Config.NODE_ENV === "test"
-    ? server.startHTTP(Config.PORT.HTTP)
-    : server.startHTTPS(Config.PORT.HTTPS);
+// Start Server
+Config.NODE_ENV === "test"
+  ? server.startHTTP(Config.PORT.HTTP)
+  : server.startHTTPS(Config.PORT.HTTPS);
 
-  DbService.Make(Config.MONGO_URI).getConnection();
-} catch (err: any) {
-  if (err instanceof DbServiceError)
-    Sentry.withScope((scope) => {
-      scope.setTag("Database Error", "Critical");
+// Start Database
+DbService.Make(Config.MONGO_URI)
+  .getConnection()
+  .catch((err) => {
+    const errorPayload = {
+      name: err.name,
+      message: err.message,
+      description: err.description,
+      stack: err.stack,
+    };
 
-      scope.setContext("details", {
-        name: err.name,
-        message: err.message,
-        description: err.description,
-        stack: err.stack,
+    if (err instanceof DbServiceError)
+      Sentry.withScope((scope) => {
+        scope.setTag("Database-Error", "Critical");
+
+        scope.setContext("Error", errorPayload);
+
+        Sentry.captureException(err);
       });
 
-      Sentry.captureException(err);
-    });
-}
+    Logger.error(JSON.stringify(errorPayload));
+  });
 
+/**
+ *
+ * Shutdown Application
+ *
+ */
 const shutdown = () => {
   Logger.info("Shutting down gracefully...");
 
@@ -64,23 +95,3 @@ const shutdown = () => {
 
   Sentry.close();
 };
-
-mongoose.connection.on("connecting", () => {
-  Logger.info(`Attempting connection to database`);
-});
-
-mongoose.connection.on("connected", () => {
-  Logger.info(`Database connection successful`);
-});
-
-mongoose.connection.on("disconnected", () => {
-  Logger.info(`Database connection failure`);
-});
-
-mongoose.connection.on("reconnected", () => {
-  Logger.info(`Database reconnection successful`);
-});
-
-process.on("SIGINT", () => shutdown());
-
-process.on("SIGTERM", () => shutdown());

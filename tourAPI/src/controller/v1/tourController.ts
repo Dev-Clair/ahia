@@ -177,10 +177,11 @@ const getTour = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const tour = await Tour.findById({ _id: req.params.id });
+  const id = req.params.id as string;
 
-  if (!tour)
-    throw new NotFoundError(`No record found for tour: ${req.params.id}`);
+  const tour = await Tour.findById({ _id: id });
+
+  if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
   return res.status(HttpCode.OK).json({ data: tour });
 };

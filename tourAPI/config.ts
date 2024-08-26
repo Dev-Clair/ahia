@@ -36,7 +36,6 @@ const Config = {
     HTTP: process.env.HTTP_PORT || 5999,
     HTTPS: process.env.HTTPS_PORT || 6000,
   },
-  SENTRY_DSN: process.env.SENTRY_DSN || "",
   SSL: {
     KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
     CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",
@@ -45,6 +44,7 @@ const Config = {
     SERVICE: {
       NAME: process.env.TOUR_SERVICE_NAME || "",
       SECRET: process.env.TOUR_SERVICE_SECRET || "",
+      SENTRY_DSN: process.env.TOUR_SERVICE_SENTRY_DSN || "",
     },
   },
 };
