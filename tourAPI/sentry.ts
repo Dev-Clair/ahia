@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 
-export default function InitSentry(
+export default function InitializeSentry(
   sentry_dsn: string,
   environment: string
 ): Sentry.NodeClient | undefined {
