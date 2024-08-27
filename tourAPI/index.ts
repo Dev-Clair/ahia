@@ -5,6 +5,7 @@ import {
   GlobalProcessEventsHandler,
 } from "./bootstrap";
 import Config from "./config";
+import Server from "./server";
 
 // Initialize Sentry
 InitializeSentry(Config.TOUR.SERVICE.SENTRY_DSN, Config.NODE_ENV);
@@ -16,4 +17,4 @@ GlobalProcessEventsHandler();
 DatabaseEventsListener();
 
 // Bootstrap Application
-Bootstrap();
+Bootstrap(Server);

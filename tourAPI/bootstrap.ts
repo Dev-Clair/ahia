@@ -1,24 +1,19 @@
 import * as Sentry from "@sentry/node";
 import process from "node:process";
 import mongoose from "mongoose";
-import App from "./app";
 import Config from "./config";
 import DatabaseService from "./src/service/databaseService";
 import DatabaseServiceError from "./src/error/databaseserviceError";
 import HttpServer from "./src/utils/httpServer";
 import Logger from "./src/service/loggerService";
-import SSL from "./ssl/ssl";
+import Server from "./server";
 
 /**
- * Boostraps the entire application
+ * Bootstraps the entire application
+ * @returns Promise<void>
  */
-export async function Bootstrap() {
-  // Start and initialize server on http port
-  const Server = await HttpServer.Create(
-    App,
-    SSL(Config.SSL.KEY_FILE_PATH, Config.SSL.CERT_FILE_PATH)
-  );
-
+export async function Bootstrap(Server: HttpServer): Promise<void> {
+  // Start and initialize server on http(s) port
   if (Config.NODE_ENV !== "production") {
     await Server.StartHTTP(Config.PORT.HTTP);
   } else {
@@ -28,7 +23,7 @@ export async function Bootstrap() {
   // Create and initialize database with connection string
   await DatabaseService.Create(Config.MONGO_URI)
     .getConnection()
-    .catch((err: any) => DatabaseErrorHandler(err));
+    .catch((err: any) => DatabaseErrorHandler(err, Server));
 }
 
 /**
@@ -40,7 +35,7 @@ export function GlobalProcessEventsHandler(): void {
     .on("unhandledRejection", UnhandledRejectionsHandler)
     .on("uncaughtException", UnCaughtExceptionsHandler)
     .on("SIGINT", RestartHandler)
-    .on("SIGUP", ShutdownHandler)
+    .on("SIGHUP", RestartHandler)
     .on("SIGTERM", RestartHandler);
 }
 
@@ -57,15 +52,25 @@ export function DatabaseEventsListener(): void {
 }
 
 /**
+ * Handles server error
+ * @param err
+ * @returns void
+ */
+export function ServerErrorHandler(err: Error): void {}
+
+/**
  * Handles database error
  * @param err
  * @returns void
  */
-export function DatabaseErrorHandler(err: DatabaseServiceError): void {
+export function DatabaseErrorHandler(
+  err: Error | DatabaseServiceError,
+  Server: HttpServer
+): void {
   const error = {
     name: err.name,
     message: err.message,
-    description: err.description,
+    description: (err as DatabaseServiceError).description ?? null,
     stack: err.stack,
   };
 
@@ -78,11 +83,11 @@ export function DatabaseErrorHandler(err: DatabaseServiceError): void {
       Sentry.captureException(err);
     });
 
-  Logger.error(JSON.stringify(error));
+  Logger.error(error);
 
-  process.exitCode = 1;
+  Sentry.captureException(err);
 
-  process.kill(process.pid, "SIGUP");
+  ShutdownHandler(Server);
 }
 
 /**
@@ -101,7 +106,7 @@ export function UnhandledRejectionsHandler(
 
   process.exitCode = 1;
 
-  process.kill(process.pid, "SIGTERM");
+  //   process.kill(process.pid, "SIGTERM");
 }
 
 /**
@@ -116,7 +121,7 @@ export function UnCaughtExceptionsHandler(error: any): void {
 
   process.exitCode = 1;
 
-  process.kill(process.pid, "SIGTERM");
+  //   process.kill(process.pid, "SIGTERM");
 }
 
 /**
@@ -124,22 +129,24 @@ export function UnCaughtExceptionsHandler(error: any): void {
  * @param server
  * @returns void
  */
-export function ShutdownHandler(server: HttpServer): void {
+export function ShutdownHandler(Server?: HttpServer): void {
   Logger.info("Shutting down gracefully...");
 
   mongoose.connection.close(true);
 
-  server.Close();
+  Server?.Close();
 
   Sentry.close();
 
   process.exitCode = 1;
 
-  process.kill(process.pid, "SIGTERM");
+  //   process.kill(process.pid, "SIGHUP");
 }
 
 /**
- * Handles restart after graceful shutdown
+ * Handles restart on graceful shutdown
  * @returns void
  */
-export function RestartHandler(): void {}
+export function RestartHandler(): void {
+  Bootstrap(Server);
+}
