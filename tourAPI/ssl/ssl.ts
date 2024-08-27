@@ -1,10 +1,16 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 
-const SSL = (keyFilePath: string, certFilePath: string) => {
+async function SSL(
+  keyFilePath: string,
+  certFilePath: string
+): Promise<{
+  key: string;
+  cert: string;
+}> {
   return {
-    key: fs.readFileSync(keyFilePath),
-    cert: fs.readFileSync(certFilePath),
+    key: await fs.readFile(keyFilePath, { encoding: "utf-8" }),
+    cert: await fs.readFile(certFilePath, { encoding: "utf-8" }),
   };
-};
+}
 
 export default SSL;
