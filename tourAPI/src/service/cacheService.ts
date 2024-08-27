@@ -60,6 +60,10 @@ class MapCache {
       }
     }
   }
+
+  static Create(): MapCache {
+    return new MapCache();
+  }
 }
 
 export default MapCache;

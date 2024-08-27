@@ -8,6 +8,8 @@ import {
 } from "@aws-sdk/client-cloudwatch-logs";
 import Config from "../../config";
 
+// Create Transport
+
 interface CloudWatchLogsConfigOptions {
   logGroupName: string;
   logStreamName: string;
@@ -122,6 +124,8 @@ class CloudWatchLogsTransport extends TransportStream {
     return new CloudWatchLogsTransport(clientConfiguration, logConfiguration);
   }
 }
+
+// Create Logger
 
 const { combine, timestamp, printf } = format;
 
