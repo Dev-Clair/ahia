@@ -10,6 +10,14 @@ interface HttpOptions {
   headers?: Record<string, string>;
 }
 
+/**
+ * Http Client
+ * @method GET
+ * @method POST
+ * @method PUT
+ * @method PATCH
+ * @method DELETE
+ */
 class HttpClient {
   private httpOptions: HttpOptions;
 
@@ -26,10 +34,22 @@ class HttpClient {
     this.httpHeaders = { ...httpHeaders };
   }
 
+  /**
+   * Generates random strinfg values to ensure idempotency of some http methods
+   * @private
+   * @returns Promise<string>
+   */
   private generateIdempotencyKey(): Promise<string> {
     return new Promise((resolve) => resolve(randomUUID()));
   }
 
+  /**
+   * Http request handler
+   * @private
+   * @param options
+   * @param payload
+   * @returns Promise<any>
+   */
   private async call(options: HttpOptions, payload?: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
@@ -80,6 +100,13 @@ class HttpClient {
     });
   }
 
+  /**
+   * Handles various http request operations
+   * @private
+   * @param method
+   * @param payload
+   * @returns Promise<any>
+   */
   private async request(method: string, payload?: any): Promise<any> {
     const headers = this.httpHeaders;
 
@@ -98,24 +125,57 @@ class HttpClient {
     return FailureRetry.ExponentialBackoff(() => this.call(options, payload));
   }
 
+  /**
+   * Carries out a get request
+   * @returns Promise<any>
+   */
   public Get(): Promise<any> {
     return this.request("GET");
   }
 
+  /**
+   * Carries out a post request
+   * @param payload
+   * @returns Promise<any>
+   */
   public Post(payload: any): Promise<any> {
     return this.request("POST", payload);
   }
 
+  /**
+   * Carries out a put request
+   * @param payload
+   * @returns Promise<any>
+   */
   public Put(payload: any): Promise<any> {
     return this.request("PUT", payload);
   }
 
+  /**
+   * Carries out a patch request
+   * @param payload
+   * @returns Promise<any>
+   */
   public Patch(payload: any): Promise<any> {
     return this.request("PATCH", payload);
   }
 
+  /**
+   * Carries out a delete request
+   * @returns Promise<any>
+   */
   public Delete(): Promise<any> {
     return this.request("DELETE");
+  }
+
+  /**
+   * Returns a new instance of HttpClient
+   * @param url
+   * @param httpHeaders
+   * @returns HttpClient
+   */
+  static Create(url: string, httpHeaders: object): HttpClient {
+    return new HttpClient(url, httpHeaders);
   }
 }
 

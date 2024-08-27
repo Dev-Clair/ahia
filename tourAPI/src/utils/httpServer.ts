@@ -3,6 +3,13 @@ import https from "node:https";
 import { Express } from "express";
 import Logger from "../service/loggerService";
 
+/**
+ * Http Server
+ * @method StartHTTP
+ * @method StartHTTPS
+ * @method Close
+ * @method Create
+ */
 class HttpServer {
   private app: Express;
 
@@ -18,7 +25,7 @@ class HttpServer {
     this.sslOptions = SSLOptions;
   }
 
-  public startHTTP(HTTP_PORT: string | number) {
+  public StartHTTP(HTTP_PORT: string | number) {
     this.httpServer = http.createServer(this.app);
 
     this.httpServer.listen(HTTP_PORT, () => {
@@ -26,7 +33,7 @@ class HttpServer {
     });
   }
 
-  public startHTTPS(HTTPS_PORT: string | number) {
+  public StartHTTPS(HTTPS_PORT: string | number) {
     this.httpsServer = https.createServer(this.sslOptions, this.app);
 
     this.httpsServer.listen(HTTPS_PORT, () => {
@@ -34,7 +41,7 @@ class HttpServer {
     });
   }
 
-  public closeAllConnections() {
+  public Close() {
     if (this.httpServer) {
       this.httpServer.close(() => {
         Logger.info("HTTP Server Closed");
@@ -46,6 +53,10 @@ class HttpServer {
         Logger.info("HTTPS Server Closed");
       });
     }
+  }
+
+  static Create(App: Express, SSL_Options: object): HttpServer {
+    return new HttpServer(App, SSL_Options);
   }
 }
 
