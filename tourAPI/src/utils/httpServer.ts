@@ -25,23 +25,29 @@ class HttpServer {
     this.sslOptions = SSLOptions;
   }
 
-  public StartHTTP(HTTP_PORT: string | number) {
-    this.httpServer = http.createServer(this.app);
+  public StartHTTP(HTTP_PORT: string | number): Promise<unknown> {
+    return new Promise((resolve) => {
+      this.httpServer = http.createServer(this.app).listen(HTTP_PORT, () => {
+        Logger.info(`Listening on http port ${HTTP_PORT}`);
+      });
 
-    this.httpServer.listen(HTTP_PORT, () => {
-      Logger.info(`Listening on http port ${HTTP_PORT}`);
+      resolve(this.httpServer);
     });
   }
 
-  public StartHTTPS(HTTPS_PORT: string | number) {
-    this.httpsServer = https.createServer(this.sslOptions, this.app);
+  public StartHTTPS(HTTPS_PORT: string | number): Promise<unknown> {
+    return new Promise((resolve) => {
+      this.httpsServer = https
+        .createServer(this.sslOptions, this.app)
+        .listen(HTTPS_PORT, () => {
+          Logger.info(`Listening on https port ${HTTPS_PORT}`);
+        });
 
-    this.httpsServer.listen(HTTPS_PORT, () => {
-      Logger.info(`Listening on https port ${HTTPS_PORT}`);
+      resolve(this.httpsServer);
     });
   }
 
-  public Close() {
+  public Close(): void {
     if (this.httpServer) {
       this.httpServer.close(() => {
         Logger.info("HTTP Server Closed");
@@ -55,8 +61,8 @@ class HttpServer {
     }
   }
 
-  static Create(App: Express, SSL_Options: object): HttpServer {
-    return new HttpServer(App, SSL_Options);
+  static Create(App: Express, SSL_Options: object): Promise<HttpServer> {
+    return new Promise((resolve) => resolve(new HttpServer(App, SSL_Options)));
   }
 }
 
