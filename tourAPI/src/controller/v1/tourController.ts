@@ -373,7 +373,7 @@ const getRealtors = async (
     Config.APP_SECRET
   );
 
-  const httpClient = await HttpClient.Create(url, {
+  const httpClient = HttpClient.Create(url, {
     "content-type": "application/json",
     "service-name": serviceName,
     "service-secret": serviceSecret,
