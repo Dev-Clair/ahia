@@ -61,8 +61,8 @@ class HttpServer {
     }
   }
 
-  static Create(App: Express, SSL_Options: object): Promise<HttpServer> {
-    return new Promise((resolve) => resolve(new HttpServer(App, SSL_Options)));
+  static Create(App: Express, SSL_Options: object): HttpServer {
+    return new HttpServer(App, SSL_Options);
   }
 }
 

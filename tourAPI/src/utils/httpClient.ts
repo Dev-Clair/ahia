@@ -172,10 +172,10 @@ class HttpClient {
    * Returns a new instance of HttpClient
    * @param url
    * @param httpHeaders
-   * @returns Promise<HttpClient>
+   * @returns HttpClient
    */
-  static Create(url: string, httpHeaders: object): Promise<HttpClient> {
-    return new Promise((resolve) => resolve(new HttpClient(url, httpHeaders)));
+  static Create(url: string, httpHeaders: object): HttpClient {
+    return new HttpClient(url, httpHeaders);
   }
 }
 
