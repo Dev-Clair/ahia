@@ -1,4 +1,5 @@
-import { createLogger, format, transports } from "winston";
+import { createLogger, format, LogEntry, transports } from "winston";
+import TransportStream, { TransportStreamOptions } from "winston-transport";
 import {
   CloudWatchLogsClient,
   CloudWatchLogsClientConfig,
@@ -16,9 +17,9 @@ interface CloudWatchLogsConfigOptions {
  * Cloudwatch Logs Transport
  * @method initializeSequenceToken
  * @method log
- * @method Make
+ * @method Create
  */
-class CloudWatchLogsTransport extends transports.Stream {
+class CloudWatchLogsTransport extends TransportStream {
   private cloudWatchLogsClient: CloudWatchLogsClient;
 
   private logGroupName: string;
@@ -30,7 +31,7 @@ class CloudWatchLogsTransport extends transports.Stream {
   constructor(
     clientConfig: CloudWatchLogsClientConfig,
     logConfig: CloudWatchLogsConfigOptions,
-    options?: transports.StreamTransportOptions
+    options?: TransportStreamOptions
   ) {
     super(options);
     this.logGroupName = logConfig.logGroupName;
@@ -72,7 +73,7 @@ class CloudWatchLogsTransport extends transports.Stream {
    * @param info
    * @param callback
    */
-  async log(info: any, callback: () => void): Promise<void> {
+  async log(info: LogEntry, callback: () => void): Promise<void> {
     setImmediate(() => this.emit("logged", info));
 
     const logMessage = {
@@ -104,7 +105,7 @@ class CloudWatchLogsTransport extends transports.Stream {
    * Creates and returns a new instance of the CloudWatchLogsTransport class.
    * @returns CloudWatchLogsTransport
    */
-  public static Make(): CloudWatchLogsTransport {
+  public static Create(): CloudWatchLogsTransport {
     const clientConfiguration: CloudWatchLogsClientConfig = {
       region: Config.AWS.REGION,
       credentials: {
@@ -131,7 +132,10 @@ const logFormat = printf(({ level, message, timestamp }) => {
 const Logger = createLogger({
   level: "info",
   format: combine(timestamp(), logFormat),
-  transports: [CloudWatchLogsTransport.Make()],
+  transports: [
+    new transports.Console(),
+    // CloudWatchLogsTransport.Make()
+  ],
   defaultMeta: Config.TOUR.SERVICE.NAME,
 });
 
