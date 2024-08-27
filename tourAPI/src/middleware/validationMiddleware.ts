@@ -42,10 +42,10 @@ const customerSchema = z.object({
           invalid_type_error: "Listing ID must be a string",
         }),
         // .uuid({ message: "Invalid ID format" }),
-        location: z.string({
-          required_error: "Listing location is required",
-          invalid_type_error: "Listing location must be a string",
-        }),
+        // location: z.string({
+        //   required_error: "Listing location is required",
+        //   invalid_type_error: "Listing location must be a string",
+        // }),
       })
     )
     .nonempty("A new tour must have a collection of listings id and location"),
