@@ -60,7 +60,7 @@ const getTours = async (
 ): Promise<Response | void> => {
   const queryString = req.query;
 
-  const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Tour.find(), queryString);
 
   const tours = await queryBuilder
     .Filter()
@@ -98,7 +98,7 @@ const getToursSearch = async (
     $text: { $search: searchQuery },
   });
 
-  const queryBuilder = QueryBuilder.Make(search);
+  const queryBuilder = QueryBuilder.Create(search);
 
   const tours = await queryBuilder
     .Sort()
@@ -133,7 +133,7 @@ const getToursByCustomer = async (
     customer: { id: customerId },
   };
 
-  const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Tour.find(), queryString);
 
   const tours = await queryBuilder.Filter().Sort().Select().Exec();
 
@@ -158,7 +158,7 @@ const getToursByRealtor = async (
     realtor: { id: realtorId },
   };
 
-  const queryBuilder = QueryBuilder.Make(Tour.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Tour.find(), queryString);
 
   const tours = await queryBuilder.Filter().Sort().Select().Exec();
 
