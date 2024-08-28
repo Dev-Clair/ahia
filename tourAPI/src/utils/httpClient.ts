@@ -3,11 +3,16 @@ import https from "node:https";
 import FailureRetry from "./failureRetry";
 import HttpCode from "../enum/httpCode";
 
-interface HttpOptions {
+interface HttpRequestOptionsInterface {
   hostname: string;
   path: string;
   method?: string;
   headers?: Record<string, string>;
+}
+
+interface HttpResponseInterface {
+  statusCode: number | undefined;
+  body: any;
 }
 
 /**
@@ -17,13 +22,14 @@ interface HttpOptions {
  * @method PUT
  * @method PATCH
  * @method DELETE
+ * @method Create
  */
 class HttpClient {
-  private httpOptions: HttpOptions;
+  private httpOptions: HttpRequestOptionsInterface;
 
-  private httpHeaders: object;
+  private httpHeaders: Record<string, string>;
 
-  constructor(url: string, httpHeaders: object = {}) {
+  constructor(url: string, httpHeaders: Record<string, string> = {}) {
     const parsedUrl = new URL(url);
 
     this.httpOptions = {
@@ -35,7 +41,7 @@ class HttpClient {
   }
 
   /**
-   * Generates random strinfg values to ensure idempotency of some http methods
+   * Generates random string values to ensure idempotency of some http methods
    * @private
    * @returns Promise<string>
    */
@@ -48,9 +54,12 @@ class HttpClient {
    * @private
    * @param options
    * @param payload
-   * @returns Promise<any>
+   * @returns Promise<HttpResponseInterface>
    */
-  private async call(options: HttpOptions, payload?: any): Promise<any> {
+  private async call(
+    options: HttpRequestOptionsInterface,
+    payload?: any
+  ): Promise<HttpResponseInterface> {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
         let data = "";
@@ -61,26 +70,19 @@ class HttpClient {
 
         res.on("end", () => {
           try {
-            if (res.headers["content-type"] === "application/json") {
-              const parsedData = JSON.parse(data);
-
-              resolve({
-                headers: res.headers,
-                statusCode: res.statusCode,
-                body: parsedData,
-              });
-            }
+            const parsedData =
+              res.headers["content-type"] === "application/json"
+                ? JSON.parse(data)
+                : data;
 
             resolve({
-              headers: res.headers,
               statusCode: res.statusCode,
-              body: data,
+              body: parsedData,
             });
-          } catch (error) {
+          } catch (error: any) {
             resolve({
-              headers: res.headers,
-              statusCode: res.statusCode,
-              body: data,
+              statusCode: res.statusCode ?? HttpCode.INTERNAL_SERVER_ERROR,
+              body: data ?? "Error parsing response: " + error.message,
             });
           }
         });
@@ -88,13 +90,16 @@ class HttpClient {
 
       req.on("error", (err) => {
         reject({
-          headers: req.getHeaders,
           statusCode: HttpCode.INTERNAL_SERVER_ERROR,
           body: "Error: " + err.message,
         });
       });
 
-      if (payload) req.write(JSON.stringify(payload));
+      if (payload) {
+        req.setHeader("content-type", "application/json");
+
+        req.write(JSON.stringify(payload));
+      }
 
       req.end();
     });
@@ -105,10 +110,13 @@ class HttpClient {
    * @private
    * @param method
    * @param payload
-   * @returns Promise<any>
+   * @returns Promise<HttpResponseInterface>
    */
-  private async request(method: string, payload?: any): Promise<any> {
-    const headers = this.httpHeaders;
+  private async request(
+    method: string,
+    payload?: any
+  ): Promise<HttpResponseInterface> {
+    const headers = { ...this.httpHeaders };
 
     if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH") {
       Object.assign(headers, {
@@ -116,55 +124,51 @@ class HttpClient {
       });
     }
 
-    const options = this.httpOptions;
-
-    Object.assign(options, { method: method });
-
-    Object.assign(options, { headers: headers });
+    const options = { ...this.httpOptions, method, headers };
 
     return FailureRetry.ExponentialBackoff(() => this.call(options, payload));
   }
 
   /**
    * Carries out a get request
-   * @returns Promise<any>
+   * @returns Promise<HttpResponseInterface>
    */
-  public Get(): Promise<any> {
+  public Get(): Promise<HttpResponseInterface> {
     return this.request("GET");
   }
 
   /**
    * Carries out a post request
    * @param payload
-   * @returns Promise<any>
+   * @returns Promise<HttpResponseInterface>
    */
-  public Post(payload: any): Promise<any> {
+  public Post(payload: any): Promise<HttpResponseInterface> {
     return this.request("POST", payload);
   }
 
   /**
    * Carries out a put request
    * @param payload
-   * @returns Promise<any>
+   * @returns Promise<HttpResponseInterface>
    */
-  public Put(payload: any): Promise<any> {
+  public Put(payload: any): Promise<HttpResponseInterface> {
     return this.request("PUT", payload);
   }
 
   /**
    * Carries out a patch request
    * @param payload
-   * @returns Promise<any>
+   * @returns Promise<HttpResponseInterface>
    */
-  public Patch(payload: any): Promise<any> {
+  public Patch(payload: any): Promise<HttpResponseInterface> {
     return this.request("PATCH", payload);
   }
 
   /**
    * Carries out a delete request
-   * @returns Promise<any>
+   * @returns Promise<HttpResponseInterface>
    */
-  public Delete(): Promise<any> {
+  public Delete(): Promise<HttpResponseInterface> {
     return this.request("DELETE");
   }
 
@@ -174,7 +178,7 @@ class HttpClient {
    * @param httpHeaders
    * @returns HttpClient
    */
-  static Create(url: string, httpHeaders: object): HttpClient {
+  static Create(url: string, httpHeaders: Record<string, string>): HttpClient {
     return new HttpClient(url, httpHeaders);
   }
 }
