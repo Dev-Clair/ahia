@@ -1,14 +1,14 @@
 import mongoose from "mongoose";
-import DbServiceError from "../error/dbserviceError";
+import DatabaseServiceError from "../error/databaseserviceError";
 import FailureRetry from "../utils/failureRetry";
 
 /**
  * Database Service
  * @method connect
  * @method getConnection
- * @method Make
+ * @method Create
  */
-class DbService {
+class DatabaseService {
   private connectionUri: string;
 
   constructor(connectionUri: string) {
@@ -41,7 +41,7 @@ class DbService {
       try {
         await FailureRetry.LinearJitterBackoff(() => this.connect());
       } catch (err: any) {
-        throw new DbServiceError(
+        throw new DatabaseServiceError(
           err.message,
           "Retry strategies failed. Could not establish connection to the database."
         );
@@ -50,13 +50,13 @@ class DbService {
   }
 
   /**
-   * Creates and returns a new instance of the DbService class
+   * Creates and returns a new instance of the DatabaseService class
    * @param connectionUri
-   * @returns DbService
+   * @returns DatabaseService
    */
-  public static Make(connectionUri: string): DbService {
-    return new DbService(connectionUri);
+  public static Create(connectionUri: string): DatabaseService {
+    return new DatabaseService(connectionUri);
   }
 }
 
-export default DbService;
+export default DatabaseService;

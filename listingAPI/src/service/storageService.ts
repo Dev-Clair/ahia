@@ -15,7 +15,7 @@ import Config from "../../config";
  * @method download
  * @method remove
  * @method *retrieveCollection
- * @method Make
+ * @method Create
  */
 class StorageService {
   private s3: S3Client;
@@ -85,7 +85,7 @@ class StorageService {
   /**
    * Removes an object from the bucket
    * @param key
-   * @returns
+   * @returns Promise<boolean | undefined>
    */
   public async remove(key: string): Promise<boolean | undefined> {
     try {
@@ -107,7 +107,7 @@ class StorageService {
   /**
    * Retrieves a collection of object names from the storage bucket
    * @param prefix
-   * @returns Asyncgenerator
+   * @returns AsyncGenerator
    */
   public async *retrieveCollection(
     prefix: string
@@ -132,7 +132,7 @@ class StorageService {
    * Creates and returns a new instance of the Storage class.
    * @returns StorageService
    */
-  public static Make(): StorageService {
+  public static Create(): StorageService {
     const configuration: S3ClientConfig = {
       region: Config.AWS.REGION,
       credentials: {

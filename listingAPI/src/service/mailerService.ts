@@ -9,8 +9,8 @@ import Config from "../../config";
 
 /**
  * Mailer service
- * @method sendMail
- * @method Make
+ * @method SendMail
+ * @method Create
  */
 class MailerService {
   private client: SESClient;
@@ -30,7 +30,7 @@ class MailerService {
    * @param bcc - An array of BCC email addresses (optional).
    * @returns Promise<SendEmailCommandOutput>
    */
-  public async sendMail(
+  public async SendMail(
     sender: string,
     recipient: string[],
     subject: string,
@@ -74,7 +74,7 @@ class MailerService {
    * Creates and returns a new instance of the MailerService class
    * @returns MailerService
    */
-  public static Make(): MailerService {
+  public static Create(): MailerService {
     const configuration: SESClientConfig = {
       region: Config.AWS.REGION,
       credentials: {
