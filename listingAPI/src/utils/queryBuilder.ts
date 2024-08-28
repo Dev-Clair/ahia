@@ -37,7 +37,7 @@ interface PaginationResult<T> {
  * @method Paginate - pagination
  * @method Select - projection
  * @method Sort - sorting
- * @method Make - factory
+ * @method Create - factory
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
@@ -199,7 +199,7 @@ export class QueryBuilder<T> {
    * @param queryString
    * @returns QueryBuilder
    */
-  static Make<T>(
+  static Create<T>(
     query: Query<T[], T>,
     queryString?: QueryString
   ): QueryBuilder<T> {
