@@ -5,38 +5,46 @@ import Config from "./config";
 import DatabaseService from "./src/service/databaseService";
 import DatabaseServiceError from "./src/error/databaseserviceError";
 import HttpServer from "./src/utils/httpServer";
+import HttpServerError from "./src/error/httpserverError";
 import Logger from "./src/service/loggerService";
-import Server from "./server";
 
 /**
  * Bootstraps the entire application
  * @returns Promise<void>
  */
 export async function Bootstrap(Server: HttpServer): Promise<void> {
-  // Start and initialize server on http(s) port
-  if (Config.NODE_ENV !== "production") {
-    await Server.StartHTTP(Config.PORT.HTTP);
-  } else {
-    await Server.StartHTTPS(Config.PORT.HTTPS);
-  }
+  try {
+    // Start and initialize server on http(s) port
+    if (Config.NODE_ENV !== "production") {
+      await Server.StartHTTP(Config.PORT.HTTP).catch((reason: any) => {
+        throw new HttpServerError(reason, "HTTP Server Initialization Error");
+      });
+    } else {
+      await Server.StartHTTPS(Config.PORT.HTTPS).catch((reason: any) => {
+        throw new HttpServerError(reason, "HTTPS Server Initialization Error");
+      });
+    }
 
-  // Create and initialize database with connection string
-  await DatabaseService.Create(Config.MONGO_URI)
-    .getConnection()
-    .catch((err: any) => DatabaseErrorHandler(err, Server));
+    // Create and initialize database with connection string
+    await DatabaseService.Create(Config.MONGO_URI).getConnection();
+  } catch (err: any) {
+    if (err instanceof HttpServerError) ServerErrorHandler(err, Server);
+
+    if (err instanceof DatabaseServiceError) DatabaseErrorHandler(err, Server);
+  }
 }
 
 /**
  * Global process events listeners/handlers
  * @returns void
  */
-export function GlobalProcessEventsHandler(): void {
+export function GlobalProcessEventsListener(): void {
   process
     .on("unhandledRejection", UnhandledRejectionsHandler)
     .on("uncaughtException", UnCaughtExceptionsHandler)
-    .on("SIGINT", RestartHandler)
-    .on("SIGHUP", RestartHandler)
-    .on("SIGTERM", RestartHandler);
+    .on("SIGINT", ShutdownHandler)
+    .on("SIGHUP", ShutdownHandler)
+    .on("SIGTERM", ShutdownHandler);
 }
 
 /**
@@ -54,23 +62,50 @@ export function DatabaseEventsListener(): void {
 /**
  * Handles server error
  * @param err
+ * @param Server
  * @returns void
  */
-export function ServerErrorHandler(err: Error): void {}
-
-/**
- * Handles database error
- * @param err
- * @returns void
- */
-export function DatabaseErrorHandler(
-  err: Error | DatabaseServiceError,
+export function ServerErrorHandler(
+  err: HttpServerError,
   Server: HttpServer
 ): void {
   const error = {
     name: err.name,
     message: err.message,
-    description: (err as DatabaseServiceError).description ?? null,
+    description: err.description,
+    stack: err.stack,
+  };
+
+  if (err instanceof HttpServerError)
+    Sentry.withScope((scope) => {
+      scope.setTag("Server Initialization Error", "Fatal");
+
+      scope.setContext("Error", error);
+
+      Sentry.captureException(err);
+    });
+
+  Logger.error(error);
+
+  Sentry.captureException(err);
+
+  ShutdownHandler(Server);
+}
+
+/**
+ * Handles database error
+ * @param err
+ * @param Server
+ * @returns void
+ */
+export function DatabaseErrorHandler(
+  err: DatabaseServiceError,
+  Server: HttpServer
+): void {
+  const error = {
+    name: err.name,
+    message: err.message,
+    description: err.description,
     stack: err.stack,
   };
 
@@ -105,8 +140,6 @@ export function UnhandledRejectionsHandler(
   Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
 
   process.exitCode = 1;
-
-  //   process.kill(process.pid, "SIGTERM");
 }
 
 /**
@@ -120,8 +153,6 @@ export function UnCaughtExceptionsHandler(error: any): void {
   Logger.error("Uncaught Exception thrown:", error);
 
   process.exitCode = 1;
-
-  //   process.kill(process.pid, "SIGTERM");
 }
 
 /**
@@ -139,14 +170,4 @@ export function ShutdownHandler(Server?: HttpServer): void {
   Sentry.close();
 
   process.exitCode = 1;
-
-  //   process.kill(process.pid, "SIGHUP");
-}
-
-/**
- * Handles restart on graceful shutdown
- * @returns void
- */
-export function RestartHandler(): void {
-  Bootstrap(Server);
 }

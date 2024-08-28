@@ -2,16 +2,15 @@ import InitializeSentry from "./sentry";
 import {
   Bootstrap,
   DatabaseEventsListener,
-  GlobalProcessEventsHandler,
+  GlobalProcessEventsListener,
 } from "./bootstrap";
-import Config from "./config";
 import Server from "./server";
 
 // Initialize Sentry
-InitializeSentry(Config.TOUR.SERVICE.SENTRY_DSN, Config.NODE_ENV);
+InitializeSentry();
 
-// Global Process Events Handler
-GlobalProcessEventsHandler();
+// Global Process Events Listener
+GlobalProcessEventsListener();
 
 // Database Connection Events Listener
 DatabaseEventsListener();
