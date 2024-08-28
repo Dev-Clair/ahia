@@ -1,4 +1,4 @@
-class DbServiceError extends Error {
+class DatabaseServiceError extends Error {
   public readonly name;
 
   public readonly description;
@@ -9,7 +9,9 @@ class DbServiceError extends Error {
     this.name = "DATABASE SERVICE: CONNECTION ERROR";
 
     this.description = description;
+
+    Error.captureStackTrace(this);
   }
 }
 
-export default DbServiceError;
+export default DatabaseServiceError;
