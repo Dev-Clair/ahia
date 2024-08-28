@@ -2,15 +2,15 @@ import InitializeSentry from "./sentry";
 import {
   Bootstrap,
   DatabaseEventsListener,
-  GlobalProcessEventsHandler,
+  GlobalProcessEventsListener,
 } from "./bootstrap";
 import Server from "./server";
 
 // Initialize Sentry
 InitializeSentry();
 
-// Global Process Events Handler
-GlobalProcessEventsHandler();
+// Global Process Events Listener
+GlobalProcessEventsListener();
 
 // Database Connection Events Listener
 DatabaseEventsListener();
