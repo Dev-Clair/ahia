@@ -4,7 +4,7 @@ import BadRequestError from "../../error/badrequestError";
 import Config from "../../../config";
 import ConflictError from "../../error/conflictError";
 import ForbiddenError from "../../error/forbiddenError";
-import HttpStatusCode from "../../enum/httpCode";
+import HttpCode from "../../enum/httpCode";
 import IdempotencyManager from "../../utils/idempotencyManager";
 import Listing from "../../model/listingModel";
 import { NextFunction, Request, Response } from "express";
@@ -34,11 +34,11 @@ const createListing = async (
   const payload = req.body as object;
 
   const provider = {
-    id: (req.headers["provider-id"] as string) || `provider-` + Math.random(),
-    email:
-      (req.headers["provider-email"] as string) ||
-      `provider.` + Math.random() * 1000 + `@yahoo.com`,
+    id: req.headers["provider-id"] as string,
+    email: req.headers["provider-email"] as string,
   };
+
+  if (!provider) throw new Error("Invalid or empty provider details");
 
   Object.assign(payload, { provider: provider });
 
@@ -50,7 +50,7 @@ const createListing = async (
     await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  return res.status(HttpStatusCode.CREATED).json({ data: null });
+  return res.status(HttpCode.CREATED).json({ data: null });
 };
 
 /**
@@ -82,7 +82,7 @@ const getListings = async (
 
   const { data, metaData } = listings;
 
-  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
+  return res.status(HttpCode.OK).json({ data: data, metaData: metaData });
 };
 
 /**
@@ -119,7 +119,7 @@ const getListingsSearch = async (
 
   const { data, metaData } = listings;
 
-  return res.status(HttpStatusCode.OK).json({ data: data, metaData: metaData });
+  return res.status(HttpCode.OK).json({ data: data, metaData: metaData });
 };
 
 /**
@@ -151,7 +151,7 @@ const getListingsNearme = async (
 
   const { data, metaData } = listings;
 
-  return res.status(HttpStatusCode.OK).json({
+  return res.status(HttpCode.OK).json({
     data: data,
     metaData: metaData,
   });
@@ -184,7 +184,7 @@ const getListingsByProvider = async (
     .Select(["-status -provider.email"])
     .Exec();
 
-  return res.status(HttpStatusCode.OK).json({ data: listings });
+  return res.status(HttpCode.OK).json({ data: listings });
 };
 
 /**
@@ -204,7 +204,7 @@ const getListingsByType = async (
   const AllowedTypes = ["on-going", "now-selling"];
 
   if (!AllowedTypes.includes(type))
-    throw new ForbiddenError(`Forbidden action from ${req.ip}`);
+    throw new ForbiddenError(`Invalid type option`);
 
   const queryString = {
     status: { approved: true },
@@ -225,7 +225,7 @@ const getListingsByType = async (
 
   const { data, metaData } = listings;
 
-  return res.status(HttpStatusCode.OK).json({
+  return res.status(HttpCode.OK).json({
     data: data,
     metaData: metaData,
   });
@@ -248,7 +248,7 @@ const getListingsbyCategory = async (
   const AllowedCategories = ["economy", "premium", "luxury"];
 
   if (!AllowedCategories.includes(category))
-    throw new ForbiddenError(`Forbidden action from ${req.ip}`);
+    throw new ForbiddenError(`Invalid category option`);
 
   const queryString = { status: { approved: true }, category: category };
 
@@ -266,7 +266,7 @@ const getListingsbyCategory = async (
 
   const { data, metaData } = listings;
 
-  return res.status(HttpStatusCode.OK).json({
+  return res.status(HttpCode.OK).json({
     data: data,
     metaData: metaData,
   });
@@ -290,7 +290,7 @@ const getListing = async (
 
   if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  return res.status(HttpStatusCode.OK).json({ data: listing });
+  return res.status(HttpCode.OK).json({ data: listing });
 };
 
 /**
@@ -329,7 +329,7 @@ const updateListing = async (
     await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -354,7 +354,7 @@ const deleteListing = async (
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
   });
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -395,7 +395,7 @@ const checkoutListing = async (
       })
     );
 
-    return res.redirect(301, Config.PAYMENT_SERVICE_URL);
+    return res.redirect(HttpCode.REDIRECT, Config.PAYMENT_SERVICE_URL);
   }
 
   return;
@@ -436,7 +436,7 @@ const approveListing = async (
     await IdempotencyManager.Ensure(idempotencyKey, session);
   });
 
-  return res.status(HttpStatusCode.MODIFIED).json({ data: null });
+  return res.status(HttpCode.MODIFIED).json({ data: null });
 };
 
 /**
@@ -465,7 +465,7 @@ const verifyListingApproval = async (
     );
   }
 
-  return res.status(HttpStatusCode.OK).json({
+  return res.status(HttpCode.OK).json({
     data: `${listing.name.toUpperCase()} has been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
   });
 };
