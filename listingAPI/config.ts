@@ -33,6 +33,7 @@ const Config = {
     SERVICE: {
       NAME: process.env.LISTING_SERVICE_NAME || "",
       SECRET: process.env.LISTING_SERVICE_SECRET || "",
+      SENTRY_DSN: process.env.SENTRY_DSN || "",
     },
   },
   MONGO_URI: process.env.MONGO_URI || "",
@@ -43,7 +44,6 @@ const Config = {
     HTTP: process.env.HTTP_PORT || 4999,
     HTTPS: process.env.HTTPS_PORT || 5000,
   },
-  SENTRY_DSN: process.env.SENTRY_DSN || "",
   SSL: {
     KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
     CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",
