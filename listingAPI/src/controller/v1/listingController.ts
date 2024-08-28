@@ -67,7 +67,7 @@ const getListings = async (
 ): Promise<Response | void> => {
   const queryString = { ...req.query, status: { approved: true } };
 
-  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .Filter()
@@ -105,7 +105,7 @@ const getListingsSearch = async (
     $text: { $search: searchQuery },
   });
 
-  const queryBuilder = QueryBuilder.Make(search);
+  const queryBuilder = QueryBuilder.Create(search);
 
   const listings = await queryBuilder
     .Sort()
@@ -136,7 +136,7 @@ const getListingsNearme = async (
 ): Promise<Response | void> => {
   const queryString = { ...req.query, status: { approved: true } };
 
-  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .GeoNear()
@@ -176,7 +176,7 @@ const getListingsByProvider = async (
     provider: { id: providerId },
   };
 
-  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .Filter()
@@ -211,7 +211,7 @@ const getListingsByType = async (
     type: type,
   };
 
-  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .Sort()
@@ -252,7 +252,7 @@ const getListingsbyCategory = async (
 
   const queryString = { status: { approved: true }, category: category };
 
-  const queryBuilder = QueryBuilder.Make(Listing.find(), queryString);
+  const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .Sort()
