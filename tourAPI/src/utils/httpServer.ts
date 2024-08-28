@@ -41,7 +41,7 @@ class HttpServer {
       });
 
       this.httpServer.on("error", (err) => {
-        Logger.error(`Http Server Error ${err.message}`);
+        Logger.error(`Http Server Error:\n${err.message}`);
         reject(err);
       });
     });
@@ -65,7 +65,7 @@ class HttpServer {
       });
 
       this.httpsServer.on("error", (err) => {
-        Logger.error(`Https Server Error ${err.message}`);
+        Logger.error(`Https Server Error:\n${err.message}`);
         reject(err);
       });
     });
