@@ -41,7 +41,7 @@ class HttpClient {
   }
 
   /**
-   * Generates random strinfg values to ensure idempotency of some http methods
+   * Generates random string values to ensure idempotency of some http methods
    * @private
    * @returns Promise<string>
    */
