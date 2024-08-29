@@ -1,21 +1,10 @@
-const TourGenerator = require("./cron/tourGenerator");
+const TourGenerator = require("./tourGenerator");
 const TourNotificationManager = require("./tourNotificationManager");
 
 const TourNotification = async () => {
   const tourGenerator = TourGenerator();
 
-  for await (const tour of tourGenerator) {
-    const { name, customer, realtor, tourId, tourDate, tourTime } = tour;
-
-    await TourNotificationManager(
-      name,
-      customer,
-      realtor,
-      tourId,
-      tourDate,
-      tourTime
-    );
-  }
+  for await (const tour of tourGenerator) await TourNotificationManager(tour);
 };
 
 module.exports = TourNotification;

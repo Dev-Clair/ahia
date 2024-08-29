@@ -1,43 +1,27 @@
 const URL = require("node:url").URL;
 const Config = require("../config");
 const Mail = require("../src/utils/mail");
-const MailerError = require("../src/error/mailerError");
 
-async function TourNotificationManager(
-  name,
-  customer,
-  realtor,
-  tourId,
-  tourDate,
-  tourTime
-) {
-  let customerEmail = customer.email;
-
-  let realtorEmail = realtor.email;
+async function TourNotificationManager(tour) {
+  const { _id, name, customer, realtor, schedule } = tour;
 
   const sender = Config.TOUR_NOTIFICATION_EMAIL || "";
 
-  try {
-    if (!customerEmail) {
-      throw new Error(`Email not found for customer: ${customer.id}`);
-    }
+  const recipient = [customer.email, realtor.email];
 
-    if (!realtorEmail) {
-      throw new Error(`Email not found for realtor: ${realtor.id}`);
-    }
+  const subject = `TOUR REMINDER: ${name}`;
 
-    const subject = `TOUR REMINDER: ${name}`;
+  const tourDate = schedule.date;
 
-    const link = URL(`https://www.ahia.com/tours/${tourId}/reschedule`);
+  const tourTime = schedule.time;
 
-    const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\n\nTo reschedule, kindly click the ${link} to initiate the rescheduling process.\nPlease note that rescheduling a tour is subject to the tour party approval and you might incur a penalty fee if initiated 3-Hrs before the scheduled time.`;
+  const link = URL(`https://www.ahia.com/tours/${_id}/reschedule`);
 
-    await Mail(sender, [customerEmail, realtorEmail], subject, text);
-  } catch (err) {
-    if (err instanceof MailerError) {
-      throw err;
-    }
-  }
+  const text = `You have a scheduled tour on ${tourDate.toDateString()} at ${tourTime}.\nTo reschedule, kindly click the ${link} to initiate the rescheduling process.\nKindly remember that rescheduling a tour is subject to the tour party approval`;
+
+  await Mail(sender, recipient, subject, text).catch((err) => {
+    throw err;
+  });
 }
 
 module.exports = TourNotificationManager;
