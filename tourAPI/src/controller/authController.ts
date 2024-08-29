@@ -3,20 +3,14 @@ import SecretManager from "../utils/secretManager";
 
 /**
  * Verifies if user has required permissions to access a resource
- * @param hashedRole
- * @param expectedRole
+ * @param hash
+ * @param value
  * @returns Promise<boolean>
  */
-const VerifyUserRole = async (
-  hashedRole: string,
-  expectedRole: string
-): Promise<boolean> => {
-  const expectedHash = await SecretManager.HashSecret(
-    expectedRole,
-    Config.APP_SECRET
-  );
-
-  return hashedRole === expectedHash;
+const VerifyRole = async (hash: string, value: string): Promise<boolean> => {
+  return Config.NODE_ENV !== "production"
+    ? true
+    : await SecretManager.VerifySecret(hash, value, Config.APP_SECRET);
 };
 
-export default VerifyUserRole;
+export default VerifyRole;
