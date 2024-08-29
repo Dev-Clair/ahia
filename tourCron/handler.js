@@ -9,7 +9,7 @@ Sentry.init({
   environment: Config.NODE_ENV,
 });
 
-exports.cron = Sentry.wrapHandler(async (event, context) => {
+exports.tourCron = Sentry.wrapHandler(async (event, context) => {
   console.log(`Ahia Tour Cron: ${new Date().now().toUTCString()}`);
 
   try {

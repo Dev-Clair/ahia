@@ -5,11 +5,11 @@ Description: ahia tour service cron
 Parameters:
   AppSecret:
     Type: String
-  AWSAccessKeyId:
+  AWSIAMAccessKeyId:
     Type: String
   AWSDefaultEventBus:
     Type: String
-  AWSSecretAccessKey:
+  AWSIAMSecretAccessKey:
     Type: String
   AWSRegion:
     Type: String
@@ -36,16 +36,16 @@ Resources:
     Type: "AWS::Lambda::Function"
     Properties:
       FunctionName: "ahia-tour-service-cron"
-      Handler: "handler.cron"
+      Handler: "handler.tourCron"
       Runtime: "nodejs20.x"
       MemorySize: 512
       Environment:
         Variables:
           APP_SECRET: !Ref AppSecret
-          AWS_ACCESS_KEY_ID: !Ref AWSAccessKeyId
+          AWS_IAM_ACCESS_KEY_ID: !Ref AWSIAMAccessKeyId
           AWS_DEFAULT_EVENT_BUS: !Ref AWSDefaultEventBus
           AWS_REGION: !Ref AWSRegion
-          AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
+          AWS_IAM_SECRET_ACCESS_KEY: !Ref AWSIAMSecretAccessKey
           MONGO_URI: !Ref MongoUri
           NODE_ENV: !Ref NodeEnv
           TOUR_CRON_SENTRY_DSN: !Ref TourCronSentryDsn
