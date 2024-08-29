@@ -3,12 +3,14 @@ class MailerError extends Error {
 
   description;
 
-  constructor(message, description = "AWS SES ERROR") {
+  constructor(message, description = "AWS SES Exception") {
     super(message);
 
     this.name = "MAILER ERROR";
 
     this.description = description;
+
+    Error.captureStackTrace(this);
   }
 }
 

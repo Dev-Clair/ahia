@@ -36,20 +36,20 @@ const Connection = async (connectionUri) => {
   }
 };
 
-mongoose.connection.on("connecting", () => {
-  console.log(`Attempting connection to database`);
-});
+mongoose.connection.on("connecting", () =>
+  console.log(`Attempting connection to database`)
+);
 
-mongoose.connection.on("connected", () => {
-  console.log(`Database connection successful`);
-});
+mongoose.connection.on("connected", () =>
+  console.log(`Database connection successful`)
+);
 
-mongoose.connection.on("disconnected", () => {
-  console.error(`Database connection failure`);
-});
+mongoose.connection.on("disconnected", () =>
+  console.error(`Database connection failure`)
+);
 
-mongoose.connection.on("reconnected", () => {
-  console.log(`Database reconnection successful`);
-});
+mongoose.connection.on("reconnected", () =>
+  console.log(`Database reconnection successful`)
+);
 
 module.exports = Connection;
