@@ -3,7 +3,7 @@ const { createHmac } = require("node:crypto");
 /**
  * Creates and verifies cryptographically secure hashes
  */
-class SecretManager {
+class Secret {
   /**
    * Creates a cryptographically secure hash of a value with sha256 algorithm and a (user-defined) secret key
    * @param value
