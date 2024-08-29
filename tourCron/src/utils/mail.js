@@ -1,4 +1,4 @@
-const Mailer = require("../../mailer");
+const Mailer = require("../service/mailer");
 const MailerError = require("../error/mailerError");
 const Retry = require("./retry");
 
