@@ -10,19 +10,19 @@ export const CreateTour = async (event) => {
 
   let tourData;
 
-  if (serviceName === Config.TOUR.SERVICE.NAME)
-    tourData = (await Secret.Verify(
-      serviceSecret,
-      Config.TOUR.SERVICE.SECRET,
-      Config.APP_SECRET
-    ))
-      ? JSON.parse(payload)
-      : null;
+  // if (serviceName === Config.TOUR.SERVICE.NAME)
+  //   tourData = (await Secret.Verify(
+  //     serviceSecret,
+  //     Config.TOUR.SERVICE.SECRET,
+  //     Config.APP_SECRET
+  //   ))
+  //     ? JSON.parse(payload)
+  //     : null;
 
-  if (tourData === null)
-    throw new Error(
-      `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
-    );
+  // if (tourData === null)
+  //   throw new Error(
+  //     `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
+  //   );
 
   const { customer, listings, paymentReference } = tourData;
 
