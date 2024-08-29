@@ -1,46 +1,38 @@
 const Config = require("./config");
-const Connection = require("./connection");
-const ConnectionError = require("./src/error/connectionError");
-const Mail = require("./src/utils/mail");
+const Connection = require("./src/service/connection");
+const Sentry = require("@sentry/aws-serverless");
 const TourNotification = require("./cron/tourNotification");
 
-const sender = Config.TOUR.NOTIFICATION_EMAIL || "";
-
-const recipient = [Config.TOUR.ADMIN_EMAIL];
-
-exports.cron = async (event, context) => {
-  try {
-    Connection(Config.MONGO_URI);
-
-    const cron = await TourNotification();
-
-    const message = JSON.stringify(cron);
-
-    if (cron.status === false) {
-      await Mail(sender, recipient, "TOUR NOTIFICATION: CRON LOG", message);
-    }
-  } catch (err) {
-    if (err instanceof ConnectionError) {
-      await Notify(
-        sender,
-        recipient,
-        err.name.toUpperCase(),
-        JSON.stringify({ message: err.message, description: err.description })
-      );
-    }
-
-    console.log(err.name, err.message);
-  }
-};
-
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception thrown:", error);
-
-  process.exitCode = 1;
+Sentry.init({
+  dsn: Config.TOUR.CRON_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  environment: Config.NODE_ENV,
 });
 
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+exports.cron = Sentry.wrapHandler(async (event, context) => {
+  console.log(`Ahia Tour Cron: ${new Date().now().toUTCString()}`);
 
-  process.exitCode = 1;
+  try {
+    await Connection(Config.MONGO_URI);
+
+    await TourNotification();
+  } catch (err) {
+    process.on("uncaughtException", (error) => {
+      console.error("Uncaught Exception thrown:", error);
+
+      Sentry.captureMessage(`Uncaught Exception thrown: ${error}`);
+
+      process.exitCode = 1;
+    });
+
+    process.on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Rejection at:", promise, "reason:", reason);
+
+      Sentry.captureMessage(
+        `Unhandled Rejection at: ${promise}, reason: ${reason}`
+      );
+
+      process.exitCode = 1;
+    });
+  }
 });
