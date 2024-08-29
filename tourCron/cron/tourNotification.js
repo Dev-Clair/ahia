@@ -7,7 +7,7 @@ const TourNotification = async () => {
   for await (const tour of tourGenerator) {
     const { name, customer, realtor, tourId, tourDate, tourTime } = tour;
 
-    await TourNotificationManager.processNotification(
+    await TourNotificationManager(
       name,
       customer,
       realtor,
@@ -16,8 +16,6 @@ const TourNotification = async () => {
       tourTime
     );
   }
-
-  return TourNotificationManager.getCronLog();
 };
 
 module.exports = TourNotification;
