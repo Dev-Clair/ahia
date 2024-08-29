@@ -33,7 +33,7 @@ TourRouterV1.route("/realtor/:realtorId").get(
 
 TourRouterV1.route("/:id")
   .get(
-    AuthMiddleware.IsGranted(["Customer"]),
+    AuthMiddleware.IsGranted(["Customer", "Realtor"]),
     ValidationMiddleware.validateSingleParamId,
     TourController.retrieveTourItem
   )
