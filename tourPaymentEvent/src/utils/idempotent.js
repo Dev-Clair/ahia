@@ -1,10 +1,9 @@
-const mongoose = require("mongoose");
 const Idempotency = require("../model/idempotency");
 
 /**
  * Handles Operation Idempotency
  */
-class IdempotencyManager {
+class Idempotent {
   /**
    * Verifies idempotency
    * @param key
