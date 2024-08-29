@@ -13,7 +13,7 @@ exports.tourCron = Sentry.wrapHandler(async (event, context) => {
   console.log(`Ahia Tour Cron Lambda: ${new Date().now().toUTCString()}`);
 
   try {
-    await Connection.Make(Config.MONGO_URI).getConnection();
+    await Connection.Create(Config.MONGO_URI).getConnection();
 
     await TourNotification();
   } catch (err) {

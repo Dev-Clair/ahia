@@ -36,10 +36,10 @@ class Connection {
    */
   async getConnection() {
     try {
-      await Retry.ExponentialBackoff(() => this.connect());
+      await Retry.ExponentialBackoff(() => this.connect);
     } catch (err) {
       try {
-        await Retry.LinearJitterBackoff(() => this.connect());
+        await Retry.LinearJitterBackoff(() => this.connect);
       } catch (err) {
         throw new ConnectionError(
           err.message,
