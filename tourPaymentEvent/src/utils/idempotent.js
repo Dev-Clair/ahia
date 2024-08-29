@@ -1,8 +1,12 @@
-const Idempotency = require("../model/idempotencyModel");
+const mongoose = require("mongoose");
+const Idempotency = require("../model/idempotency");
 
-class Idempotent {
+/**
+ * Handles Operation Idempotency
+ */
+class IdempotencyManager {
   /**
-   * Verifies operation idempotency
+   * Verifies idempotency
    * @param key
    * @returns Promise<boolean>
    */
@@ -19,8 +23,8 @@ class Idempotent {
   }
 
   /**
-   * Ensures operation idempotency
-   * @param key
+   * Ensures idempotency
+   * @param string
    * @param session
    * @returns Promise<void>
    */
@@ -36,4 +40,4 @@ class Idempotent {
   }
 }
 
-export default Idempotent;
+export default IdempotencyManager;
