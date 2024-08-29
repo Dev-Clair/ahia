@@ -30,21 +30,27 @@ exports.tourCron = Sentry.wrapHandler(async (event, context) => {
     };
   }
 
-  process.on("uncaughtException", (error) => {
-    console.error("Uncaught Exception thrown:", error);
+  process
+    .on("uncaughtException", (error) => {
+      console.error("Uncaught Exception thrown:", error);
 
-    Sentry.captureMessage(`Uncaught Exception thrown: ${error}`);
+      Sentry.captureMessage(`Uncaught Exception thrown: ${error}`);
 
-    process.exitCode = 1;
-  });
+      process.exitCode = 1;
+    })
+    .on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Rejection at:", promise, "reason:", reason);
 
-  process.on("unhandledRejection", (reason, promise) => {
-    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+      Sentry.captureMessage(
+        `Unhandled Rejection at: ${promise}, reason: ${reason}`
+      );
 
-    Sentry.captureMessage(
-      `Unhandled Rejection at: ${promise}, reason: ${reason}`
-    );
+      process.exitCode = 1;
+    });
 
-    process.exitCode = 1;
-  });
+  mongoose.connection
+    .on("connecting", () => console.info(`Attempting connection to database`))
+    .on("connected", () => console.info(`Database connection successful`))
+    .on("disconnected", () => console.info(`Database connection failure`))
+    .on("reconnected", () => console.info(`Database reconnection successful`));
 });
