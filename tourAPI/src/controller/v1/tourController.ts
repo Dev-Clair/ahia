@@ -65,7 +65,7 @@ const getTours = async (
   const tours = await queryBuilder
     .Filter()
     .Sort()
-    .Select()
+    .Select(["-isClosed"])
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -102,7 +102,7 @@ const getToursSearch = async (
 
   const tours = await queryBuilder
     .Sort()
-    .Select()
+    .Select(["-isClosed"])
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -135,7 +135,7 @@ const getToursByCustomer = async (
 
   const queryBuilder = QueryBuilder.Create(Tour.find(), queryString);
 
-  const tours = await queryBuilder.Filter().Sort().Select().Exec();
+  const tours = await queryBuilder.Filter().Sort().Select(["-isClosed"]).Exec();
 
   return res.status(HttpCode.OK).json({ data: tours });
 };
@@ -160,7 +160,7 @@ const getToursByRealtor = async (
 
   const queryBuilder = QueryBuilder.Create(Tour.find(), queryString);
 
-  const tours = await queryBuilder.Filter().Sort().Select().Exec();
+  const tours = await queryBuilder.Filter().Sort().Select(["-isClosed"]).Exec();
 
   return res.status(HttpCode.OK).json({ data: tours });
 };

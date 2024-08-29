@@ -19,7 +19,7 @@ exports.tourPayment = Sentry.wrapHandler(async (event, context) => {
     await CreateTour(event);
   } catch (err) {
     Sentry.withScope((scope) => {
-      scope.setTag("Error", "Ahia Payment Event Cron");
+      scope.setTag("Error", "Ahia Tour Payment Event");
 
       scope.setContext("Lambda", {
         name: err.name,
