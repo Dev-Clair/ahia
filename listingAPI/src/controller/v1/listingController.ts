@@ -178,11 +178,7 @@ const getListingsByProvider = async (
 
   const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
-  const listings = await queryBuilder
-    .Filter()
-    .Sort()
-    .Select(["-status -provider.email"])
-    .Exec();
+  const listings = await queryBuilder.Filter().Sort().Select().Exec();
 
   return res.status(HttpCode.OK).json({ data: listings });
 };
@@ -286,7 +282,14 @@ const getListing = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const listing = await Listing.findById({ _id: id });
+  const queryString = {
+    _id: id,
+    status: { approved: true },
+  };
+
+  const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
+
+  const listing = await queryBuilder.Select(["-status -provider.email"]).Exec();
 
   if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 

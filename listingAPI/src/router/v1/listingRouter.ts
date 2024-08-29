@@ -20,6 +20,7 @@ ListingRouterV1.route("/search").get(ListingController.retrieveListingsSearch);
 ListingRouterV1.route("/near-me").get(ListingController.retrieveListingsNearMe);
 
 ListingRouterV1.route("/provider/:providerId").get(
+  AuthMiddleWare.IsGranted(["Provider"]),
   ListingController.retrieveListingsByProvider
 );
 
