@@ -36,10 +36,10 @@ class DatabaseService {
    */
   public async getConnection(): Promise<void> {
     try {
-      await FailureRetry.ExponentialBackoff(this.connect);
+      await FailureRetry.ExponentialBackoff(() => this.connect());
     } catch (err: any) {
       try {
-        await FailureRetry.LinearJitterBackoff(this.connect);
+        await FailureRetry.LinearJitterBackoff(() => this.connect());
       } catch (err: any) {
         throw new DatabaseServiceError(
           err.message,

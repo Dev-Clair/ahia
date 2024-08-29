@@ -179,11 +179,7 @@ const getTour = async (
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const queryString = { _id: id };
-
-  const queryBuilder = QueryBuilder.Create(Tour.find(), queryString);
-
-  const tour = await queryBuilder.Select().Exec();
+  const tour = await Tour.findById({ _id: id });
 
   if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
