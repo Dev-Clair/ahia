@@ -3,7 +3,6 @@ class DuplicateEventError extends Error {
 
   constructor(message) {
     super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
 
     this.name = "DUPLICATE EVENT ERROR";
 

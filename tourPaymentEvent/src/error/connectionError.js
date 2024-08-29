@@ -9,6 +9,8 @@ class ConnectionError extends Error {
     this.name = "DATABASE CONNECTION ERROR";
 
     this.description = description;
+
+    Error.captureStackTrace(this);
   }
 }
 
