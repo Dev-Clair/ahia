@@ -1,11 +1,6 @@
 const Config = require("./config");
 const Connection = require("./src/service/connection");
-const DuplicateEventError = require("./src/error/duplicateeventError");
-const Idempotent = require("./src/utils/idempotent");
-const Retry = require("./src/utils/retry");
-const Tour = require("./src/model/tour");
-const Secret = require("./src/utils/secret");
-const Sentry = require("@sentry/aws-serverless");
+const { CreateTour } = require("./createTour");
 
 Sentry.init({
   dsn: Config.TOUR.PAYMENT_EVENT_SENTRY_DSN,
@@ -19,42 +14,9 @@ exports.tourPayment = Sentry.wrapHandler(async (event, context) => {
   );
 
   try {
-    const { serviceName, serviceSecret, payload } = event.detail;
-
-    let tourData;
-
-    if (serviceName === Config.TOUR.SERVICE.NAME)
-      tourData = (await Secret.Verify(
-        serviceSecret,
-        Config.TOUR.SERVICE.SECRET,
-        Config.APP_SECRET
-      ))
-        ? JSON.parse(payload)
-        : null;
-
-    if (tourData === null)
-      throw new Error(
-        `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
-      );
-
     await Connection.Create(Config.MONGO_URI).getConnection();
 
-    const { customer, listings, paymentReference } = tourData;
-
-    if (await Idempotent.Verify(paymentReference))
-      throw new DuplicateEventError(
-        `Duplicate event detected for payment reference: ${paymentReference}`
-      );
-
-    const session = await mongoose.startSession();
-
-    const createTour = await session.withTransaction(async () => {
-      await Tour.create([{ customer, listings }], { session: session });
-
-      await Idempotent.Ensure(paymentReference, session);
-    });
-
-    await Retry.ExponentialJitterBackoff(() => createTour);
+    await CreateTour(event);
   } catch (err) {
     Sentry.withScope((scope) => {
       scope.setTag("Error", "Ahia Payment Event Cron");
@@ -69,21 +31,27 @@ exports.tourPayment = Sentry.wrapHandler(async (event, context) => {
     });
   }
 
-  process.on("uncaughtException", (error) => {
-    console.error("Uncaught Exception thrown:", error);
+  process
+    .on("uncaughtException", (error) => {
+      console.error("Uncaught Exception thrown:", error);
 
-    Sentry.captureMessage(`Uncaught Exception thrown: ${error}`);
+      Sentry.captureMessage(`Uncaught Exception thrown: ${error}`);
 
-    process.exitCode = 1;
-  });
+      process.exitCode = 1;
+    })
+    .on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Rejection at:", promise, "reason:", reason);
 
-  process.on("unhandledRejection", (reason, promise) => {
-    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+      Sentry.captureMessage(
+        `Unhandled Rejection at: ${promise}, reason: ${reason}`
+      );
 
-    Sentry.captureMessage(
-      `Unhandled Rejection at: ${promise}, reason: ${reason}`
-    );
+      process.exitCode = 1;
+    });
 
-    process.exitCode = 1;
-  });
+  mongoose.connection
+    .on("connecting", () => console.info(`Attempting connection to database`))
+    .on("connected", () => console.info(`Database connection successful`))
+    .on("disconnected", () => console.info(`Database connection failure`))
+    .on("reconnected", () => console.info(`Database reconnection successful`));
 });
