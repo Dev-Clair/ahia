@@ -14,7 +14,6 @@ const Config = {
   },
   LISTING: {
     CRON_SENTRY_DSN: process.env.LISTING_CRON_SENTRY_DSN || "",
-    NOTIFICATION_EMAIL: process.env.TOUR_NOTIFICATION_EMAIL || "",
     SERVICE: {
       NAME: process.env.LISTING_SERVICE_NAME,
       SECRET: process.env.LISTING_SERVICE_SECRET,

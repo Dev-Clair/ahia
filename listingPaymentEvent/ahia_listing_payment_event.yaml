@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: ahia listing service payment event.
+Description: ahia listing service payment event
 
 Parameters:
   AppSecret:
@@ -21,10 +21,6 @@ Parameters:
   MongoUri:
     Type: String
   NodeEnv:
-    Type: String
-  ListingAdminEmail:
-    Type: String
-  ListingNotificationEmail:
     Type: String
   ListingServiceName:
     Type: String
@@ -48,8 +44,6 @@ Resources:
           AWS_SECRET_ACCESS_KEY: !Ref AWSSecretAccessKey
           MONGO_URI: !Ref MongoUri
           NODE_ENV: !Ref NodeEnv
-          LISTING_ADMIN_EMAIL: !Ref ListingAdminEmail
-          LISTING_NOTIFICATION_EMAIL: !Ref ListingNotificationEmail
           LISTING_SERVICE_NAME: !Ref ListingServiceName
           LISTING_SERVICE_SECRET: !Ref ListingServiceSecret
       Role: !GetAtt AhiaListingPaymentEventRole.Arn

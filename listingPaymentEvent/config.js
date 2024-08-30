@@ -15,7 +15,6 @@ const Config = {
   LISTING: {
     PAYMENT_EVENT_SENTRY_DSN:
       process.env.LISTING_PAYMENT_EVENT_SENTRY_DSN || "",
-    NOTIFICATION_EMAIL: process.env.LISTING_NOTIFICATION_EMAIL || "",
     SERVICE: {
       NAME: process.env.LISTING_SERVICE_NAME,
       SECRET: process.env.LISTING_SERVICE_SECRET,
