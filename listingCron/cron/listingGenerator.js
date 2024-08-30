@@ -1,5 +1,5 @@
 // const timezone = require("moment-timezone");
-const Listing = require("../src/model/listingModel");
+const Listing = require("../src/model/listing");
 
 const ListingGenerator = async function* () {
   const limit = 100;

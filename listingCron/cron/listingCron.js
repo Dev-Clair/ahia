@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Cache = require("../src/service/cache");
-const Listing = require("../src/model/listingModel");
+const Listing = require("../src/model/listing");
 const ListingGenerator = require("./listingGenerator");
 const Retry = require("../src/utils/retry");
 

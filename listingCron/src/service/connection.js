@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const ConnectionError = require("../error/connectionError");
+const ConnectionError = require("../error/connection");
 const Retry = require("../utils/retry");
 
 /**

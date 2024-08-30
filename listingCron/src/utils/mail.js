@@ -1,5 +1,5 @@
 const Mailer = require("../service/mailer");
-const MailerError = require("../service/mailer");
+const MailerError = require("../error/mailer");
 const Retry = require("./retry");
 
 const Mail = async (sender, recipient, subject, text) => {
