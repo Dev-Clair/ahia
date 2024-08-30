@@ -1,11 +1,11 @@
 const Mailer = require("../service/mailer");
-const MailerError = require("../error/mailerError");
+const MailerError = require("../error/mailer");
 const Retry = require("./retry");
 
 const Mail = async (sender, recipient, subject, text) => {
   try {
     await Retry.LinearJitterBackoff(() =>
-      Mailer(sender, recipient, subject, text)
+      Mailer.Create().SendMail(sender, recipient, subject, text)
     );
   } catch (err) {
     if (
