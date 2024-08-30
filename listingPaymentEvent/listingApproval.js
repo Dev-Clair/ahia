@@ -6,23 +6,23 @@ const Listing = require("./src/model/listing");
 const Secret = require("./src/utils/secret");
 
 export const listingApproval = async (event) => {
-  const { serviceName, serviceSecret, payload } = event.detail;
+  // const { serviceName, serviceSecret, payload } = event.detail;
 
-  let listingData;
+  // let listingData;
 
-  if (serviceName === Config.LISTING.SERVICE.NAME)
-    listingData = (await Secret.Verify(
-      serviceSecret,
-      Config.LISTING.SERVICE.SECRET,
-      Config.APP_SECRET
-    ))
-      ? JSON.parse(payload)
-      : null;
+  // if (serviceName === Config.LISTING.SERVICE.NAME)
+  //   listingData = (await Secret.Verify(
+  //     serviceSecret,
+  //     Config.LISTING.SERVICE.SECRET,
+  //     Config.APP_SECRET
+  //   ))
+  //     ? JSON.parse(payload)
+  //     : null;
 
-  if (listingData === null)
-    throw new Error(
-      `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
-    );
+  // if (listingData === null)
+  //   throw new Error(
+  //     `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
+  //   );
 
   const { id, provider, paymentReference } = listingData;
 
@@ -33,7 +33,7 @@ export const listingApproval = async (event) => {
 
   const session = await mongoose.startSession();
 
-  const approveStatus = await session.withTransaction(async () => {
+  const approveListingStatus = await session.withTransaction(async () => {
     const listing = await Listing.findByIdAndUpdate(
       { _id: id },
       { $set: { status: { approved: true } } },
@@ -45,5 +45,5 @@ export const listingApproval = async (event) => {
     await Idempotent.Ensure(paymentReference, session);
   });
 
-  await Retry.ExponentialJitterBackoff(() => approveStatus);
+  await Retry.ExponentialJitterBackoff(() => approveListingStatus);
 };
