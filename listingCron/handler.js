@@ -1,60 +1,56 @@
 const Config = require("./config");
 const Connection = require("./src/service/connection");
-const ConnectionError = require("./src/error/connectionError");
-const Mail = require("./mail");
-const MailerError = require("./src/error/mailerError");
 const ListingCron = require("./cron/listingCron");
+const Sentry = require("@sentry/aws-serverless");
 
-const sender = Config.LISTING.NOTIFICATION_EMAIL;
+Sentry.init({
+  dsn: Config.LISTING.CRON_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  environment: Config.NODE_ENV,
+});
 
-const recipient = [Config.LISTING.ADMIN_EMAIL];
+exports.listingCron = Sentry.wrapHandler(async (event, context) => {
+  console.log(`Ahia Listing Cron Lambda: ${new Date().now().toUTCString()}`);
 
-exports.cron = async (event, context) => {
   try {
-    await Connection(Config.MONGO_URI);
+    await Connection.Create(Config.MONGO_URI).getConnection();
 
-    const cronLog = await ListingCron();
-
-    if (cronLog.status === false) {
-      await Mail(
-        sender,
-        recipient,
-        "LISTING EXPIRY CRON LOG",
-        JSON.stringify(cronLog)
-      );
-    }
+    await ListingCron();
   } catch (err) {
-    if (err instanceof ConnectionError) {
-      await Mail(
-        sender,
-        recipient,
-        err.name.toUpperCase(),
-        JSON.stringify({
-          name: err.name,
-          message: err.message,
-          description: err.description,
-        })
-      );
-    }
+    Sentry.withScope((scope) => {
+      scope.setTag("Error", "Ahia Listing Cron");
 
-    if (err instanceof MailerError) {
-      console.log(err.name, err.message);
+      scope.setContext("Lambda", {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+      });
 
-      process.kill(process.pid, SIGTERM);
-    }
+      Sentry.captureException(err);
+    });
   }
-};
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception thrown:", error);
+  process
+    .on("uncaughtException", (error) => {
+      console.error("Uncaught Exception thrown:", error);
 
-  process.exitCode = 1;
+      Sentry.captureMessage(`Uncaught Exception thrown: ${error}`);
+
+      process.exitCode = 1;
+    })
+    .on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Rejection at:", promise, "reason:", reason);
+
+      Sentry.captureMessage(
+        `Unhandled Rejection at: ${promise}, reason: ${reason}`
+      );
+
+      process.exitCode = 1;
+    });
+
+  mongoose.connection
+    .on("connecting", () => console.info(`Attempting connection to database`))
+    .on("connected", () => console.info(`Database connection successful`))
+    .on("disconnected", () => console.info(`Database connection failure`))
+    .on("reconnected", () => console.info(`Database reconnection successful`));
 });
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-
-  process.exitCode = 1;
-});
-
-process.on("SIGTERM", () => (process.exitCode = 1));

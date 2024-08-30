@@ -9,6 +9,8 @@ class MailerError extends Error {
     this.name = "MAILER ERROR";
 
     this.description = description;
+
+    Error.captureStackTrace(this);
   }
 }
 

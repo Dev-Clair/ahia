@@ -2,9 +2,9 @@
 const Listing = require("../src/model/listingModel");
 
 const ListingGenerator = async function* () {
-  const pageSize = 100;
+  const limit = 100;
 
-  let pageNumber = 0;
+  let skip = 0;
 
   let iterationCount = 0;
 
@@ -17,8 +17,8 @@ const ListingGenerator = async function* () {
         expiry: { $lte: new Date() },
       },
     })
-      .skip(pageNumber * pageSize)
-      .limit(pageSize);
+      .skip(skip * limit)
+      .limit(limit);
 
     if (listings.length === 0 || !listings) {
       console.log("No listings are unapproved at the moment");
@@ -28,27 +28,18 @@ const ListingGenerator = async function* () {
     const now = new Date().getTime();
 
     for (const listing of listings) {
-      const { _id, name, provider, status } = listing;
-
-      const expiry = new Date(status.expiry).getTime();
+      const expiry = new Date(listing.status.expiry).getTime();
 
       const diff = expiry - now;
 
-      if (diff > 0) {
-        yield {
-          id: _id,
-          name,
-          provider,
-          status,
-        };
-      }
+      if (diff > 0) yield listing;
     }
 
     totalRetrieved += listings.length;
 
     iterationCount++;
 
-    pageNumber++;
+    skip++;
 
     console.log(`Retrieved ${totalRetrieved} listings on ${iterationCount}`);
   }
