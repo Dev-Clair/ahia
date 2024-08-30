@@ -39,4 +39,4 @@ class Idempotent {
   }
 }
 
-export default IdempotencyManager;
+export default Idempotent;

@@ -30,4 +30,4 @@ class Secret {
   }
 }
 
-export default SecretManager;
+export default Secret;
