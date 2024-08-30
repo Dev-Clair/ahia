@@ -1,106 +1,59 @@
 const mongoose = require("mongoose");
 const Config = require("./config");
 const Connection = require("./connection");
-const ConnectionError = require("./src/error/connectionError");
-const Listing = require("./src/model/listingModel");
-const Mail = require("./src/utils/mail");
-const MailerError = require("./src/error/mailerError");
-const Retry = require("./src/utils/retry");
-const VerifySecret = require("./src/utils/verifySecret");
+const ListingApproval = require("./listingApproval");
+const Sentry = require("@sentry/aws-serverless");
 
-const sender = Config.LISTING.NOTIFICATION_EMAIL;
+Sentry.init({
+  dsn: Config.LISTING.PAYMENT_EVENT_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  environment: Config.NODE_ENV,
+});
 
-const recipient = [Config.LISTING.ADMIN_EMAIL];
+exports.listingPayment = Sentry.wrapHandler(async (event, context) => {
+  console.log(
+    `Ahia Listing Payment Event Lambda: ${new Date().now().toUTCString()}`
+  );
 
-exports.listing = async (event, context) => {
   try {
-    const { serviceName, serviceSecret, payload } = event.detail;
+    await Connection.Create(Config.MONGO_URI).getConnection();
 
-    let listingData;
-
-    if (serviceName === Config.LISTING.SERVICE.NAME)
-      listingData = (await VerifySecret(
-        serviceSecret,
-        Config.LISTING.SERVICE.SECRET,
-        Config.APP_SECRET
-      ))
-        ? JSON.parse(payload)
-        : null;
-
-    if (listingData === null)
-      throw new Error(
-        `Invalid service name: ${serviceName} and secret: ${serviceSecret}`
-      );
-
-    await Connection(Config.MONGO_URI);
-
-    const { id, name, email } = listingData;
-
-    const session = await mongoose.startSession();
-
-    const approveStatus = await session.withTransaction(async () => {
-      const listing = await Listing.findByIdAndUpdate(
-        { _id: id },
-        { $set: { status: { approved: true } } },
-        { new: true, session }
-      );
-
-      if (!listing) throw new Error(`No record found for listing ${id}`);
-    });
-
-    await Retry.ExponentialJitterBackoff(() => approveStatus);
-
-    await Mail(
-      sender,
-      [email],
-      "LISTING APPROVAL",
-      `Your listing ${name.toUpperCase()} has been approved for listing. Kindly proceed to add attachments and create promotions for your listing.`
-    );
+    await ListingApproval(event);
   } catch (err) {
-    if (err instanceof ConnectionError) {
-      await Mail(
-        sender,
-        recipient,
-        err.name.toUpperCase(),
-        JSON.stringify({
-          name: err.name,
-          message: err.message,
-          description: err.description,
-        })
-      );
-    }
+    Sentry.withScope((scope) => {
+      scope.setTag("Error", "Ahia Listing Payment Event");
 
-    if (err instanceof MailerError) {
-      console.error(err.name, err.message);
-
-      process.kill(process.pid, SIGTERM);
-    }
-
-    await Mail(
-      sender,
-      recipient,
-      "EVENT: LISTING STATUS UPDATE ERROR",
-      JSON.stringify({
+      scope.setContext("Lambda", {
         name: err.name,
         message: err.message,
-        payload: listingData,
-      })
-    );
+        stack: err.stack,
+      });
 
-    console.error(err);
+      Sentry.captureException(err);
+    });
   }
-};
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception thrown:", error);
+  process
+    .on("uncaughtException", (error) => {
+      console.error("Uncaught Exception thrown:", error);
 
-  process.exitCode = 1;
+      Sentry.captureMessage(`Uncaught Exception thrown: ${error}`);
+
+      process.exitCode = 1;
+    })
+    .on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Rejection at:", promise, "reason:", reason);
+
+      Sentry.captureMessage(
+        `Unhandled Rejection at: ${promise}, reason: ${reason}`
+      );
+
+      process.exitCode = 1;
+    });
+
+  mongoose.connection
+    .on("connecting", () => console.info(`Attempting connection to database`))
+    .on("connected", () => console.info(`Database connection successful`))
+    .on("disconnected", () => console.info(`Database connection failure`))
+    .on("reconnected", () => console.info(`Database reconnection successful`));
 });
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-
-  process.exitCode = 1;
-});
-
-process.on("SIGTERM", () => (process.exitCode = 1));
