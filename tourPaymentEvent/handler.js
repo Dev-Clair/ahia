@@ -1,6 +1,7 @@
 const Config = require("./config");
 const Connection = require("./src/service/connection");
 const { CreateTour } = require("./createTour");
+const Sentry = require("@sentry/aws-serverless");
 
 Sentry.init({
   dsn: Config.TOUR.PAYMENT_EVENT_SENTRY_DSN,
