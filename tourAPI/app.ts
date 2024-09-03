@@ -23,7 +23,7 @@ App.use(hpp());
 
 App.use(express_mongo_sanitize());
 
-App.use("/api", TourRouter);
+App.use("/api/v1/tours", TourRouter);
 
 App.use(
   (err: APIError | Error, req: Request, res: Response, next: NextFunction) => {
