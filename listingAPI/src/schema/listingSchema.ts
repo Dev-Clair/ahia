@@ -18,13 +18,13 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
       required: true,
       unique: true,
     },
-    cost: {
+    price: {
       type: Number,
       required: true,
     },
     purpose: {
       type: String,
-      enum: ["lease", "sell"],
+      enum: ["lease", "sell", "joint-venture"],
       required: true,
     },
     type: {
