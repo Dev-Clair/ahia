@@ -62,7 +62,7 @@ export class QueryBuilder<T> {
    * Handles query filtering
    * @returns this
    */
-  public Filter(): this {
+  public Filter(rangeFields: string[] = []): this {
     const queryObject = { ...this.queryString };
 
     const excludedFields = ["page", "sort", "limit", "fields"];
@@ -84,12 +84,43 @@ export class QueryBuilder<T> {
   }
 
   /**
+   * Handles advanced query filtering i.e range filters
+   * @returns this
+   */
+  private FilterRangeHandler(
+    queryObject: QueryString,
+    rangeFields: string[]
+  ): object {
+    if (rangeFields.length === 0) return queryObject;
+
+    rangeFields.forEach((field) => {
+      const minField = `min${field.charAt(0).toUpperCase() + field.slice(1)}`;
+
+      const maxField = `max${field.charAt(0).toUpperCase() + field.slice(1)}`;
+
+      if (queryObject[minField] || queryObject[maxField]) {
+        queryObject[field] = {
+          ...(queryObject[minField] && { $gte: queryObject[minField] }),
+          ...(queryObject[maxField] && { $lte: queryObject[maxField] }),
+        };
+
+        delete queryObject[minField];
+        delete queryObject[maxField];
+      }
+    });
+
+    return queryObject;
+  }
+
+  /**
    * Handles geospatial queries: Near Query
    * @returns this
    */
   public GeoNear(): this {
     if (this.queryString.lnglat) {
-      const lng = parseFloat(this.queryString.lng as string);
+      const lng = parseFloat(
+        (this.queryString.lng as string) ?? (this.queryString.long as string)
+      );
 
       const lat = parseFloat(this.queryString.lat as string);
 
@@ -167,11 +198,13 @@ export class QueryBuilder<T> {
    * Handles query projection
    * @returns this
    */
-  public Select(selection: string[] = [""]): this {
+  public Select(specifiedFields: string[] = []): this {
+    const defaultFields = ["-__v", "-createdAt", "-updatedAt"];
+
     const fields = [
       this.queryString.fields,
-      ...selection,
-      "-__v -createdAt -updatedAt",
+      ...specifiedFields,
+      ...defaultFields,
     ].join(" ");
 
     this.query = this.query.select(fields);
