@@ -1,7 +1,6 @@
 import http from "node:http";
 import https from "node:https";
 import { Express } from "express";
-import Logger from "../service/loggerService";
 
 /**
  * Http Server
@@ -34,14 +33,17 @@ class HttpServer {
     return new Promise((resolve, reject) => {
       this.httpServer = http.createServer(this.app).listen(HTTP_PORT);
 
-      this.httpServer.on("listening", (listening: http.Server) => {
-        Logger.info(`Listening on http port ${HTTP_PORT}`);
-
-        resolve(this.httpServer);
-      });
+      this.httpServer.on("listening", (listening: http.Server) =>
+        resolve(this.httpsServer)
+      );
 
       this.httpServer.on("error", (err) => {
-        Logger.error(`Http Server Error:\n${err.message}`);
+        if (err.name === "EADDRINUSE") {
+          this.httpServer?.close();
+
+          this.httpServer?.listen(HTTP_PORT);
+        }
+
         reject(err);
       });
     });
@@ -58,14 +60,17 @@ class HttpServer {
         .createServer(this.sslOptions, this.app)
         .listen(HTTPS_PORT);
 
-      this.httpsServer.on("listening", (listening: https.Server) => {
-        Logger.info(`Listening on https port ${HTTPS_PORT}`);
-
-        resolve(this.httpsServer);
-      });
+      this.httpsServer.on("listening", (listening: https.Server) =>
+        resolve(this.httpsServer)
+      );
 
       this.httpsServer.on("error", (err) => {
-        Logger.error(`Https Server Error:\n${err.message}`);
+        if (err.name === "EADDRINUSE") {
+          this.httpsServer?.close();
+
+          this.httpsServer?.listen(HTTPS_PORT);
+        }
+
         reject(err);
       });
     });
@@ -75,21 +80,11 @@ class HttpServer {
    * Stops the http(s) server from accepting new connections
    */
   public Close(): void {
-    if (this.httpServer) {
-      this.httpServer.close(() => {
-        Logger.info("HTTP Server Closed");
-      });
-    }
-
-    if (this.httpsServer) {
-      this.httpsServer.close(() => {
-        Logger.info("HTTPS Server Closed");
-      });
-    }
+    this.httpServer?.close() ?? this.httpsServer?.close();
   }
 
   /**
-   * Returns a new instance of HttpServer
+   * Returns a new instance of the HttpServer class
    * @param App
    * @param SSL_Options
    * @returns HttpServer

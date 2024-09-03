@@ -10,9 +10,9 @@ class GlobalErrorHandlingMiddleware {
     );
 
     Sentry.withScope((scope) => {
-      scope.setTag("APIError", "Untrusted");
+      scope.setTag("Error", "Tour API");
 
-      scope.setContext("details", {
+      scope.setContext("API", {
         name: err.name,
         message: err.message,
         stack: err.stack,
