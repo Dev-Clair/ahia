@@ -70,19 +70,25 @@ Authorization and authentication is enabled by an identity server which manages 
     GET /api/v1/listings/search
     ```
 
-    1.4 Retrieve a Listing by ID
+    1.4 Retrieve a Listing by Slug
+
+    ```
+    GET /api/v1/listings/:slug
+    ```
+
+    1.5 Retrieve a Listing by ID
 
     ```
     GET /api/v1/listings/:id
     ```
 
-    1.5 Update a Listing by ID
+    1.6 Update a Listing by ID
 
     ```
     PATCH /api/v1/listings/:id
     ```
 
-    1.6 Deletes a Listing by ID
+    1.7 Deletes a Listing by ID
 
     ```
     DELETE /api/v1/listings/:id
