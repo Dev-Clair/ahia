@@ -15,7 +15,7 @@ const ListingSchema = new Schema(
       required: true,
       unique: true,
     },
-    cost: {
+    price: {
       type: Number,
       required: true,
     },
