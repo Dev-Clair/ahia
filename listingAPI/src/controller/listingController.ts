@@ -1,18 +1,18 @@
 import mongoose from "mongoose";
-import AsyncWrapper from "../../utils/asyncWrapper";
-import BadRequestError from "../../error/badrequestError";
-import Config from "../../../config";
-import ConflictError from "../../error/conflictError";
-import ForbiddenError from "../../error/forbiddenError";
-import HttpCode from "../../enum/httpCode";
-import IdempotencyManager from "../../utils/idempotencyManager";
-import Listing from "../../model/listingModel";
+import AsyncWrapper from "../utils/asyncWrapper";
+import BadRequestError from "../error/badrequestError";
+import Config from "../../config";
+import ConflictError from "../error/conflictError";
+import ForbiddenError from "../error/forbiddenError";
+import HttpCode from "../enum/httpCode";
+import IdempotencyManager from "../utils/idempotencyManager";
+import Listing from "../model/listingModel";
 import { NextFunction, Request, Response } from "express";
-import NotFoundError from "../../error/notfoundError";
-import PaymentRequiredError from "../../error/paymentrequiredError";
-import { QueryBuilder } from "../../utils/queryBuilder";
-import Retry from "../../utils/failureRetry";
-import SecretManager from "../../utils/secretManager";
+import NotFoundError from "../error/notfoundError";
+import PaymentRequiredError from "../error/paymentrequiredError";
+import { QueryBuilder } from "../utils/queryBuilder";
+import Retry from "../utils/failureRetry";
+import SecretManager from "../utils/secretManager";
 
 /**
  * Creates a new listing resource in collection
@@ -269,23 +269,45 @@ const getListingsbyCategory = async (
 };
 
 /**
- * Retrieves a listing resource from collection
+ * Retrieves a listing resource from collection by its slug
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const getListing = async (
+const getListingBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  const slug = req.params.slug as string;
+
+  const queryString = { slug: slug };
+
+  const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
+
+  const listing = await queryBuilder.Select(["-status -provider.email"]).Exec();
+
+  if (!listing) throw new NotFoundError(`No record found for listing: ${slug}`);
+
+  return res.status(HttpCode.OK).json({ data: listing });
+};
+
+/**
+ * Retrieves a listing resource from collection by its id
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const getListingById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   const id = req.params.id as string;
 
-  const queryString = {
-    _id: id,
-    status: { approved: true },
-  };
+  const queryString = { _id: id };
 
   const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
@@ -297,7 +319,7 @@ const getListing = async (
 };
 
 /**
- * Modifies a listing resource in collection
+ * Finds and modifies a listing resource in collection using its id
  * @param req
  * @param res
  * @param next
@@ -336,7 +358,7 @@ const updateListing = async (
 };
 
 /**
- * Removes a listing resource from collection
+ * Finds and removes a listing resource from collection using its id
  * @param req
  * @param res
  * @param next
@@ -379,15 +401,15 @@ const checkoutListing = async (
   if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
   if (!listing.status.approved) {
-    res.setHeader("service-name", Config.LISTING.SERVICE.NAME);
+    // res.setHeader("service-name", Config.LISTING.SERVICE.NAME);
 
-    res.setHeader(
-      "service-secret",
-      await SecretManager.HashSecret(
-        Config.LISTING.SERVICE.SECRET,
-        Config.APP_SECRET
-      )
-    );
+    // res.setHeader(
+    //   "service-secret",
+    //   await SecretManager.HashSecret(
+    //     Config.LISTING.SERVICE.SECRET,
+    //     Config.APP_SECRET
+    //   )
+    // );
 
     res.setHeader(
       "payload",
@@ -530,10 +552,18 @@ const retrieveListingsByCategory = AsyncWrapper.Catch(
 );
 
 /**
+ * Retrieve a listing item using its :slug
+ */
+const retrieveListingItemBySlug = AsyncWrapper.Catch(
+  getListingBySlug,
+  Retry.LinearJitterBackoff
+);
+
+/**
  * Retrieve a listing item using its :id
  */
-const retrieveListingItem = AsyncWrapper.Catch(
-  getListing,
+const retrieveListingItemById = AsyncWrapper.Catch(
+  getListingById,
   Retry.LinearJitterBackoff
 );
 
@@ -582,7 +612,8 @@ export default {
   retrieveListingsByProvider,
   retrieveListingsByType,
   retrieveListingsByCategory,
-  retrieveListingItem,
+  retrieveListingItemBySlug,
+  retrieveListingItemById,
   updateListingItem,
   deleteListingItem,
   checkoutListingItem,

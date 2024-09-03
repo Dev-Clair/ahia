@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import HttpCode from "../../enum/httpCode";
-import HttpStatus from "../../enum/httpStatus";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
 /**
  * Verifies request security

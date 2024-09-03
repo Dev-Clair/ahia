@@ -4,8 +4,8 @@ export default interface ListingInterface extends Document {
   name: string;
   description: string;
   slug: string;
-  cost: number;
-  purpose: "lease" | "sell";
+  price: number;
+  purpose: "lease" | "sell" | "joint-venture";
   type: "on-going" | "now-selling";
   category: "economy" | "premium" | "luxury";
   use: {
