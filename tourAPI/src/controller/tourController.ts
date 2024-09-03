@@ -1,20 +1,20 @@
 import mongoose from "mongoose";
-import AsyncWrapper from "../../utils/asyncWrapper";
-import BadRequestError from "../../error/badrequestError";
-import Config from "../../../config";
-import ConflictError from "../../error/conflictError";
-import FailureRetry from "../../utils/failureRetry";
-import HttpClient from "../../utils/httpClient";
-import HttpCode from "../../enum/httpCode";
-import IdempotencyManager from "../../utils/idempotencyManager";
-import InternalServerError from "../../error/internalserverError";
+import AsyncWrapper from "../utils/asyncWrapper";
+import BadRequestError from "../error/badrequestError";
+import Config from "../../config";
+import ConflictError from "../error/conflictError";
+import FailureRetry from "../utils/failureRetry";
+import HttpClient from "../utils/httpClient";
+import HttpCode from "../enum/httpCode";
+import IdempotencyManager from "../utils/idempotencyManager";
+import InternalServerError from "../error/internalserverError";
 import { NextFunction, Request, Response } from "express";
-import NotFoundError from "../../error/notfoundError";
-import { QueryBuilder } from "../../utils/queryBuilder";
-import RealtorCache from "../../model/realtorCache";
-import ScheduleCache from "../../model/scheduleCache";
-import SecretManager from "../../utils/secretManager";
-import Tour from "../../model/tour";
+import NotFoundError from "../error/notfoundError";
+import { QueryBuilder } from "../utils/queryBuilder";
+import RealtorCache from "../model/realtorCache";
+import ScheduleCache from "../model/scheduleCache";
+import SecretManager from "../utils/secretManager";
+import Tour from "../model/tour";
 
 /**
  * Creates a new tour resource in collection
