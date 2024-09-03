@@ -1,6 +1,6 @@
 import InitializeSentry from "./sentry";
 import {
-  Bootstrap,
+  Boot,
   DatabaseEventsListener,
   GlobalProcessEventsListener,
 } from "./bootstrap";
@@ -15,5 +15,5 @@ GlobalProcessEventsListener();
 // Database Connection Events Listener
 DatabaseEventsListener();
 
-// Bootstrap Application
-Bootstrap(Server);
+// Start Application
+Boot(Server);

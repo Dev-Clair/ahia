@@ -1,9 +1,7 @@
 import process from "node:process";
 import dotenv from "dotenv";
 
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
+dotenv.config({ encoding: "utf8" });
 
 const Config = {
   APP_SECRET: process.env.APP_SECRET || "",
@@ -20,9 +18,8 @@ const Config = {
     },
     S3_BUCKET: {
       NAME: process.env.AWS_S3_BUCKET_NAME || "",
-      KEY: process.env.AWS_S3_BUCKET_KEY || "",
     },
-    REGION: process.env.AWS_REGION || "af-south-1",
+    REGION: process.env.AWS_REGION || "",
   },
   GOOGLE_MAP_API: {
     GEOCODE_URL: process.env.GOOGLE_MAP_API_GEOCODE_URL,
@@ -38,8 +35,7 @@ const Config = {
   },
   MONGO_URI: process.env.MONGO_URI || "",
   NODE_ENV: process.env.NODE_ENV || "test",
-  PAYMENT_SERVICE_URL:
-    process.env.PAYMENT_SERVICE_URL || "127.0.0.1:6999/api/v1/payments",
+  PAYMENT_SERVICE_URL: process.env.PAYMENT_SERVICE_URL || "",
   PORT: {
     HTTP: process.env.HTTP_PORT || 4999,
     HTTPS: process.env.HTTPS_PORT || 5000,

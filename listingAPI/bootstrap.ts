@@ -12,17 +12,24 @@ import Logger from "./src/service/loggerService";
  * Bootstraps the entire application
  * @returns Promise<void>
  */
-export async function Bootstrap(Server: HttpServer): Promise<void> {
+export async function Boot(Server: HttpServer): Promise<void> {
   try {
     // Start and initialize server on http(s) port
     if (Config.NODE_ENV !== "production") {
-      await Server.StartHTTP(Config.PORT.HTTP).catch((reason: any) => {
-        throw new HttpServerError(reason, "HTTP Server Initialization Error");
-      });
+      await Server.StartHTTP(Config.PORT.HTTP)
+        .then(() => Logger.info(`Listening on http port ${Config.PORT.HTTP}`))
+        .catch((reason: any) => {
+          throw new HttpServerError(reason, "HTTP Server Initialization Error");
+        });
     } else {
-      await Server.StartHTTPS(Config.PORT.HTTPS).catch((reason: any) => {
-        throw new HttpServerError(reason, "HTTPS Server Initialization Error");
-      });
+      await Server.StartHTTPS(Config.PORT.HTTPS)
+        .then(() => Logger.info(`Listening on https port ${Config.PORT.HTTPS}`))
+        .catch((reason: any) => {
+          throw new HttpServerError(
+            reason,
+            "HTTPS Server Initialization Error"
+          );
+        });
     }
 
     // Create and initialize database with connection string
@@ -158,16 +165,16 @@ export function UnCaughtExceptionsHandler(error: any): void {
 /**
  * Handles graceful shutdown
  * @param server
- * @returns void
+ * @returns Promise<void>
  */
-export function ShutdownHandler(Server?: HttpServer): void {
+export async function ShutdownHandler(Server?: HttpServer): Promise<void> {
   Logger.info("Shutting down gracefully...");
 
-  mongoose.connection.close(true);
+  await mongoose.connection.close(true);
 
-  Server?.Close();
+  await Server?.Close();
 
-  Sentry.close();
+  await Sentry.close();
 
   process.exitCode = 1;
 }
