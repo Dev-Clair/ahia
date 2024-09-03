@@ -19,7 +19,7 @@ const BodySchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  cost: z.number({
+  price: z.number({
     required_error: "cost is required",
     invalid_type_error: "cost cannot be a negative number",
   }),
