@@ -7,7 +7,7 @@ import APIError from "./src/error/apiError";
 import GlobalErrorHandler from "./src/middleware/globalErrorHandlingMiddleware.ts";
 import HttpCode from "./src/enum/httpCode";
 import HttpStatus from "./src/enum/httpStatus";
-import ListingRouter from "./src/router";
+import ListingRouter from "./src/router/listingRouter";
 
 const App = express();
 
@@ -23,7 +23,7 @@ App.use(hpp());
 
 App.use(express_mongo_sanitize());
 
-App.use("/api", ListingRouter);
+App.use("/api/v1/listings", ListingRouter);
 
 App.use(
   (err: APIError | Error, req: Request, res: Response, next: NextFunction) => {
