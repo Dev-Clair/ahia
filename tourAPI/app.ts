@@ -7,7 +7,7 @@ import APIError from "./src/error/apiError";
 import GlobalErrorHandler from "./src/middleware/globalErrorHandlingMiddleware.ts";
 import HttpCode from "./src/enum/httpCode";
 import HttpStatus from "./src/enum/httpStatus";
-import TourRouter from "./src/router";
+import TourRouter from "./src/router/tourRouter";
 
 const App = express();
 
@@ -23,7 +23,7 @@ App.use(hpp());
 
 App.use(express_mongo_sanitize());
 
-App.use("/api", TourRouter);
+App.use("/api/v1/tours", TourRouter);
 
 App.use(
   (err: APIError | Error, req: Request, res: Response, next: NextFunction) => {

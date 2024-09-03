@@ -131,4 +131,6 @@ dist
 .pnp.*
 
 #ssl
-/ssl
+.ebextensions
+.env
+/ssl/*.pem

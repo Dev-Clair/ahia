@@ -12,17 +12,24 @@ import Logger from "./src/service/loggerService";
  * Bootstraps the entire application
  * @returns Promise<void>
  */
-export async function Bootstrap(Server: HttpServer): Promise<void> {
+export async function Boot(Server: HttpServer): Promise<void> {
   try {
     // Start and initialize server on http(s) port
     if (Config.NODE_ENV !== "production") {
-      await Server.StartHTTP(Config.PORT.HTTP).catch((reason: any) => {
-        throw new HttpServerError(reason, "HTTP Server Initialization Error");
-      });
+      await Server.StartHTTP(Config.PORT.HTTP)
+        .then(() => Logger.info(`Listening on http port ${Config.PORT.HTTP}`))
+        .catch((reason: any) => {
+          throw new HttpServerError(reason, "HTTP Server Initialization Error");
+        });
     } else {
-      await Server.StartHTTPS(Config.PORT.HTTPS).catch((reason: any) => {
-        throw new HttpServerError(reason, "HTTPS Server Initialization Error");
-      });
+      await Server.StartHTTPS(Config.PORT.HTTPS)
+        .then(() => Logger.info(`Listening on https port ${Config.PORT.HTTPS}`))
+        .catch((reason: any) => {
+          throw new HttpServerError(
+            reason,
+            "HTTPS Server Initialization Error"
+          );
+        });
     }
 
     // Create and initialize database with connection string

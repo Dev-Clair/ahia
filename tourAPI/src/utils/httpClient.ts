@@ -95,11 +95,7 @@ class HttpClient {
         });
       });
 
-      if (payload) {
-        req.setHeader("content-type", "application/json");
-
-        req.write(JSON.stringify(payload));
-      }
+      if (payload) req.write(JSON.stringify(payload));
 
       req.end();
     });
@@ -118,11 +114,16 @@ class HttpClient {
   ): Promise<HttpResponseInterface> {
     const headers = { ...this.httpHeaders };
 
-    if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH") {
+    if (
+      !headers["content-type"] ||
+      headers["content-type"] === "application/json"
+    )
+      Object.assign(headers, { "content-type": "application/json" });
+
+    if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH")
       Object.assign(headers, {
         "idempotency-key": await this.generateIdempotencyKey(),
       });
-    }
 
     const options = { ...this.httpOptions, method, headers };
 
@@ -173,7 +174,7 @@ class HttpClient {
   }
 
   /**
-   * Returns a new instance of HttpClient
+   * Returns a new instance of the HttpClient class
    * @param url
    * @param httpHeaders
    * @returns HttpClient
