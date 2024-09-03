@@ -167,11 +167,13 @@ export class QueryBuilder<T> {
    * Handles query projection
    * @returns this
    */
-  public Select(selection: string[] = [""]): this {
+  public Select(specifiedFields: string[] = []): this {
+    const defaultFields = ["-__v", "-createdAt", "-updatedAt"];
+
     const fields = [
       this.queryString.fields,
-      ...selection,
-      "-__v -createdAt -updatedAt",
+      ...specifiedFields,
+      defaultFields,
     ].join(" ");
 
     this.query = this.query.select(fields);
