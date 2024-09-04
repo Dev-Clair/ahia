@@ -24,7 +24,7 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
     },
     purpose: {
       type: String,
-      enum: ["lease", "sell", "joint-venture"],
+      enum: ["lease", "sell", "reservation"],
       required: true,
     },
     type: {

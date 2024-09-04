@@ -5,7 +5,7 @@ export default interface ListingInterface extends Document {
   description: string;
   slug: string;
   price: number;
-  purpose: "lease" | "sell" | "joint-venture";
+  purpose: "lease" | "sell" | "reservation";
   type: "on-going" | "now-selling";
   category: "economy" | "premium" | "luxury";
   use: {
