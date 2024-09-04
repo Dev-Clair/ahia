@@ -1,9 +1,7 @@
 import process from "node:process";
 import dotenv from "dotenv";
 
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
+dotenv.config();
 
 const Config = {
   APP_SECRET: process.env.APP_SECRET || "",
@@ -18,10 +16,7 @@ const Config = {
       ACCESS_KEY_ID: process.env.AWS_IAM_ACCESS_KEY_ID || "",
       SECRET_ACCESS_KEY: process.env.AWS_IAM_SECRET_ACCESS_KEY || "",
     },
-    S3_BUCKET: {
-      NAME: process.env.AWS_S3_BUCKET_NAME || "",
-      KEY: process.env.AWS_S3_BUCKET_KEY || "",
-    },
+    S3_BUCKET: process.env.AWS_S3_BUCKET_NAME || "",
     REGION: process.env.AWS_REGION || "af-south-1",
   },
   GOOGLE_MAP_API: {
@@ -32,10 +27,7 @@ const Config = {
   IAM_SERVICE_URL: process.env.IAM_SERVICE_URL || "127.0.0.1:3999/api/v1/iam",
   MONGO_URI: process.env.MONGO_URI || "",
   NODE_ENV: process.env.NODE_ENV || "test",
-  PORT: {
-    HTTP: process.env.HTTP_PORT || 5999,
-    HTTPS: process.env.HTTPS_PORT || 6000,
-  },
+  PORT: process.env.PORT || 6000,
   SSL: {
     KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
     CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",
