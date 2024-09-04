@@ -36,10 +36,7 @@ const Config = {
   MONGO_URI: process.env.MONGO_URI || "",
   NODE_ENV: process.env.NODE_ENV || "test",
   PAYMENT_SERVICE_URL: process.env.PAYMENT_SERVICE_URL || "",
-  PORT: {
-    HTTP: process.env.HTTP_PORT || 4999,
-    HTTPS: process.env.HTTPS_PORT || 5000,
-  },
+  PORT: process.env.PORT || 4999,
   SSL: {
     KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
     CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",

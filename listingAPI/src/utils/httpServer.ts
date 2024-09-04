@@ -1,5 +1,6 @@
 import http from "node:http";
 import https from "node:https";
+import Config from "../../config";
 import { Express } from "express";
 
 /**
@@ -25,62 +26,60 @@ class HttpServer {
   }
 
   /**
-   * Start http server listening for connections
-   * @param HTTP_PORT
+   * Start http(s) server listening for connections
+   * @param PORT
    * @returns Promise<unknown>
    */
-  public StartHTTP(HTTP_PORT: string | number): Promise<unknown> {
+  public Init(PORT: string | number): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      this.httpServer = http.createServer(this.app).listen(HTTP_PORT);
+      if (Config.NODE_ENV !== "production") {
+        this.httpServer = http.createServer(this.app).listen(PORT);
 
-      this.httpServer.on("listening", (listening: http.Server) =>
-        resolve(this.httpServer)
-      );
+        this.httpServer.on("listening", (listening: http.Server) =>
+          resolve(this.httpServer)
+        );
 
-      this.httpServer.on("error", (err) => {
-        if (err.name === "EADDRINUSE") {
-          this.httpServer?.close();
+        this.httpServer.on("error", (err) => {
+          if (err.name === "EADDRINUSE") {
+            this.httpServer?.close();
 
-          this.httpServer?.listen(HTTP_PORT);
-        }
+            this.httpServer?.listen(PORT);
+          }
 
-        reject(err);
-      });
-    });
-  }
+          reject(err);
+        });
+      } else {
+        this.httpsServer = https
+          .createServer(this.sslOptions, this.app)
+          .listen(PORT);
 
-  /**
-   * Starts https server listening for connections
-   * @param HTTPS_PORT
-   * @returns Promise<unknown>
-   */
-  public StartHTTPS(HTTPS_PORT: string | number): Promise<unknown> {
-    return new Promise((resolve, reject) => {
-      this.httpsServer = https
-        .createServer(this.sslOptions, this.app)
-        .listen(HTTPS_PORT);
+        this.httpsServer.on("listening", (listening: https.Server) =>
+          resolve(this.httpsServer)
+        );
 
-      this.httpsServer.on("listening", (listening: https.Server) =>
-        resolve(this.httpsServer)
-      );
+        this.httpsServer.on("error", (err) => {
+          if (err.name === "EADDRINUSE") {
+            this.httpsServer?.close();
 
-      this.httpsServer.on("error", (err) => {
-        if (err.name === "EADDRINUSE") {
-          this.httpsServer?.close();
+            this.httpsServer?.listen(PORT);
+          }
 
-          this.httpsServer?.listen(HTTPS_PORT);
-        }
-
-        reject(err);
-      });
+          reject(err);
+        });
+      }
     });
   }
 
   /**
    * Stops the http(s) server from accepting new connections
    */
-  public Close(): void {
-    this.httpServer?.close() ?? this.httpsServer?.close();
+  public Close(): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      resolve(this.httpServer?.close() ?? this.httpsServer?.close());
+
+      this.httpServer?.on("error", (err) => reject(err)) ??
+        this.httpsServer?.on("error", (err) => reject(err));
+    });
   }
 
   /**
