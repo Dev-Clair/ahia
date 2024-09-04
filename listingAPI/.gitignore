@@ -1,4 +1,0 @@
-.ebextensions
-.env
-node_modules
-/ssl/*.pem
