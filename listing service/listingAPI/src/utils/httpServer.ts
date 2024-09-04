@@ -13,13 +13,11 @@ import { Express } from "express";
 class HttpServer {
   private app: Express;
 
-  private sslOptions: object;
+  private sslOptions: object | null;
 
-  private httpServer: http.Server | null = null;
+  private server: http.Server | https.Server | null = null;
 
-  private httpsServer: https.Server | null = null;
-
-  constructor(App: Express, SSLOptions: object) {
+  constructor(App: Express, SSLOptions: object | null = null) {
     this.app = App;
 
     this.sslOptions = SSLOptions;
@@ -30,65 +28,55 @@ class HttpServer {
    * @param PORT
    * @returns Promise<unknown>
    */
-  public Init(PORT: string | number): Promise<unknown> {
+  public Init(PORT: string | number): Promise<http.Server | https.Server> {
     return new Promise((resolve, reject) => {
-      if (Config.NODE_ENV !== "production") {
-        this.httpServer = http.createServer(this.app).listen(PORT);
+      const isProduction = Config.NODE_ENV === "production";
 
-        this.httpServer.on("listening", (listening: http.Server) =>
-          resolve(this.httpServer)
-        );
+      this.server = isProduction
+        ? https.createServer(this.sslOptions!, this.app)
+        : http.createServer(this.app);
 
-        this.httpServer.on("error", (err) => {
-          if (err.name === "EADDRINUSE") {
-            this.httpServer?.close();
+      this.server.listen(PORT);
 
-            this.httpServer?.listen(PORT);
-          }
+      this.server.on("listening", () => resolve(this.server!));
 
+      this.server.on("error", (err) => {
+        if (err.name === "EADDRINUSE") {
+          this.server?.close(() => {
+            this.server?.listen(PORT);
+          });
+        } else {
           reject(err);
-        });
-      } else {
-        this.httpsServer = https
-          .createServer(this.sslOptions, this.app)
-          .listen(PORT);
-
-        this.httpsServer.on("listening", (listening: https.Server) =>
-          resolve(this.httpsServer)
-        );
-
-        this.httpsServer.on("error", (err) => {
-          if (err.name === "EADDRINUSE") {
-            this.httpsServer?.close();
-
-            this.httpsServer?.listen(PORT);
-          }
-
-          reject(err);
-        });
-      }
+        }
+      });
     });
   }
 
   /**
    * Stops the http(s) server from accepting new connections
    */
-  public Close(): Promise<unknown> {
+  public Close(): Promise<void> {
     return new Promise((resolve, reject) => {
-      resolve(this.httpServer?.close() ?? this.httpsServer?.close());
-
-      this.httpServer?.on("error", (err) => reject(err)) ??
-        this.httpsServer?.on("error", (err) => reject(err));
+      if (this.server) {
+        this.server.close((err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      } else {
+        resolve();
+      }
     });
   }
-
   /**
    * Returns a new instance of the HttpServer class
    * @param App
    * @param SSL_Options
    * @returns HttpServer
    */
-  static Create(App: Express, SSL_Options: object): HttpServer {
+  static Create(App: Express, SSL_Options: object | null = null): HttpServer {
     return new HttpServer(App, SSL_Options);
   }
 }
