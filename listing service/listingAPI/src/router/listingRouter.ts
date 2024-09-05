@@ -51,16 +51,16 @@ ListingRouter.route("/:id/checkout").get(
   ListingController.checkoutListingItem
 );
 
-ListingRouter.route("/:id/status/approve").patch(
+ListingRouter.route("/:id/status").patch(
   AuthMiddleWare.IsGranted(["Admin"]),
   ValidationMiddleware.validateID,
-  ListingController.approveListingItem
+  ListingController.changeListingItemStatus
 );
 
-ListingRouter.route("/:id/status/verify").get(
+ListingRouter.route("/:id/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
   ValidationMiddleware.validateID,
-  ListingController.verifyListingItemApproval
+  ListingController.verifyListingItemStatus
 );
 
 export default ListingRouter;

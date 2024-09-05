@@ -6,7 +6,6 @@ const baseStoragePath = `https://s3.amazonaws.com/${Config.AWS.S3_BUCKET_NAME}`;
 
 const OfferingSchema: Schema<OfferingInterface> = new Schema({
   type: {
-    // "single-room-suite" | "mini-flat" | "2-bedroom-flat" | "3-bedroom-flat" | "duplex" | "semi-detached" | "short-lets" | "office" | "shop" | "beach-resort" | "event-halls" | "bare-land";
     type: String,
     required: true,
   },
@@ -17,7 +16,7 @@ const OfferingSchema: Schema<OfferingInterface> = new Schema({
   features: [
     {
       type: String,
-      required: false,
+      required: true,
     },
   ],
   status: {
@@ -27,13 +26,13 @@ const OfferingSchema: Schema<OfferingInterface> = new Schema({
   },
   media: {
     picture: {
-      type: String,
-      get: (value: string) => `${baseStoragePath}${value}`, // Review: Set min number of images that can exist for an offering
+      type: [String],
+      get: (value: string) => `${baseStoragePath}${value}`,
       required: false,
     },
     video: {
-      type: String,
-      get: (value: string) => `${baseStoragePath}${value}`, // Review: Set min number of videos that can exist for an offering
+      type: [String],
+      get: (value: string) => `${baseStoragePath}${value}`,
       required: false,
     },
   },

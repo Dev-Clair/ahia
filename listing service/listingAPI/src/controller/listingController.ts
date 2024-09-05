@@ -65,14 +65,14 @@ const getListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = { ...req.query, status: { approved: true } };
+  const queryString = { ...req.query, verify: { status: true } };
 
   const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .Filter()
     .Sort()
-    .Select(["-status -provider.email"])
+    .Select(["-verify -provider.email"])
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -109,7 +109,7 @@ const getListingsSearch = async (
 
   const listings = await queryBuilder
     .Sort()
-    .Select(["-status -provider.email"])
+    .Select(["-verify -provider.email"])
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -134,14 +134,14 @@ const getListingsNearme = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = { ...req.query, status: { approved: true } };
+  const queryString = { ...req.query, verify: { status: true } };
 
   const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .GeoNear()
     .Sort()
-    .Select(["-status -provider.email"])
+    .Select(["-verify -provider.email"])
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -172,7 +172,7 @@ const getListingsByProvider = async (
   const providerId = req.params.providerId as string;
 
   const queryString = {
-    status: { approved: true },
+    verify: { status: true },
     provider: { id: providerId },
   };
 
@@ -184,7 +184,7 @@ const getListingsByProvider = async (
 };
 
 /**
- * Retrieves collection of listings based on type : on-going | now-selling
+ * Retrieves collection of listings based on type : economy | premium | luxury
  * @param req
  * @param res
  * @param next
@@ -196,14 +196,8 @@ const getListingsByType = async (
   next: NextFunction
 ): Promise<Response | void> => {
   const type = req.params.type as string;
-
-  const AllowedTypes = ["on-going", "now-selling"];
-
-  if (!AllowedTypes.includes(type))
-    throw new ForbiddenError(`Invalid type option`);
-
   const queryString = {
-    status: { approved: true },
+    verify: { status: true },
     type: type,
   };
 
@@ -211,7 +205,7 @@ const getListingsByType = async (
 
   const listings = await queryBuilder
     .Sort()
-    .Select(["-status -provider.email"])
+    .Select(["-verify -provider.email"])
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -228,7 +222,7 @@ const getListingsByType = async (
 };
 
 /**
- * Retrieves collection of exclusive listing offerings based on category: economy | premium | luxury
+ * Retrieves collection of exclusive listing offerings based on category: residential | commercial | mixed
  * @param req
  * @param res
  * @param next
@@ -241,18 +235,13 @@ const getListingsbyCategory = async (
 ): Promise<Response | void> => {
   const category = req.params.category as string;
 
-  const AllowedCategories = ["economy", "premium", "luxury"];
-
-  if (!AllowedCategories.includes(category))
-    throw new ForbiddenError(`Invalid category option`);
-
-  const queryString = { status: { approved: true }, category: category };
+  const queryString = { verify: { status: true }, category: category };
 
   const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
   const listings = await queryBuilder
     .Sort()
-    .Select(["-status -provider.email"])
+    .Select(["-verify -provider.email"])
     .Paginate({
       protocol: req.protocol,
       host: req.get("host"),
@@ -286,7 +275,7 @@ const getListingBySlug = async (
 
   const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
-  const listing = await queryBuilder.Select(["-status -provider.email"]).Exec();
+  const listing = await queryBuilder.Select(["-verify -provider.email"]).Exec();
 
   if (!listing) throw new NotFoundError(`No record found for listing: ${slug}`);
 
@@ -311,7 +300,7 @@ const getListingById = async (
 
   const queryBuilder = QueryBuilder.Create(Listing.find(), queryString);
 
-  const listing = await queryBuilder.Select(["-status -provider.email"]).Exec();
+  const listing = await queryBuilder.Select(["-verify -provider.email"]).Exec();
 
   if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -400,7 +389,7 @@ const checkoutListing = async (
 
   if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  if (!listing.status.approved) {
+  if (!listing.verify.status) {
     // res.setHeader("service-name", Config.LISTING.SERVICE.NAME);
 
     // res.setHeader(
@@ -427,13 +416,13 @@ const checkoutListing = async (
 };
 
 /**
- * Approves a listing status
+ * Modifies a listing status
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const approveListing = async (
+const listingStatus = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -445,14 +434,14 @@ const approveListing = async (
 
   const id = req.params.id as string;
 
-  const { approval } = req.body;
+  const { status } = req.body;
 
   const session = await mongoose.startSession();
 
   await session.withTransaction(async () => {
     const listing = await Listing.findByIdAndUpdate(
       { _id: id },
-      { $set: { status: { approved: approval } } },
+      { $set: { verify: { status: status } } },
       { new: true, session }
     );
 
@@ -465,13 +454,13 @@ const approveListing = async (
 };
 
 /**
- * Verifies a listing approval status
+ * Verifies a listing status
  * @param req
  * @param res
  * @param next
  * @returns Promise<Response | void>
  */
-const verifyListingApproval = async (
+const verifyListingStatus = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -484,14 +473,14 @@ const verifyListingApproval = async (
 
   if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  if (!listing.status.approved) {
+  if (!listing.verify.status) {
     throw new PaymentRequiredError(
-      `${listing.name.toUpperCase()} has not been been approved for listing. Kindly pay the listing fee to approve this listing`
+      `${listing.name.toUpperCase()} has not been been verified for listing. Kindly pay the listing fee to approve this listing`
     );
   }
 
   return res.status(HttpCode.OK).json({
-    data: `${listing.name.toUpperCase()} has been been approved for listing. Kindly proceed to add attachments and create promotions for your listing`,
+    data: `${listing.name.toUpperCase()} has been been verified for listing. Kindly proceed to add attachments and create promotions for your listing`,
   });
 };
 
@@ -589,18 +578,18 @@ const deleteListingItem = AsyncWrapper.Catch(
 const checkoutListingItem = AsyncWrapper.Catch(checkoutListing);
 
 /**
- * Approves a listing item status
+ * Modifies a listing item status
  */
-const approveListingItem = AsyncWrapper.Catch(
-  approveListing,
+const changeListingItemStatus = AsyncWrapper.Catch(
+  listingStatus,
   Retry.LinearJitterBackoff
 );
 
 /**
- * Verifies a listing item approval status
+ * Verifies a listing item status
  */
-const verifyListingItemApproval = AsyncWrapper.Catch(
-  verifyListingApproval,
+const verifyListingItemStatus = AsyncWrapper.Catch(
+  verifyListingStatus,
   Retry.LinearJitterBackoff
 );
 
@@ -617,6 +606,6 @@ export default {
   updateListingItem,
   deleteListingItem,
   checkoutListingItem,
-  approveListingItem,
-  verifyListingItemApproval,
+  changeListingItemStatus,
+  verifyListingItemStatus,
 };

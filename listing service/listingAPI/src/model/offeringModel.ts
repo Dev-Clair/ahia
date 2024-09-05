@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
+import { model } from "mongoose";
 import OfferingSchema from "../schema/offeringSchema";
 import OfferingInterface from "../interface/offeringInterface";
 
-const Offering = mongoose.model<OfferingInterface>("Offering", OfferingSchema);
+const Offering = model<OfferingInterface>("Offering", OfferingSchema);
 
 export default Offering;
