@@ -1,18 +1,13 @@
-import { Document } from "mongoose";
+import { Document, Schema } from "mongoose";
 
 export default interface ListingInterface extends Document {
   name: string;
   description: string;
   slug: string;
-  price: number;
   purpose: "lease" | "sell" | "reservation";
-  type: "on-going" | "now-selling";
-  category: "economy" | "premium" | "luxury";
-  use: {
-    type: string;
-    category: "residential" | "commercial" | "mixed";
-  };
-  features: string[];
+  type: "economy" | "premium" | "luxury";
+  category: "residential" | "commercial" | "mixed";
+  offering: [Schema.Types.ObjectId];
   address: {
     street: string;
     zone: string;
@@ -27,12 +22,7 @@ export default interface ListingInterface extends Document {
     id: string;
     email: string;
   };
-  media: {
-    image: string;
-    video: string;
-  };
   status: {
-    id: string;
     approved: boolean;
     expiry: Date;
   };

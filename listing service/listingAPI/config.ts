@@ -16,9 +16,7 @@ const Config = {
       ACCESS_KEY_ID: process.env.AWS_IAM_ACCESS_KEY_ID || "",
       SECRET_ACCESS_KEY: process.env.AWS_IAM_SECRET_ACCESS_KEY || "",
     },
-    S3_BUCKET: {
-      NAME: process.env.AWS_S3_BUCKET_NAME || "",
-    },
+    S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME || "",
     REGION: process.env.AWS_REGION || "",
   },
   GOOGLE_MAP_API: {
