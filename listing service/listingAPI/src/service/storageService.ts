@@ -141,7 +141,7 @@ class StorageService {
       },
     };
 
-    return new StorageService(configuration, Config.AWS.S3_BUCKET.NAME);
+    return new StorageService(configuration, Config.AWS.S3_BUCKET_NAME);
   }
 }
 
