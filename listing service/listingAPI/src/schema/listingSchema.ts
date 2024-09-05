@@ -1,7 +1,6 @@
-import { randomUUID } from "node:crypto";
 import { Schema } from "mongoose";
-import ListingInterface from "../interface/listingInterface";
 import slugify from "slugify";
+import ListingInterface from "../interface/listingInterface";
 
 const ListingSchema: Schema<ListingInterface> = new Schema(
   {
@@ -18,10 +17,6 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
       required: true,
       unique: true,
     },
-    price: {
-      type: Number,
-      required: true,
-    },
     purpose: {
       type: String,
       enum: ["lease", "sell", "reservation"],
@@ -29,29 +24,19 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
     },
     type: {
       type: String,
-      enum: ["on-going", "now-selling"],
+      enum: ["economy", "premium", "luxury"],
       required: true,
     },
     category: {
       type: String,
-      enum: ["economy", "premium", "luxury"],
+      enum: ["residential", "commercial", "mixed"],
       required: true,
     },
-    use: {
-      type: {
-        type: String, // "single-room" | "mini-flat" | "2-bedroom-flat" | "3-bedroom-flat" | "duplex" | "semi-detached" | "short-lets" | "office" | "shop" | "event-halls" | "bare-land";
-        required: true,
-      },
-      category: {
-        type: String,
-        enum: ["residential", "commercial", "mixed"],
-        required: true,
-      },
-    },
-    features: [
+    offering: [
       {
-        type: String, // landmark features
-        required: true,
+        type: Schema.Types.ObjectId,
+        ref: "Offering",
+        required: false,
       },
     ],
     address: {
@@ -94,21 +79,7 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
         required: true,
       },
     },
-    media: {
-      picture: {
-        type: String,
-        required: false,
-      },
-      video: {
-        type: String,
-        required: false,
-      },
-    },
     status: {
-      id: {
-        type: String,
-        required: true,
-      },
       approved: {
         type: Boolean,
         enum: [true, false],
@@ -122,7 +93,7 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
       },
     },
   },
-  { timestamps: true }
+  { timestamps: true, discriminatorKey: "purpose" }
 );
 
 ListingSchema.index({
@@ -130,7 +101,8 @@ ListingSchema.index({
   description: "text",
   slug: "text",
   type: "text",
-  features: "text",
+  category: "text",
+  // "offering.id": 1,
   location: "2dsphere",
 });
 
@@ -142,14 +114,6 @@ ListingSchema.pre("save", function (next) {
       strict: true,
       trim: true,
     });
-  }
-
-  next();
-});
-
-ListingSchema.pre("save", function (next) {
-  if (!this.isModified(this.status.id)) {
-    this.status.id = randomUUID();
   }
 
   next();
