@@ -1,4 +1,5 @@
 import { Document, Schema } from "mongoose";
+import OfferingInterface from "./offeringInterface";
 
 export default interface ListingInterface extends Document {
   name: string;
@@ -7,7 +8,7 @@ export default interface ListingInterface extends Document {
   purpose: "lease" | "sell" | "reservation";
   type: "economy" | "premium" | "luxury";
   category: "residential" | "commercial" | "mixed";
-  offering: [Schema.Types.ObjectId];
+  offering: [OfferingInterface];
   address: {
     street: string;
     zone: string;
@@ -22,8 +23,8 @@ export default interface ListingInterface extends Document {
     id: string;
     email: string;
   };
-  status: {
-    approved: boolean;
+  verify: {
+    status: boolean;
     expiry: Date;
   };
 }

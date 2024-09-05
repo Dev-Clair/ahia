@@ -1,8 +1,15 @@
 import { Schema } from "mongoose";
 import slugify from "slugify";
 import ListingInterface from "../interface/listingInterface";
+import ListingMethodInterface from "../interface/listingmethodInterface";
+import ListingModel from "../type/listingmethodType";
+import OfferingInterface from "../interface/offeringInterface";
 
-const ListingSchema: Schema<ListingInterface> = new Schema(
+const ListingSchema: Schema<
+  ListingInterface,
+  ListingModel,
+  ListingMethodInterface
+> = new Schema(
   {
     name: {
       type: String,
@@ -62,7 +69,6 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
         type: String,
         enum: ["Point"],
         default: "Point",
-        required: false,
       },
       coordinates: {
         type: [Number],
@@ -79,8 +85,8 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
         required: true,
       },
     },
-    status: {
-      approved: {
+    verify: {
+      status: {
         type: Boolean,
         enum: [true, false],
         default: false,
@@ -96,18 +102,19 @@ const ListingSchema: Schema<ListingInterface> = new Schema(
   { timestamps: true, discriminatorKey: "purpose" }
 );
 
+// Schema Search Query Index
 ListingSchema.index({
   name: "text",
   description: "text",
   slug: "text",
   type: "text",
   category: "text",
-  // "offering.id": 1,
   location: "2dsphere",
 });
 
+// Middleware
 ListingSchema.pre("save", function (next) {
-  if (!this.isModified("slug")) {
+  if (!this.isModified("name")) {
     this.slug = slugify(this.name, {
       replacement: "-",
       lower: true,
@@ -117,6 +124,17 @@ ListingSchema.pre("save", function (next) {
   }
 
   next();
+});
+
+// Schema Instance Method
+ListingSchema.method("fetchOfferings", async function fetchOfferings(): Promise<
+  OfferingInterface[]
+> {
+  const listing = this;
+
+  await listing.populate("offering");
+
+  return listing.offering;
 });
 
 export default ListingSchema;
