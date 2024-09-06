@@ -5,6 +5,9 @@ import OfferingInterface from "../interface/offeringInterface";
 const baseStoragePath = `https://s3.amazonaws.com/${Config.AWS.S3_BUCKET_NAME}`;
 
 const OfferingSchema: Schema<OfferingInterface> = new Schema({
+  name: {
+    type: String,
+  },
   type: {
     type: String,
     required: true,
@@ -37,5 +40,8 @@ const OfferingSchema: Schema<OfferingInterface> = new Schema({
     },
   },
 });
+
+// Offering Schema Search Query Index
+OfferingSchema.index({ name: "text", type: "text" });
 
 export default OfferingSchema;
