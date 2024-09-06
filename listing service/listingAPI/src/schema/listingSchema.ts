@@ -1,13 +1,13 @@
 import { Schema } from "mongoose";
 import slugify from "slugify";
 import ListingInterface from "../interface/listingInterface";
+import ListingMethodType from "../type/listingmethodType";
 import ListingMethodInterface from "../interface/listingmethodInterface";
-import ListingModel from "../type/listingmethodType";
 import OfferingInterface from "../interface/offeringInterface";
 
 const ListingSchema: Schema<
   ListingInterface,
-  ListingModel,
+  ListingMethodType,
   ListingMethodInterface
 > = new Schema(
   {
@@ -26,12 +26,12 @@ const ListingSchema: Schema<
     },
     purpose: {
       type: String,
-      enum: ["lease", "sell", "reservation"],
+      enum: ["lease", "sell", "reservation", "mixed"],
       required: true,
     },
     type: {
       type: String,
-      enum: ["economy", "premium", "luxury"],
+      enum: ["economy", "premium", "luxury", "mixed"],
       required: true,
     },
     category: {
@@ -39,11 +39,11 @@ const ListingSchema: Schema<
       enum: ["residential", "commercial", "mixed"],
       required: true,
     },
-    offering: [
+    offerings: [
       {
         type: Schema.Types.ObjectId,
         ref: "Offering",
-        required: false,
+        default: undefined,
       },
     ],
     address: {
@@ -102,17 +102,14 @@ const ListingSchema: Schema<
   { timestamps: true, discriminatorKey: "purpose" }
 );
 
-// Schema Search Query Index
+// Listing Schema Search Query Index
 ListingSchema.index({
   name: "text",
   description: "text",
-  slug: "text",
-  type: "text",
-  category: "text",
   location: "2dsphere",
 });
 
-// Middleware
+// Listing Schema Middleware
 ListingSchema.pre("save", function (next) {
   if (!this.isModified("name")) {
     this.slug = slugify(this.name, {
@@ -126,15 +123,15 @@ ListingSchema.pre("save", function (next) {
   next();
 });
 
-// Schema Instance Method
+// Listung Schema Instance Method
 ListingSchema.method("fetchOfferings", async function fetchOfferings(): Promise<
   OfferingInterface[]
 > {
   const listing = this;
 
-  await listing.populate("offering");
+  await listing.populate("offerings");
 
-  return listing.offering;
+  return listing.offerings;
 });
 
 export default ListingSchema;
