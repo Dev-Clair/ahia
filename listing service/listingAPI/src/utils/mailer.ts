@@ -8,11 +8,10 @@ import {
 import Config from "../../config";
 
 /**
- * Mailer service
+ * Mailer
  * @method SendMail
- * @method Create
  */
-class MailerService {
+class Mailer {
   private client: SESClient;
 
   private constructor(configuration: SESClientConfig) {
@@ -71,10 +70,10 @@ class MailerService {
   }
 
   /**
-   * Creates and returns a new instance of the MailerService class
-   * @returns MailerService
+   * Creates and returns a new instance of the Mailer class
+   * @returns Mailer
    */
-  public static Create(): MailerService {
+  public static Create(): Mailer {
     const configuration: SESClientConfig = {
       region: Config.AWS.REGION,
       credentials: {
@@ -83,8 +82,8 @@ class MailerService {
       },
     };
 
-    return new MailerService(configuration);
+    return new Mailer(configuration);
   }
 }
 
-export default MailerService;
+export default Mailer;

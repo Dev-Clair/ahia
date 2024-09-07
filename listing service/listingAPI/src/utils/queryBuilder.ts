@@ -8,36 +8,14 @@ interface QueryString {
   [key: string]: any;
 }
 
-interface PaginationParams {
-  protocol: string;
-  host?: string;
-  baseUrl: string;
-  path: string;
-}
-
-interface PaginationResult<T> {
-  data: T[];
-  metaData: {
-    totalItems: number;
-    totalPages: number;
-    currentPage: number;
-    links: {
-      next: string | null;
-      prev: string | null;
-    };
-  };
-}
-
 /**
- * @class QueryBuilder
- * Improves query performance
- * @method Exec - executes
- * @method Filter - filtering
+ * QueryBuilder
+ * @method Exec - query execution
+ * @method Filter - query filtering
  * @method GeoNear - geospatial (near queries)
- * @method Paginate - pagination
- * @method Select - projection
+ * @method Paginate - query pagination
+ * @method Select - query projection
  * @method Sort - sorting
- * @method Create - factory
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
@@ -84,35 +62,6 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Handles advanced query filtering i.e range filters
-   * @returns this
-   */
-  private FilterRangeHandler(
-    queryObject: QueryString,
-    rangeFields: string[]
-  ): object {
-    if (rangeFields.length === 0) return queryObject;
-
-    rangeFields.forEach((field) => {
-      const minField = `min${field.charAt(0).toUpperCase() + field.slice(1)}`;
-
-      const maxField = `max${field.charAt(0).toUpperCase() + field.slice(1)}`;
-
-      if (queryObject[minField] || queryObject[maxField]) {
-        queryObject[field] = {
-          ...(queryObject[minField] && { $gte: queryObject[minField] }),
-          ...(queryObject[maxField] && { $lte: queryObject[maxField] }),
-        };
-
-        delete queryObject[minField];
-        delete queryObject[maxField];
-      }
-    });
-
-    return queryObject;
-  }
-
-  /**
    * Handles geospatial queries: Near Query
    * @returns this
    */
@@ -145,53 +94,18 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query pagination
-   * @param PaginationParams
-   * @returns Promise of type data and pagination metadata
+   * @returns Promise<this>
    */
-  public async Paginate(
-    params: PaginationParams
-  ): Promise<PaginationResult<T>> {
+  public async Paginate(): Promise<this> {
     const page = parseInt(this.queryString.page || "1", 10);
 
-    const limit = parseInt(this.queryString.limit || "2", 10);
+    const limit = parseInt(this.queryString.limit || "10", 10);
 
     const skip = (page - 1) * limit;
 
-    const queryCount = this.query.model.find(this.query.getQuery());
-
     this.query = this.query.skip(skip).limit(limit);
 
-    const [data, totalItems] = await Promise.all([
-      this.query,
-      queryCount.countDocuments(),
-    ]);
-
-    const totalPages = Math.ceil(totalItems / limit);
-
-    const currentPage = page;
-
-    const nextPage = page < totalPages ? currentPage + 1 : null;
-
-    const previousPage = page > 1 ? currentPage - 1 : null;
-
-    const { protocol, host, baseUrl, path } = params;
-
-    const url = `${protocol}://${host}${baseUrl}${path}`;
-
-    const links = {
-      next: nextPage ? `${url}?page=${nextPage}&limit=${limit}` : null,
-      prev: previousPage ? `${url}?page=${previousPage}&limit=${limit}` : null,
-    };
-
-    return {
-      data,
-      metaData: {
-        totalItems,
-        totalPages,
-        currentPage,
-        links,
-      },
-    };
+    return this;
   }
 
   /**
