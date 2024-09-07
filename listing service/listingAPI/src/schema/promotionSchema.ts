@@ -62,13 +62,14 @@ PromotionSchema.method(
     startDate: Date,
     endDate: Date
   ): Promise<void> {
-    if (this.startDate <= startDate && this.endDate <= endDate) {
-      this.startDate = startDate;
+    this.startDate = this.startDate <= startDate ? startDate : this.startDate;
 
-      this.endDate = endDate;
+    this.endDate = this.endDate <= endDate ? endDate : this.endDate;
 
+    if (this.startDate === startDate && this.endDate === endDate)
       await this.save();
-    }
+
+    throw new Error("Invalid Arguments Exception");
   }
 );
 
