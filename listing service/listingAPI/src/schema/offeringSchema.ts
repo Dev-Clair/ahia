@@ -30,12 +30,12 @@ const OfferingSchema: Schema<OfferingInterface> = new Schema({
   media: {
     picture: {
       type: [String],
-      get: (value: string) => `${baseStoragePath}${value}`,
+      get: (value: string) => `${baseStoragePath}/picture${value}`,
       required: false,
     },
     video: {
       type: [String],
-      get: (value: string) => `${baseStoragePath}${value}`,
+      get: (value: string) => `${baseStoragePath}/video${value}`,
       required: false,
     },
   },
