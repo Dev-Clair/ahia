@@ -6,7 +6,7 @@ import DatabaseService from "./src/service/databaseService";
 import DatabaseServiceError from "./src/error/databaseserviceError";
 import HttpServer from "./src/utils/httpServer";
 import HttpServerError from "./src/error/httpserverError";
-import Logger from "./src/service/loggerService";
+import Logger from "./src/utils/logger";
 
 /**
  * Bootstraps the entire application
