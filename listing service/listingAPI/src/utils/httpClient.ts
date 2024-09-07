@@ -17,12 +17,11 @@ interface HttpResponseInterface {
 
 /**
  * Http Client
- * @method GET
- * @method POST
- * @method PUT
- * @method PATCH
- * @method DELETE
- * @method Create
+ * @method Get
+ * @method Post
+ * @method Put
+ * @method Patch
+ * @method Delete
  */
 class HttpClient {
   private httpOptions: HttpRequestOptionsInterface;
