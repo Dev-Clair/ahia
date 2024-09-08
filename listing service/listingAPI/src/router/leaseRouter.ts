@@ -30,15 +30,13 @@ LeaseRouter.route("/category/:category").get(
   LeaseController.retrieveListingsByCategory
 );
 
-LeaseRouter.route("/:slug").get(LeaseController.retrieveListingBySlug);
-
 LeaseRouter.route("/:id")
   .get(LeaseController.retrieveListingById)
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isUpdatable,
-    ValidationMiddleware.validateID,
+    // ValidationMiddleware.validateID,
     LeaseController.updateListing
   )
   .delete(LeaseController.deleteListing);
@@ -54,5 +52,7 @@ LeaseRouter.route("/:id/verify").get(
   ValidationMiddleware.validateID,
   LeaseController.verifyListingStatus
 );
+
+LeaseRouter.route("/:slug").get(LeaseController.retrieveListingBySlug);
 
 export default LeaseRouter;
