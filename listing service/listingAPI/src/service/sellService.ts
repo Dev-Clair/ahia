@@ -18,10 +18,18 @@ export default class SellService extends ListingService {
     const operation = async () => {
       const query = Sell.find();
 
-      const queryBuilder = QueryBuilder.Create(query, queryString);
+      const filter = {
+        ...queryString,
+        purpose: "sell",
+        verify: { status: true },
+      };
+
+      const projection = ["-verify -provider.email"];
+
+      const queryBuilder = QueryBuilder.Create(query, filter);
 
       const data = (
-        await queryBuilder.Filter().Sort().Select().Paginate()
+        await queryBuilder.Filter().Sort().Select(projection).Paginate()
       ).Exec();
 
       return data;
@@ -61,13 +69,15 @@ export default class SellService extends ListingService {
   }
 
   /**
-   * Creates a new Sell record in collection
+   * Creates a new sell listing in collection
    * @public
    * @param key
    * @param data
    * @returns Promise<void>
    */
   async create(key: string, data: Partial<SellInterface>): Promise<void> {
+    Object.assign(data as object, { purpose: "sell" });
+
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
@@ -80,7 +90,7 @@ export default class SellService extends ListingService {
   }
 
   /**
-   * Updates a Sell listing using its id
+   * Updates a sell listing using its id
    * @public
    * @param id
    * @param key

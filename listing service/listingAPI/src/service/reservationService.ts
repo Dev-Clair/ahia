@@ -18,10 +18,18 @@ export default class ReservationService extends ListingService {
     const operation = async () => {
       const query = Reservation.find();
 
-      const queryBuilder = QueryBuilder.Create(query, queryString);
+      const filter = {
+        ...queryString,
+        purpose: "reservation",
+        verify: { status: true },
+      };
+
+      const projection = ["-verify -provider.email"];
+
+      const queryBuilder = QueryBuilder.Create(query, filter);
 
       const data = (
-        await queryBuilder.Filter().Sort().Select().Paginate()
+        await queryBuilder.Filter().Sort().Select(projection).Paginate()
       ).Exec();
 
       return data;
@@ -71,7 +79,7 @@ export default class ReservationService extends ListingService {
     key: string,
     data: Partial<ReservationInterface>
   ): Promise<void> {
-    Object.assign(data, { purpose: "reservation" });
+    Object.assign(data as object, { purpose: "reservation" });
 
     const session = await mongoose.startSession();
 

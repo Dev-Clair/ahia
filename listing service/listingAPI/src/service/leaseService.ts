@@ -18,10 +18,18 @@ export default class LeaseService extends ListingService {
     const operation = async () => {
       const query = Lease.find();
 
-      const queryBuilder = QueryBuilder.Create(query, queryString);
+      const filter = {
+        ...queryString,
+        purpose: "lease",
+        verify: { status: true },
+      };
+
+      const projection = ["-verify -provider.email"];
+
+      const queryBuilder = QueryBuilder.Create(query, filter);
 
       const data = (
-        await queryBuilder.Filter().Sort().Select().Paginate()
+        await queryBuilder.Filter().Sort().Select(projection).Paginate()
       ).Exec();
 
       return data;
@@ -68,7 +76,7 @@ export default class LeaseService extends ListingService {
    * @returns Promise<void>
    */
   async create(key: string, data: Partial<LeaseInterface>): Promise<void> {
-    Object.assign(data, { purpose: "lease" });
+    Object.assign(data as object, { purpose: "lease" });
 
     const session = await mongoose.startSession();
 
