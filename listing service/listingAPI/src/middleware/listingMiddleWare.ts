@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import ConflictError from "../error/conflictError";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 import Idempotency from "../model/idempotencyModel";
