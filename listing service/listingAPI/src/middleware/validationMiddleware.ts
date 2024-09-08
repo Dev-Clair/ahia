@@ -10,7 +10,7 @@ const IdSchema = z.object({
   }),
 });
 
-const ListingSchema = z.object({
+const LeaseSchema = z.object({
   name: z.string({
     required_error: "name is required",
     invalid_type_error: "name must be a string",
@@ -35,10 +35,6 @@ const ListingSchema = z.object({
       })
     ),
   }),
-});
-
-const LeaseSchema = z.object({
-  listing: ListingSchema,
   isNegotiable: z.boolean({
     invalid_type_error: "isNegotiable must be a boolean type",
     required_error: "isNegotiable is required",
@@ -58,7 +54,30 @@ const LeaseSchema = z.object({
 });
 
 const ReservationSchema = z.object({
-  listing: ListingSchema,
+  name: z.string({
+    required_error: "name is required",
+    invalid_type_error: "name must be a string",
+  }),
+  description: z.string({
+    required_error: "description is required",
+    invalid_type_error: "description must be a string",
+  }),
+  type: z.enum(["economy", "premium", "luxury"]),
+  category: z.enum(["residential", "commercial", "mixed"]),
+  address: z.string({
+    required_error: "address is required",
+    invalid_type_error: "address must be a string",
+  }),
+  location: z.object({
+    coordinates: z.array(
+      z.number({
+        invalid_type_error: "location coordinates must be a number array",
+        required_error: "coordinates are required",
+        message: "location coordinates must be of Point type",
+        description: `"coordinates": [lng|long, lat]`,
+      })
+    ),
+  }),
   booking: z.object({
     plan: z.enum(["daily", "extended"]),
     termsAndCondtions: z
@@ -74,7 +93,30 @@ const ReservationSchema = z.object({
 });
 
 const SellSchema = z.object({
-  listing: ListingSchema,
+  name: z.string({
+    required_error: "name is required",
+    invalid_type_error: "name must be a string",
+  }),
+  description: z.string({
+    required_error: "description is required",
+    invalid_type_error: "description must be a string",
+  }),
+  type: z.enum(["economy", "premium", "luxury"]),
+  category: z.enum(["residential", "commercial", "mixed"]),
+  address: z.string({
+    required_error: "address is required",
+    invalid_type_error: "address must be a string",
+  }),
+  location: z.object({
+    coordinates: z.array(
+      z.number({
+        invalid_type_error: "location coordinates must be a number array",
+        required_error: "coordinates are required",
+        message: "location coordinates must be of Point type",
+        description: `"coordinates": [lng|long, lat]`,
+      })
+    ),
+  }),
   isNegotiable: z.boolean({
     invalid_type_error: "isNegotiable must be a boolean type",
     required_error: "isNegotiable is required",
