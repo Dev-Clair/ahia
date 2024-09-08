@@ -27,16 +27,19 @@ const ListingSchema: Schema<
     purpose: {
       type: String,
       enum: ["lease", "sell", "reservation"],
+      set: (value: string) => value.toLowerCase(),
       required: true,
     },
     type: {
       type: String,
       enum: ["economy", "premium", "luxury"],
+      set: (value: string) => value.toLowerCase(),
       required: true,
     },
     category: {
       type: String,
       enum: ["residential", "commercial", "mixed"],
+      set: (value: string) => value.toLowerCase(),
       required: true,
     },
     offerings: [
@@ -101,7 +104,7 @@ ListingSchema.index({
 
 // Listing Schema Middleware
 ListingSchema.pre("save", function (next) {
-  if (!this.isModified("name")) {
+  if (this.isModified("name")) {
     this.slug = slugify(this.name, {
       replacement: "-",
       lower: true,

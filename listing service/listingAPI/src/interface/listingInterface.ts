@@ -4,7 +4,7 @@ import OfferingInterface from "./offeringInterface";
 export default interface ListingInterface extends Document {
   name: string;
   description: string;
-  slug?: string;
+  slug: string;
   purpose: "lease" | "sell" | "reservation";
   type: "economy" | "premium" | "luxury";
   category: "residential" | "commercial" | "mixed";
