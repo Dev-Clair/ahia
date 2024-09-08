@@ -124,9 +124,9 @@ const isCreatable = (
     return res.status(HttpCode.BAD_REQUEST).json({
       error: {
         name: HttpStatus.BAD_REQUEST,
-        message: `Insertions are not allowed on fields: ${{
-          ...createErrorCache,
-        }}`,
+        message: `Insertions are not allowed on fields: ${createErrorCache.join(
+          ", "
+        )}`,
       },
     });
 
@@ -161,9 +161,9 @@ const isUpdatable = (
     return res.status(HttpCode.BAD_REQUEST).json({
       error: {
         name: HttpStatus.BAD_REQUEST,
-        message: `Updates are not allowed on fields: ${{
-          ...updateErrorCache,
-        }}`,
+        message: `Updates are not allowed on fields: ${updateErrorCache.join(
+          ", "
+        )}}`,
       },
     });
 
