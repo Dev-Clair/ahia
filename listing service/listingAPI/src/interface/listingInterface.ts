@@ -15,8 +15,8 @@ export default interface ListingInterface extends Document {
     coordinates: number[];
   };
   provider: {
-    id: string;
-    email: string;
+    id?: string;
+    email?: string;
   };
   verify: {
     status?: boolean;

@@ -64,11 +64,13 @@ const ListingSchema: Schema<
     provider: {
       id: {
         type: String,
-        required: true,
+        // required: true,
+        required: false,
       },
       email: {
         type: String,
-        required: true,
+        // required: true,
+        required: false,
       },
     },
     verify: {
