@@ -47,12 +47,23 @@ export default class LeaseService extends ListingService {
    * @returns Promise<LeaseInterface | null>
    */
   async findById(id: string): Promise<LeaseInterface | null> {
+    const projection = {
+      verify: 0,
+      "provider.email": 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    };
+
     const operation = async () => {
-      const listing = await Lease.findOne({
-        _id: id,
-        purpose: "Lease",
-        verify: { status: true },
-      });
+      const listing = await Lease.findById(
+        {
+          _id: id,
+          purpose: "Lease",
+          verify: { status: true },
+        },
+        projection
+      );
 
       return listing;
     };
@@ -66,12 +77,23 @@ export default class LeaseService extends ListingService {
    * @returns Promise<LeaseInterface | null>
    */
   async findBySlug(slug: string): Promise<LeaseInterface | null> {
+    const projection = {
+      verify: 0,
+      "provider.email": 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    };
+
     const operation = async () => {
-      const listing = await Lease.findOne({
-        slug: slug,
-        purpose: "Lease",
-        verify: { status: true },
-      });
+      const listing = await Lease.findOne(
+        {
+          slug: slug,
+          purpose: "Lease",
+          verify: { status: true },
+        },
+        projection
+      );
 
       return listing;
     };

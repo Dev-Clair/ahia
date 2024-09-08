@@ -31,28 +31,28 @@ LeaseRouter.route("/category/:category").get(
 );
 
 LeaseRouter.route("/:id")
-  .get(LeaseController.retrieveListingById)
+  .get(AuthMiddleWare.IsGranted(["Admin"]), LeaseController.retrieveListingById)
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isUpdatable,
-    // ValidationMiddleware.validateID,
     LeaseController.updateListing
   )
   .delete(LeaseController.deleteListing);
 
 LeaseRouter.route("/:id/status").patch(
   AuthMiddleWare.IsGranted(["Admin"]),
-  ValidationMiddleware.validateID,
   LeaseController.changeListingStatus
 );
 
 LeaseRouter.route("/:id/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  ValidationMiddleware.validateID,
   LeaseController.verifyListingStatus
 );
 
-LeaseRouter.route("/:slug").get(LeaseController.retrieveListingBySlug);
+LeaseRouter.route("/:slug").get(
+  AuthMiddleWare.IsGranted(["Admin"]),
+  LeaseController.retrieveListingBySlug
+);
 
 export default LeaseRouter;
