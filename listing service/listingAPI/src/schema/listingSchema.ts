@@ -76,12 +76,14 @@ const ListingSchema: Schema<
         type: Boolean,
         enum: [true, false],
         default: false,
+        required: false,
       },
       expiry: {
         type: Date,
         default: function () {
           return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
         },
+        required: false,
       },
     },
   },

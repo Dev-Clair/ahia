@@ -19,7 +19,7 @@ export default interface ListingInterface extends Document {
     email: string;
   };
   verify: {
-    status: boolean;
-    expiry: Date;
+    status?: boolean;
+    expiry?: Date;
   };
 }
