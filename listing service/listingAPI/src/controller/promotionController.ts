@@ -1,1 +1,1 @@
-import Promotion from "../model/promotionModel";
+import PromotionService from "../service/promotionService";
