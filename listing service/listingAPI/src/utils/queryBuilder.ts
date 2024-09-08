@@ -33,7 +33,7 @@ export class QueryBuilder<T> {
    * Handles query filtering
    * @returns this
    */
-  public Filter(rangeFields: string[] = []): this {
+  public Filter(): this {
     const queryObject = { ...this.queryString };
 
     const excludedFields = ["page", "sort", "limit", "fields"];
