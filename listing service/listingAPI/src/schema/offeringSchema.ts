@@ -1,8 +1,7 @@
 import { Schema } from "mongoose";
-import Config from "../../config";
 import OfferingInterface from "../interface/offeringInterface";
 
-const baseStoragePath = `https://s3.amazonaws.com/${Config.AWS.S3_BUCKET_NAME}`;
+const baseStoragePath = `https://s3.amazonaws.com/af-south-1/ahia-listing-offering`;
 
 const OfferingSchema: Schema<OfferingInterface> = new Schema({
   name: {
@@ -30,12 +29,14 @@ const OfferingSchema: Schema<OfferingInterface> = new Schema({
   media: {
     picture: {
       type: [String],
-      get: (value: string) => `${baseStoragePath}/picture${value}`,
+      get: (values: string[]) =>
+        values.map((value) => `${baseStoragePath}${value}`),
       required: false,
     },
     video: {
       type: [String],
-      get: (value: string) => `${baseStoragePath}/video${value}`,
+      get: (values: string[]) =>
+        values.map((value) => `${baseStoragePath}${value}`),
       required: false,
     },
   },
