@@ -16,22 +16,24 @@ const createListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const key = req.headers["idempotency-key"] as string;
+  try {
+    const key = req.headers["idempotency-key"] as string;
 
-  const payload = req.body as object;
+    const payload = req.body as object;
 
-  const provider = {
-    id: req.headers["provider-id"] as string,
-    email: req.headers["provider-email"] as string,
-  };
+    const provider = {
+      id: req.headers["provider-id"] as string,
+      email: req.headers["provider-email"] as string,
+    };
 
-  Object.assign(payload, { provider: provider });
+    Object.assign(payload, { provider: provider });
 
-  await LeaseService.Create()
-    .save(key, payload)
-    .catch((err) => next);
+    await LeaseService.Create().save(key, payload);
 
-  return res.status(HttpCode.CREATED).json({ data: null });
+    return res.status(HttpCode.CREATED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -46,13 +48,15 @@ const retrieveListings = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query;
+  try {
+    const queryString = req.query;
 
-  const listings = await LeaseService.Create()
-    .findAll(queryString)
-    .catch((err) => next);
+    const listings = await LeaseService.Create().findAll(queryString);
 
-  return res.status(HttpCode.OK).json({ data: listings });
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -67,17 +71,19 @@ const retrieveListingsSearch = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const search = req.query.search as string;
+  try {
+    const search = req.query.search as string;
 
-  if (!search) throw new BadRequestError(`Kindly enter a text to search`);
+    if (!search) throw new BadRequestError(`Kindly enter a text to search`);
 
-  const searchQuery = { $text: { $search: search } };
+    const searchQuery = { $text: { $search: search } };
 
-  const listings = await LeaseService.Create()
-    .findAll(searchQuery)
-    .catch((err) => next);
+    const listings = await LeaseService.Create().findAll(searchQuery);
 
-  return res.status(HttpCode.OK).json({ data: listings });
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -92,13 +98,15 @@ const retrieveListingsNearme = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const queryString = req.query;
+  try {
+    const queryString = req.query;
 
-  const listings = await LeaseService.Create()
-    .findAll(queryString)
-    .catch((err) => next);
+    const listings = await LeaseService.Create().findAll(queryString);
 
-  return res.status(HttpCode.OK).json({ data: listings });
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -113,15 +121,17 @@ const retrieveListingsByProvider = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const providerId = req.params.providerId as string;
+  try {
+    const providerId = req.params.providerId as string;
 
-  const queryString = { provider: { id: providerId } };
+    const queryString = { provider: { id: providerId } };
 
-  const listings = await LeaseService.Create()
-    .findAll(queryString)
-    .catch((err) => next);
+    const listings = await LeaseService.Create().findAll(queryString);
 
-  return res.status(HttpCode.OK).json({ data: listings });
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -136,15 +146,17 @@ const retrieveListingsByType = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const type = req.params.type as string;
+  try {
+    const type = req.params.type as string;
 
-  const queryString = { type: type };
+    const queryString = { type: type };
 
-  const listings = await LeaseService.Create()
-    .findAll(queryString)
-    .catch((err) => next);
+    const listings = await LeaseService.Create().findAll(queryString);
 
-  return res.status(HttpCode.OK).json({ data: listings });
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -159,15 +171,17 @@ const retrieveListingsByCategory = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const category = req.params.category as string;
+  try {
+    const category = req.params.category as string;
 
-  const queryString = { category: category };
+    const queryString = { category: category };
 
-  const listings = await LeaseService.Create()
-    .findAll(queryString)
-    .catch((err) => next);
+    const listings = await LeaseService.Create().findAll(queryString);
 
-  return res.status(HttpCode.OK).json({ data: listings });
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -182,15 +196,18 @@ const retrieveListingBySlug = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const slug = req.params.slug as string;
+  try {
+    const slug = req.params.slug as string;
 
-  const listing = await LeaseService.Create()
-    .findBySlug(slug)
-    .catch((err) => next);
+    const listing = await LeaseService.Create().findBySlug(slug);
 
-  if (!listing) throw new NotFoundError(`No record found for listing: ${slug}`);
+    if (!listing)
+      throw new NotFoundError(`No record found for listing: ${slug}`);
 
-  return res.status(HttpCode.OK).json({ data: listing });
+    return res.status(HttpCode.OK).json({ data: listing });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -205,15 +222,17 @@ const retrieveListingById = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const id = req.params.id as string;
+  try {
+    const id = req.params.id as string;
 
-  const listing = await LeaseService.Create()
-    .findById(id)
-    .catch((err) => next);
+    const listing = await LeaseService.Create().findById(id);
 
-  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  return res.status(HttpCode.OK).json({ data: listing });
+    return res.status(HttpCode.OK).json({ data: listing });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -228,19 +247,21 @@ const updateListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const key = req.headers["idempotency-key"] as string;
+  try {
+    const key = req.headers["idempotency-key"] as string;
 
-  const id = req.params.id as string;
+    const id = req.params.id as string;
 
-  const body = req.body as object;
+    const body = req.body as object;
 
-  const listing = await LeaseService.Create()
-    .update(id, key, body)
-    .catch((err) => next);
+    const listing = await LeaseService.Create().update(id, key, body);
 
-  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -255,15 +276,17 @@ const deleteListing = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const id = req.params.id as string;
+  try {
+    const id = req.params.id as string;
 
-  const listing = await LeaseService.Create()
-    .delete(id)
-    .catch((err) => next);
+    const listing = await LeaseService.Create().delete(id);
 
-  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -278,21 +301,23 @@ const changeListingStatus = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const key = req.headers["idempotency-key"] as string;
+  try {
+    const key = req.headers["idempotency-key"] as string;
 
-  const id = req.params.id as string;
+    const id = req.params.id as string;
 
-  const status = req.body as boolean;
+    const status = req.body as boolean;
 
-  const data = { verify: { status: status } };
+    const data = { verify: { status: status } };
 
-  const listing = await LeaseService.Create()
-    .update(id, key, data)
-    .catch((err) => next);
+    const listing = await LeaseService.Create().update(id, key, data);
 
-  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 /**
@@ -307,17 +332,19 @@ const verifyListingStatus = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const id = req.params.id as string;
+  try {
+    const id = req.params.id as string;
 
-  const listing = await LeaseService.Create()
-    .findById(id)
-    .catch((err) => next);
+    const listing = await LeaseService.Create().findById(id);
 
-  if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-  return res.status(HttpCode.OK).json({
-    data: `${listing.name.toUpperCase()} has been been verified for listing. Kindly proceed to create offerings and promotions for your listing`,
-  });
+    return res.status(HttpCode.OK).json({
+      data: `${listing.name.toUpperCase()} has been been verified for listing. Kindly proceed to create offerings and promotions for your listing`,
+    });
+  } catch (err: any) {
+    return next(err);
+  }
 };
 
 export default {

@@ -18,7 +18,7 @@ export default class LeaseService extends ListingService {
 
       const filter = {
         ...queryString,
-        purpose: "lease",
+        purpose: "Lease",
         verify: { status: true },
       };
 
@@ -38,7 +38,7 @@ export default class LeaseService extends ListingService {
       return data;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /** Retrieves a lease listing using its id
@@ -50,14 +50,14 @@ export default class LeaseService extends ListingService {
     const operation = async () => {
       const listing = await Lease.findOne({
         _id: id,
-        purpose: "lease",
+        purpose: "Lease",
         verify: { status: true },
       });
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /** Retrieves a lease listing using its slug
@@ -69,14 +69,14 @@ export default class LeaseService extends ListingService {
     const operation = async () => {
       const listing = await Lease.findOne({
         slug: slug,
-        purpose: "lease",
+        purpose: "Lease",
         verify: { status: true },
       });
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /**
@@ -87,14 +87,12 @@ export default class LeaseService extends ListingService {
    * @returns Promise<void>
    */
   async save(key: string, data: Partial<LeaseInterface>): Promise<void> {
-    Object.assign(data as object, { purpose: "lease" });
-
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
       await Lease.create([data], { session: session });
 
-      await Idempotency.create([key], { session: session });
+      await Idempotency.create([{ key: key }], { session: session });
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -121,7 +119,9 @@ export default class LeaseService extends ListingService {
         session,
       });
 
-      const val = await Idempotency.create([key], { session: session });
+      const val = await Idempotency.create([{ key: key }], {
+        session: session,
+      });
 
       return listing;
     });
