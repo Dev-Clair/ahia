@@ -2,18 +2,8 @@ import { randomUUID } from "node:crypto";
 import https from "node:https";
 import FailureRetry from "./failureRetry";
 import HttpCode from "../enum/httpCode";
-
-interface HttpRequestOptionsInterface {
-  hostname: string;
-  path: string;
-  method?: string;
-  headers?: Record<string, string>;
-}
-
-interface HttpResponseInterface {
-  statusCode: number | undefined;
-  body: any;
-}
+import HttpRequestOptionsInterface from "../interface/httprequestoptionsInterface";
+import HttpResponseInterface from "../interface/httpresponseInterface";
 
 /**
  * Http Client
