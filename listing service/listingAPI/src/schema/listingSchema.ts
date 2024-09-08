@@ -21,8 +21,8 @@ const ListingSchema: Schema<
     },
     slug: {
       type: String,
-      required: true,
       unique: true,
+      required: false,
     },
     purpose: {
       type: String,
