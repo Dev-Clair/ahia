@@ -12,9 +12,7 @@ export default class SellService extends ListingService {
    * @param queryString
    * @returns Promise<SellInterface[]>
    */
-  async findAll(
-    queryString?: Record<string, string>
-  ): Promise<SellInterface[]> {
+  async findAll(queryString?: Record<string, any>): Promise<SellInterface[]> {
     const operation = async () => {
       const query = Sell.find();
 
@@ -29,13 +27,18 @@ export default class SellService extends ListingService {
       const queryBuilder = QueryBuilder.Create(query, filter);
 
       const data = (
-        await queryBuilder.Filter().Sort().Select(projection).Paginate()
+        await queryBuilder
+          .GeoNear()
+          .Filter()
+          .Sort()
+          .Select(projection)
+          .Paginate()
       ).Exec();
 
       return data;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /** Retrieves a sell listing using its id
@@ -45,12 +48,16 @@ export default class SellService extends ListingService {
    */
   async findById(id: string): Promise<SellInterface | null> {
     const operation = async () => {
-      const listing = await Sell.findById({ _id: id });
+      const listing = await Sell.findOne({
+        _id: id,
+        purpose: "sell",
+        verify: { status: true },
+      });
 
       return listing;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /** Retrieves a sell listing using its slug
@@ -60,12 +67,16 @@ export default class SellService extends ListingService {
    */
   async findBySlug(slug: string): Promise<SellInterface | null> {
     const operation = async () => {
-      const listing = await Sell.findOne({ slug: slug });
+      const listing = await Sell.findOne({
+        slug: slug,
+        purpose: "sell",
+        verify: { status: true },
+      });
 
       return listing;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /**
@@ -75,7 +86,7 @@ export default class SellService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async create(key: string, data: Partial<SellInterface>): Promise<void> {
+  async save(key: string, data: Partial<SellInterface>): Promise<void> {
     Object.assign(data as object, { purpose: "sell" });
 
     const session = await mongoose.startSession();

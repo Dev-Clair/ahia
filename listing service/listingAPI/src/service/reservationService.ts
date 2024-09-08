@@ -13,7 +13,7 @@ export default class ReservationService extends ListingService {
    * @returns Promise<ReservationInterface[]>
    */
   async findAll(
-    queryString?: Record<string, string>
+    queryString?: Record<string, any>
   ): Promise<ReservationInterface[]> {
     const operation = async () => {
       const query = Reservation.find();
@@ -29,13 +29,18 @@ export default class ReservationService extends ListingService {
       const queryBuilder = QueryBuilder.Create(query, filter);
 
       const data = (
-        await queryBuilder.Filter().Sort().Select(projection).Paginate()
+        await queryBuilder
+          .GeoNear()
+          .Filter()
+          .Sort()
+          .Select(projection)
+          .Paginate()
       ).Exec();
 
       return data;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /** Retrieves a reservation listing using its id
@@ -45,12 +50,16 @@ export default class ReservationService extends ListingService {
    */
   async findById(id: string): Promise<ReservationInterface | null> {
     const operation = async () => {
-      const listing = await Reservation.findById({ _id: id });
+      const listing = await Reservation.findOne({
+        _id: id,
+        purpose: "reservation",
+        verify: { status: true },
+      });
 
       return listing;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /** Retrieves a reservation listing using its slug
@@ -60,12 +69,16 @@ export default class ReservationService extends ListingService {
    */
   async findBySlug(slug: string): Promise<ReservationInterface | null> {
     const operation = async () => {
-      const listing = await Reservation.findOne({ slug: slug });
+      const listing = await Reservation.findOne({
+        slug: slug,
+        purpose: "reservation",
+        verify: { status: true },
+      });
 
       return listing;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /**
@@ -75,10 +88,7 @@ export default class ReservationService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async create(
-    key: string,
-    data: Partial<ReservationInterface>
-  ): Promise<void> {
+  async save(key: string, data: Partial<ReservationInterface>): Promise<void> {
     Object.assign(data as object, { purpose: "reservation" });
 
     const session = await mongoose.startSession();

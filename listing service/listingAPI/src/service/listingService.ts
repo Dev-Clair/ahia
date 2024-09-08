@@ -5,7 +5,7 @@ import ListingInterface from "../interface/listingInterface";
  * @method findAll
  * @method findById
  * @method findBySlug
- * @method create
+ * @method save
  * @method update
  * @method delete
  */
@@ -16,7 +16,7 @@ export default abstract class ListingService {
    * @returns Promise<ListingInterface[]>
    */
   abstract findAll(
-    queryString?: Record<string, string>
+    queryString?: Record<string, any>
   ): Promise<ListingInterface[]>;
 
   /** Retrieves a listing record using its id
@@ -40,7 +40,7 @@ export default abstract class ListingService {
    * @param data
    * @returns Promise<void>
    */
-  abstract create(key: string, data: Partial<ListingInterface>): Promise<void>;
+  abstract save(key: string, data: Partial<ListingInterface>): Promise<void>;
 
   /**
    * Updates a listing record using its id

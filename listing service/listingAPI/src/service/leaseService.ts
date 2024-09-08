@@ -12,9 +12,7 @@ export default class LeaseService extends ListingService {
    * @param queryString
    * @returns Promise<LeaseInterface[]>
    */
-  async findAll(
-    queryString?: Record<string, string>
-  ): Promise<LeaseInterface[]> {
+  async findAll(queryString?: Record<string, any>): Promise<LeaseInterface[]> {
     const operation = async () => {
       const query = Lease.find();
 
@@ -29,13 +27,18 @@ export default class LeaseService extends ListingService {
       const queryBuilder = QueryBuilder.Create(query, filter);
 
       const data = (
-        await queryBuilder.Filter().Sort().Select(projection).Paginate()
+        await queryBuilder
+          .GeoNear()
+          .Filter()
+          .Sort()
+          .Select(projection)
+          .Paginate()
       ).Exec();
 
       return data;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /** Retrieves a lease listing using its id
@@ -45,12 +48,16 @@ export default class LeaseService extends ListingService {
    */
   async findById(id: string): Promise<LeaseInterface | null> {
     const operation = async () => {
-      const listing = await Lease.findById({ _id: id });
+      const listing = await Lease.findOne({
+        _id: id,
+        purpose: "lease",
+        verify: { status: true },
+      });
 
       return listing;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /** Retrieves a lease listing using its slug
@@ -60,12 +67,16 @@ export default class LeaseService extends ListingService {
    */
   async findBySlug(slug: string): Promise<LeaseInterface | null> {
     const operation = async () => {
-      const listing = await Lease.findOne({ slug: slug });
+      const listing = await Lease.findOne({
+        slug: slug,
+        purpose: "lease",
+        verify: { status: true },
+      });
 
       return listing;
     };
 
-    return FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation);
   }
 
   /**
@@ -75,7 +86,7 @@ export default class LeaseService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async create(key: string, data: Partial<LeaseInterface>): Promise<void> {
+  async save(key: string, data: Partial<LeaseInterface>): Promise<void> {
     Object.assign(data as object, { purpose: "lease" });
 
     const session = await mongoose.startSession();
