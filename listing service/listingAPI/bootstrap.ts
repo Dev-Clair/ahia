@@ -133,7 +133,7 @@ export function UnhandledRejectionsHandler(
 ): void {
   Sentry.captureException(reason);
 
-  Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+  Logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
 
   process.exitCode = 1;
 }
@@ -146,7 +146,7 @@ export function UnhandledRejectionsHandler(
 export function UnCaughtExceptionsHandler(error: any): void {
   Sentry.captureException(error);
 
-  Logger.error("Uncaught Exception thrown:", error);
+  Logger.error(`Uncaught Exception thrown: ${error}`);
 
   process.exitCode = 1;
 }
