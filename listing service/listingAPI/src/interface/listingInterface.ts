@@ -5,18 +5,13 @@ export default interface ListingInterface extends Document {
   name: string;
   description: string;
   slug: string;
-  purpose: "lease" | "sell" | "reservation" | "mixed";
-  type: "economy" | "premium" | "luxury" | "mixed";
+  purpose: "lease" | "sell" | "reservation";
+  type: "economy" | "premium" | "luxury";
   category: "residential" | "commercial" | "mixed";
   offerings: [OfferingInterface];
-  address: {
-    street: string;
-    zone: string;
-    countyLGA: string;
-    state: string;
-  };
+  address: string;
   location: {
-    type: string;
+    type?: string;
     coordinates: number[];
   };
   provider: {

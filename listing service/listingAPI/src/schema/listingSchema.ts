@@ -26,12 +26,12 @@ const ListingSchema: Schema<
     },
     purpose: {
       type: String,
-      enum: ["lease", "sell", "reservation", "mixed"],
+      enum: ["lease", "sell", "reservation"],
       required: true,
     },
     type: {
       type: String,
-      enum: ["economy", "premium", "luxury", "mixed"],
+      enum: ["economy", "premium", "luxury"],
       required: true,
     },
     category: {
@@ -47,22 +47,8 @@ const ListingSchema: Schema<
       },
     ],
     address: {
-      street: {
-        type: String,
-        required: true,
-      },
-      zone: {
-        type: String,
-        required: true,
-      },
-      countyLGA: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
     },
     location: {
       type: {
