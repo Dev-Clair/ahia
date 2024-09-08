@@ -11,7 +11,7 @@ SellRouter.route("/")
   .post(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isCreatable,
-    ValidationMiddleware.validateBody,
+    ValidationMiddleware.validateSell,
     SellController.createListing
   );
 

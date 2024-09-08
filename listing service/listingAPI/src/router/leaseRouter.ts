@@ -11,7 +11,7 @@ LeaseRouter.route("/")
   .post(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isCreatable,
-    ValidationMiddleware.validateBody,
+    ValidationMiddleware.validateLease,
     LeaseController.createListing
   );
 

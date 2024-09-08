@@ -11,7 +11,7 @@ ReservationRouter.route("/")
   .post(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isCreatable,
-    ValidationMiddleware.validateBody,
+    ValidationMiddleware.validateReservation,
     ReservationController.createListing
   );
 
