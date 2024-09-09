@@ -18,7 +18,7 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const payload = req.body as object;
 
@@ -249,7 +249,7 @@ const updateListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const id = req.params.id as string;
 
@@ -303,7 +303,7 @@ const changeListingStatus = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const id = req.params.id as string;
 
