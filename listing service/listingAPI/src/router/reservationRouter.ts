@@ -36,10 +36,6 @@ ReservationRouter.route("/category/:category").get(
   ReservationController.retrieveListingsByCategory
 );
 
-ReservationRouter.route("/:slug").get(
-  ReservationController.retrieveListingBySlug
-);
-
 ReservationRouter.route("/:id")
   .get(ReservationController.retrieveListingById)
   .put(ListingMiddleWare.isNotAllowed)
@@ -61,6 +57,10 @@ ReservationRouter.route("/:id/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
   ValidationMiddleware.validateID,
   ReservationController.verifyListingStatus
+);
+
+ReservationRouter.route("/:slug").get(
+  ReservationController.retrieveListingBySlug
 );
 
 export default ReservationRouter;

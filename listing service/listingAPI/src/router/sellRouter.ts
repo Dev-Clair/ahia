@@ -30,8 +30,6 @@ SellRouter.route("/category/:category").get(
   SellController.retrieveListingsByCategory
 );
 
-SellRouter.route("/:slug").get(SellController.retrieveListingBySlug);
-
 SellRouter.route("/:id")
   .get(SellController.retrieveListingById)
   .put(ListingMiddleWare.isNotAllowed)
@@ -54,5 +52,7 @@ SellRouter.route("/:id/verify").get(
   ValidationMiddleware.validateID,
   SellController.verifyListingStatus
 );
+
+SellRouter.route("/:slug").get(SellController.retrieveListingBySlug);
 
 export default SellRouter;
