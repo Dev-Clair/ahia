@@ -130,7 +130,7 @@ ListingSchema.pre("save", function (next) {
   next();
 });
 
-// Listung Schema Instance Method
+// Listing Schema Instance Method
 ListingSchema.method("fetchOfferings", async function fetchOfferings(): Promise<
   OfferingInterface[]
 > {
