@@ -3,6 +3,7 @@ import HttpCode from "../enum/httpCode";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import LeaseService from "../service/leaseService";
+import PaymentRequiredError from "../error/paymentrequiredError";
 
 /**
  * Creates a new lease listing in collection
@@ -338,6 +339,11 @@ const verifyListingStatus = async (
     const listing = await LeaseService.Create().findById(id);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+
+    if (!listing.verify.status)
+      throw new PaymentRequiredError(
+        `${listing.name.toUpperCase()} has not been verified for listing. Kindly pay the listing fee to verify your listing`
+      );
 
     return res.status(HttpCode.OK).json({
       data: `${listing.name.toUpperCase()} has been been verified for listing. Kindly proceed to create offerings and promotions for your listing`,
