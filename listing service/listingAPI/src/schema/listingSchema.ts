@@ -5,6 +5,8 @@ import ListingMethodType from "../type/listingmethodType";
 import ListingMethodInterface from "../interface/listingmethodInterface";
 import OfferingInterface from "../interface/offeringInterface";
 
+const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
+
 const ListingSchema: Schema<
   ListingInterface,
   ListingMethodType,
@@ -73,6 +75,18 @@ const ListingSchema: Schema<
       email: {
         type: String,
         // required: true,
+        required: false,
+      },
+    },
+    media: {
+      picture: {
+        type: String,
+        get: (value: string) => `${baseStoragePath}${value}`,
+        required: false,
+      },
+      video: {
+        type: String,
+        get: (value: string) => `${baseStoragePath}${value}`,
         required: false,
       },
     },

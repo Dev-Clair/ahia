@@ -18,6 +18,10 @@ export default interface ListingInterface extends Document {
     id?: string;
     email?: string;
   };
+  media: {
+    picture: string;
+    video: string;
+  };
   verify: {
     status?: boolean;
     expiry?: Date;
