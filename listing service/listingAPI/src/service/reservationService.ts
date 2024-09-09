@@ -20,7 +20,7 @@ export default class ReservationService extends ListingService {
 
       const filter = {
         ...queryString,
-        purpose: "reservation",
+        purpose: "Reservation",
         verify: { status: true },
       };
 
@@ -40,7 +40,7 @@ export default class ReservationService extends ListingService {
       return data;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /** Retrieves a reservation listing using its id
@@ -49,17 +49,28 @@ export default class ReservationService extends ListingService {
    * @returns Promise<ReservationInterface | null>
    */
   async findById(id: string): Promise<ReservationInterface | null> {
+    const projection = {
+      verify: 0,
+      "provider.email": 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    };
+
     const operation = async () => {
-      const listing = await Reservation.findOne({
-        _id: id,
-        purpose: "reservation",
-        verify: { status: true },
-      });
+      const listing = await Reservation.findOne(
+        {
+          _id: id,
+          purpose: "Reservatione",
+          verify: { status: true },
+        },
+        projection
+      );
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /** Retrieves a reservation listing using its slug
@@ -68,17 +79,28 @@ export default class ReservationService extends ListingService {
    * @returns Promise<ReservationInterface | null>
    */
   async findBySlug(slug: string): Promise<ReservationInterface | null> {
+    const projection = {
+      verify: 0,
+      "provider.email": 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    };
+
     const operation = async () => {
-      const listing = await Reservation.findOne({
-        slug: slug,
-        purpose: "reservation",
-        verify: { status: true },
-      });
+      const listing = await Reservation.findOne(
+        {
+          slug: slug,
+          purpose: "Reservation",
+          verify: { status: true },
+        },
+        projection
+      );
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /**
@@ -89,14 +111,12 @@ export default class ReservationService extends ListingService {
    * @returns Promise<void>
    */
   async save(key: string, data: Partial<ReservationInterface>): Promise<void> {
-    Object.assign(data as object, { purpose: "reservation" });
-
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
       await Reservation.create([data], { session: session });
 
-      await Idempotency.create([key], { session: session });
+      await Idempotency.create([{ key: key }], { session: session });
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -123,7 +143,9 @@ export default class ReservationService extends ListingService {
         session,
       });
 
-      const val = await Idempotency.create([key], { session: session });
+      const val = await Idempotency.create([{ key: key }], {
+        session: session,
+      });
 
       return listing;
     });

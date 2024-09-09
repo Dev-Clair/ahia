@@ -56,7 +56,7 @@ export default class LeaseService extends ListingService {
     };
 
     const operation = async () => {
-      const listing = await Lease.findById(
+      const listing = await Lease.findOne(
         {
           _id: id,
           purpose: "Lease",

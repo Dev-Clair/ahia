@@ -7,7 +7,7 @@ import Sell from "../model/sellModel";
 import SellInterface from "../interface/sellInterface";
 
 export default class SellService extends ListingService {
-  /** Retrieves a collection of listing for sale
+  /** Retrieves a collection of listing for sell
    * @public
    * @param queryString
    * @returns Promise<SellInterface[]>
@@ -38,7 +38,7 @@ export default class SellService extends ListingService {
       return data;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /** Retrieves a sell listing using its id
@@ -47,17 +47,28 @@ export default class SellService extends ListingService {
    * @returns Promise<SellInterface | null>
    */
   async findById(id: string): Promise<SellInterface | null> {
+    const projection = {
+      verify: 0,
+      "provider.email": 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    };
+
     const operation = async () => {
-      const listing = await Sell.findOne({
-        _id: id,
-        purpose: "sell",
-        verify: { status: true },
-      });
+      const listing = await Sell.findOne(
+        {
+          _id: id,
+          purpose: "Sell",
+          verify: { status: true },
+        },
+        projection
+      );
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /** Retrieves a sell listing using its slug
@@ -66,17 +77,28 @@ export default class SellService extends ListingService {
    * @returns Promise<SellInterface | null>
    */
   async findBySlug(slug: string): Promise<SellInterface | null> {
+    const projection = {
+      verify: 0,
+      "provider.email": 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    };
+
     const operation = async () => {
-      const listing = await Sell.findOne({
-        slug: slug,
-        purpose: "sell",
-        verify: { status: true },
-      });
+      const listing = await Sell.findOne(
+        {
+          slug: slug,
+          purpose: "Sell",
+          verify: { status: true },
+        },
+        projection
+      );
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation);
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /**
