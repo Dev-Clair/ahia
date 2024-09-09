@@ -40,7 +40,10 @@ export default abstract class ListingService {
    * @param data
    * @returns Promise<void>
    */
-  abstract save(key: string, data: Partial<ListingInterface>): Promise<void>;
+  abstract save(
+    key: Record<string, any>,
+    data: Partial<ListingInterface>
+  ): Promise<void>;
 
   /**
    * Updates a listing record using its id
@@ -52,7 +55,7 @@ export default abstract class ListingService {
    */
   abstract update(
     id: string,
-    key: string,
+    key: Record<string, any>,
     data?: Partial<ListingInterface>
   ): Promise<any>;
 

@@ -108,13 +108,16 @@ export default class LeaseService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<LeaseInterface>): Promise<void> {
+  async save(
+    key: Record<string, any>,
+    data: Partial<LeaseInterface>
+  ): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
       await Lease.create([data], { session: session });
 
-      await Idempotency.create([{ key: key }], { session: session });
+      await Idempotency.create([key], { session: session });
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -130,7 +133,7 @@ export default class LeaseService extends ListingService {
    */
   async update(
     id: string,
-    key: string,
+    key: Record<string, any>,
     data?: Partial<LeaseInterface>
   ): Promise<any> {
     const session = await mongoose.startSession();
@@ -141,7 +144,7 @@ export default class LeaseService extends ListingService {
         session,
       });
 
-      const val = await Idempotency.create([{ key: key }], {
+      const val = await Idempotency.create([key], {
         session: session,
       });
 

@@ -108,7 +108,10 @@ export default class SellService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<SellInterface>): Promise<void> {
+  async save(
+    key: Record<string, any>,
+    data: Partial<SellInterface>
+  ): Promise<void> {
     Object.assign(data as object, { purpose: "sell" });
 
     const session = await mongoose.startSession();
@@ -132,7 +135,7 @@ export default class SellService extends ListingService {
    */
   async update(
     id: string,
-    key: string,
+    key: Record<string, any>,
     data?: Partial<SellInterface>
   ): Promise<any> {
     const session = await mongoose.startSession();
