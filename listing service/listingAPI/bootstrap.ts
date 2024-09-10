@@ -156,7 +156,9 @@ export function UnCaughtExceptionsHandler(error: any): void {
  * @param server
  * @returns Promise<void>
  */
-export async function ShutdownHandler(Server?: HttpServer): Promise<void> {
+export async function ShutdownHandler(
+  Server?: HttpServer | null
+): Promise<void> {
   Logger.info("Shutting down gracefully...");
 
   await mongoose.connection.close(true);
