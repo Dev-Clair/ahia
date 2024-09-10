@@ -1,113 +1,111 @@
-import { Schema } from "mongoose";
+import { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
+import IListing from "../interface/IListing";
+import ListingInterfaceType from "../type/listinginterfaceType";
 import ListingInterface from "../interface/listingInterface";
-import ListingMethodType from "../type/listingmethodType";
-import ListingMethodInterface from "../interface/listingmethodInterface";
-import OfferingInterface from "../interface/offeringInterface";
+import Offering from "../model/offeringModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
-const ListingSchema: Schema<
-  ListingInterface,
-  ListingMethodType,
-  ListingMethodInterface
-> = new Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    slug: {
-      type: String,
-      unique: true,
-      required: false,
-    },
-    purpose: {
-      type: String,
-      enum: ["lease", "sell", "reservation"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
-    category: {
-      type: String,
-      enum: ["residential", "commercial", "mixed"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
-    offerings: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Offering",
-        default: undefined,
+const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
+  new Schema(
+    {
+      name: {
+        type: String,
+        required: true,
       },
-    ],
-    address: {
-      type: String,
-      required: true,
-    },
-    location: {
+      description: {
+        type: String,
+        required: true,
+      },
+      slug: {
+        type: String,
+        unique: true,
+        required: false,
+      },
+      purpose: {
+        type: String,
+        enum: ["lease", "sell", "reservation"],
+        required: true,
+      },
       type: {
         type: String,
-        enum: ["Point"],
-        default: "Point",
+        enum: ["economy", "premium", "luxury"],
+        set: (value: string) => value.toLowerCase(),
+        required: true,
       },
-      coordinates: {
-        type: [Number],
-        required: false,
-      },
-    },
-    provider: {
-      id: {
+      category: {
         type: String,
-        // required: true,
-        required: false,
+        enum: ["residential", "commercial", "mixed"],
+        set: (value: string) => value.toLowerCase(),
+        required: true,
       },
-      email: {
-        type: String,
-        // required: true,
-        required: false,
-      },
-    },
-    media: {
-      picture: {
-        type: String,
-        get: (value: string) => `${baseStoragePath}${value}`,
-        required: false,
-      },
-      video: {
-        type: String,
-        get: (value: string) => `${baseStoragePath}${value}`,
-        required: false,
-      },
-    },
-    verify: {
-      status: {
-        type: Boolean,
-        enum: [true, false],
-        default: false,
-        required: false,
-      },
-      expiry: {
-        type: Date,
-        default: function () {
-          return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
+      offerings: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Offering",
+          default: undefined,
         },
-        required: false,
+      ],
+      address: {
+        type: String,
+        required: true,
+      },
+      location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          default: "Point",
+        },
+        coordinates: {
+          type: [Number],
+          required: false,
+        },
+      },
+      provider: {
+        id: {
+          type: String,
+          // required: true,
+          required: false,
+        },
+        email: {
+          type: String,
+          // required: true,
+          required: false,
+        },
+      },
+      media: {
+        picture: {
+          type: String,
+          get: (value: string) => `${baseStoragePath}${value}`,
+          required: false,
+        },
+        video: {
+          type: String,
+          get: (value: string) => `${baseStoragePath}${value}`,
+          required: false,
+        },
+      },
+      verify: {
+        status: {
+          type: Boolean,
+          enum: [true, false],
+          default: false,
+          required: false,
+        },
+        expiry: {
+          type: Date,
+          default: function () {
+            return new Date(
+              Date.now() + 3 * 24 * 60 * 60 * 1000
+            ).toDateString();
+          },
+          required: false,
+        },
       },
     },
-  },
-  { timestamps: true, discriminatorKey: "purpose" }
-);
+    { timestamps: true, discriminatorKey: "purpose" }
+  );
 
 // Listing Schema Search Query Index
 ListingSchema.index({
@@ -130,15 +128,41 @@ ListingSchema.pre("save", function (next) {
   next();
 });
 
-// Listing Schema Instance Method
-ListingSchema.method("fetchOfferings", async function fetchOfferings(): Promise<
-  OfferingInterface[]
-> {
+ListingSchema.pre("findOneAndDelete", async function (next) {
+  const listing = await this.model.findOne(this.getFilter());
+
+  if (listing) await Offering.deleteMany({ listing: listing._id });
+
+  next();
+});
+
+// Listing Schema Instance Methods
+ListingSchema.method("fetchOfferings", async function (): Promise<any> {
   const listing = this;
 
-  await listing.populate("offerings");
+  const offerings = await listing.populate("offerings");
 
-  return listing.offerings;
+  return offerings;
 });
+
+ListingSchema.method(
+  "addOffering",
+  async function (offeringId: ObjectId): Promise<void> {
+    this.offerings.push(offeringId);
+
+    await this.save();
+  }
+);
+
+ListingSchema.method(
+  "removeOffering",
+  async function (offeringId: ObjectId): Promise<void> {
+    const deleteIndex = this.offerings.indexOf(offeringId);
+
+    this.offerings.splice(deleteIndex, 1);
+
+    await this.save();
+  }
+);
 
 export default ListingSchema;
