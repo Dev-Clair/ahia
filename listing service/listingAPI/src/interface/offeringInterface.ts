@@ -1,9 +1,10 @@
-import { Document } from "mongoose";
+import { Document, Schema } from "mongoose";
 
 export default interface OfferingInterface extends Document {
   name: string;
-  slug: string;
+  slug?: string;
   type: string;
+  size: string;
   price: number;
   features: string[];
   status: "open" | "closed";
@@ -11,4 +12,5 @@ export default interface OfferingInterface extends Document {
     picture: string[];
     video: string[];
   };
+  listing: Schema.Types.ObjectId;
 }

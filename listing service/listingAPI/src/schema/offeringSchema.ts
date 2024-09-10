@@ -1,6 +1,7 @@
 import { Schema } from "mongoose";
 import slugify from "slugify";
 import OfferingInterface from "../interface/offeringInterface";
+import Listing from "../model/listingModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
@@ -15,6 +16,10 @@ const OfferingSchema: Schema<OfferingInterface> = new Schema({
     required: false,
   },
   type: {
+    type: String,
+    required: true,
+  },
+  size: {
     type: String,
     required: true,
   },
@@ -47,6 +52,11 @@ const OfferingSchema: Schema<OfferingInterface> = new Schema({
       required: true,
     },
   },
+  listing: {
+    type: Schema.Types.ObjectId,
+    ref: "Listing",
+    required: true,
+  },
 });
 
 // Offering Schema Search Query Index
@@ -61,6 +71,20 @@ OfferingSchema.pre("save", function (next) {
       strict: true,
       trim: true,
     });
+  }
+
+  next();
+});
+
+OfferingSchema.pre("findOneAndDelete", async function (next) {
+  const offering = await this.model.findOne(this.getFilter());
+
+  if (offering) {
+    const listing = await Listing.findOne({ _id: offering.listing });
+
+    const deleteIndex = offering._id;
+
+    listing?.offerings.splice(deleteIndex, 1);
   }
 
   next();
