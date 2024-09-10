@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import PromotionInterface from "../interface/promotionInterface";
+import PromotionInterface from "../interface/Ipromotion";
 import PromotionMethodType from "../type/promotionmethodType";
-import PromotionMethodInterface from "../interface/promotionmethodInterface";
+import PromotionMethodInterface from "../interface/promotionInterface";
 
 const PromotionSchema: Schema<
   PromotionInterface,

@@ -1,9 +1,9 @@
 import { model } from "mongoose";
-import PromotionMethodType from "../type/promotionmethodType";
+import IPromotion from "../interface/Ipromotion";
+import PromotionInterfaceType from "../type/promotionmethodType";
 import PromotionSchema from "../schema/promotionSchema";
-import PromotionInterface from "../interface/promotionInterface";
 
-const Promotion = model<PromotionInterface, PromotionMethodType>(
+const Promotion = model<IPromotion, PromotionInterfaceType>(
   "Promotion",
   PromotionSchema
 );

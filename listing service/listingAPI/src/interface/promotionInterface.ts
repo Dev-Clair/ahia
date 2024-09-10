@@ -1,11 +1,7 @@
-import { Document, Schema } from "mongoose";
+import { Document } from "mongoose";
+import IPromotion from "./Ipromotion";
 
-export default interface PromotionInterface extends Document {
-  type: string;
-  description: string;
-  discount: number;
-  startDate: Date;
-  endDate: Date;
-  listings?: Schema.Types.ObjectId;
-  offerings?: Schema.Types.ObjectId[];
+export default interface PromotionInterface extends IPromotion, Document {
+  checkPromotionValidity: (date: Date) => boolean;
+  reactivatePromotion: (startDate: Date, endDate: Date) => Promise<void>;
 }

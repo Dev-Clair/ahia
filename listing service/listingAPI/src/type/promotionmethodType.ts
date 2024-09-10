@@ -1,11 +1,7 @@
 import { Model } from "mongoose";
+import IPromotion from "../interface/Ipromotion";
 import PromotionInterface from "../interface/promotionInterface";
-import PromotionMethodInterface from "../interface/promotionmethodInterface";
 
-type PromotionMethodType = Model<
-  PromotionInterface,
-  {},
-  PromotionMethodInterface
->;
+type PromotionInterfaceType = Model<IPromotion, {}, PromotionInterface>;
 
-export default PromotionMethodType;
+export default PromotionInterfaceType;
