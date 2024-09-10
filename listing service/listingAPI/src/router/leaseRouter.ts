@@ -7,52 +7,74 @@ import LeaseController from "../controller/leaseController";
 const LeaseRouter = Router();
 
 LeaseRouter.route("/")
-  .get(LeaseController.retrieveListings)
+  .get(LeaseController.Listing.retrieveListings)
   .post(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isCreatable,
     ValidationMiddleware.validateLease,
-    LeaseController.createListing
+    LeaseController.Listing.createListing
   );
 
-LeaseRouter.route("/search").get(LeaseController.retrieveListingsSearch);
+LeaseRouter.route("/search").get(LeaseController.Listing.retrieveSearch);
 
-LeaseRouter.route("/near-me").get(LeaseController.retrieveListingsNearme);
+LeaseRouter.route("/near-me").get(LeaseController.Listing.retrieveNearme);
 
 LeaseRouter.route("/provider/:providerId").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  LeaseController.retrieveListingsByProvider
+  LeaseController.Listing.retrieveByProvider
 );
 
-LeaseRouter.route("/type/:type").get(LeaseController.retrieveListingsByType);
+LeaseRouter.route("/type/:type").get(LeaseController.Listing.retrieveByType);
 
 LeaseRouter.route("/category/:category").get(
-  LeaseController.retrieveListingsByCategory
+  LeaseController.Listing.retrieveByCategory
 );
 
 LeaseRouter.route("/:id")
-  .get(AuthMiddleWare.IsGranted(["Admin"]), LeaseController.retrieveListingById)
+  .get(
+    AuthMiddleWare.IsGranted(["Admin"]),
+    LeaseController.Listing.retrieveById
+  )
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isUpdatable,
-    LeaseController.updateListing
+    LeaseController.Listing.updateListing
   )
-  .delete(LeaseController.deleteListing);
+  .delete(LeaseController.Listing.deleteListing);
 
 LeaseRouter.route("/:id/status").patch(
   AuthMiddleWare.IsGranted(["Admin"]),
-  LeaseController.changeListingStatus
+  LeaseController.Listing.changeStatus
 );
 
 LeaseRouter.route("/:id/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  LeaseController.verifyListingStatus
+  LeaseController.Listing.verifyStatus
+);
+
+LeaseRouter.route("/:id/offerings").get(
+  LeaseController.Offering.createOffering
+);
+
+LeaseRouter.route("/:id/offerings").post(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  LeaseController.Offering.createOffering
+);
+
+LeaseRouter.route("/:id/offerings/:offeringId").patch(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  LeaseController.Offering.updateOffering
+);
+
+LeaseRouter.route("/:id/offerings/:offeringId").delete(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  LeaseController.Offering.deleteOffering
 );
 
 LeaseRouter.route("/:slug").get(
   AuthMiddleWare.IsGranted(["Admin"]),
-  LeaseController.retrieveListingBySlug
+  LeaseController.Listing.retrieveBySlug
 );
 
 export default LeaseRouter;
