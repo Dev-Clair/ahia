@@ -7,52 +7,69 @@ import SellController from "../controller/sellController";
 const SellRouter = Router();
 
 SellRouter.route("/")
-  .get(SellController.retrieveListings)
+  .get(SellController.Listing.retrieveListings)
   .post(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isCreatable,
     ValidationMiddleware.validateSell,
-    SellController.createListing
+    SellController.Listing.createListing
   );
 
-SellRouter.route("/search").get(SellController.retrieveListingsSearch);
+SellRouter.route("/search").get(SellController.Listing.retrieveSearch);
 
-SellRouter.route("/near-me").get(SellController.retrieveListingsNearme);
+SellRouter.route("/near-me").get(SellController.Listing.retrieveNearme);
 
 SellRouter.route("/provider/:providerId").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  SellController.retrieveListingsByProvider
+  SellController.Listing.retrieveByProvider
 );
 
-SellRouter.route("/type/:type").get(SellController.retrieveListingsByType);
+SellRouter.route("/type/:type").get(SellController.Listing.retrieveByType);
 
 SellRouter.route("/category/:category").get(
-  SellController.retrieveListingsByCategory
+  SellController.Listing.retrieveByCategory
 );
 
 SellRouter.route("/:id")
-  .get(SellController.retrieveListingById)
+  .get(AuthMiddleWare.IsGranted(["Admin"]), SellController.Listing.retrieveById)
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isUpdatable,
-    ValidationMiddleware.validateID,
-    SellController.updateListing
+    SellController.Listing.updateListing
   )
-  .delete(SellController.deleteListing);
+  .delete(SellController.Listing.deleteListing);
 
 SellRouter.route("/:id/status").patch(
   AuthMiddleWare.IsGranted(["Admin"]),
-  ValidationMiddleware.validateID,
-  SellController.changeListingStatus
+  SellController.Listing.changeStatus
 );
 
 SellRouter.route("/:id/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  ValidationMiddleware.validateID,
-  SellController.verifyListingStatus
+  SellController.Listing.verifyStatus
 );
 
-SellRouter.route("/:slug").get(SellController.retrieveListingBySlug);
+SellRouter.route("/:id/offerings").get(SellController.Offering.fetchOfferings);
+
+SellRouter.route("/:id/offerings").post(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  SellController.Offering.createOffering
+);
+
+SellRouter.route("/:id/offerings/:offeringId").patch(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  SellController.Offering.updateOffering
+);
+
+SellRouter.route("/:id/offerings/:offeringId").delete(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  SellController.Offering.deleteOffering
+);
+
+SellRouter.route("/:slug").get(
+  AuthMiddleWare.IsGranted(["Admin"]),
+  SellController.Listing.retrieveBySlug
+);
 
 export default SellRouter;

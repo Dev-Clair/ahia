@@ -7,60 +7,80 @@ import ReservationController from "../controller/reservationController";
 const ReservationRouter = Router();
 
 ReservationRouter.route("/")
-  .get(ReservationController.retrieveListings)
+  .get(ReservationController.Listing.retrieveListings)
   .post(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isCreatable,
     ValidationMiddleware.validateReservation,
-    ReservationController.createListing
+    ReservationController.Listing.createListing
   );
 
 ReservationRouter.route("/search").get(
-  ReservationController.retrieveListingsSearch
+  ReservationController.Listing.retrieveSearch
 );
 
 ReservationRouter.route("/near-me").get(
-  ReservationController.retrieveListingsNearme
+  ReservationController.Listing.retrieveNearme
 );
 
 ReservationRouter.route("/provider/:providerId").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  ReservationController.retrieveListingsByProvider
+  ReservationController.Listing.retrieveByProvider
 );
 
 ReservationRouter.route("/type/:type").get(
-  ReservationController.retrieveListingsByType
+  ReservationController.Listing.retrieveByType
 );
 
 ReservationRouter.route("/category/:category").get(
-  ReservationController.retrieveListingsByCategory
+  ReservationController.Listing.retrieveByCategory
 );
 
 ReservationRouter.route("/:id")
-  .get(ReservationController.retrieveListingById)
+  .get(
+    AuthMiddleWare.IsGranted(["Admin"]),
+    ReservationController.Listing.retrieveById
+  )
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
     ListingMiddleWare.isUpdatable,
-    ValidationMiddleware.validateID,
-    ReservationController.updateListing
+    ReservationController.Listing.updateListing
   )
-  .delete(ReservationController.deleteListing);
+  .delete(ReservationController.Listing.deleteListing);
 
 ReservationRouter.route("/:id/status").patch(
   AuthMiddleWare.IsGranted(["Admin"]),
-  ValidationMiddleware.validateID,
-  ReservationController.changeListingStatus
+  ReservationController.Listing.changeStatus
 );
 
 ReservationRouter.route("/:id/verify").get(
   AuthMiddleWare.IsGranted(["Provider"]),
-  ValidationMiddleware.validateID,
-  ReservationController.verifyListingStatus
+  ReservationController.Listing.verifyStatus
+);
+
+ReservationRouter.route("/:id/offerings").get(
+  ReservationController.Offering.fetchOfferings
+);
+
+ReservationRouter.route("/:id/offerings").post(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  ReservationController.Offering.createOffering
+);
+
+ReservationRouter.route("/:id/offerings/:offeringId").patch(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  ReservationController.Offering.updateOffering
+);
+
+ReservationRouter.route("/:id/offerings/:offeringId").delete(
+  AuthMiddleWare.IsGranted(["Provider"]),
+  ReservationController.Offering.deleteOffering
 );
 
 ReservationRouter.route("/:slug").get(
-  ReservationController.retrieveListingBySlug
+  AuthMiddleWare.IsGranted(["Admin"]),
+  ReservationController.Listing.retrieveBySlug
 );
 
 export default ReservationRouter;

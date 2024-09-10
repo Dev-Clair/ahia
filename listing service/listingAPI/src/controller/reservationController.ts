@@ -67,7 +67,7 @@ const retrieveListings = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const retrieveListingsSearch = async (
+const retrieveSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -94,7 +94,7 @@ const retrieveListingsSearch = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const retrieveListingsNearme = async (
+const retrieveNearme = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -117,7 +117,7 @@ const retrieveListingsNearme = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const retrieveListingsByProvider = async (
+const retrieveByProvider = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -142,7 +142,7 @@ const retrieveListingsByProvider = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const retrieveListingsByType = async (
+const retrieveByType = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -167,7 +167,7 @@ const retrieveListingsByType = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const retrieveListingsByCategory = async (
+const retrieveByCategory = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -192,7 +192,7 @@ const retrieveListingsByCategory = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const retrieveListingBySlug = async (
+const retrieveBySlug = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -218,7 +218,7 @@ const retrieveListingBySlug = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const retrieveListingById = async (
+const retrieveById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -297,7 +297,7 @@ const deleteListing = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const changeListingStatus = async (
+const changeStatus = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -328,7 +328,7 @@ const changeListingStatus = async (
  * @param next
  * @returns Promise<Response | void>
  */
-const verifyListingStatus = async (
+const verifyStatus = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -353,18 +353,124 @@ const verifyListingStatus = async (
   }
 };
 
+const fetchOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const id = req.params.id as string;
+
+    const listing = await ReservationService.Create().findById(id);
+
+    const offerings = listing?.fetchOfferings();
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const createOffering = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const id = req.params.id as string;
+
+    const key = { key: req.headers["idempotency-key"] as string };
+
+    const data = req.body as object;
+
+    const lease = ReservationService.Create();
+
+    const listing = await lease.findById(id);
+
+    if (listing) {
+      const offering = await lease.createOffering(key, data);
+
+      await listing?.addOffering(offering._id);
+    }
+
+    return res.status(HttpCode.CREATED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const updateOffering = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const listingId = req.params.id as string;
+
+    const offeringId = req.params.offeringId as string;
+
+    const key = { key: req.headers["idempotency-key"] as string };
+
+    const data = req.body as object;
+
+    const lease = ReservationService.Create();
+
+    const listing = await lease.findById(listingId);
+
+    if (listing) await lease.updateOffering(offeringId, key, data);
+
+    return res.status(HttpCode.MODIFIED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const deleteOffering = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const listingId = req.params.id as string;
+
+    const offeringId = req.params.offeringId as string;
+
+    const lease = ReservationService.Create();
+
+    const listing = await lease.findById(listingId);
+
+    if (listing) {
+      const offering = await lease.deleteOffering(offeringId);
+
+      await listing?.removeOffering(offering._id);
+    }
+
+    return res.status(HttpCode.MODIFIED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
 export default {
-  createListing,
-  retrieveListings,
-  retrieveListingsSearch,
-  retrieveListingsNearme,
-  retrieveListingsByProvider,
-  retrieveListingsByType,
-  retrieveListingsByCategory,
-  retrieveListingBySlug,
-  retrieveListingById,
-  updateListing,
-  deleteListing,
-  changeListingStatus,
-  verifyListingStatus,
+  Listing: {
+    createListing,
+    retrieveListings,
+    retrieveSearch,
+    retrieveNearme,
+    retrieveByProvider,
+    retrieveByType,
+    retrieveByCategory,
+    retrieveBySlug,
+    retrieveById,
+    updateListing,
+    deleteListing,
+    changeStatus,
+    verifyStatus,
+  },
+  Offering: {
+    fetchOfferings,
+    createOffering,
+    updateOffering,
+    deleteOffering,
+  },
 };

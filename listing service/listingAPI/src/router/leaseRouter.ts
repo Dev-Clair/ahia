@@ -54,7 +54,7 @@ LeaseRouter.route("/:id/verify").get(
 );
 
 LeaseRouter.route("/:id/offerings").get(
-  LeaseController.Offering.createOffering
+  LeaseController.Offering.fetchOfferings
 );
 
 LeaseRouter.route("/:id/offerings").post(

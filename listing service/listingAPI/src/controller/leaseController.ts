@@ -387,9 +387,11 @@ const createOffering = async (
 
     const listing = await lease.findById(id);
 
-    const offering = await lease.createOffering(key, data);
+    if (listing) {
+      const offering = await lease.createOffering(key, data);
 
-    await listing?.addOffering(offering._id);
+      await listing?.addOffering(offering._id);
+    }
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -415,7 +417,7 @@ const updateOffering = async (
 
     const listing = await lease.findById(listingId);
 
-    const offering = await lease.updateOffering(offeringId, key, data);
+    if (listing) await lease.updateOffering(offeringId, key, data);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -437,9 +439,11 @@ const deleteOffering = async (
 
     const listing = await lease.findById(listingId);
 
-    const offering = await lease.deleteOffering(offeringId);
+    if (listing) {
+      const offering = await lease.deleteOffering(offeringId);
 
-    await listing?.removeOffering(offering._id);
+      await listing?.removeOffering(offering._id);
+    }
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
