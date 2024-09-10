@@ -1,12 +1,12 @@
 import { Schema } from "mongoose";
-import PromotionInterface from "../interface/Ipromotion";
-import PromotionMethodType from "../type/promotionmethodType";
-import PromotionMethodInterface from "../interface/promotionInterface";
+import IPromotion from "../interface/IPromotion";
+import PromotionInterfaceType from "../type/promotioninterfaceType";
+import PromotionInterface from "../interface/promotionInterface";
 
 const PromotionSchema: Schema<
-  PromotionInterface,
-  PromotionMethodType,
-  PromotionMethodInterface
+  IPromotion,
+  PromotionInterfaceType,
+  PromotionInterface
 > = new Schema(
   {
     type: {

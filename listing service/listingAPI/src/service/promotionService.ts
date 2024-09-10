@@ -1,5 +1,5 @@
-import ListingInterface from "../interface/IListing";
-import OfferingInterface from "../interface/offeringInterface";
-import PromotionInterface from "../interface/Ipromotion";
+import IListing from "../interface/IListing";
+import IPromotion from "../interface/IPromotion";
+import IOffering from "../interface/IOffering";
 
 export default class PromotionService {}

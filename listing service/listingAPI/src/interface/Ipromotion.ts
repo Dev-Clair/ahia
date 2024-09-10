@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 
-export default interface PromotionInterface {
+export default interface IPromotion {
   type: string;
   description: string;
   discount: number;

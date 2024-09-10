@@ -1,11 +1,11 @@
 import { Schema } from "mongoose";
 import slugify from "slugify";
-import OfferingInterface from "../interface/offeringInterface";
+import IOffering from "../interface/IOffering";
 import Listing from "../model/listingModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
-const OfferingSchema: Schema<OfferingInterface> = new Schema({
+const OfferingSchema: Schema<IOffering> = new Schema({
   name: {
     type: String,
     required: true,

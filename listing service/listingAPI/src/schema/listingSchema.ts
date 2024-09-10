@@ -147,7 +147,7 @@ ListingSchema.method("fetchOfferings", async function (): Promise<any> {
 
 ListingSchema.method(
   "addOffering",
-  async function (offeringId: ObjectId): Promise<void> {
+  async function (offeringId: ObjectId | string): Promise<void> {
     this.offerings.push(offeringId);
 
     await this.save();
@@ -156,7 +156,7 @@ ListingSchema.method(
 
 ListingSchema.method(
   "removeOffering",
-  async function (offeringId: ObjectId): Promise<void> {
+  async function (offeringId: ObjectId | string): Promise<void> {
     const deleteIndex = this.offerings.indexOf(offeringId);
 
     this.offerings.splice(deleteIndex, 1);

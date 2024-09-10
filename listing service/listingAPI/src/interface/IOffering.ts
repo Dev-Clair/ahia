@@ -1,6 +1,6 @@
 import { Document, Schema } from "mongoose";
 
-export default interface OfferingInterface extends Document {
+export default interface IOffering extends Document {
   name: string;
   slug?: string;
   type: string;

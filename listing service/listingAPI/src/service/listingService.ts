@@ -4,7 +4,7 @@ import Idempotency from "../model/idempotencyModel";
 import Listing from "../model/listingModel";
 import ListingInterface from "../interface/listingInterface";
 import Offering from "../model/offeringModel";
-import OfferingInterface from "../interface/offeringInterface";
+import IOffering from "../interface/IOffering";
 
 /**
  * Listing Service
@@ -85,8 +85,8 @@ export default abstract class ListingService {
    */
   public async createOffering(
     key: Record<string, any>,
-    data: Partial<OfferingInterface>
-  ): Promise<OfferingInterface> {
+    data: Partial<IOffering>
+  ): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
@@ -111,12 +111,12 @@ export default abstract class ListingService {
   public async updateOffering(
     id: string,
     key: Record<string, any>,
-    data: Partial<OfferingInterface>
+    data: Partial<IOffering>
   ): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Offering.findByIdAndUpdate({ _id: id }, data, {
+      const offering = await Offering.findByIdAndUpdate({ _id: id }, data, {
         new: true,
         session,
       });
@@ -125,7 +125,7 @@ export default abstract class ListingService {
         session: session,
       });
 
-      return listing;
+      return offering;
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -141,9 +141,9 @@ export default abstract class ListingService {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Offering.findByIdAndDelete({ _id: id }, session);
+      const offering = await Offering.findByIdAndDelete({ _id: id }, session);
 
-      return listing;
+      return offering;
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);

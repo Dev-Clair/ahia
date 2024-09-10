@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
-import IPromotion from "./Ipromotion";
+import IPromotion from "./IPromotion";
 
 export default interface PromotionInterface extends IPromotion, Document {
   checkPromotionValidity: (date: Date) => boolean;
