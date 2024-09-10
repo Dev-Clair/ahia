@@ -108,7 +108,12 @@ const isCreatable = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const notAllowedFields = ["offering", "verify.status", "verify.expiry"];
+  const notAllowedFields = [
+    "offerings",
+    "media",
+    "verify.status",
+    "verify.expiry",
+  ];
 
   const getRequestBody = req.body as object;
 
@@ -145,7 +150,7 @@ const isUpdatable = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const allowedFields = ["type", "category", "offering"];
+  const allowedFields = ["type", "category", "offerings"];
 
   const getRequestBody = req.body as object;
 
