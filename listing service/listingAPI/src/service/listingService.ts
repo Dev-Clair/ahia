@@ -1,13 +1,22 @@
+import mongoose from "mongoose";
+import FailureRetry from "../utils/failureRetry";
+import Idempotency from "../model/idempotencyModel";
+import Listing from "../model/listingModel";
 import ListingInterface from "../interface/listingInterface";
+import Offering from "../model/offeringModel";
+import OfferingInterface from "../interface/offeringInterface";
 
 /**
  * Listing Service
- * @method findAll
- * @method findById
- * @method findBySlug
- * @method save
- * @method update
- * @method delete
+ * @abstract findAll
+ * @abstract findById
+ * @abstract findBySlug
+ * @abstract save
+ * @abstract update
+ * @abstract delete
+ * @method createOffering
+ * @method updateOffering
+ * @method deleteOffering
  */
 export default abstract class ListingService {
   /** Retrieves a collection of listings
@@ -66,4 +75,77 @@ export default abstract class ListingService {
    * @returns Promise<any>
    */
   abstract delete(id: string): Promise<any>;
+
+  /**
+   * Creates a new offering on a listing
+   * @public
+   * @param key
+   * @param data
+   * @returns Promise<void>
+   */
+  public async createOffering(
+    key: Record<string, any>,
+    data: Partial<OfferingInterface>
+  ): Promise<OfferingInterface> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const offering = await Offering.create([data], { session: session });
+
+      const val = await Idempotency.create([key], { session: session });
+
+      return offering;
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
+
+  /**
+   * Updates a listing offering
+   * @public
+   * @param id
+   * @param key
+   * @param data
+   * @returns Promise<any>
+   */
+  public async updateOffering(
+    id: string,
+    key: Record<string, any>,
+    data: Partial<OfferingInterface>
+  ): Promise<any> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const listing = await Offering.findByIdAndUpdate({ _id: id }, data, {
+        new: true,
+        session,
+      });
+
+      const val = await Idempotency.create([key], {
+        session: session,
+      });
+
+      return listing;
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
+
+  /**
+   * Deletes a listing offering
+   * @public
+   * @param id
+   * @returns Promise<any>
+   */
+  public async deleteOffering(id: string): Promise<any> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const listing = await Offering.findByIdAndDelete({ _id: id }, session);
+
+      return listing;
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
 }
