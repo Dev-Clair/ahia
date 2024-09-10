@@ -2,7 +2,7 @@ import { Schema } from "mongoose";
 import slugify from "slugify";
 import OfferingInterface from "../interface/offeringInterface";
 
-const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offering`;
+const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
 const OfferingSchema: Schema<OfferingInterface> = new Schema({
   name: {
