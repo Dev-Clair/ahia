@@ -17,7 +17,7 @@ class SecretManager {
   }
 
   /**
-   * Verifies an API service secret
+   * Verifies a hashed secret by comparing it with the rehashed value and key
    * @param secret
    * @param value
    * @param key

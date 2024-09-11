@@ -8,7 +8,6 @@ import { Express } from "express";
  * @method StartHTTP
  * @method StartHTTPS
  * @method Close
- * @method Create
  */
 class HttpServer {
   private app: Express;
@@ -71,7 +70,7 @@ class HttpServer {
     });
   }
   /**
-   * Returns a new instance of the HttpServer class
+   * Creates and returns a new instance of the HttpServer class
    * @param App
    * @param SSL_Options
    * @returns HttpServer

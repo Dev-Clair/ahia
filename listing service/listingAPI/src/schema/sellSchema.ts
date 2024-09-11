@@ -8,7 +8,7 @@ const SellSchema: Schema<SellInterface> = new Schema({
   },
   mortgage: {
     plan: {
-      type: [String],
+      type: String,
       enum: ["short", "medium", "long"],
       required: true,
     },

@@ -1,11 +1,8 @@
 import { model } from "mongoose";
-import ListingMethodType from "../type/listingmethodType";
+import ListingInterfaceType from "../type/listinginterfaceType";
 import ListingSchema from "../schema/listingSchema";
-import ListingInterface from "../interface/listingInterface";
+import IListing from "../interface/IListing";
 
-const Listing = model<ListingInterface, ListingMethodType>(
-  "Listing",
-  ListingSchema
-);
+const Listing = model<IListing, ListingInterfaceType>("Listing", ListingSchema);
 
 export default Listing;

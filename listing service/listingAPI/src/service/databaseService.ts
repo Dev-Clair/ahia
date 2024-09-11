@@ -6,7 +6,6 @@ import FailureRetry from "../utils/failureRetry";
  * Database Service
  * @method connect
  * @method getConnection
- * @method Create
  */
 class DatabaseService {
   private connectionUri: string;

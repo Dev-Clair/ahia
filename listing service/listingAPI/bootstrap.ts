@@ -6,7 +6,7 @@ import DatabaseService from "./src/service/databaseService";
 import DatabaseServiceError from "./src/error/databaseserviceError";
 import HttpServer from "./src/utils/httpServer";
 import HttpServerError from "./src/error/httpserverError";
-import Logger from "./src/service/loggerService";
+import Logger from "./src/utils/logger";
 
 /**
  * Bootstraps the entire application
@@ -133,7 +133,7 @@ export function UnhandledRejectionsHandler(
 ): void {
   Sentry.captureException(reason);
 
-  Logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+  Logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
 
   process.exitCode = 1;
 }
@@ -146,7 +146,7 @@ export function UnhandledRejectionsHandler(
 export function UnCaughtExceptionsHandler(error: any): void {
   Sentry.captureException(error);
 
-  Logger.error("Uncaught Exception thrown:", error);
+  Logger.error(`Uncaught Exception thrown: ${error}`);
 
   process.exitCode = 1;
 }
@@ -156,7 +156,9 @@ export function UnCaughtExceptionsHandler(error: any): void {
  * @param server
  * @returns void
  */
-export async function ShutdownHandler(Server?: HttpServer): Promise<void> {
+export async function ShutdownHandler(
+  Server?: HttpServer | null
+): Promise<void> {
   Logger.info("Shutting down gracefully...");
 
   await mongoose.connection.close(true);

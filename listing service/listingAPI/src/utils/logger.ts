@@ -104,7 +104,7 @@ class CloudWatchLogsTransport extends TransportStream {
   }
 
   /**
-   * Creates and returns a new instance of the CloudWatchLogsTransport class.
+   * Creates and returns a new instance of the CloudWatchLogsTransport class
    * @returns CloudWatchLogsTransport
    */
   public static Create(): CloudWatchLogsTransport {

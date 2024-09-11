@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
+import Idempotency from "../model/idempotencyModel";
 
 /**
  * Verifies request security
@@ -31,20 +32,20 @@ const isSecure = (
 };
 
 /**
- * Verifies request header contains idempotency key
+ * Verifies request header and database contains idempotency key
  * @param req
  * @param res
  * @param next
  * @returns Response | void
  */
-const isIdempotent = (
+const isIdempotent = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Response | void => {
-  const getIdempotencyKey = req.headers["idempotency-key"] as string;
+): Promise<Response | void> => {
+  const key = req.headers["idempotency-key"] as string;
 
-  if (!getIdempotencyKey) {
+  if (!key) {
     return res.status(HttpCode.BAD_REQUEST).json({
       error: {
         name: HttpStatus.BAD_REQUEST,
@@ -52,6 +53,14 @@ const isIdempotent = (
       },
     });
   }
+
+  if (await Idempotency.findOne({ key: key }))
+    return res.status(HttpCode.CONFLICT).json({
+      error: {
+        name: HttpStatus.CONFLICT,
+        message: "Duplicate request detected",
+      },
+    });
 
   next();
 };
@@ -99,7 +108,12 @@ const isCreatable = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const notAllowedFields = ["offering", "verify.status", "verify.expiry"];
+  const notAllowedFields = [
+    "offerings",
+    "media",
+    "verify.status",
+    "verify.expiry",
+  ];
 
   const getRequestBody = req.body as object;
 
@@ -115,9 +129,9 @@ const isCreatable = (
     return res.status(HttpCode.BAD_REQUEST).json({
       error: {
         name: HttpStatus.BAD_REQUEST,
-        message: `Insertions are not allowed on fields: ${{
-          ...createErrorCache,
-        }}`,
+        message: `Insertions are not allowed on fields: ${createErrorCache.join(
+          ", "
+        )}`,
       },
     });
 
@@ -136,7 +150,7 @@ const isUpdatable = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const allowedFields = ["type", "category", "offering"];
+  const allowedFields = ["type", "category", "offerings"];
 
   const getRequestBody = req.body as object;
 
@@ -152,9 +166,9 @@ const isUpdatable = (
     return res.status(HttpCode.BAD_REQUEST).json({
       error: {
         name: HttpStatus.BAD_REQUEST,
-        message: `Updates are not allowed on fields: ${{
-          ...updateErrorCache,
-        }}`,
+        message: `Updates are not allowed on fields: ${updateErrorCache.join(
+          ", "
+        )}}`,
       },
     });
 

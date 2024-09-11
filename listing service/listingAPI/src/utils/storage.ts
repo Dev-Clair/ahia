@@ -10,14 +10,13 @@ import { randomUUID } from "node:crypto";
 import Config from "../../config";
 
 /**
- * Storage service
+ * Storage Class
  * @method upload
  * @method download
  * @method remove
  * @method *retrieveCollection
- * @method Create
  */
-class StorageService {
+class Storage {
   private s3: S3Client;
 
   private bucket: string;
@@ -129,10 +128,10 @@ class StorageService {
   }
 
   /**
-   * Creates and returns a new instance of the Storage class.
+   * Creates and returns a new instance of the Storage class
    * @returns StorageService
    */
-  public static Create(): StorageService {
+  public static Create(): Storage {
     const configuration: S3ClientConfig = {
       region: Config.AWS.REGION,
       credentials: {
@@ -141,8 +140,8 @@ class StorageService {
       },
     };
 
-    return new StorageService(configuration, Config.AWS.S3_BUCKET_NAME);
+    return new Storage(configuration, Config.AWS.S3_BUCKET_NAME);
   }
 }
 
-export default StorageService;
+export default Storage;

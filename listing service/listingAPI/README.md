@@ -43,7 +43,7 @@ Authorization and authentication is enabled by an identity server which manages 
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/Dev-Clair/ahia/tree/listing_service/listingAPI.git
+   git clone https://github.com/Dev-Clair/ahia/tree/listing_service/\'listing service\'/listingAPI.git
 
    cd listingAPI/
    ```
@@ -152,19 +152,7 @@ Errors are handled by an in-app custom error middleware and sentry express error
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:
-
-```
-    Fork the repository.
-
-    Create a new branch: git checkout -b feature-branch.
-
-    Make your changes and commit them: git commit -m 'Add new feature'.
-
-    Push to the branch: git push origin feature-branch.
-
-    Open a pull request.
-```
+Contributions are not welcomed! Thanks.
 
 ## License
 

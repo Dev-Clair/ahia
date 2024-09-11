@@ -1,7 +1,7 @@
 import { model } from "mongoose";
 import OfferingSchema from "../schema/offeringSchema";
-import OfferingInterface from "../interface/offeringInterface";
+import IOffering from "../interface/IOffering";
 
-const Offering = model<OfferingInterface>("Offering", OfferingSchema);
+const Offering = model<IOffering>("Offering", OfferingSchema);
 
 export default Offering;
