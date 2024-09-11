@@ -82,9 +82,9 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
   if (offering) {
     const listing = await Listing.findOne({ _id: offering.listing });
 
-    const deleteIndex = offering._id;
+    const offeringIndex = listing?.offerings.indexOf(offering._id) as number;
 
-    listing?.offerings.splice(deleteIndex, 1);
+    listing?.offerings.splice(offeringIndex, 1);
   }
 
   next();
