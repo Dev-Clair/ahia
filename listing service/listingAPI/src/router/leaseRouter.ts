@@ -19,6 +19,10 @@ LeaseRouter.route("/search").get(LeaseController.Listing.retrieveSearch);
 
 LeaseRouter.route("/near-me").get(LeaseController.Listing.retrieveNearme);
 
+// LeaseRouter.route("/available").get(LeaseController.Listing);
+
+// LeaseRouter.route("/available/near-me").get(LeaseController.Listing);
+
 LeaseRouter.route("/provider/:providerId").get(
   AuthMiddleWare.IsGranted(["Provider"]),
   LeaseController.Listing.retrieveByProvider
@@ -31,10 +35,7 @@ LeaseRouter.route("/category/:category").get(
 );
 
 LeaseRouter.route("/:id")
-  .get(
-    AuthMiddleWare.IsGranted(["Admin"]),
-    LeaseController.Listing.retrieveById
-  )
+  .get(LeaseController.Listing.retrieveById)
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
@@ -72,9 +73,6 @@ LeaseRouter.route("/:id/offerings/:offeringId").delete(
   LeaseController.Offering.deleteOffering
 );
 
-LeaseRouter.route("/:slug").get(
-  AuthMiddleWare.IsGranted(["Admin"]),
-  LeaseController.Listing.retrieveBySlug
-);
+LeaseRouter.route("/:slug").get(LeaseController.Listing.retrieveBySlug);
 
 export default LeaseRouter;

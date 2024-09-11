@@ -23,6 +23,12 @@ ReservationRouter.route("/near-me").get(
   ReservationController.Listing.retrieveNearme
 );
 
+// ReservationRouter.route("/available").get(ReservationController.Listing);
+
+// ReservationRouter.route("/available/near-me").get(
+// ReservationController.Listing
+// );
+
 ReservationRouter.route("/provider/:providerId").get(
   AuthMiddleWare.IsGranted(["Provider"]),
   ReservationController.Listing.retrieveByProvider
@@ -37,10 +43,7 @@ ReservationRouter.route("/category/:category").get(
 );
 
 ReservationRouter.route("/:id")
-  .get(
-    AuthMiddleWare.IsGranted(["Admin"]),
-    ReservationController.Listing.retrieveById
-  )
+  .get(ReservationController.Listing.retrieveById)
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
@@ -79,7 +82,6 @@ ReservationRouter.route("/:id/offerings/:offeringId").delete(
 );
 
 ReservationRouter.route("/:slug").get(
-  AuthMiddleWare.IsGranted(["Admin"]),
   ReservationController.Listing.retrieveBySlug
 );
 

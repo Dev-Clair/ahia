@@ -19,6 +19,10 @@ SellRouter.route("/search").get(SellController.Listing.retrieveSearch);
 
 SellRouter.route("/near-me").get(SellController.Listing.retrieveNearme);
 
+// SellRouter.route("/now-selling").get(SellController.Listing);
+
+// SellRouter.route("/now-selling/near-me").get(SellController.Listing);
+
 SellRouter.route("/provider/:providerId").get(
   AuthMiddleWare.IsGranted(["Provider"]),
   SellController.Listing.retrieveByProvider
@@ -31,7 +35,7 @@ SellRouter.route("/category/:category").get(
 );
 
 SellRouter.route("/:id")
-  .get(AuthMiddleWare.IsGranted(["Admin"]), SellController.Listing.retrieveById)
+  .get(SellController.Listing.retrieveById)
   .put(ListingMiddleWare.isNotAllowed)
   .patch(
     AuthMiddleWare.IsGranted(["Provider"]),
@@ -67,9 +71,6 @@ SellRouter.route("/:id/offerings/:offeringId").delete(
   SellController.Offering.deleteOffering
 );
 
-SellRouter.route("/:slug").get(
-  AuthMiddleWare.IsGranted(["Admin"]),
-  SellController.Listing.retrieveBySlug
-);
+SellRouter.route("/:slug").get(SellController.Listing.retrieveBySlug);
 
 export default SellRouter;
