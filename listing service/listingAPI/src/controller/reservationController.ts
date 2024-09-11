@@ -383,12 +383,12 @@ const createOffering = async (
 
     const data = req.body as object;
 
-    const lease = ReservationService.Create();
+    const reservation = ReservationService.Create();
 
-    const listing = await lease.findById(id);
+    const listing = await reservation.findById(id);
 
     if (listing) {
-      const offering = await lease.createOffering(key, data);
+      const offering = await reservation.createOffering(key, data);
 
       await listing?.addOffering(offering._id);
     }
@@ -413,11 +413,11 @@ const updateOffering = async (
 
     const data = req.body as object;
 
-    const lease = ReservationService.Create();
+    const reservation = ReservationService.Create();
 
-    const listing = await lease.findById(listingId);
+    const listing = await reservation.findById(listingId);
 
-    if (listing) await lease.updateOffering(offeringId, key, data);
+    if (listing) await reservation.updateOffering(offeringId, key, data);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -435,12 +435,12 @@ const deleteOffering = async (
 
     const offeringId = req.params.offeringId as string;
 
-    const lease = ReservationService.Create();
+    const reservation = ReservationService.Create();
 
-    const listing = await lease.findById(listingId);
+    const listing = await reservation.findById(listingId);
 
     if (listing) {
-      const offering = await lease.deleteOffering(offeringId);
+      const offering = await reservation.deleteOffering(offeringId);
 
       await listing?.removeOffering(offering._id);
     }

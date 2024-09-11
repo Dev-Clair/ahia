@@ -383,12 +383,12 @@ const createOffering = async (
 
     const data = req.body as object;
 
-    const lease = SellService.Create();
+    const sell = SellService.Create();
 
-    const listing = await lease.findById(id);
+    const listing = await sell.findById(id);
 
     if (listing) {
-      const offering = await lease.createOffering(key, data);
+      const offering = await sell.createOffering(key, data);
 
       await listing?.addOffering(offering._id);
     }
@@ -413,11 +413,11 @@ const updateOffering = async (
 
     const data = req.body as object;
 
-    const lease = SellService.Create();
+    const sell = SellService.Create();
 
-    const listing = await lease.findById(listingId);
+    const listing = await sell.findById(listingId);
 
-    if (listing) await lease.updateOffering(offeringId, key, data);
+    if (listing) await sell.updateOffering(offeringId, key, data);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -435,12 +435,12 @@ const deleteOffering = async (
 
     const offeringId = req.params.offeringId as string;
 
-    const lease = SellService.Create();
+    const sell = SellService.Create();
 
-    const listing = await lease.findById(listingId);
+    const listing = await sell.findById(listingId);
 
     if (listing) {
-      const offering = await lease.deleteOffering(offeringId);
+      const offering = await sell.deleteOffering(offeringId);
 
       await listing?.removeOffering(offering._id);
     }
