@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
-import Listing from "../model/listingModel";
 import ListingInterface from "../interface/listingInterface";
 import Offering from "../model/offeringModel";
 import IOffering from "../interface/IOffering";
