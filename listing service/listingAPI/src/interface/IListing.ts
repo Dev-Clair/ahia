@@ -3,7 +3,7 @@ import { Schema } from "mongoose";
 export default interface IListing {
   name: string;
   description: string;
-  slug: string;
+  slug?: string;
   purpose: "lease" | "sell" | "reservation";
   type: "economy" | "premium" | "luxury";
   category: "residential" | "commercial" | "mixed";
@@ -18,8 +18,8 @@ export default interface IListing {
     email?: string;
   };
   media: {
-    picture: string;
-    video: string;
+    picture?: string;
+    video?: string;
   };
   verify: {
     status?: boolean;

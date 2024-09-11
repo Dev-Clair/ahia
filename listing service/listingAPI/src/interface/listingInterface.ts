@@ -4,6 +4,6 @@ import IOffering from "./IOffering";
 
 export default interface ListingInterface extends IListing, Document {
   fetchOfferings: () => Promise<IOffering[]>;
-  addOffering: (offeringId: ObjectId | string) => Promise<void>;
-  removeOffering: (offeringId: ObjectId | string) => Promise<void>;
+  addOffering: (offeringId: ObjectId) => Promise<void>;
+  removeOffering: (offeringId: ObjectId) => Promise<void>;
 }

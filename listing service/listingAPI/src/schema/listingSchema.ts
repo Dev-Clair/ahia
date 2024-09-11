@@ -138,17 +138,15 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
 
 // Listing Schema Instance Methods
 ListingSchema.method("fetchOfferings", async function (): Promise<any> {
-  const listing = this;
+  await this.populate("offerings");
 
-  const offerings = await listing.populate("offerings");
-
-  return offerings;
+  return this.offerings;
 });
 
 ListingSchema.method(
   "addOffering",
-  async function (offeringId: ObjectId | string): Promise<void> {
-    this.offerings.push(offeringId);
+  async function (offeringId: ObjectId): Promise<void> {
+    if (!this.offerings.includes(offeringId)) this.offerings.push(offeringId);
 
     await this.save();
   }
@@ -156,10 +154,10 @@ ListingSchema.method(
 
 ListingSchema.method(
   "removeOffering",
-  async function (offeringId: ObjectId | string): Promise<void> {
-    const deleteIndex = this.offerings.indexOf(offeringId);
+  async function (offeringId: ObjectId): Promise<void> {
+    const offeringIndex = this.offerings.indexOf(offeringId);
 
-    this.offerings.splice(deleteIndex, 1);
+    if (offeringIndex > -1) this.offerings.splice(offeringIndex, 1);
 
     await this.save();
   }
