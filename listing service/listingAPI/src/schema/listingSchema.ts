@@ -146,9 +146,11 @@ ListingSchema.method("fetchOfferings", async function (): Promise<any> {
 ListingSchema.method(
   "addOffering",
   async function (offeringId: ObjectId): Promise<void> {
-    if (!this.offerings.includes(offeringId)) this.offerings.push(offeringId);
+    if (!this.offerings.includes(offeringId)) {
+      this.offerings.push(offeringId);
 
-    await this.save();
+      await this.save();
+    }
   }
 );
 
@@ -157,9 +159,11 @@ ListingSchema.method(
   async function (offeringId: ObjectId): Promise<void> {
     const offeringIndex = this.offerings.indexOf(offeringId);
 
-    if (offeringIndex > -1) this.offerings.splice(offeringIndex, 1);
+    if (offeringIndex > -1) {
+      this.offerings.splice(offeringIndex, 1);
 
-    await this.save();
+      await this.save();
+    }
   }
 );
 
