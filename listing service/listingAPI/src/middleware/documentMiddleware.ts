@@ -1,14 +1,16 @@
 import ListingController from "../controller/listingController";
 import { NextFunction, Request, Response } from "express";
+import ListingInterface from "../interface/listingInterface";
+import ListingService from "../service/listingService";
 
 /**
  * Attaches the resolved document to the request object
  * @param paramName - The name of the route parameter (e.g., 'id' or 'slug')
  * @param serviceName - The name of the service to resolve the listing
- * @returns () => void
+ * @returns a promise that resolves to void
  */
-const Document = (paramName: string, serviceName: string): void => {
-  async (req: Request, res: Response, next: NextFunction) => {
+const DocumentMiddleware = (paramName: string, serviceName: string) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const paramValue = req.params[paramName] as string;
 
@@ -17,9 +19,9 @@ const Document = (paramName: string, serviceName: string): void => {
         serviceName
       );
 
-      (req as any).listing = document?.listing;
+      req.listing = document.listing as ListingInterface;
 
-      (req as any).service = document?.service;
+      req.service = document.service as ListingService;
 
       next();
     } catch (err: any) {
@@ -28,4 +30,4 @@ const Document = (paramName: string, serviceName: string): void => {
   };
 };
 
-export default Document;
+export default DocumentMiddleware;
