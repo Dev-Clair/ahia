@@ -1,9 +1,9 @@
 import NotFoundError from "../error/notfoundError";
+import ListingInterface from "../interface/listingInterface";
 import LeaseService from "../service/leaseService";
 import ListingService from "../service/listingService";
 import ReservationService from "../service/reservationService";
 import SellService from "../service/sellService";
-import ListingInterface from "../interface/listingInterface";
 
 class DocumentValueResolver {
   constructor(private paramValue: string, private serviceName: string) {}
@@ -35,7 +35,7 @@ class DocumentValueResolver {
         return SellService.Create();
 
       default:
-        throw new Error("Invalid Service Route Definition");
+        throw new Error("Invalid service key");
     }
   }
 
