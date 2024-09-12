@@ -143,7 +143,7 @@ const validateID =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.params.id);
+      schema.parse({ id: req.params.id });
 
       next();
     } catch (err) {

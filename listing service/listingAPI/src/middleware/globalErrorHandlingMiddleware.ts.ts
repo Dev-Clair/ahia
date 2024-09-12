@@ -19,6 +19,8 @@ class GlobalErrorHandlingMiddleware {
       });
 
       Sentry.captureException(err);
+
+      process.exitCode = 1;
     });
   }
 

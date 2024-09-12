@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
-import Idempotency from "../model/idempotencyModel";
 
 /**
  * Verifies request security
@@ -23,7 +22,7 @@ const isSecure = (
     return res.status(HttpCode.FORBIDDEN).json({
       error: {
         name: HttpStatus.FORBIDDEN,
-        message: "Connection is not secure. SSL required",
+        message: "Connection is not secure. SSL/TLS required",
       },
     });
   }
@@ -32,147 +31,96 @@ const isSecure = (
 };
 
 /**
- * Verifies request header and database contains idempotency key
+ * Verifies request header content type
  * @param req
  * @param res
  * @param next
  * @returns Response | void
  */
-const isIdempotent = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  const key = req.headers["idempotency-key"] as string;
+const isContentType = (contentTypes: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): Response | void => {
+    const getContentType = req.headers["content-type"] as string;
 
-  if (!key) {
-    return res.status(HttpCode.BAD_REQUEST).json({
-      error: {
-        name: HttpStatus.BAD_REQUEST,
-        message: "Idempotency key is required",
-      },
-    });
-  }
-
-  if (await Idempotency.findOne({ key: key }))
-    return res.status(HttpCode.CONFLICT).json({
-      error: {
-        name: HttpStatus.CONFLICT,
-        message: "Duplicate request detected",
-      },
-    });
-
-  next();
-};
-
-/**
- * Verifies request header contains allowed content type
- * @param req
- * @param res
- * @param next
- * @returns Response | void
- */
-const isAllowedContentType = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Response | void => {
-  const allowedContentTypes = ["application/json", "text/html", "text/plain"];
-
-  const getContentType = req.headers["content-type"] as string;
-
-  if (!allowedContentTypes.includes(getContentType)) {
-    return res.status(HttpCode.BAD_REQUEST).json({
-      error: {
-        name: HttpStatus.BAD_REQUEST,
-        message: {
-          expected: "application/json",
-          received: `${getContentType}`,
+    if (!contentTypes.includes(getContentType)) {
+      return res.status(HttpCode.BAD_REQUEST).json({
+        error: {
+          name: HttpStatus.BAD_REQUEST,
+          message: {
+            expected: contentTypes.join(", "),
+            received: `${getContentType}`,
+          },
         },
-      },
-    });
-  }
+      });
+    }
 
-  next();
+    next();
+  };
 };
 
 /**
- * Verifies request body contains fields that can be created
+ * Verifies request body contains creatable fields
  * @param req
  * @param res
  * @param next
  * @returns Response | void
  */
-const isCreatable = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Response | void => {
-  const notAllowedFields = [
-    "offerings",
-    "media",
-    "verify.status",
-    "verify.expiry",
-  ];
+const isCreatable = (fields: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): Response | void => {
+    const getRequestBody = req.body as object;
 
-  const getRequestBody = req.body as object;
+    const creatable = Object.keys(getRequestBody);
 
-  const createFields = Object.keys(getRequestBody);
+    const errorCache: string[] = [];
 
-  const createErrorCache: string[] = [];
-
-  createFields.forEach((element) => {
-    if (notAllowedFields.includes(element)) createErrorCache.push(element);
-  });
-
-  if (createErrorCache.length !== 0)
-    return res.status(HttpCode.BAD_REQUEST).json({
-      error: {
-        name: HttpStatus.BAD_REQUEST,
-        message: `Insertions are not allowed on fields: ${createErrorCache.join(
-          ", "
-        )}`,
-      },
+    creatable.forEach((element) => {
+      if (fields.includes(element)) errorCache.push(element);
     });
 
-  next();
+    if (errorCache.length !== 0)
+      return res.status(HttpCode.BAD_REQUEST).json({
+        error: {
+          name: HttpStatus.BAD_REQUEST,
+          message: `Insertions are not allowed on fields: ${errorCache.join(
+            ", "
+          )}`,
+        },
+      });
+
+    next();
+  };
 };
 
 /**
- * Verifies request body contains fields that can be updated
+ * Verifies request body contains updatable fields
  * @param req
  * @param res
  * @param next
  * @returns Response | void
  */
-const isUpdatable = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Response | void => {
-  const allowedFields = ["type", "category", "offerings"];
+const isUpdatable = (fields: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): Response | void => {
+    const getRequestBody = req.body as object;
 
-  const getRequestBody = req.body as object;
+    const updatable = Object.keys(getRequestBody);
 
-  const updateFields = Object.keys(getRequestBody);
+    const errorCache: string[] = [];
 
-  const updateErrorCache: string[] = [];
-
-  updateFields.forEach((element) => {
-    if (!allowedFields.includes(element)) updateErrorCache.push(element);
-  });
-
-  if (updateErrorCache.length !== 0)
-    return res.status(HttpCode.BAD_REQUEST).json({
-      error: {
-        name: HttpStatus.BAD_REQUEST,
-        message: `Updates are not allowed on fields: ${updateErrorCache.join(
-          ", "
-        )}}`,
-      },
+    updatable.forEach((element) => {
+      if (!fields.includes(element)) errorCache.push(element);
     });
 
-  next();
+    if (errorCache.length !== 0)
+      return res.status(HttpCode.BAD_REQUEST).json({
+        error: {
+          name: HttpStatus.BAD_REQUEST,
+          message: `Updates are not allowed on fields: ${errorCache.join(
+            ", "
+          )}}`,
+        },
+      });
+
+    next();
+  };
 };
 
 /**
@@ -197,8 +145,7 @@ const isNotAllowed = (
 
 export default {
   isSecure,
-  isIdempotent,
-  isAllowedContentType,
+  isContentType,
   isCreatable,
   isUpdatable,
   isNotAllowed,
