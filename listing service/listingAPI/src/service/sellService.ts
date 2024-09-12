@@ -18,7 +18,7 @@ export default class SellService extends ListingService {
 
       const filter = {
         ...queryString,
-        purpose: "sell",
+        purpose: "Sell",
         verify: { status: true },
       };
 
@@ -109,8 +109,6 @@ export default class SellService extends ListingService {
    * @returns Promise<void>
    */
   async save(key: string, data: Partial<SellInterface>): Promise<void> {
-    Object.assign(data as object, { purpose: "sell" });
-
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {

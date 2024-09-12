@@ -61,7 +61,7 @@ export default class ReservationService extends ListingService {
       const listing = await Reservation.findOne(
         {
           _id: id,
-          purpose: "Reservatione",
+          purpose: "Reservation",
           verify: { status: true },
         },
         projection
