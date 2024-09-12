@@ -9,7 +9,7 @@ const LeaseSchema: Schema<LeaseInterface> = new Schema({
   rental: {
     plan: {
       type: String,
-      enum: ["monthly", "quarterly", "annually"],
+      enum: ["monthly", "quarterly", "annually", "mixed"],
       required: true,
     },
     termsAndConditions: {

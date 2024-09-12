@@ -5,7 +5,7 @@ const ReservationSchema: Schema<ReservationInterface> = new Schema({
   booking: {
     plan: {
       type: String,
-      enum: ["daily", "extended"],
+      enum: ["daily", "extended", "mixed"],
       required: true,
     },
     termsAndConditions: {
