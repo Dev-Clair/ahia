@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotencyModel";
+import IdempotencyManager from "../utils/idempotencyManager";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 import Sell from "../model/sellModel";
@@ -18,7 +18,7 @@ export default class SellService extends ListingService {
 
       const filter = {
         ...queryString,
-        purpose: "sell",
+        purpose: "Sell",
         verify: { status: true },
       };
 
@@ -108,18 +108,13 @@ export default class SellService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async save(
-    key: Record<string, any>,
-    data: Partial<SellInterface>
-  ): Promise<void> {
-    Object.assign(data as object, { purpose: "sell" });
-
+  async save(key: string, data: Partial<SellInterface>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
       await Sell.create([data], { session: session });
 
-      await Idempotency.create([key], { session: session });
+      await IdempotencyManager.Create(key, session);
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -135,7 +130,7 @@ export default class SellService extends ListingService {
    */
   async update(
     id: string,
-    key: Record<string, any>,
+    key: string,
     data?: Partial<SellInterface>
   ): Promise<any> {
     const session = await mongoose.startSession();
@@ -146,7 +141,7 @@ export default class SellService extends ListingService {
         session,
       });
 
-      const val = await Idempotency.create([key], { session: session });
+      const val = await IdempotencyManager.Create(key, session);
 
       return listing;
     });

@@ -38,7 +38,6 @@ export function GlobalProcessEventsListener(): void {
   process
     .on("unhandledRejection", UnhandledRejectionsHandler)
     .on("uncaughtException", UnCaughtExceptionsHandler)
-    .on("SIGINT", ShutdownHandler)
     .on("SIGHUP", ShutdownHandler)
     .on("SIGTERM", ShutdownHandler);
 }
@@ -157,7 +156,7 @@ export function UnCaughtExceptionsHandler(error: any): void {
  * @returns void
  */
 export async function ShutdownHandler(
-  Server?: HttpServer | null
+  Server: HttpServer | null = null
 ): Promise<void> {
   Logger.info("Shutting down gracefully...");
 

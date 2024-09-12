@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotencyModel";
+import IdempotencyManager from "../utils/idempotencyManager";
 import ListingInterface from "../interface/listingInterface";
 import Offering from "../model/offeringModel";
 import IOffering from "../interface/IOffering";
@@ -48,10 +48,7 @@ export default abstract class ListingService {
    * @param data
    * @returns Promise<void>
    */
-  abstract save(
-    key: Record<string, any>,
-    data: Partial<ListingInterface>
-  ): Promise<void>;
+  abstract save(key: string, data: Partial<ListingInterface>): Promise<void>;
 
   /**
    * Updates a listing record using its id
@@ -63,7 +60,7 @@ export default abstract class ListingService {
    */
   abstract update(
     id: string,
-    key: Record<string, any>,
+    key: string,
     data?: Partial<ListingInterface>
   ): Promise<any>;
 
@@ -83,7 +80,7 @@ export default abstract class ListingService {
    * @returns Promise<void>
    */
   public async createOffering(
-    key: Record<string, any>,
+    key: string,
     data: Partial<IOffering>
   ): Promise<any> {
     const session = await mongoose.startSession();
@@ -91,7 +88,7 @@ export default abstract class ListingService {
     const operation = session.withTransaction(async () => {
       const offering = await Offering.create([data], { session: session });
 
-      const val = await Idempotency.create([key], { session: session });
+      const val = await IdempotencyManager.Create(key, session);
 
       return offering;
     });
@@ -109,7 +106,7 @@ export default abstract class ListingService {
    */
   public async updateOffering(
     id: string,
-    key: Record<string, any>,
+    key: string,
     data: Partial<IOffering>
   ): Promise<any> {
     const session = await mongoose.startSession();
@@ -120,9 +117,7 @@ export default abstract class ListingService {
         session,
       });
 
-      const val = await Idempotency.create([key], {
-        session: session,
-      });
+      const val = await IdempotencyManager.Create(key, session);
 
       return offering;
     });

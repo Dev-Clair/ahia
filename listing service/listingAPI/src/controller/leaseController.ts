@@ -1,8 +1,9 @@
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
+import LeaseService from "../service/leaseService";
+import ListingInterface from "../interface/listingInterface";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
-import LeaseService from "../service/leaseService";
 import PaymentRequiredError from "../error/paymentrequiredError";
 
 /**
@@ -18,7 +19,7 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.headers["idempotency-key"] as string;
 
     const payload = req.body as object;
 
@@ -198,12 +199,7 @@ const retrieveBySlug = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const slug = req.params.slug as string;
-
-    const listing = await LeaseService.Create().findBySlug(slug);
-
-    if (!listing)
-      throw new NotFoundError(`No record found for listing: ${slug}`);
+    const listing = req.listing as ListingInterface;
 
     return res.status(HttpCode.OK).json({ data: listing });
   } catch (err: any) {
@@ -224,11 +220,7 @@ const retrieveById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
-
-    const listing = await LeaseService.Create().findById(id);
-
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+    const listing = req.listing as ListingInterface;
 
     return res.status(HttpCode.OK).json({ data: listing });
   } catch (err: any) {
@@ -251,7 +243,7 @@ const updateListing = async (
   try {
     const id = req.params.id as string;
 
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.headers["idempotency-key"] as string;
 
     const body = req.body as object;
 
@@ -305,7 +297,7 @@ const changeStatus = async (
   try {
     const id = req.params.id as string;
 
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.headers["idempotency-key"] as string;
 
     const status = req.body as boolean;
 
@@ -334,11 +326,7 @@ const verifyStatus = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
-
-    const listing = await LeaseService.Create().findById(id);
-
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+    const listing = req.listing as ListingInterface;
 
     if (!listing.verify.status)
       throw new PaymentRequiredError(
@@ -359,11 +347,9 @@ const fetchOfferings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
+    const listing = req.listing as ListingInterface;
 
-    const listing = await LeaseService.Create().findById(id);
-
-    const offerings = listing?.fetchOfferings();
+    const offerings = listing.fetchOfferings();
 
     return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
@@ -377,15 +363,13 @@ const createOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
-
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.headers["idempotency-key"] as string;
 
     const data = req.body as object;
 
-    const lease = LeaseService.Create();
+    const listing = req.listing as ListingInterface;
 
-    const listing = await lease.findById(id);
+    const lease = req.service as LeaseService;
 
     if (listing) {
       const offering = await lease.createOffering(key, data);
@@ -405,17 +389,15 @@ const updateOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const listingId = req.params.id as string;
-
     const offeringId = req.params.offeringId as string;
 
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.headers["idempotency-key"] as string;
 
     const data = req.body as object;
 
-    const lease = LeaseService.Create();
+    const listing = req.listing as ListingInterface;
 
-    const listing = await lease.findById(listingId);
+    const lease = req.service as LeaseService;
 
     if (listing) await lease.updateOffering(offeringId, key, data);
 
@@ -431,18 +413,16 @@ const deleteOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const listingId = req.params.id as string;
-
     const offeringId = req.params.offeringId as string;
 
-    const lease = LeaseService.Create();
+    const listing = req.listing as ListingInterface;
 
-    const listing = await lease.findById(listingId);
+    const lease = req.service as LeaseService;
 
     if (listing) {
       const offering = await lease.deleteOffering(offeringId);
 
-      await listing?.removeOffering(offering._id);
+      await listing.removeOffering(offering._id);
     }
 
     return res.status(HttpCode.MODIFIED).json({ data: null });

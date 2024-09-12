@@ -40,7 +40,7 @@ const LeaseSchema = z.object({
     required_error: "isNegotiable is required",
   }),
   rental: z.object({
-    plan: z.enum(["monthly", "quarterly", "annually"]),
+    plan: z.enum(["monthly", "quarterly", "annually", "mixed"]),
     termsAndCondtions: z
       .array(
         z.string({
@@ -79,7 +79,7 @@ const ReservationSchema = z.object({
     ),
   }),
   booking: z.object({
-    plan: z.enum(["daily", "extended"]),
+    plan: z.enum(["daily", "extended", "mixed"]),
     termsAndCondtions: z
       .array(
         z.string({
@@ -122,7 +122,7 @@ const SellSchema = z.object({
     required_error: "isNegotiable is required",
   }),
   mortgage: z.object({
-    plan: z.enum(["short", "medium", "long"]),
+    plan: z.enum(["short", "medium", "long", "mixed"]),
     termsAndCondtions: z
       .array(
         z.string({
@@ -143,7 +143,7 @@ const validateID =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.params.id);
+      schema.parse({ id: req.params.id });
 
       next();
     } catch (err) {
