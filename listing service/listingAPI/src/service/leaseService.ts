@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotencyModel";
+import IdempotencyManager from "../utils/idempotencyManager";
 import Lease from "../model/leaseModel";
 import LeaseInterface from "../interface/leaseInterface";
 import ListingService from "./listingService";
@@ -108,16 +108,13 @@ export default class LeaseService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async save(
-    key: Record<string, any>,
-    data: Partial<LeaseInterface>
-  ): Promise<void> {
+  async save(key: string, data: Partial<LeaseInterface>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
       await Lease.create([data], { session: session });
 
-      await Idempotency.create([key], { session: session });
+      await IdempotencyManager.Create(key, session);
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -133,7 +130,7 @@ export default class LeaseService extends ListingService {
    */
   async update(
     id: string,
-    key: Record<string, any>,
+    key: string,
     data?: Partial<LeaseInterface>
   ): Promise<any> {
     const session = await mongoose.startSession();
@@ -144,9 +141,7 @@ export default class LeaseService extends ListingService {
         session,
       });
 
-      const val = await Idempotency.create([key], {
-        session: session,
-      });
+      const val = await IdempotencyManager.Create(key, session);
 
       return listing;
     });
