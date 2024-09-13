@@ -1,18 +1,20 @@
 import { Router } from "express";
-import AuthMiddleWare from "../middleware/authMiddleware";
+import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
-import ListingMiddleWare from "../middleware/listingMiddleware";
+import ListingMiddleware from "../middleware/listingMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import SellController from "../controller/sellController";
 
 const SellRouter = Router();
 
+const IdParamRegex = "[0-9a-fA-F]{24}";
+
 SellRouter.route("/")
   .get(SellController.Listing.retrieveListings)
   .post(
-    AuthMiddleWare.IsGranted(["Provider"]),
-    ListingMiddleWare.isContentType(["application/json"]),
-    ListingMiddleWare.isCreatable(["offerings", "media", "verify"]),
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.isCreatable(["offerings", "media", "verify"]),
     ValidationMiddleware.validateSell,
     SellController.Listing.createListing
   );
@@ -24,7 +26,7 @@ SellRouter.route("/near-me").get(SellController.Listing.retrieveNearme);
 // SellRouter.route("/now-selling").get(SellController.Listing);
 
 SellRouter.route("/provider/:providerId").get(
-  AuthMiddleWare.IsGranted(["Provider"]),
+  AuthMiddleware.IsGranted(["Provider"]),
   SellController.Listing.retrieveByProvider
 );
 
@@ -34,57 +36,54 @@ SellRouter.route("/category/:category").get(
   SellController.Listing.retrieveByCategory
 );
 
-SellRouter.route("/:id")
-  .get(DocumentMiddleware("id", "sell"), SellController.Listing.retrieveById)
-  .put(ListingMiddleWare.isNotAllowed)
-  .patch(
-    AuthMiddleWare.IsGranted(["Provider"]),
-    ListingMiddleWare.isContentType(["application/json"]),
-    ListingMiddleWare.isUpdatable(["type", "category", "offerings"]),
-    SellController.Listing.updateListing
-  )
-  .delete(SellController.Listing.deleteListing);
-
-SellRouter.route("/:id/status").patch(
-  AuthMiddleWare.IsGranted(["Admin"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  SellController.Listing.changeStatus
-);
-
-SellRouter.route("/:id/verify").get(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  DocumentMiddleware("id", "sell"),
-  SellController.Listing.verifyStatus
-);
-
-SellRouter.route("/:id/offerings").get(
-  DocumentMiddleware("id", "sell"),
-  SellController.Offering.fetchOfferings
-);
-
-SellRouter.route("/:id/offerings").post(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  DocumentMiddleware("id", "sell"),
-  SellController.Offering.createOffering
-);
-
-SellRouter.route("/:id/offerings/:offeringId").patch(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  DocumentMiddleware("id", "sell"),
-  SellController.Offering.updateOffering
-);
-
-SellRouter.route("/:id/offerings/:offeringId").delete(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  DocumentMiddleware("id", "sell"),
-  SellController.Offering.deleteOffering
-);
-
 SellRouter.route("/:slug").get(
   DocumentMiddleware("slug", "sell"),
   SellController.Listing.retrieveBySlug
 );
+
+SellRouter.route(`/:id(${IdParamRegex})`)
+  .get(DocumentMiddleware("id", "sell"), SellController.Listing.retrieveById)
+  .put(ListingMiddleware.isNotAllowed)
+  .patch(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.isUpdatable(["type", "category", "offerings"]),
+    SellController.Listing.updateListing
+  )
+  .delete(SellController.Listing.deleteListing);
+
+SellRouter.route(`/:id(${IdParamRegex})/status`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  SellController.Listing.changeStatus
+);
+
+SellRouter.route(`/:id(${IdParamRegex})/verify`).get(
+  AuthMiddleware.IsGranted(["Provider"]),
+  DocumentMiddleware("id", "sell"),
+  SellController.Listing.verifyStatus
+);
+
+SellRouter.route(`/:id(${IdParamRegex})/offerings`)
+  .get(DocumentMiddleware("id", "sell"), SellController.Offering.fetchOfferings)
+  .post(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    DocumentMiddleware("id", "sell"),
+    SellController.Offering.createOffering
+  );
+
+SellRouter.route(`/:id(${IdParamRegex})/offerings/:offeringId(${IdParamRegex})`)
+  .patch(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    DocumentMiddleware("id", "sell"),
+    SellController.Offering.updateOffering
+  )
+  .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
+    DocumentMiddleware("id", "sell"),
+    SellController.Offering.deleteOffering
+  );
 
 export default SellRouter;

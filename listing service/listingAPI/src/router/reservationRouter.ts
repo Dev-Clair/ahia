@@ -1,18 +1,20 @@
 import { Router } from "express";
-import AuthMiddleWare from "../middleware/authMiddleware";
+import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
-import ListingMiddleWare from "../middleware/listingMiddleware";
+import ListingMiddleware from "../middleware/listingMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import ReservationController from "../controller/reservationController";
 
 const ReservationRouter = Router();
 
+const IdParamRegex = "[0-9a-fA-F]{24}";
+
 ReservationRouter.route("/")
   .get(ReservationController.Listing.retrieveListings)
   .post(
-    AuthMiddleWare.IsGranted(["Provider"]),
-    ListingMiddleWare.isContentType(["application/json"]),
-    ListingMiddleWare.isCreatable(["offerings", "media", "verify"]),
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.isCreatable(["offerings", "media", "verify"]),
     ValidationMiddleware.validateReservation,
     ReservationController.Listing.createListing
   );
@@ -30,7 +32,7 @@ ReservationRouter.route("/near-me").get(
 // );
 
 ReservationRouter.route("/provider/:providerId").get(
-  AuthMiddleWare.IsGranted(["Provider"]),
+  AuthMiddleware.IsGranted(["Provider"]),
   ReservationController.Listing.retrieveByProvider
 );
 
@@ -42,60 +44,62 @@ ReservationRouter.route("/category/:category").get(
   ReservationController.Listing.retrieveByCategory
 );
 
-ReservationRouter.route("/:id")
-  .get(
-    DocumentMiddleware("id", "reservation"),
-    ReservationController.Listing.retrieveById
-  )
-  .put(ListingMiddleWare.isNotAllowed)
-  .patch(
-    AuthMiddleWare.IsGranted(["Provider"]),
-    ListingMiddleWare.isContentType(["application/json"]),
-    ListingMiddleWare.isUpdatable(["type", "category", "offerings"]),
-    ReservationController.Listing.updateListing
-  )
-  .delete(ReservationController.Listing.deleteListing);
-
-ReservationRouter.route("/:id/status").patch(
-  AuthMiddleWare.IsGranted(["Admin"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  ReservationController.Listing.changeStatus
-);
-
-ReservationRouter.route("/:id/verify").get(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  DocumentMiddleware("id", "reservation"),
-  ReservationController.Listing.verifyStatus
-);
-
-ReservationRouter.route("/:id/offerings").get(
-  DocumentMiddleware("id", "reservation"),
-  ReservationController.Offering.fetchOfferings
-);
-
-ReservationRouter.route("/:id/offerings").post(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  DocumentMiddleware("id", "reservation"),
-  ReservationController.Offering.createOffering
-);
-
-ReservationRouter.route("/:id/offerings/:offeringId").patch(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  DocumentMiddleware("id", "reservation"),
-  ReservationController.Offering.updateOffering
-);
-
-ReservationRouter.route("/:id/offerings/:offeringId").delete(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  DocumentMiddleware("id", "reservation"),
-  ReservationController.Offering.deleteOffering
-);
-
 ReservationRouter.route("/:slug").get(
   DocumentMiddleware("slug", "reservation"),
   ReservationController.Listing.retrieveBySlug
 );
+
+ReservationRouter.route(`/:id(${IdParamRegex})`)
+  .get(
+    DocumentMiddleware("id", "reservation"),
+    ReservationController.Listing.retrieveById
+  )
+  .put(ListingMiddleware.isNotAllowed)
+  .patch(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.isUpdatable(["type", "category", "offerings"]),
+    ReservationController.Listing.updateListing
+  )
+  .delete(ReservationController.Listing.deleteListing);
+
+ReservationRouter.route(`/:id(${IdParamRegex})/status`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ReservationController.Listing.changeStatus
+);
+
+ReservationRouter.route(`/:id(${IdParamRegex})/verify`).get(
+  AuthMiddleware.IsGranted(["Provider"]),
+  DocumentMiddleware("id", "reservation"),
+  ReservationController.Listing.verifyStatus
+);
+
+ReservationRouter.route(`/:id(${IdParamRegex})/offerings`)
+  .get(
+    DocumentMiddleware("id", "reservation"),
+    ReservationController.Offering.fetchOfferings
+  )
+  .post(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    DocumentMiddleware("id", "reservation"),
+    ReservationController.Offering.createOffering
+  );
+
+ReservationRouter.route(
+  `/:id(${IdParamRegex})/offerings/:offeringId(${IdParamRegex})`
+)
+  .patch(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    DocumentMiddleware("id", "reservation"),
+    ReservationController.Offering.updateOffering
+  )
+  .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
+    DocumentMiddleware("id", "reservation"),
+    ReservationController.Offering.deleteOffering
+  );
 
 export default ReservationRouter;
