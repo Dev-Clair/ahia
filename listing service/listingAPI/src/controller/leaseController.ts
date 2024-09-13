@@ -341,22 +341,6 @@ const verifyStatus = async (
   }
 };
 
-const fetchOfferings = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const listing = req.listing as ListingInterface;
-
-    const offerings = listing.fetchOfferings();
-
-    return res.status(HttpCode.OK).json({ data: offerings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
 const createOffering = async (
   req: Request,
   res: Response,
@@ -378,6 +362,58 @@ const createOffering = async (
     }
 
     return res.status(HttpCode.CREATED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const retrieveOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const listing = req.listing as ListingInterface;
+
+    const offerings = listing.retrieveOfferings();
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const retrieveOfferingById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const offeringId = req.params.offeringId as string;
+
+    const service = req.service as LeaseService;
+
+    const offering = service.findOfferingById(offeringId);
+
+    return res.status(HttpCode.OK).json({ data: offering });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const retrieveOfferingBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const offeringSlug = req.params.offeringSlug as string;
+
+    const service = req.service as LeaseService;
+
+    const offering = service.findOfferingBySlug(offeringSlug);
+
+    return res.status(HttpCode.OK).json({ data: offering });
   } catch (err: any) {
     return next(err);
   }
@@ -448,8 +484,10 @@ export default {
     verifyStatus,
   },
   Offering: {
-    fetchOfferings,
     createOffering,
+    retrieveOfferings,
+    retrieveOfferingById,
+    retrieveOfferingBySlug,
     updateOffering,
     deleteOffering,
   },

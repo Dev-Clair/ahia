@@ -9,6 +9,8 @@ const SellRouter = Router();
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
+const SlugParamRegex = "a-zA-Z0-9";
+
 SellRouter.route("/")
   .get(SellController.Listing.retrieveListings)
   .post(
@@ -36,7 +38,7 @@ SellRouter.route("/category/:category").get(
   SellController.Listing.retrieveByCategory
 );
 
-SellRouter.route("/:slug").get(
+SellRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("slug", "sell"),
   SellController.Listing.retrieveBySlug
 );
@@ -65,7 +67,10 @@ SellRouter.route(`/:id(${IdParamRegex})/verify`).get(
 );
 
 SellRouter.route(`/:id(${IdParamRegex})/offerings`)
-  .get(DocumentMiddleware("id", "sell"), SellController.Offering.fetchOfferings)
+  .get(
+    DocumentMiddleware("id", "sell"),
+    SellController.Offering.retrieveOfferings
+  )
   .post(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
@@ -73,7 +78,18 @@ SellRouter.route(`/:id(${IdParamRegex})/offerings`)
     SellController.Offering.createOffering
   );
 
+SellRouter.route(
+  `/:id(${IdParamRegex})/offerings/:offeringSlug(${SlugParamRegex})`
+).get(
+  DocumentMiddleware("id", "sell"),
+  SellController.Offering.retrieveOfferingBySlug
+);
+
 SellRouter.route(`/:id(${IdParamRegex})/offerings/:offeringId(${IdParamRegex})`)
+  .get(
+    DocumentMiddleware("id", "sell"),
+    SellController.Offering.retrieveOfferingById
+  )
   .patch(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),

@@ -9,6 +9,8 @@ const ReservationRouter = Router();
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
+const SlugParamRegex = "a-zA-Z0-9";
+
 ReservationRouter.route("/")
   .get(ReservationController.Listing.retrieveListings)
   .post(
@@ -44,7 +46,7 @@ ReservationRouter.route("/category/:category").get(
   ReservationController.Listing.retrieveByCategory
 );
 
-ReservationRouter.route("/:slug").get(
+ReservationRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("slug", "reservation"),
   ReservationController.Listing.retrieveBySlug
 );
@@ -78,7 +80,7 @@ ReservationRouter.route(`/:id(${IdParamRegex})/verify`).get(
 ReservationRouter.route(`/:id(${IdParamRegex})/offerings`)
   .get(
     DocumentMiddleware("id", "reservation"),
-    ReservationController.Offering.fetchOfferings
+    ReservationController.Offering.retrieveOfferings
   )
   .post(
     AuthMiddleware.IsGranted(["Provider"]),
@@ -88,8 +90,19 @@ ReservationRouter.route(`/:id(${IdParamRegex})/offerings`)
   );
 
 ReservationRouter.route(
+  `/:id(${IdParamRegex})/offerings/:offeringSlug(${SlugParamRegex})`
+).get(
+  DocumentMiddleware("id", "reservation"),
+  ReservationController.Offering.retrieveOfferingBySlug
+);
+
+ReservationRouter.route(
   `/:id(${IdParamRegex})/offerings/:offeringId(${IdParamRegex})`
 )
+  .get(
+    DocumentMiddleware("id", "reservation"),
+    ReservationController.Offering.retrieveOfferingById
+  )
   .patch(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),

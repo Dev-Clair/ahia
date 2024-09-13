@@ -9,6 +9,8 @@ const LeaseRouter = Router();
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
+const SlugParamRegex = "a-zA-Z0-9";
+
 LeaseRouter.route("/")
   .get(LeaseController.Listing.retrieveListings)
   .post(
@@ -36,7 +38,7 @@ LeaseRouter.route("/category/:category").get(
   LeaseController.Listing.retrieveByCategory
 );
 
-LeaseRouter.route("/:slug").get(
+LeaseRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("slug", "lease"),
   LeaseController.Listing.retrieveBySlug
 );
@@ -67,7 +69,7 @@ LeaseRouter.route(`/:id(${IdParamRegex})/verify`).get(
 LeaseRouter.route(`/:id(${IdParamRegex})/offerings`)
   .get(
     DocumentMiddleware("id", "lease"),
-    LeaseController.Offering.fetchOfferings
+    LeaseController.Offering.retrieveOfferings
   )
   .post(
     AuthMiddleware.IsGranted(["Provider"]),
@@ -77,8 +79,19 @@ LeaseRouter.route(`/:id(${IdParamRegex})/offerings`)
   );
 
 LeaseRouter.route(
+  `/:id(${IdParamRegex})/offerings/:offeringSlug(${SlugParamRegex})`
+).get(
+  DocumentMiddleware("id", "lease"),
+  LeaseController.Offering.retrieveOfferingBySlug
+);
+
+LeaseRouter.route(
   `/:id(${IdParamRegex})/offerings/:offeringId(${IdParamRegex})`
 )
+  .get(
+    DocumentMiddleware("id", "lease"),
+    LeaseController.Offering.retrieveOfferingById
+  )
   .patch(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
