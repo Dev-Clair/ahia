@@ -87,7 +87,7 @@ export default class PromotionService {
   }
 
   /**
-   * Updates a Promotion using its id
+   * Updates a promotion using its id
    * @public
    * @param id
    * @param key
@@ -116,7 +116,7 @@ export default class PromotionService {
   }
 
   /**
-   * Deletes a Promotion using its id
+   * Deletes a promotion using its id
    * @public
    * @param id
    * @returns Promise<any>
