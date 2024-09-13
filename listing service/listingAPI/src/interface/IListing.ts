@@ -14,8 +14,8 @@ export default interface IListing {
     coordinates: number[];
   };
   provider: {
-    id?: string;
-    email?: string;
+    id: string;
+    email: string;
   };
   media: {
     picture?: string;

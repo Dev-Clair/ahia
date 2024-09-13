@@ -65,13 +65,11 @@ const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
       provider: {
         id: {
           type: String,
-          // required: true,
-          required: false,
+          required: true,
         },
         email: {
           type: String,
-          // required: true,
-          required: false,
+          required: true,
         },
       },
       media: {
