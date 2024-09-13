@@ -6,6 +6,10 @@ export default interface IPromotion {
   discount: number;
   startDate: Date;
   endDate: Date;
+  media: {
+    picture?: string[];
+    video?: string[];
+  };
   listings?: Schema.Types.ObjectId;
   offerings?: Schema.Types.ObjectId[];
 }

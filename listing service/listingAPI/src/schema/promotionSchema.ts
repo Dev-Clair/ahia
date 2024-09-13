@@ -3,6 +3,8 @@ import IPromotion from "../interface/IPromotion";
 import PromotionInterfaceType from "../type/promotioninterfaceType";
 import PromotionInterface from "../interface/promotionInterface";
 
+const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/promotions`;
+
 const PromotionSchema: Schema<
   IPromotion,
   PromotionInterfaceType,
@@ -28,6 +30,20 @@ const PromotionSchema: Schema<
     endDate: {
       type: Date,
       required: true,
+    },
+    media: {
+      picture: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        required: false,
+      },
+      video: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        required: false,
+      },
     },
     listings: {
       type: Schema.Types.ObjectId,
