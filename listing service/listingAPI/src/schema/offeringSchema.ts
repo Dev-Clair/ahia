@@ -20,7 +20,7 @@ const OfferingSchema: Schema<IOffering> = new Schema({
     required: true,
   },
   size: {
-    type: String,
+    type: Number,
     required: true,
   },
   price: {
@@ -43,13 +43,13 @@ const OfferingSchema: Schema<IOffering> = new Schema({
       type: [String],
       get: (values: string[]) =>
         values.map((value) => `${baseStoragePath}${value}`),
-      required: true,
+      required: false,
     },
     video: {
       type: [String],
       get: (values: string[]) =>
         values.map((value) => `${baseStoragePath}${value}`),
-      required: true,
+      required: false,
     },
   },
   listing: {
