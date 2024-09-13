@@ -7,9 +7,9 @@ export default interface IPromotion {
   startDate: Date;
   endDate: Date;
   media: {
-    picture?: string[];
-    video?: string[];
+    picture: string[];
+    video: string[];
   };
-  listings?: Schema.Types.ObjectId;
-  offerings?: Schema.Types.ObjectId[];
+  listing?: Schema.Types.ObjectId;
+  offerings: Schema.Types.ObjectId[];
 }
