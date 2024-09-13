@@ -11,7 +11,7 @@ export default interface IListing {
   address: string;
   location: {
     type?: string;
-    coordinates: number[];
+    coordinates?: number[];
   };
   provider: {
     id: string;
