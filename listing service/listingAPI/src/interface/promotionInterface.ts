@@ -4,7 +4,7 @@ import OfferingInterface from "./offeringInterface";
 import ListingInterface from "./listingInterface";
 
 export default interface PromotionInterface extends IPromotion, Document {
-  fetchListingss: () => Promise<ListingInterface[]>;
+  fetchListings: () => Promise<ListingInterface[]>;
   addListing: (listingId: ObjectId) => Promise<void>;
   removeListing: (listingId: ObjectId) => Promise<void>;
   fetchOfferings: () => Promise<OfferingInterface[]>;
