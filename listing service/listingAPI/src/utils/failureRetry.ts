@@ -1,9 +1,10 @@
 import AsyncRetry from "async-retry";
+import RetryOptionsInterface from "../interface/retryoptionsInterface";
 
 class FailureRetry {
   static async ExponentialBackoff(
     operation: any,
-    options = { retries: 3, factor: 2, minTimeout: 5000 }
+    options: RetryOptionsInterface = { retries: 3, factor: 2, minTimeout: 5000 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -26,7 +27,12 @@ class FailureRetry {
 
   static async ExponentialJitterBackoff(
     operation: any,
-    options = { retries: 3, factor: 2, minTimeout: 5000, jitterFactor: 1000 }
+    options: RetryOptionsInterface = {
+      retries: 3,
+      factor: 2,
+      minTimeout: 2500,
+      jitterFactor: 1000,
+    }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -37,10 +43,12 @@ class FailureRetry {
         factor: options.factor,
         minTimeout: options.minTimeout,
         onRetry: (error, attempt) => {
-          const jitter = Math.random() * options.jitterFactor;
+          const jitter = Math.random() * (options as any).jitterFactor;
 
           const timeout =
-            options.minTimeout * Math.pow(options.factor, attempt - 1) + jitter;
+            options.minTimeout *
+              Math.pow((options as any).factor, attempt - 1) +
+            jitter;
 
           console.error(
             `Exponential jitter retry attempt no. ${attempt} failed.\nError: ${error.message}.\nNext retry in ${timeout}ms`
@@ -54,7 +62,7 @@ class FailureRetry {
 
   static async LinearBackoff(
     operation: any,
-    options = { retries: 5, minTimeout: 10000 }
+    options: RetryOptionsInterface = { retries: 5, minTimeout: 2500 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -75,7 +83,11 @@ class FailureRetry {
 
   static async LinearJitterBackoff(
     operation: any,
-    options = { retries: 5, minTimeout: 7500, jitterFactor: 1000 }
+    options: RetryOptionsInterface = {
+      retries: 5,
+      minTimeout: 5000,
+      jitterFactor: 1000,
+    }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -85,7 +97,7 @@ class FailureRetry {
         retries: options.retries,
         minTimeout: options.minTimeout,
         onRetry: (error, attempt) => {
-          const jitter = Math.random() * options.jitterFactor;
+          const jitter = Math.random() * (options as any).jitterFactor;
 
           console.error(
             `Linear jitter retry attempt no. ${attempt} failed.\nError: ${
