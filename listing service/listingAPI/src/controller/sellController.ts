@@ -1,6 +1,8 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import ListingInterface from "../interface/listingInterface";
+import OfferingInterface from "../interface/offeringInterface";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
@@ -356,9 +358,12 @@ const createOffering = async (
     const sell = req.service as SellService;
 
     if (listing) {
-      const offering = await sell.createOffering(key, data);
+      const offering = (await sell.createOffering(
+        key,
+        data
+      )) as OfferingInterface;
 
-      await listing.addOffering(offering._id);
+      await listing.addOffering(offering._id as ObjectId);
     }
 
     return res.status(HttpCode.CREATED).json({ data: null });
@@ -456,9 +461,11 @@ const deleteOffering = async (
     const sell = req.service as SellService;
 
     if (listing) {
-      const offering = await sell.deleteOffering(offeringId);
+      const offering = (await sell.deleteOffering(
+        offeringId
+      )) as OfferingInterface;
 
-      await listing.removeOffering(offering._id);
+      await listing.removeOffering(offering._id as ObjectId);
     }
 
     return res.status(HttpCode.MODIFIED).json({ data: null });

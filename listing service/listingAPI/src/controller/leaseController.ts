@@ -1,7 +1,9 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import LeaseService from "../service/leaseService";
 import ListingInterface from "../interface/listingInterface";
+import OfferingInterface from "../interface/offeringInterface";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
@@ -356,9 +358,12 @@ const createOffering = async (
     const lease = req.service as LeaseService;
 
     if (listing) {
-      const offering = await lease.createOffering(key, data);
+      const offering = (await lease.createOffering(
+        key,
+        data
+      )) as OfferingInterface;
 
-      await listing?.addOffering(offering._id);
+      await listing?.addOffering(offering._id as ObjectId);
     }
 
     return res.status(HttpCode.CREATED).json({ data: null });
