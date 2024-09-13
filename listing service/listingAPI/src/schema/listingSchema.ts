@@ -89,7 +89,6 @@ const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
           type: Boolean,
           enum: [true, false],
           default: false,
-          required: false,
         },
         expiry: {
           type: Date,
@@ -98,8 +97,12 @@ const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
               Date.now() + 3 * 24 * 60 * 60 * 1000
             ).toDateString();
           },
-          required: false,
         },
+      },
+      promotion: {
+        type: Schema.Types.ObjectId,
+        ref: "Promotion",
+        required: false,
       },
     },
     { timestamps: true, discriminatorKey: "purpose" }
@@ -127,7 +130,9 @@ ListingSchema.pre("save", function (next) {
 });
 
 ListingSchema.pre("findOneAndDelete", async function (next) {
-  const listing = await this.model.findOne(this.getFilter());
+  const listing = (await this.model.findOne(
+    this.getFilter()
+  )) as ListingInterface;
 
   if (listing) await Offering.deleteMany({ listing: listing._id });
 
@@ -135,7 +140,7 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
 });
 
 // Listing Schema Instance Methods
-ListingSchema.method("fetchOfferings", async function (): Promise<any> {
+ListingSchema.method("retrieveOfferings", async function (): Promise<any> {
   await this.populate("offerings");
 
   return this.offerings;

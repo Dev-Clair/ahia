@@ -25,4 +25,5 @@ export default interface IListing {
     status?: boolean;
     expiry?: Date;
   };
+  promotion?: Schema.Types.ObjectId;
 }

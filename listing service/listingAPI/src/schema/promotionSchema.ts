@@ -1,4 +1,6 @@
-import { Schema } from "mongoose";
+import { ObjectId, Schema } from "mongoose";
+import Listing from "../model/listingModel";
+import Offering from "../model/offeringModel";
 import IPromotion from "../interface/IPromotion";
 import PromotionInterfaceType from "../type/promotioninterfaceType";
 import PromotionInterface from "../interface/promotionInterface";
@@ -36,20 +38,22 @@ const PromotionSchema: Schema<
         type: [String],
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
-        required: false,
+        default: undefined,
       },
       video: {
         type: [String],
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
-        required: false,
+        default: undefined,
       },
     },
-    listings: {
-      type: Schema.Types.ObjectId,
-      ref: "Listing",
-      default: undefined,
-    },
+    listings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Listing",
+        default: undefined,
+      },
+    ],
     offerings: [
       {
         type: Schema.Types.ObjectId,
@@ -64,7 +68,90 @@ const PromotionSchema: Schema<
 // Promotion Schema Search Query Index
 PromotionSchema.index({ startDate: 1, endDate: 1 });
 
+// Promotion Schema Middleware
+PromotionSchema.pre("findOneAndDelete", async function (next) {
+  const promotion = (await this.model.findOne(
+    this.getFilter()
+  )) as PromotionInterface;
+
+  if (promotion) {
+    const offering = await Offering?.findOne({
+      promotion: promotion._id,
+    });
+
+    const listing = await Listing?.findOne({
+      promotion: promotion._id,
+    });
+
+    offering?.$set("promotion", undefined);
+
+    listing?.$set("promotion", undefined);
+  }
+
+  next();
+});
+
 // Promotion Schema Instance Methods
+PromotionSchema.method("fetchListings", async function (): Promise<any> {
+  await this.populate("listings");
+
+  return this.listings;
+});
+
+PromotionSchema.method(
+  "addListing",
+  async function (listingId: ObjectId): Promise<void> {
+    if (!this.listings.includes(listingId)) {
+      this.offerings.push(listingId);
+
+      await this.save();
+    }
+  }
+);
+
+PromotionSchema.method(
+  "removeListing",
+  async function (listingId: ObjectId): Promise<void> {
+    const listingIndex = this.listings.indexOf(listingId);
+
+    if (listingIndex > -1) {
+      this.offerings.splice(listingIndex, 1);
+
+      await this.save();
+    }
+  }
+);
+
+PromotionSchema.method("fetchOfferings", async function (): Promise<any> {
+  await this.populate("offerings");
+
+  return this.offerings;
+});
+
+PromotionSchema.method(
+  "addOffering",
+  async function (offeringId: ObjectId): Promise<void> {
+    if (!this.offerings.includes(offeringId)) {
+      this.offerings.push(offeringId);
+
+      await this.save();
+    }
+  }
+);
+
+PromotionSchema.method(
+  "removeOffering",
+  async function (offeringId: ObjectId): Promise<void> {
+    const offeringIndex = this.offerings.indexOf(offeringId);
+
+    if (offeringIndex > -1) {
+      this.offerings.splice(offeringIndex, 1);
+
+      await this.save();
+    }
+  }
+);
+
 PromotionSchema.method(
   "checkPromotionValidity",
   function checkPromotionValidity(date: Date = new Date()): boolean {

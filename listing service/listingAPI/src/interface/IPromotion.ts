@@ -10,6 +10,6 @@ export default interface IPromotion {
     picture: string[];
     video: string[];
   };
-  listing?: Schema.Types.ObjectId;
+  listings: Schema.Types.ObjectId[];
   offerings: Schema.Types.ObjectId[];
 }
