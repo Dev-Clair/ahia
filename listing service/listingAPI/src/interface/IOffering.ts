@@ -5,8 +5,8 @@ export default interface IOffering {
   slug?: string;
   offeringType: string;
   area: {
-    size?: number;
-    unit?: "sqm" | "sqft";
+    size: number;
+    unit: "sqm" | "sqft";
   };
   price: {
     amount: number;

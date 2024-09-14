@@ -31,10 +31,8 @@ const isSecure = (
 };
 
 /**
- * Verifies request header content type
- * @param req
- * @param res
- * @param next
+ * Verifies request header content types
+ * @param contentTypes List of allowed content types
  * @returns Response | void
  */
 const isContentType = (contentTypes: string[]) => {
@@ -59,9 +57,7 @@ const isContentType = (contentTypes: string[]) => {
 
 /**
  * Verifies request body contains creatable fields
- * @param req
- * @param res
- * @param next
+ * @param fields List of fields that cannot be created
  * @returns Response | void
  */
 const isCreatable = (fields: string[]) => {
@@ -92,9 +88,7 @@ const isCreatable = (fields: string[]) => {
 
 /**
  * Verifies request body contains updatable fields
- * @param req
- * @param res
- * @param next
+ * @param fields List of fields that cannot be updated
  * @returns Response | void
  */
 const isUpdatable = (fields: string[]) => {

@@ -82,13 +82,13 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
     session.withTransaction(async () => {
       const offering = await Offering?.findOne({
         promotion: promotion._id,
-      });
+      }).session(session);
 
       if (!offering) next();
 
       const listing = await Listing?.findOne({
         promotion: promotion._id,
-      });
+      }).session(session);
 
       if (!listing) next();
 
@@ -96,9 +96,9 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
 
       listing?.$set("promotion", undefined);
 
-      await offering?.save();
+      await offering?.save({ session });
 
-      await listing?.save();
+      await listing?.save({ session });
     });
   } catch (err: any) {
     next(err);

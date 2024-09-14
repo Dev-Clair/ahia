@@ -28,12 +28,12 @@ const OfferingSchema: Schema<
   area: {
     size: {
       type: Number,
-      required: false,
+      required: true,
     },
     unit: {
       type: String,
       enum: ["sqm", "sqft"],
-      required: false,
+      required: true,
     },
   },
   price: {

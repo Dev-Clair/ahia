@@ -20,11 +20,11 @@ export default class ReservationService extends ListingService {
 
       const filter = {
         ...queryString,
-        purpose: "Reservation",
-        verify: { status: true },
+        listingType: "Reservation",
+        // verification: { status: true },
       };
 
-      const projection = ["-verify -provider.email"];
+      const projection = ["-verification -provider.email"];
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
@@ -50,7 +50,7 @@ export default class ReservationService extends ListingService {
    */
   async findById(id: string): Promise<ReservationInterface | null> {
     const projection = {
-      verify: 0,
+      verification: 0,
       "provider.email": 0,
       createdAt: 0,
       updatedAt: 0,
@@ -61,8 +61,8 @@ export default class ReservationService extends ListingService {
       const listing = await Reservation.findOne(
         {
           _id: id,
-          purpose: "Reservation",
-          verify: { status: true },
+          listingType: "Reservation",
+          // verification: { status: true },
         },
         projection
       );
@@ -80,7 +80,7 @@ export default class ReservationService extends ListingService {
    */
   async findBySlug(slug: string): Promise<ReservationInterface | null> {
     const projection = {
-      verify: 0,
+      verification: 0,
       "provider.email": 0,
       createdAt: 0,
       updatedAt: 0,
@@ -91,8 +91,8 @@ export default class ReservationService extends ListingService {
       const listing = await Reservation.findOne(
         {
           slug: slug,
-          purpose: "Reservation",
-          verify: { status: true },
+          listingType: "Reservation",
+          // verification: { status: true },
         },
         projection
       );

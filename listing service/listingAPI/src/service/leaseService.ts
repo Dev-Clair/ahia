@@ -18,11 +18,11 @@ export default class LeaseService extends ListingService {
 
       const filter = {
         ...queryString,
-        purpose: "Lease",
-        verify: { status: true },
+        listingType: "Lease",
+        // verification: { status: true },
       };
 
-      const projection = ["-verify -provider.email"];
+      const projection = ["-verification -provider.email"];
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
@@ -48,7 +48,7 @@ export default class LeaseService extends ListingService {
    */
   async findById(id: string): Promise<LeaseInterface | null> {
     const projection = {
-      verify: 0,
+      verification: 0,
       "provider.email": 0,
       createdAt: 0,
       updatedAt: 0,
@@ -59,8 +59,8 @@ export default class LeaseService extends ListingService {
       const listing = await Lease.findOne(
         {
           _id: id,
-          purpose: "Lease",
-          verify: { status: true },
+          listingType: "Lease",
+          // verification: { status: true },
         },
         projection
       );
@@ -78,7 +78,7 @@ export default class LeaseService extends ListingService {
    */
   async findBySlug(slug: string): Promise<LeaseInterface | null> {
     const projection = {
-      verify: 0,
+      verification: 0,
       "provider.email": 0,
       createdAt: 0,
       updatedAt: 0,
@@ -89,8 +89,8 @@ export default class LeaseService extends ListingService {
       const listing = await Lease.findOne(
         {
           slug: slug,
-          purpose: "Lease",
-          verify: { status: true },
+          listingType: "Lease",
+          // verification: { status: true },
         },
         projection
       );

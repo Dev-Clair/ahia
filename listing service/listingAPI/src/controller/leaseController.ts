@@ -153,7 +153,7 @@ const retrieveByType = async (
   try {
     const type = req.params.type as string;
 
-    const queryString = { type: type };
+    const queryString = { propertyType: type };
 
     const listings = await LeaseService.Create().findAll(queryString);
 
@@ -178,7 +178,7 @@ const retrieveByCategory = async (
   try {
     const category = req.params.category as string;
 
-    const queryString = { category: category };
+    const queryString = { propertyCategory: category };
 
     const listings = await LeaseService.Create().findAll(queryString);
 
@@ -303,7 +303,7 @@ const changeStatus = async (
 
     const status = req.body as boolean;
 
-    const data = { verify: { status: status } };
+    const data = { verification: { status: status } };
 
     const listing = await LeaseService.Create().update(id, key, data);
 
@@ -330,7 +330,7 @@ const verifyStatus = async (
   try {
     const listing = req.listing as ListingInterface;
 
-    if (!listing.verify.status)
+    if (!listing.verification.status)
       throw new PaymentRequiredError(
         `${listing.name.toUpperCase()} has not been verified for listing. Kindly pay the listing fee to verify your listing`
       );
