@@ -39,18 +39,22 @@ const PromotionSchema: Schema<
       required: true,
     },
     media: {
-      images: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
-      },
-      videos: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
-      },
+      images: [
+        {
+          type: String,
+          get: (values: string[]) =>
+            values.map((value) => `${baseStoragePath}${value}`),
+          default: undefined,
+        },
+      ],
+      videos: [
+        {
+          type: String,
+          get: (values: string[]) =>
+            values.map((value) => `${baseStoragePath}${value}`),
+          default: undefined,
+        },
+      ],
     },
     listings: [
       {

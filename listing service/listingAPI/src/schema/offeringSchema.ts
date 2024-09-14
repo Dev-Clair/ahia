@@ -1,6 +1,7 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
 import Listing from "../model/listingModel";
+import ListingInterface from "../interface/listingInterface";
 import IOffering from "../interface/IOffering";
 import OfferingInterface from "../interface/offeringInterface";
 import OfferingInterfaceType from "../type/offeringinterfaceType";
@@ -58,18 +59,22 @@ const OfferingSchema: Schema<
     default: "open",
   },
   media: {
-    images: {
-      type: [String],
-      get: (values: string[]) =>
-        values.map((value) => `${baseStoragePath}${value}`),
-      default: undefined,
-    },
-    videos: {
-      type: [String],
-      get: (values: string[]) =>
-        values.map((value) => `${baseStoragePath}${value}`),
-      default: undefined,
-    },
+    images: [
+      {
+        type: String,
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        default: undefined,
+      },
+    ],
+    videos: [
+      {
+        type: String,
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        default: undefined,
+      },
+    ],
   },
   listing: {
     type: Schema.Types.ObjectId,
@@ -111,9 +116,9 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
     const session = await mongoose.startSession();
 
     session.withTransaction(async () => {
-      const listing = await Listing.findOne({ _id: offering.listing }).session(
+      const listing = (await Listing.findOne({ _id: offering.listing }).session(
         session
-      );
+      )) as ListingInterface;
 
       if (!listing) next();
 
