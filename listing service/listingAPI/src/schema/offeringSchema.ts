@@ -101,29 +101,33 @@ OfferingSchema.pre("save", function (next) {
 });
 
 OfferingSchema.pre("findOneAndDelete", async function (next) {
-  const offering = (await this.model.findOne(
-    this.getFilter()
-  )) as OfferingInterface;
+  try {
+    const offering = (await this.model.findOne(
+      this.getFilter()
+    )) as OfferingInterface;
 
-  if (!offering) next();
+    if (!offering) next();
 
-  const session = await mongoose.startSession();
+    const session = await mongoose.startSession();
 
-  session.withTransaction(async () => {
-    const listing = await Listing.findOne({ _id: offering.listing }).session(
-      session
-    );
+    session.withTransaction(async () => {
+      const listing = await Listing.findOne({ _id: offering.listing }).session(
+        session
+      );
 
-    if (!listing) next();
+      if (!listing) next();
 
-    const offeringIndex = listing?.offerings.indexOf(
-      offering._id as ObjectId
-    ) as number;
+      const offeringIndex = listing?.offerings.indexOf(
+        offering._id as ObjectId
+      ) as number;
 
-    listing?.offerings.splice(offeringIndex, 1);
+      listing?.offerings.splice(offeringIndex, 1);
 
-    await listing?.save({ session });
-  });
+      await listing?.save({ session });
+    });
+  } catch (err: any) {
+    next(err);
+  }
 
   next();
 });

@@ -1,9 +1,10 @@
 import { Schema } from "mongoose";
 
 export default interface IPromotion {
-  promotionType: string;
+  title: string;
   description: string;
-  discount: number;
+  promotionType: "offer" | "discount";
+  rate: number;
   startDate: Date;
   endDate: Date;
   media: {

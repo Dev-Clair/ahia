@@ -142,18 +142,22 @@ ListingSchema.pre("save", function (next) {
 });
 
 ListingSchema.pre("findOneAndDelete", async function (next) {
-  const listing = (await this.model.findOne(
-    this.getFilter()
-  )) as ListingInterface;
+  try {
+    const listing = (await this.model.findOne(
+      this.getFilter()
+    )) as ListingInterface;
 
-  if (!listing) next();
+    if (!listing) next();
 
-  const session = await mongoose.startSession();
+    const session = await mongoose.startSession();
 
-  session.withTransaction(
-    async () =>
-      await Offering.deleteMany({ listing: listing._id }).session(session)
-  );
+    session.withTransaction(
+      async () =>
+        await Offering.deleteMany({ listing: listing._id }).session(session)
+    );
+  } catch (err: any) {
+    next(err);
+  }
 
   next();
 });
