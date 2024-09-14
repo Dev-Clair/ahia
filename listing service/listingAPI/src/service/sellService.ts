@@ -18,11 +18,11 @@ export default class SellService extends ListingService {
 
       const filter = {
         ...queryString,
-        purpose: "Sell",
-        verify: { status: true },
+        listingType: "Sell",
+        // verification: { status: true },
       };
 
-      const projection = ["-verify -provider.email"];
+      const projection = ["-verification -provider.email"];
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
@@ -48,7 +48,7 @@ export default class SellService extends ListingService {
    */
   async findById(id: string): Promise<SellInterface | null> {
     const projection = {
-      verify: 0,
+      verification: 0,
       "provider.email": 0,
       createdAt: 0,
       updatedAt: 0,
@@ -59,8 +59,8 @@ export default class SellService extends ListingService {
       const listing = await Sell.findOne(
         {
           _id: id,
-          purpose: "Sell",
-          verify: { status: true },
+          listingType: "Sell",
+          // verification: { status: true },
         },
         projection
       );
@@ -78,7 +78,7 @@ export default class SellService extends ListingService {
    */
   async findBySlug(slug: string): Promise<SellInterface | null> {
     const projection = {
-      verify: 0,
+      verification: 0,
       "provider.email": 0,
       createdAt: 0,
       updatedAt: 0,
@@ -89,8 +89,8 @@ export default class SellService extends ListingService {
       const listing = await Sell.findOne(
         {
           slug: slug,
-          purpose: "Sell",
-          verify: { status: true },
+          listingType: "Sell",
+          // verification: { status: true },
         },
         projection
       );

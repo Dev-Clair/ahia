@@ -1,18 +1,23 @@
 import { Router } from "express";
-import AuthMiddleWare from "../middleware/authMiddleware";
+import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
-import ListingMiddleWare from "../middleware/listingMiddleware";
+import ListingMiddleware from "../middleware/listingMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import LeaseController from "../controller/leaseController";
 
 const LeaseRouter = Router();
 
+const IdParamRegex = "[0-9a-fA-F]{24}";
+
+const SlugParamRegex = "a-zA-Z0-9";
+
+/********************************** Collection Operations ********************************************* */
 LeaseRouter.route("/")
   .get(LeaseController.Listing.retrieveListings)
   .post(
-    AuthMiddleWare.IsGranted(["Provider"]),
-    ListingMiddleWare.isContentType(["application/json"]),
-    ListingMiddleWare.isCreatable(["offerings", "media", "verify"]),
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.isCreatable(["offerings", "media", "verification"]),
     ValidationMiddleware.validateLease,
     LeaseController.Listing.createListing
   );
@@ -23,8 +28,8 @@ LeaseRouter.route("/near-me").get(LeaseController.Listing.retrieveNearme);
 
 // LeaseRouter.route("/now-letting").get(LeaseController.Listing);
 
-LeaseRouter.route("/provider/:providerId").get(
-  AuthMiddleWare.IsGranted(["Provider"]),
+LeaseRouter.route(`/provider/:id(${IdParamRegex})`).get(
+  AuthMiddleware.IsGranted(["Provider"]),
   LeaseController.Listing.retrieveByProvider
 );
 
@@ -34,57 +39,87 @@ LeaseRouter.route("/category/:category").get(
   LeaseController.Listing.retrieveByCategory
 );
 
-LeaseRouter.route("/:id")
-  .get(DocumentMiddleware("id", "lease"), LeaseController.Listing.retrieveById)
-  .put(ListingMiddleWare.isNotAllowed)
+/********************************** Item Operations ********************************************* */
+LeaseRouter.route(`/:slug(${SlugParamRegex})`).get(
+  DocumentMiddleware("slug", "lease"),
+  LeaseController.Listing.retrieveBySlug
+);
+
+LeaseRouter.route(`/:id(${IdParamRegex})`)
+  .get(
+    ValidationMiddleware.validateID,
+    DocumentMiddleware("id", "lease"),
+    LeaseController.Listing.retrieveById
+  )
+  .put(ListingMiddleware.isNotAllowed)
   .patch(
-    AuthMiddleWare.IsGranted(["Provider"]),
-    ListingMiddleWare.isContentType(["application/json"]),
-    ListingMiddleWare.isUpdatable(["type", "category", "offerings"]),
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.isUpdatable(["type", "category", "offerings"]),
+    ValidationMiddleware.validateID,
     LeaseController.Listing.updateListing
   )
-  .delete(LeaseController.Listing.deleteListing);
+  .delete(
+    ValidationMiddleware.validateID,
+    LeaseController.Listing.deleteListing
+  );
 
-LeaseRouter.route("/:id/status").patch(
-  AuthMiddleWare.IsGranted(["Admin"]),
-  ListingMiddleWare.isContentType(["application/json"]),
+LeaseRouter.route(`/:id(${IdParamRegex})/status`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
   LeaseController.Listing.changeStatus
 );
 
-LeaseRouter.route("/:id/verify").get(
-  AuthMiddleWare.IsGranted(["Provider"]),
+LeaseRouter.route(`/:id(${IdParamRegex})/verify`).get(
+  AuthMiddleware.IsGranted(["Provider"]),
+  ValidationMiddleware.validateID,
   DocumentMiddleware("id", "lease"),
   LeaseController.Listing.verifyStatus
 );
 
-LeaseRouter.route("/:id/offerings").get(
+LeaseRouter.route(`/:id(${IdParamRegex})/offerings`)
+  .get(
+    ValidationMiddleware.validateID,
+    DocumentMiddleware("id", "lease"),
+    LeaseController.Offering.retrieveOfferings
+  )
+  .post(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ValidationMiddleware.validateID,
+    DocumentMiddleware("id", "lease"),
+    LeaseController.Offering.createOffering
+  );
+
+LeaseRouter.route(
+  `/:id(${IdParamRegex})/offerings/:offeringSlug(${SlugParamRegex})`
+).get(
+  ValidationMiddleware.validateID,
   DocumentMiddleware("id", "lease"),
-  LeaseController.Offering.fetchOfferings
+  LeaseController.Offering.retrieveOfferingBySlug
 );
 
-LeaseRouter.route("/:id/offerings").post(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  DocumentMiddleware("id", "lease"),
-  LeaseController.Offering.createOffering
-);
-
-LeaseRouter.route("/:id/offerings/:offeringId").patch(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  ListingMiddleWare.isContentType(["application/json"]),
-  DocumentMiddleware("id", "lease"),
-  LeaseController.Offering.updateOffering
-);
-
-LeaseRouter.route("/:id/offerings/:offeringId").delete(
-  AuthMiddleWare.IsGranted(["Provider"]),
-  DocumentMiddleware("id", "lease"),
-  LeaseController.Offering.deleteOffering
-);
-
-LeaseRouter.route("/:slug").get(
-  DocumentMiddleware("slug", "lease"),
-  LeaseController.Listing.retrieveBySlug
-);
+LeaseRouter.route(
+  `/:id(${IdParamRegex})/offerings/:offeringId(${IdParamRegex})`
+)
+  .get(
+    ValidationMiddleware.validateID,
+    DocumentMiddleware("id", "lease"),
+    LeaseController.Offering.retrieveOfferingById
+  )
+  .patch(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ValidationMiddleware.validateID,
+    DocumentMiddleware("id", "lease"),
+    LeaseController.Offering.updateOffering
+  )
+  .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ValidationMiddleware.validateID,
+    DocumentMiddleware("id", "lease"),
+    LeaseController.Offering.deleteOffering
+  );
 
 export default LeaseRouter;

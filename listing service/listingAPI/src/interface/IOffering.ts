@@ -1,16 +1,23 @@
-import { Document, Schema } from "mongoose";
+import { Schema } from "mongoose";
 
-export default interface IOffering extends Document {
+export default interface IOffering {
   name: string;
   slug?: string;
-  type: string;
-  size: string;
-  price: number;
+  offeringType: string;
+  area: {
+    size: number;
+    unit: "sqm" | "sqft";
+  };
+  price: {
+    amount: number;
+    currency: string;
+  };
   features: string[];
   status: "open" | "closed";
   media: {
-    picture: string[];
-    video: string[];
+    images: string[];
+    videos: string[];
   };
   listing: Schema.Types.ObjectId;
+  promotion: Schema.Types.ObjectId;
 }

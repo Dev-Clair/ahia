@@ -19,8 +19,8 @@ const LeaseSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  type: z.enum(["economy", "premium", "luxury"]),
-  category: z.enum(["residential", "commercial", "mixed"]),
+  propertyType: z.enum(["economy", "premium", "luxury"]),
+  propertyCategory: z.enum(["residential", "commercial", "mixed"]),
   address: z.string({
     required_error: "address is required",
     invalid_type_error: "address must be a string",
@@ -62,8 +62,8 @@ const ReservationSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  type: z.enum(["economy", "premium", "luxury"]),
-  category: z.enum(["residential", "commercial", "mixed"]),
+  propertyType: z.enum(["economy", "premium", "luxury"]),
+  propertyCategory: z.enum(["residential", "commercial", "mixed"]),
   address: z.string({
     required_error: "address is required",
     invalid_type_error: "address must be a string",
@@ -101,8 +101,8 @@ const SellSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  type: z.enum(["economy", "premium", "luxury"]),
-  category: z.enum(["residential", "commercial", "mixed"]),
+  propertyType: z.enum(["economy", "premium", "luxury"]),
+  propertyCategory: z.enum(["residential", "commercial", "mixed"]),
   address: z.string({
     required_error: "address is required",
     invalid_type_error: "address must be a string",
@@ -135,9 +135,66 @@ const SellSchema = z.object({
   }),
 });
 
-const OfferingSchema = z.object({});
+const OfferingSchema = z.object({
+  name: z.string({
+    required_error: "name is required",
+    invalid_type_error: "name must be a string",
+  }),
+  offeringType: z.string({
+    required_error: "offeringType is required",
+    invalid_type_error: "offeringType must be a string",
+  }),
+  area: z.object({
+    size: z.number({
+      required_error: "size is required",
+      invalid_type_error: "size must be a number",
+    }),
+    unit: z.string({
+      required_error: "unit is required",
+      invalid_type_error: "unit must be a string",
+    }),
+  }),
+  price: z.object({
+    amount: z.number({
+      required_error: "amount is required",
+      invalid_type_error: "amount must be a number",
+    }),
+    currency: z.string({
+      required_error: "currency is required",
+      invalid_type_error: "currency must be a string",
+    }),
+  }),
+  features: z.array(
+    z.string({
+      required_error: "features are required",
+      invalid_type_error: "features must be a string array",
+    })
+  ),
+  status: z.enum(["open", "closed"]),
+});
 
-const PromotionSchema = z.object({});
+const PromotionSchema = z.object({
+  type: z.string({
+    required_error: "type is required",
+    invalid_type_error: "type must be a string",
+  }),
+  description: z.string({
+    required_error: "description is required",
+    invalid_type_error: "description must be a number",
+  }),
+  discount: z.number({
+    required_error: "discount is required",
+    invalid_type_error: "discount must be a number",
+  }),
+  startDate: z.date({
+    required_error: "startDate is required",
+    invalid_type_error: "startDate must be a date",
+  }),
+  endDate: z.date({
+    required_error: "endDate is required",
+    invalid_type_error: "endDate must be a date",
+  }),
+});
 
 const validateID =
   (schema: z.ZodSchema<any>) =>
@@ -190,4 +247,6 @@ export default {
   validateLease: validateBody(LeaseSchema),
   validateReservation: validateBody(ReservationSchema),
   validateSell: validateBody(SellSchema),
+  validateOffering: validateBody(OfferingSchema),
+  validatePromotion: validateBody(PromotionSchema),
 };

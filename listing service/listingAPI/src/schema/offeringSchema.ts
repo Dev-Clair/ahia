@@ -1,11 +1,17 @@
-import { Schema } from "mongoose";
+import mongoose, { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
-import IOffering from "../interface/IOffering";
 import Listing from "../model/listingModel";
+import IOffering from "../interface/IOffering";
+import OfferingInterface from "../interface/offeringInterface";
+import OfferingInterfaceType from "../type/offeringinterfaceType";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
-const OfferingSchema: Schema<IOffering> = new Schema({
+const OfferingSchema: Schema<
+  IOffering,
+  OfferingInterfaceType,
+  OfferingInterface
+> = new Schema({
   name: {
     type: String,
     required: true,
@@ -15,17 +21,30 @@ const OfferingSchema: Schema<IOffering> = new Schema({
     unique: true,
     required: false,
   },
-  type: {
+  offeringType: {
     type: String,
     required: true,
   },
-  size: {
-    type: String,
-    required: true,
+  area: {
+    size: {
+      type: Number,
+      required: true,
+    },
+    unit: {
+      type: String,
+      enum: ["sqm", "sqft"],
+      required: true,
+    },
   },
   price: {
-    type: Number,
-    required: true,
+    amount: {
+      type: Number,
+      required: true,
+    },
+    currency: {
+      type: String,
+      required: true,
+    },
   },
   features: [
     {
@@ -39,23 +58,28 @@ const OfferingSchema: Schema<IOffering> = new Schema({
     default: "open",
   },
   media: {
-    picture: {
+    images: {
       type: [String],
       get: (values: string[]) =>
         values.map((value) => `${baseStoragePath}${value}`),
-      required: true,
+      default: undefined,
     },
-    video: {
+    videos: {
       type: [String],
       get: (values: string[]) =>
         values.map((value) => `${baseStoragePath}${value}`),
-      required: true,
+      default: undefined,
     },
   },
   listing: {
     type: Schema.Types.ObjectId,
     ref: "Listing",
     required: true,
+  },
+  promotion: {
+    type: Schema.Types.ObjectId,
+    ref: "Offering",
+    required: false,
   },
 });
 
@@ -77,14 +101,32 @@ OfferingSchema.pre("save", function (next) {
 });
 
 OfferingSchema.pre("findOneAndDelete", async function (next) {
-  const offering = await this.model.findOne(this.getFilter());
+  try {
+    const offering = (await this.model.findOne(
+      this.getFilter()
+    )) as OfferingInterface;
 
-  if (offering) {
-    const listing = await Listing.findOne({ _id: offering.listing });
+    if (!offering) next();
 
-    const offeringIndex = listing?.offerings.indexOf(offering._id) as number;
+    const session = await mongoose.startSession();
 
-    listing?.offerings.splice(offeringIndex, 1);
+    session.withTransaction(async () => {
+      const listing = await Listing.findOne({ _id: offering.listing }).session(
+        session
+      );
+
+      if (!listing) next();
+
+      const offeringIndex = listing?.offerings.indexOf(
+        offering._id as ObjectId
+      ) as number;
+
+      listing?.offerings.splice(offeringIndex, 1);
+
+      await listing?.save({ session });
+    });
+  } catch (err: any) {
+    next(err);
   }
 
   next();

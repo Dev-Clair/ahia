@@ -1,7 +1,9 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import LeaseService from "../service/leaseService";
 import ListingInterface from "../interface/listingInterface";
+import OfferingInterface from "../interface/offeringInterface";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
@@ -151,7 +153,7 @@ const retrieveByType = async (
   try {
     const type = req.params.type as string;
 
-    const queryString = { type: type };
+    const queryString = { propertyType: type };
 
     const listings = await LeaseService.Create().findAll(queryString);
 
@@ -176,7 +178,7 @@ const retrieveByCategory = async (
   try {
     const category = req.params.category as string;
 
-    const queryString = { category: category };
+    const queryString = { propertyCategory: category };
 
     const listings = await LeaseService.Create().findAll(queryString);
 
@@ -301,7 +303,7 @@ const changeStatus = async (
 
     const status = req.body as boolean;
 
-    const data = { verify: { status: status } };
+    const data = { verification: { status: status } };
 
     const listing = await LeaseService.Create().update(id, key, data);
 
@@ -328,7 +330,7 @@ const verifyStatus = async (
   try {
     const listing = req.listing as ListingInterface;
 
-    if (!listing.verify.status)
+    if (!listing.verification.status)
       throw new PaymentRequiredError(
         `${listing.name.toUpperCase()} has not been verified for listing. Kindly pay the listing fee to verify your listing`
       );
@@ -336,22 +338,6 @@ const verifyStatus = async (
     return res.status(HttpCode.OK).json({
       data: `${listing.name.toUpperCase()} has been been verified for listing. Kindly proceed to create offerings and promotions for your listing`,
     });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-const fetchOfferings = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const listing = req.listing as ListingInterface;
-
-    const offerings = listing.fetchOfferings();
-
-    return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
     return next(err);
   }
@@ -372,12 +358,67 @@ const createOffering = async (
     const lease = req.service as LeaseService;
 
     if (listing) {
-      const offering = await lease.createOffering(key, data);
+      const offering = (await lease.createOffering(
+        key,
+        data
+      )) as OfferingInterface;
 
-      await listing?.addOffering(offering._id);
+      await listing?.addOffering(offering._id as ObjectId);
     }
 
     return res.status(HttpCode.CREATED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const retrieveOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const listing = req.listing as ListingInterface;
+
+    const offerings = listing.retrieveOfferings();
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const retrieveOfferingById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const offeringId = req.params.offeringId as string;
+
+    const service = req.service as LeaseService;
+
+    const offering = service.findOfferingById(offeringId);
+
+    return res.status(HttpCode.OK).json({ data: offering });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+const retrieveOfferingBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const offeringSlug = req.params.offeringSlug as string;
+
+    const service = req.service as LeaseService;
+
+    const offering = service.findOfferingBySlug(offeringSlug);
+
+    return res.status(HttpCode.OK).json({ data: offering });
   } catch (err: any) {
     return next(err);
   }
@@ -448,8 +489,10 @@ export default {
     verifyStatus,
   },
   Offering: {
-    fetchOfferings,
     createOffering,
+    retrieveOfferings,
+    retrieveOfferingById,
+    retrieveOfferingBySlug,
     updateOffering,
     deleteOffering,
   },

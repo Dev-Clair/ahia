@@ -1,9 +1,9 @@
 import { Document, ObjectId } from "mongoose";
 import IListing from "./IListing";
-import IOffering from "./IOffering";
+import OfferingInterface from "./offeringInterface";
 
 export default interface ListingInterface extends IListing, Document {
-  fetchOfferings: () => Promise<IOffering[]>;
+  retrieveOfferings: () => Promise<OfferingInterface[]>;
   addOffering: (offeringId: ObjectId) => Promise<void>;
   removeOffering: (offeringId: ObjectId) => Promise<void>;
 }

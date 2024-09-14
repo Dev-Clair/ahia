@@ -1,4 +1,4 @@
-import { ObjectId, Schema } from "mongoose";
+import mongoose, { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
 import ListingInterfaceType from "../type/listinginterfaceType";
@@ -23,18 +23,18 @@ const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
         unique: true,
         required: false,
       },
-      purpose: {
+      listingType: {
         type: String,
         enum: ["lease", "sell", "reservation"],
         required: true,
       },
-      type: {
+      propertyType: {
         type: String,
         enum: ["economy", "premium", "luxury"],
         set: (value: string) => value.toLowerCase(),
         required: true,
       },
-      category: {
+      propertyCategory: {
         type: String,
         enum: ["residential", "commercial", "mixed"],
         set: (value: string) => value.toLowerCase(),
@@ -65,17 +65,15 @@ const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
       provider: {
         id: {
           type: String,
-          // required: true,
-          required: false,
+          required: true,
         },
         email: {
           type: String,
-          // required: true,
-          required: false,
+          required: true,
         },
       },
       media: {
-        picture: {
+        image: {
           type: String,
           get: (value: string) => `${baseStoragePath}${value}`,
           required: false,
@@ -86,12 +84,11 @@ const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
           required: false,
         },
       },
-      verify: {
+      verification: {
         status: {
           type: Boolean,
           enum: [true, false],
           default: false,
-          required: false,
         },
         expiry: {
           type: Date,
@@ -100,11 +97,27 @@ const ListingSchema: Schema<IListing, ListingInterfaceType, ListingInterface> =
               Date.now() + 3 * 24 * 60 * 60 * 1000
             ).toDateString();
           },
-          required: false,
         },
       },
+      featured: {
+        status: {
+          type: Boolean,
+          enum: [true, false],
+          default: false,
+        },
+        type: {
+          type: String,
+          enum: ["basic", "plus", "prime"],
+          default: "basic",
+        },
+      },
+      promotion: {
+        type: Schema.Types.ObjectId,
+        ref: "Promotion",
+        required: false,
+      },
     },
-    { timestamps: true, discriminatorKey: "purpose" }
+    { timestamps: true, discriminatorKey: "listingType" }
   );
 
 // Listing Schema Search Query Index
@@ -129,15 +142,28 @@ ListingSchema.pre("save", function (next) {
 });
 
 ListingSchema.pre("findOneAndDelete", async function (next) {
-  const listing = await this.model.findOne(this.getFilter());
+  try {
+    const listing = (await this.model.findOne(
+      this.getFilter()
+    )) as ListingInterface;
 
-  if (listing) await Offering.deleteMany({ listing: listing._id });
+    if (!listing) next();
+
+    const session = await mongoose.startSession();
+
+    session.withTransaction(
+      async () =>
+        await Offering.deleteMany({ listing: listing._id }).session(session)
+    );
+  } catch (err: any) {
+    next(err);
+  }
 
   next();
 });
 
 // Listing Schema Instance Methods
-ListingSchema.method("fetchOfferings", async function (): Promise<any> {
+ListingSchema.method("retrieveOfferings", async function (): Promise<any> {
   await this.populate("offerings");
 
   return this.offerings;

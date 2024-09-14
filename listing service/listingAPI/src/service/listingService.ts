@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
 import ListingInterface from "../interface/listingInterface";
+import OfferingInterface from "../interface/offeringInterface";
 import Offering from "../model/offeringModel";
-import IOffering from "../interface/IOffering";
 
 /**
  * Listing Service
@@ -14,6 +14,8 @@ import IOffering from "../interface/IOffering";
  * @abstract update
  * @abstract delete
  * @method createOffering
+ * @method findOfferingById
+ * @method findOfferingBySlug
  * @method updateOffering
  * @method deleteOffering
  */
@@ -77,12 +79,12 @@ export default abstract class ListingService {
    * @public
    * @param key
    * @param data
-   * @returns Promise<void>
+   * @returns Promise<OfferingInterface>
    */
   public async createOffering(
     key: string,
-    data: Partial<IOffering>
-  ): Promise<any> {
+    data: Partial<OfferingInterface>
+  ): Promise<OfferingInterface> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
@@ -96,6 +98,40 @@ export default abstract class ListingService {
     return await FailureRetry.ExponentialBackoff(() => operation);
   }
 
+  /** Retrieves a listing offering using its id
+   * @public
+   * @param id
+   * @returns Promise<OfferingInterface | null>
+   */
+  async findOfferingById(id: string): Promise<OfferingInterface | null> {
+    const projection = { createdAt: 0, updatedAt: 0, __v: 0 };
+
+    const operation = async () => {
+      const offering = await Offering.findOne({ _id: id }, projection);
+
+      return offering;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
+  /** Retrieves a listing offering using its slug
+   * @public
+   * @param slug
+   * @returns Promise<OfferingInterface | null>
+   */
+  async findOfferingBySlug(slug: string): Promise<OfferingInterface | null> {
+    const projection = { createdAt: 0, updatedAt: 0, __v: 0 };
+
+    const operation = async () => {
+      const offering = await Offering.findOne({ slug: slug }, projection);
+
+      return offering;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
   /**
    * Updates a listing offering
    * @public
@@ -107,7 +143,7 @@ export default abstract class ListingService {
   public async updateOffering(
     id: string,
     key: string,
-    data: Partial<IOffering>
+    data: Partial<OfferingInterface>
   ): Promise<any> {
     const session = await mongoose.startSession();
 

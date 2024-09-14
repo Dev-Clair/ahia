@@ -4,25 +4,30 @@ export default interface IListing {
   name: string;
   description: string;
   slug?: string;
-  purpose: "lease" | "sell" | "reservation";
-  type: "economy" | "premium" | "luxury";
-  category: "residential" | "commercial" | "mixed";
+  listingType: "lease" | "sell" | "reservation";
+  propertyType: "economy" | "premium" | "luxury";
+  propertyCategory: "residential" | "commercial" | "mixed";
   offerings: Schema.Types.ObjectId[];
   address: string;
   location: {
     type?: string;
-    coordinates: number[];
+    coordinates?: number[];
   };
   provider: {
-    id?: string;
-    email?: string;
+    id: string;
+    email: string;
   };
   media: {
-    picture?: string;
+    image?: string;
     video?: string;
   };
-  verify: {
+  verification: {
     status?: boolean;
     expiry?: Date;
   };
+  featured: {
+    status: true | false;
+    type: "basic" | "plus" | "prime";
+  };
+  promotion?: Schema.Types.ObjectId;
 }
