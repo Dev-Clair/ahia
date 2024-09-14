@@ -1,14 +1,14 @@
 import { Schema } from "mongoose";
 
 export default interface IPromotion {
-  type: string;
+  promotionType: string;
   description: string;
   discount: number;
   startDate: Date;
   endDate: Date;
   media: {
-    picture: string[];
-    video: string[];
+    images: string[];
+    videos: string[];
   };
   listings: Schema.Types.ObjectId[];
   offerings: Schema.Types.ObjectId[];

@@ -1,4 +1,4 @@
-import { ObjectId, Schema } from "mongoose";
+import mongoose, { ObjectId, Schema } from "mongoose";
 import Listing from "../model/listingModel";
 import Offering from "../model/offeringModel";
 import IPromotion from "../interface/IPromotion";
@@ -13,7 +13,7 @@ const PromotionSchema: Schema<
   PromotionInterface
 > = new Schema(
   {
-    type: {
+    promotionType: {
       type: String,
       required: true,
     },
@@ -34,13 +34,13 @@ const PromotionSchema: Schema<
       required: true,
     },
     media: {
-      picture: {
+      images: {
         type: [String],
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
         default: undefined,
       },
-      video: {
+      videos: {
         type: [String],
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
@@ -70,22 +70,38 @@ PromotionSchema.index({ startDate: 1, endDate: 1 });
 
 // Promotion Schema Middleware
 PromotionSchema.pre("findOneAndDelete", async function (next) {
-  const promotion = (await this.model.findOne(
-    this.getFilter()
-  )) as PromotionInterface;
+  try {
+    const promotion = (await this.model.findOne(
+      this.getFilter()
+    )) as PromotionInterface;
 
-  if (promotion) {
-    const offering = await Offering?.findOne({
-      promotion: promotion._id,
+    if (!promotion) next();
+
+    const session = await mongoose.startSession();
+
+    session.withTransaction(async () => {
+      const offering = await Offering?.findOne({
+        promotion: promotion._id,
+      });
+
+      if (!offering) next();
+
+      const listing = await Listing?.findOne({
+        promotion: promotion._id,
+      });
+
+      if (!listing) next();
+
+      offering?.$set("promotion", undefined);
+
+      listing?.$set("promotion", undefined);
+
+      await offering?.save();
+
+      await listing?.save();
     });
-
-    const listing = await Listing?.findOne({
-      promotion: promotion._id,
-    });
-
-    offering?.$set("promotion", undefined);
-
-    listing?.$set("promotion", undefined);
+  } catch (err: any) {
+    next(err);
   }
 
   next();

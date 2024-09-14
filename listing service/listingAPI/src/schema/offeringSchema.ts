@@ -1,4 +1,4 @@
-import { ObjectId, Schema } from "mongoose";
+import mongoose, { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
 import Listing from "../model/listingModel";
 import IOffering from "../interface/IOffering";
@@ -21,17 +21,30 @@ const OfferingSchema: Schema<
     unique: true,
     required: false,
   },
-  type: {
+  offeringType: {
     type: String,
     required: true,
   },
-  size: {
-    type: Number,
-    required: true,
+  area: {
+    size: {
+      type: Number,
+      required: false,
+    },
+    unit: {
+      type: String,
+      enum: ["sqm", "sqft"],
+      required: false,
+    },
   },
   price: {
-    type: Number,
-    required: true,
+    amount: {
+      type: Number,
+      required: true,
+    },
+    currency: {
+      type: String,
+      required: true,
+    },
   },
   features: [
     {
@@ -45,13 +58,13 @@ const OfferingSchema: Schema<
     default: "open",
   },
   media: {
-    picture: {
+    images: {
       type: [String],
       get: (values: string[]) =>
         values.map((value) => `${baseStoragePath}${value}`),
       default: undefined,
     },
-    video: {
+    videos: {
       type: [String],
       get: (values: string[]) =>
         values.map((value) => `${baseStoragePath}${value}`),
@@ -92,15 +105,25 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
     this.getFilter()
   )) as OfferingInterface;
 
-  if (offering) {
-    const listing = await Listing.findOne({ _id: offering.listing });
+  if (!offering) next();
+
+  const session = await mongoose.startSession();
+
+  session.withTransaction(async () => {
+    const listing = await Listing.findOne({ _id: offering.listing }).session(
+      session
+    );
+
+    if (!listing) next();
 
     const offeringIndex = listing?.offerings.indexOf(
       offering._id as ObjectId
     ) as number;
 
     listing?.offerings.splice(offeringIndex, 1);
-  }
+
+    await listing?.save({ session });
+  });
 
   next();
 });
