@@ -1,6 +1,8 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
 import Listing from "../model/listingModel";
+import ListingInterface from "../interface/listingInterface";
 import Offering from "../model/offeringModel";
+import OfferingInterface from "../interface/offeringInterface";
 import IPromotion from "../interface/IPromotion";
 import PromotionInterfaceType from "../type/promotioninterfaceType";
 import PromotionInterface from "../interface/promotionInterface";
@@ -75,7 +77,7 @@ const PromotionSchema: Schema<
 );
 
 // Promotion Schema Search Query Index
-PromotionSchema.index({ startDate: 1, endDate: 1 });
+PromotionSchema.index({ title: "text", rate: 1, startDate: 1, endDate: 1 });
 
 // Promotion Schema Middleware
 PromotionSchema.pre("findOneAndDelete", async function (next) {
@@ -89,15 +91,15 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
     const session = await mongoose.startSession();
 
     session.withTransaction(async () => {
-      const offering = await Offering?.findOne({
+      const offering = (await Offering?.findOne({
         promotion: promotion._id,
-      }).session(session);
+      }).session(session)) as OfferingInterface;
 
       if (!offering) next();
 
-      const listing = await Listing?.findOne({
+      const listing = (await Listing?.findOne({
         promotion: promotion._id,
-      }).session(session);
+      }).session(session)) as ListingInterface;
 
       if (!listing) next();
 
@@ -126,8 +128,18 @@ PromotionSchema.method("fetchListings", async function (): Promise<any> {
 PromotionSchema.method(
   "addListing",
   async function (listingId: ObjectId): Promise<void> {
-    if (!this.listings.includes(listingId)) {
-      this.offerings.push(listingId);
+    // if (!this.listings.includes(listingId)) {
+    //   this.offerings.push(listingId);
+
+    //   await this.save();
+    // }
+
+    if (
+      !this.listings.some(
+        (id: ObjectId) => id.toString() === listingId.toString()
+      )
+    ) {
+      this.listings.push(listingId);
 
       await this.save();
     }
@@ -156,7 +168,16 @@ PromotionSchema.method("fetchOfferings", async function (): Promise<any> {
 PromotionSchema.method(
   "addOffering",
   async function (offeringId: ObjectId): Promise<void> {
-    if (!this.offerings.includes(offeringId)) {
+    // if (!this.offerings.includes(offeringId)) {
+    //   this.offerings.push(offeringId);
+
+    //   await this.save();
+    // }
+    if (
+      !this.offerings.some(
+        (id: ObjectId) => id.toString() === offeringId.toString()
+      )
+    ) {
       this.offerings.push(offeringId);
 
       await this.save();

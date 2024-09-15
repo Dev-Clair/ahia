@@ -4,6 +4,7 @@ import IListing from "../interface/IListing";
 import ListingInterfaceType from "../type/listinginterfaceType";
 import ListingInterface from "../interface/listingInterface";
 import Offering from "../model/offeringModel";
+import Promotion from "../model/promotionModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -151,10 +152,27 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
 
     const session = await mongoose.startSession();
 
-    session.withTransaction(
-      async () =>
-        await Offering.deleteMany({ listing: listing._id }).session(session)
-    );
+    session.withTransaction(async () => {
+      // Delete all offering document records referenced to listing
+      await Offering.deleteMany({ listing: listing._id }).session(session);
+
+      // Drop all promotion references to listing
+      const promotion = await Promotion.findOne({
+        id: listing.promotion,
+      }).session(session);
+
+      if (!promotion) next();
+
+      const listingIndex = promotion?.listings.indexOf(
+        listing._id as ObjectId
+      ) as number;
+
+      if (listingIndex > -1) {
+        promotion?.listings.splice(listingIndex, 1);
+
+        await promotion?.save();
+      }
+    });
   } catch (err: any) {
     next(err);
   }
@@ -172,7 +190,16 @@ ListingSchema.method("retrieveOfferings", async function (): Promise<any> {
 ListingSchema.method(
   "addOffering",
   async function (offeringId: ObjectId): Promise<void> {
-    if (!this.offerings.includes(offeringId)) {
+    // if (!this.offerings.includes(offeringId)) {
+    //   this.offerings.push(offeringId);
+
+    //   await this.save();
+    // }
+    if (
+      !this.offerings.some(
+        (id: ObjectId) => id.toString() === offeringId.toString()
+      )
+    ) {
       this.offerings.push(offeringId);
 
       await this.save();

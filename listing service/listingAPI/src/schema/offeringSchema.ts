@@ -5,6 +5,8 @@ import ListingInterface from "../interface/listingInterface";
 import IOffering from "../interface/IOffering";
 import OfferingInterface from "../interface/offeringInterface";
 import OfferingInterfaceType from "../type/offeringinterfaceType";
+import Promotion from "../model/promotionModel";
+import PromotionInterface from "../interface/promotionInterface";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
@@ -89,7 +91,12 @@ const OfferingSchema: Schema<
 });
 
 // Offering Schema Search Query Index
-OfferingSchema.index({ name: "text", type: "text" });
+OfferingSchema.index({
+  name: "text",
+  offeringType: "text",
+  "area.size": 1,
+  "price.amount": 1,
+});
 
 // Offering Schema Middleware
 OfferingSchema.pre("save", function (next) {
@@ -116,19 +123,39 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
     const session = await mongoose.startSession();
 
     session.withTransaction(async () => {
+      // Drop listing reference to offering
       const listing = (await Listing.findOne({ _id: offering.listing }).session(
         session
       )) as ListingInterface;
 
       if (!listing) next();
 
-      const offeringIndex = listing?.offerings.indexOf(
+      const listingOfferingIndex = listing?.offerings.indexOf(
         offering._id as ObjectId
       ) as number;
 
-      listing?.offerings.splice(offeringIndex, 1);
+      if (listingOfferingIndex > -1) {
+        listing?.offerings.splice(listingOfferingIndex, 1);
 
-      await listing?.save({ session });
+        await listing?.save({ session });
+      }
+
+      // Drop promotion reference to offering
+      const promotion = (await Promotion.findOne({
+        id: offering.promotion,
+      }).session(session)) as PromotionInterface;
+
+      if (!promotion) next();
+
+      const promotionOfferingIndex = promotion?.offerings.indexOf(
+        offering._id as ObjectId
+      ) as number;
+
+      if (promotionOfferingIndex > -1) {
+        promotion?.offerings.splice(promotionOfferingIndex, 1);
+
+        await promotion?.save({ session });
+      }
     });
   } catch (err: any) {
     next(err);
