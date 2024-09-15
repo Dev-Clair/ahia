@@ -67,7 +67,17 @@ ReservationRouter.route(`/:id(${IdParamRegex})`)
     ValidationMiddleware.validateID,
     ReservationController.Listing.updateListing
   )
-  .delete(ReservationController.Listing.deleteListing);
+  .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ValidationMiddleware.validateID,
+    ReservationController.Listing.deleteListing
+  );
+
+ReservationRouter.route(`/:id(${IdParamRegex})/bookings`).get(
+  ValidationMiddleware.validateID,
+  DocumentMiddleware("id", "reservation")
+  // ReservationController.Listing.redirectToBookings
+);
 
 ReservationRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),

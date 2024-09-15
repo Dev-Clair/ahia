@@ -60,9 +60,16 @@ LeaseRouter.route(`/:id(${IdParamRegex})`)
     LeaseController.Listing.updateListing
   )
   .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
     ValidationMiddleware.validateID,
     LeaseController.Listing.deleteListing
   );
+
+LeaseRouter.route(`/:id(${IdParamRegex})/tours`).get(
+  ValidationMiddleware.validateID,
+  DocumentMiddleware("id", "lease")
+  // LeaseController.Listing.redirectToTours
+);
 
 LeaseRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),

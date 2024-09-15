@@ -60,9 +60,16 @@ SellRouter.route(`/:id(${IdParamRegex})`)
     SellController.Listing.updateListing
   )
   .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
     ValidationMiddleware.validateID,
     SellController.Listing.deleteListing
   );
+
+SellRouter.route(`/:id(${IdParamRegex})/inquiries`).get(
+  ValidationMiddleware.validateID,
+  DocumentMiddleware("id", "sell")
+  // SellController.Listing.redirectToInquiries
+);
 
 SellRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),
