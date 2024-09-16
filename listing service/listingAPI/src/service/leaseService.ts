@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
 import Lease from "../model/leaseModel";
-import LeaseInterface from "../interface/leaseInterface";
+import ILease from "../interface/ILease";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 
@@ -10,9 +10,9 @@ export default class LeaseService extends ListingService {
   /** Retrieves a collection of listings for lease
    * @public
    * @param queryString
-   * @returns Promise<LeaseInterface[]>
+   * @returns Promise<ILease[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<LeaseInterface[]> {
+  async findAll(queryString?: Record<string, any>): Promise<ILease[]> {
     const operation = async () => {
       const query = Lease.find();
 
@@ -44,9 +44,9 @@ export default class LeaseService extends ListingService {
   /** Retrieves a lease listing using its id
    * @public
    * @param id
-   * @returns Promise<LeaseInterface | null>
+   * @returns Promise<ILease | null>
    */
-  async findById(id: string): Promise<LeaseInterface | null> {
+  async findById(id: string): Promise<ILease | null> {
     const projection = {
       verification: 0,
       "provider.email": 0,
@@ -74,9 +74,9 @@ export default class LeaseService extends ListingService {
   /** Retrieves a lease listing using its slug
    * @public
    * @param slug
-   * @returns Promise<LeaseInterface | null>
+   * @returns Promise<ILease | null>
    */
-  async findBySlug(slug: string): Promise<LeaseInterface | null> {
+  async findBySlug(slug: string): Promise<ILease | null> {
     const projection = {
       verification: 0,
       "provider.email": 0,
@@ -108,7 +108,7 @@ export default class LeaseService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<LeaseInterface>): Promise<void> {
+  async save(key: string, data: Partial<ILease>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
@@ -128,11 +128,7 @@ export default class LeaseService extends ListingService {
    * @param data
    * @returns Promise<any>
    */
-  async update(
-    id: string,
-    key: string,
-    data?: Partial<LeaseInterface>
-  ): Promise<any> {
+  async update(id: string, key: string, data?: Partial<ILease>): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {

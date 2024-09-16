@@ -1,4 +1,4 @@
-export default interface HttpRequestOptionsInterface {
+export default interface IHttpRequestOptions {
   hostname: string;
   path: string;
   method?: string;

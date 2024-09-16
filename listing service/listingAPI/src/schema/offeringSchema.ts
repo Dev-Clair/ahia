@@ -1,28 +1,25 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
-import Listing from "../model/listingModel";
+import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
-import OfferingInterface from "../interface/offeringInterface";
-import OfferingInterfaceType from "../type/offeringinterfaceType";
+import IPromotion from "../interface/IPromotion";
+import Listing from "../model/listingModel";
+import Promotion from "../model/promotionModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
-const OfferingSchema: Schema<
-  IOffering,
-  OfferingInterfaceType,
-  OfferingInterface
-> = new Schema({
+const OfferingSchema: Schema<IOffering> = new Schema({
   name: {
     type: String,
     required: true,
   },
   slug: {
     type: String,
-    unique: true,
+    // unique: true,
     required: false,
   },
-  offeringType: {
-    type: String,
+  unitsAvailable: {
+    type: Number,
     required: true,
   },
   area: {
@@ -46,12 +43,10 @@ const OfferingSchema: Schema<
       required: true,
     },
   },
-  features: [
-    {
-      type: String,
-      required: true,
-    },
-  ],
+  features: {
+    type: [String],
+    required: true,
+  },
   status: {
     type: String,
     enum: ["open", "closed"],
@@ -84,7 +79,12 @@ const OfferingSchema: Schema<
 });
 
 // Offering Schema Search Query Index
-OfferingSchema.index({ name: "text", type: "text" });
+OfferingSchema.index({
+  name: "text",
+  "area.size": 1,
+  "price.amount": 1,
+  status: "text",
+});
 
 // Offering Schema Middleware
 OfferingSchema.pre("save", function (next) {
@@ -102,34 +102,52 @@ OfferingSchema.pre("save", function (next) {
 
 OfferingSchema.pre("findOneAndDelete", async function (next) {
   try {
-    const offering = (await this.model.findOne(
-      this.getFilter()
-    )) as OfferingInterface;
+    const offering = (await this.model.findOne(this.getFilter())) as IOffering;
 
     if (!offering) next();
 
     const session = await mongoose.startSession();
 
     session.withTransaction(async () => {
-      const listing = await Listing.findOne({ _id: offering.listing }).session(
+      // Unlink listing reference to offering
+      const listing = (await Listing.findOne({ _id: offering.listing }).session(
         session
-      );
+      )) as IListing;
 
-      if (!listing) next();
+      if (listing) {
+        const listingOfferingIndex = listing.offerings.indexOf(
+          offering._id as ObjectId
+        ) as number;
 
-      const offeringIndex = listing?.offerings.indexOf(
-        offering._id as ObjectId
-      ) as number;
+        if (listingOfferingIndex > -1) {
+          listing.offerings.splice(listingOfferingIndex, 1);
 
-      listing?.offerings.splice(offeringIndex, 1);
+          await listing.save({ session });
+        }
+      }
 
-      await listing?.save({ session });
+      // Unlink promotion reference to offering
+      const promotion = (await Promotion.findOne({
+        id: offering.promotion,
+      }).session(session)) as IPromotion;
+
+      if (promotion) {
+        const promotionOfferingIndex = promotion.offerings.indexOf(
+          offering._id as ObjectId
+        ) as number;
+
+        if (promotionOfferingIndex > -1) {
+          promotion.offerings.splice(promotionOfferingIndex, 1);
+
+          await promotion.save({ session });
+        }
+      }
     });
+
+    next();
   } catch (err: any) {
     next(err);
   }
-
-  next();
 });
 
 export default OfferingSchema;

@@ -1,8 +1,6 @@
-import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
-import ListingInterface from "../interface/listingInterface";
-import OfferingInterface from "../interface/offeringInterface";
+import IListing from "../interface/IListing";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
@@ -189,6 +187,31 @@ const retrieveByCategory = async (
 };
 
 /**
+ * Retrieves listings for reservation based on offerings
+ * @param req
+ * @param res
+ * @param next
+ * @returns Promise<Response | void>
+ */
+const retrieveByOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query;
+
+    const listings = await ReservationService.Create().findListingsByOfferings(
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
  * Retrieves a listing for reservation by its slug
  * @param req
  * @param res
@@ -201,7 +224,7 @@ const retrieveBySlug = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const listing = req.listing as ListingInterface;
+    const listing = req.listing as IListing;
 
     return res.status(HttpCode.OK).json({ data: listing });
   } catch (err: any) {
@@ -222,7 +245,7 @@ const retrieveById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const listing = req.listing as ListingInterface;
+    const listing = req.listing as IListing;
 
     return res.status(HttpCode.OK).json({ data: listing });
   } catch (err: any) {
@@ -328,7 +351,7 @@ const verifyStatus = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const listing = req.listing as ListingInterface;
+    const listing = req.listing as IListing;
 
     if (!listing.verification.status)
       throw new PaymentRequiredError(
@@ -353,18 +376,13 @@ const createOffering = async (
 
     const data = req.body as object;
 
-    const listing = req.listing as ListingInterface;
+    const listing = req.listing as IListing;
 
-    const reservation = req.service as ReservationService;
+    Object.assign(data, { listing: listing._id });
 
-    if (listing) {
-      const offering = (await reservation.createOffering(
-        key,
-        data
-      )) as OfferingInterface;
+    const reservationService = req.service as ReservationService;
 
-      await listing?.addOffering(offering._id as ObjectId);
-    }
+    await reservationService.createOffering(key, data, listing._id);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -378,9 +396,9 @@ const retrieveOfferings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const listing = req.listing as ListingInterface;
+    const listing = req.listing as IListing;
 
-    const offerings = listing.retrieveOfferings();
+    const offerings = await listing.populate({ path: "offerings" });
 
     return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
@@ -396,9 +414,9 @@ const retrieveOfferingById = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const service = req.service as ReservationService;
+    const reservationService = req.service as ReservationService;
 
-    const offering = service.findOfferingById(offeringId);
+    const offering = reservationService.findOfferingById(offeringId);
 
     return res.status(HttpCode.OK).json({ data: offering });
   } catch (err: any) {
@@ -414,9 +432,9 @@ const retrieveOfferingBySlug = async (
   try {
     const offeringSlug = req.params.offeringSlug as string;
 
-    const service = req.service as ReservationService;
+    const reservationService = req.service as ReservationService;
 
-    const offering = service.findOfferingBySlug(offeringSlug);
+    const offering = reservationService.findOfferingBySlug(offeringSlug);
 
     return res.status(HttpCode.OK).json({ data: offering });
   } catch (err: any) {
@@ -436,11 +454,11 @@ const updateOffering = async (
 
     const data = req.body as object;
 
-    const listing = req.listing as ListingInterface;
+    const listing = req.listing as IListing;
 
-    const reservation = req.service as ReservationService;
+    const reservationService = req.service as ReservationService;
 
-    if (listing) await reservation.updateOffering(offeringId, key, data);
+    if (listing) await reservationService.updateOffering(offeringId, key, data);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -456,15 +474,11 @@ const deleteOffering = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const listing = req.listing as ListingInterface;
+    const listing = req.listing as IListing;
 
-    const reservation = req.service as ReservationService;
+    const reservationService = req.service as ReservationService;
 
-    if (listing) {
-      const offering = await reservation.deleteOffering(offeringId);
-
-      await listing.removeOffering(offering._id);
-    }
+    await reservationService.deleteOffering(offeringId, listing._id);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -481,6 +495,7 @@ export default {
     retrieveByProvider,
     retrieveByType,
     retrieveByCategory,
+    retrieveByOfferings,
     retrieveBySlug,
     retrieveById,
     updateListing,

@@ -1,7 +1,7 @@
 import Listing from "./listingModel";
+import ILease from "../interface/ILease";
 import LeaseSchema from "../schema/leaseSchema";
-import LeaseInterface from "../interface/leaseInterface";
 
-const Lease = Listing.discriminator<LeaseInterface>("Lease", LeaseSchema);
+const Lease = Listing.discriminator<ILease>("Lease", LeaseSchema);
 
 export default Lease;

@@ -39,6 +39,8 @@ SellRouter.route("/category/:category").get(
   SellController.Listing.retrieveByCategory
 );
 
+SellRouter.route("/offerings").get(SellController.Listing.retrieveByOfferings);
+
 /********************************** Item Operations ********************************************* */
 SellRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("slug", "sell"),
@@ -60,9 +62,30 @@ SellRouter.route(`/:id(${IdParamRegex})`)
     SellController.Listing.updateListing
   )
   .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
     ValidationMiddleware.validateID,
     SellController.Listing.deleteListing
   );
+
+SellRouter.route(`/:id(${IdParamRegex})/inquiries`).get(
+  ValidationMiddleware.validateID,
+  DocumentMiddleware("id", "sell")
+  // SellController.Listing.redirectToInquiries
+);
+
+SellRouter.route(`/:id(${IdParamRegex})/type`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
+  SellController.Listing.updateListing
+);
+
+SellRouter.route(`/:id(${IdParamRegex})/category`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
+  SellController.Listing.updateListing
+);
 
 SellRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),
@@ -88,6 +111,7 @@ SellRouter.route(`/:id(${IdParamRegex})/offerings`)
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ValidationMiddleware.validateID,
+    ValidationMiddleware.validateOffering,
     DocumentMiddleware("id", "sell"),
     SellController.Offering.createOffering
   );

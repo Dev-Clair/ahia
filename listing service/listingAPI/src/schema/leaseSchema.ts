@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import LeaseInterface from "../interface/leaseInterface";
+import LeaseInterface from "../interface/ILease";
 
 const LeaseSchema: Schema<LeaseInterface> = new Schema({
   isNegotiable: {

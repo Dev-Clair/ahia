@@ -4,15 +4,15 @@ import IdempotencyManager from "../utils/idempotencyManager";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 import Sell from "../model/sellModel";
-import SellInterface from "../interface/sellInterface";
+import ISell from "../interface/ISell";
 
 export default class SellService extends ListingService {
   /** Retrieves a collection of listing for sell
    * @public
    * @param queryString
-   * @returns Promise<SellInterface[]>
+   * @returns Promise<ISell[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<SellInterface[]> {
+  async findAll(queryString?: Record<string, any>): Promise<ISell[]> {
     const operation = async () => {
       const query = Sell.find();
 
@@ -44,9 +44,9 @@ export default class SellService extends ListingService {
   /** Retrieves a sell listing using its id
    * @public
    * @param id
-   * @returns Promise<SellInterface | null>
+   * @returns Promise<ISell | null>
    */
-  async findById(id: string): Promise<SellInterface | null> {
+  async findById(id: string): Promise<ISell | null> {
     const projection = {
       verification: 0,
       "provider.email": 0,
@@ -74,9 +74,9 @@ export default class SellService extends ListingService {
   /** Retrieves a sell listing using its slug
    * @public
    * @param string
-   * @returns Promise<SellInterface | null>
+   * @returns Promise<ISell | null>
    */
-  async findBySlug(slug: string): Promise<SellInterface | null> {
+  async findBySlug(slug: string): Promise<ISell | null> {
     const projection = {
       verification: 0,
       "provider.email": 0,
@@ -108,7 +108,7 @@ export default class SellService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<SellInterface>): Promise<void> {
+  async save(key: string, data: Partial<ISell>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
@@ -128,11 +128,7 @@ export default class SellService extends ListingService {
    * @param data
    * @returns Promise<any>
    */
-  async update(
-    id: string,
-    key: string,
-    data?: Partial<SellInterface>
-  ): Promise<any> {
+  async update(id: string, key: string, data?: Partial<ISell>): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {

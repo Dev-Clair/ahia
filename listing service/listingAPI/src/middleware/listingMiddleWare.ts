@@ -100,7 +100,7 @@ const isUpdatable = (fields: string[]) => {
     const errorCache: string[] = [];
 
     updatable.forEach((element) => {
-      if (!fields.includes(element)) errorCache.push(element);
+      if (fields.includes(element)) errorCache.push(element);
     });
 
     if (errorCache.length !== 0)

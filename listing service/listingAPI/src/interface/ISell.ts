@@ -1,6 +1,6 @@
-import ListingInterface from "./listingInterface";
+import IListing from "./IListing";
 
-export default interface SellInterface extends ListingInterface {
+export default interface ISell extends IListing {
   isNegotiable: boolean;
   mortgage: {
     plan: "short" | "medium" | "long" | "mixed";

@@ -1,10 +1,7 @@
 import { model } from "mongoose";
 import IdempotencySchema from "../schema/idempotencySchema";
-import IdempotencyInterface from "../interface/idempotencyInterface";
+import IIdempotency from "../interface/IIdempotency";
 
-const Idempotency = model<IdempotencyInterface>(
-  "Idempotency",
-  IdempotencySchema
-);
+const Idempotency = model<IIdempotency>("Idempotency", IdempotencySchema);
 
 export default Idempotency;
