@@ -141,13 +141,13 @@ export default abstract class ListingService {
    * @public
    * @param key
    * @param data
-   * @param listing
+   * @param listingId
    * @returns Promise<void>
    */
   public async createOffering(
     key: string,
     data: Partial<IOffering>,
-    listing: IListing
+    listingId: Partial<IListing>
   ): Promise<void> {
     const session = await mongoose.startSession();
 
@@ -157,7 +157,7 @@ export default abstract class ListingService {
       await IdempotencyManager.Create(key, session);
 
       await Listing.updateOne(
-        { _id: listing._id },
+        { _id: listingId },
         { $addToSet: { offerings: (offering as any)._id as ObjectId } }
       ).session(session);
     });
@@ -230,17 +230,20 @@ export default abstract class ListingService {
    * Deletes a listing offering
    * @public
    * @param id
-   * @param listing
+   * @param listingId
    * @returns Promise<void>
    */
-  public async deleteOffering(id: string, listing: IListing): Promise<void> {
+  public async deleteOffering(
+    id: string,
+    listingId: Partial<IListing>
+  ): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
       const offering = await Offering.findByIdAndDelete({ _id: id }, session);
 
       await Listing.updateOne(
-        { _id: listing._id },
+        { _id: listingId },
         { $pull: { offerings: (offering as any)._id as ObjectId } }
       ).session(session);
     });
