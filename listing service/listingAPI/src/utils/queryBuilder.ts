@@ -1,5 +1,5 @@
 import { Query } from "mongoose";
-import QueryStringInterface from "../interface/querystringInterface";
+import IQueryString from "../interface/IQuerystring";
 
 /**
  * QueryBuilder
@@ -13,9 +13,9 @@ import QueryStringInterface from "../interface/querystringInterface";
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
 
-  private queryString: QueryStringInterface;
+  private queryString: IQueryString;
 
-  constructor(query: Query<T[], T>, queryString?: QueryStringInterface) {
+  constructor(query: Query<T[], T>, queryString?: IQueryString) {
     this.query = query;
 
     this.queryString = queryString ?? {};
@@ -141,7 +141,7 @@ export class QueryBuilder<T> {
    */
   static Create<T>(
     query: Query<T[], T>,
-    queryString?: QueryStringInterface
+    queryString?: IQueryString
   ): QueryBuilder<T> {
     return new QueryBuilder(query, queryString);
   }

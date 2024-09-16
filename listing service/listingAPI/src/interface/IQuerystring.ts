@@ -1,4 +1,4 @@
-export default interface QueryStringInterface {
+export default interface IQueryString {
   page?: string;
   sort?: string;
   limit?: string;

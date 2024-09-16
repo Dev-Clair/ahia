@@ -1,21 +1,17 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
-import OfferingInterface from "../interface/offeringInterface";
-import ListingInterface from "../interface/listingInterface";
+import IPromotion from "../interface/IPromotion";
 import Promotion from "../model/promotionModel";
-import PromotionInterface from "../interface/promotionInterface";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 export default class PromotionService {
   /** Retrieves a collection of promotions
    * @public
    * @param queryString
-   * @returns Promise<PromotionInterface[]>
+   * @returns Promise<IPromotion[]>
    */
-  async findAll(
-    queryString?: Record<string, any>
-  ): Promise<PromotionInterface[]> {
+  async findAll(queryString?: Record<string, any>): Promise<IPromotion[]> {
     const operation = async () => {
       const query = Promotion.find();
 
@@ -36,9 +32,9 @@ export default class PromotionService {
   /** Retrieves a promotion using its id
    * @public
    * @param id
-   * @returns Promise<PromotionInterface | null>
+   * @returns Promise<IPromotion | null>
    */
-  async findById(id: string): Promise<PromotionInterface | null> {
+  async findById(id: string): Promise<IPromotion | null> {
     const projection = { createdAt: 0, updatedAt: 0, __v: 0 };
 
     const operation = async () => {
@@ -53,9 +49,9 @@ export default class PromotionService {
   /** Retrieves a promotion using its slug
    * @public
    * @param slug
-   * @returns Promise<PromotionInterface | null>
+   * @returns Promise<IPromotion | null>
    */
-  async findBySlug(slug: string): Promise<PromotionInterface | null> {
+  async findBySlug(slug: string): Promise<IPromotion | null> {
     const projection = { createdAt: 0, updatedAt: 0, __v: 0 };
 
     const operation = async () => {
@@ -74,7 +70,7 @@ export default class PromotionService {
    * @param data
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<PromotionInterface>): Promise<void> {
+  async save(key: string, data: Partial<IPromotion>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
@@ -92,24 +88,22 @@ export default class PromotionService {
    * @param id
    * @param key
    * @param data
-   * @returns Promise<any>
+   * @returns Promise<void>
    */
   async update(
     id: string,
     key: string,
-    data?: Partial<PromotionInterface>
-  ): Promise<any> {
+    data?: Partial<IPromotion>
+  ): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Promotion.findByIdAndUpdate({ _id: id }, data, {
+      await Promotion.findByIdAndUpdate({ _id: id }, data, {
         new: true,
         session,
       });
 
-      const val = await IdempotencyManager.Create(key, session);
-
-      return listing;
+      await IdempotencyManager.Create(key, session);
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -119,15 +113,13 @@ export default class PromotionService {
    * Deletes a promotion using its id
    * @public
    * @param id
-   * @returns Promise<any>
+   * @returns Promise<void>
    */
-  async delete(id: string): Promise<any> {
+  async delete(id: string): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Promotion.findByIdAndDelete({ _id: id }, session);
-
-      return listing;
+      await Promotion.findByIdAndDelete({ _id: id }, session);
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);

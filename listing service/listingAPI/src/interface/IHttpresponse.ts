@@ -1,4 +1,4 @@
-export default interface HttpResponseInterface {
+export default interface IHttpResponse {
   statusCode: number | undefined;
   body: any;
 }

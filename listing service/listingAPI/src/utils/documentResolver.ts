@@ -1,5 +1,5 @@
 import NotFoundError from "../error/notfoundError";
-import ListingInterface from "../interface/listingInterface";
+import IListing from "../interface/IListing";
 import LeaseService from "../service/leaseService";
 import ListingService from "../service/listingService";
 import ReservationService from "../service/reservationService";
@@ -49,7 +49,7 @@ class DocumentValueResolver {
   private async ResolveDocument(
     paramValue: string,
     service: ListingService
-  ): Promise<{ listing: ListingInterface; service: ListingService }> {
+  ): Promise<{ listing: IListing; service: ListingService }> {
     const listing =
       (await service.findById(paramValue)) ??
       (await service.findBySlug(paramValue));

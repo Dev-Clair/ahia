@@ -4,17 +4,15 @@ import IdempotencyManager from "../utils/idempotencyManager";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 import Reservation from "../model/reservationModel";
-import ReservationInterface from "../interface/reservationInterface";
+import IReservation from "../interface/IReservation";
 
 export default class ReservationService extends ListingService {
   /** Retrieves a collection of listings for reservations
    * @public
    * @param queryString
-   * @returns Promise<ReservationInterface[]>
+   * @returns Promise<IReservation[]>
    */
-  async findAll(
-    queryString?: Record<string, any>
-  ): Promise<ReservationInterface[]> {
+  async findAll(queryString?: Record<string, any>): Promise<IReservation[]> {
     const operation = async () => {
       const query = Reservation.find();
 
@@ -46,9 +44,9 @@ export default class ReservationService extends ListingService {
   /** Retrieves a reservation listing using its id
    * @public
    * @param id
-   * @returns Promise<ReservationInterface | null>
+   * @returns Promise<IReservation | null>
    */
-  async findById(id: string): Promise<ReservationInterface | null> {
+  async findById(id: string): Promise<IReservation | null> {
     const projection = {
       verification: 0,
       "provider.email": 0,
@@ -76,9 +74,9 @@ export default class ReservationService extends ListingService {
   /** Retrieves a reservation listing using its slug
    * @public
    * @param string
-   * @returns Promise<ReservationInterface | null>
+   * @returns Promise<IReservation | null>
    */
-  async findBySlug(slug: string): Promise<ReservationInterface | null> {
+  async findBySlug(slug: string): Promise<IReservation | null> {
     const projection = {
       verification: 0,
       "provider.email": 0,
@@ -110,7 +108,7 @@ export default class ReservationService extends ListingService {
    * @param data
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<ReservationInterface>): Promise<void> {
+  async save(key: string, data: Partial<IReservation>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
@@ -133,7 +131,7 @@ export default class ReservationService extends ListingService {
   async update(
     id: string,
     key: string,
-    data?: Partial<ReservationInterface>
+    data?: Partial<IReservation>
   ): Promise<any> {
     const session = await mongoose.startSession();
 

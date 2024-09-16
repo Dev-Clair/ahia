@@ -39,6 +39,10 @@ LeaseRouter.route("/category/:category").get(
   LeaseController.Listing.retrieveByCategory
 );
 
+LeaseRouter.route("/offerings").get(
+  LeaseController.Listing.retrieveByOfferings
+);
+
 /********************************** Item Operations ********************************************* */
 LeaseRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("slug", "lease"),
@@ -55,7 +59,11 @@ LeaseRouter.route(`/:id(${IdParamRegex})`)
   .patch(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.isUpdatable(["type", "category", "offerings"]),
+    ListingMiddleware.isUpdatable([
+      "propertyType",
+      "propertyCategory",
+      "offerings",
+    ]),
     ValidationMiddleware.validateID,
     LeaseController.Listing.updateListing
   )
@@ -69,6 +77,20 @@ LeaseRouter.route(`/:id(${IdParamRegex})/tours`).get(
   ValidationMiddleware.validateID,
   DocumentMiddleware("id", "lease")
   // LeaseController.Listing.redirectToTours
+);
+
+LeaseRouter.route(`/:id(${IdParamRegex})/type`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
+  LeaseController.Listing.updateListing
+);
+
+LeaseRouter.route(`/:id(${IdParamRegex})/category`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
+  LeaseController.Listing.updateListing
 );
 
 LeaseRouter.route(`/:id(${IdParamRegex})/status`).patch(
@@ -95,6 +117,7 @@ LeaseRouter.route(`/:id(${IdParamRegex})/offerings`)
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ValidationMiddleware.validateID,
+    ValidationMiddleware.validateOffering,
     DocumentMiddleware("id", "lease"),
     LeaseController.Offering.createOffering
   );

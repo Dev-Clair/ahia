@@ -47,6 +47,10 @@ ReservationRouter.route("/category/:category").get(
   ReservationController.Listing.retrieveByCategory
 );
 
+ReservationRouter.route("/offerings").get(
+  ReservationController.Listing.retrieveByOfferings
+);
+
 /********************************** Item Operations ********************************************* */
 ReservationRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("slug", "reservation"),
@@ -79,6 +83,20 @@ ReservationRouter.route(`/:id(${IdParamRegex})/bookings`).get(
   // ReservationController.Listing.redirectToBookings
 );
 
+ReservationRouter.route(`/:id(${IdParamRegex})/type`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
+  ReservationController.Listing.updateListing
+);
+
+ReservationRouter.route(`/:id(${IdParamRegex})/category`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
+  ReservationController.Listing.updateListing
+);
+
 ReservationRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),
   ListingMiddleware.isContentType(["application/json"]),
@@ -103,6 +121,7 @@ ReservationRouter.route(`/:id(${IdParamRegex})/offerings`)
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ValidationMiddleware.validateID,
+    ValidationMiddleware.validateOffering,
     DocumentMiddleware("id", "reservation"),
     ReservationController.Offering.createOffering
   );

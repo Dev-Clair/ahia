@@ -1,8 +1,8 @@
 import Listing from "./listingModel";
+import IReservation from "../interface/IReservation";
 import ReservationSchema from "../schema/reservationSchema";
-import ReservationInterface from "../interface/reservationInterface";
 
-const Reservation = Listing.discriminator<ReservationInterface>(
+const Reservation = Listing.discriminator<IReservation>(
   "Reservation",
   ReservationSchema
 );

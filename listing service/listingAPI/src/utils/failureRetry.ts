@@ -1,10 +1,10 @@
 import AsyncRetry from "async-retry";
-import RetryOptionsInterface from "../interface/retryoptionsInterface";
+import IRetryOptions from "../interface/IRetryoptions";
 
 class FailureRetry {
   static async ExponentialBackoff(
     operation: any,
-    options: RetryOptionsInterface = { retries: 3, factor: 2, minTimeout: 5000 }
+    options: IRetryOptions = { retries: 3, factor: 2, minTimeout: 5000 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -27,7 +27,7 @@ class FailureRetry {
 
   static async ExponentialJitterBackoff(
     operation: any,
-    options: RetryOptionsInterface = {
+    options: IRetryOptions = {
       retries: 3,
       factor: 2,
       minTimeout: 2500,
@@ -62,7 +62,7 @@ class FailureRetry {
 
   static async LinearBackoff(
     operation: any,
-    options: RetryOptionsInterface = { retries: 5, minTimeout: 2500 }
+    options: IRetryOptions = { retries: 5, minTimeout: 2500 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -83,7 +83,7 @@ class FailureRetry {
 
   static async LinearJitterBackoff(
     operation: any,
-    options: RetryOptionsInterface = {
+    options: IRetryOptions = {
       retries: 5,
       minTimeout: 5000,
       jitterFactor: 1000,

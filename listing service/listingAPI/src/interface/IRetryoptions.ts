@@ -1,4 +1,4 @@
-export default interface RetryOptionsInterface {
+export default interface IRetryOptions {
   retries: number;
   minTimeout: number;
   factor?: number | undefined;

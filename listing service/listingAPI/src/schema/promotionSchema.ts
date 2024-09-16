@@ -1,19 +1,11 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
-import Listing from "../model/listingModel";
-import ListingInterface from "../interface/listingInterface";
-import Offering from "../model/offeringModel";
-import OfferingInterface from "../interface/offeringInterface";
 import IPromotion from "../interface/IPromotion";
-import PromotionInterfaceType from "../type/promotioninterfaceType";
-import PromotionInterface from "../interface/promotionInterface";
+import Listing from "../model/listingModel";
+import Offering from "../model/offeringModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/promotions`;
 
-const PromotionSchema: Schema<
-  IPromotion,
-  PromotionInterfaceType,
-  PromotionInterface
-> = new Schema(
+const PromotionSchema: Schema<IPromotion> = new Schema(
   {
     title: {
       type: String,
@@ -41,37 +33,29 @@ const PromotionSchema: Schema<
       required: true,
     },
     media: {
-      images: [
-        {
-          type: String,
-          get: (values: string[]) =>
-            values.map((value) => `${baseStoragePath}${value}`),
-          default: undefined,
-        },
-      ],
-      videos: [
-        {
-          type: String,
-          get: (values: string[]) =>
-            values.map((value) => `${baseStoragePath}${value}`),
-          default: undefined,
-        },
-      ],
+      images: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        default: undefined,
+      },
+      videos: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        default: undefined,
+      },
     },
-    listings: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Listing",
-        default: undefined,
-      },
-    ],
-    offerings: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Offering",
-        default: undefined,
-      },
-    ],
+    listings: {
+      type: [Schema.Types.ObjectId],
+      ref: "Listing",
+      default: undefined,
+    },
+    offerings: {
+      type: [Schema.Types.ObjectId],
+      ref: "Offering",
+      default: undefined,
+    },
   },
   { timestamps: true }
 );
@@ -84,142 +68,47 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
   try {
     const promotion = (await this.model.findOne(
       this.getFilter()
-    )) as PromotionInterface;
+    )) as IPromotion;
 
     if (!promotion) next();
 
     const session = await mongoose.startSession();
 
     session.withTransaction(async () => {
-      const offering = (await Offering?.findOne({
+      // Unlink all offerings referenced to promotion
+      const offerings = await Offering.find({
         promotion: promotion._id,
-      }).session(session)) as OfferingInterface;
+      }).session(session);
 
-      if (!offering) next();
+      if (offerings.length !== 0) {
+        offerings.forEach(async (offering) => {
+          if (promotion.offerings.includes(offering._id as ObjectId)) {
+            offering.$set("promotion", undefined);
 
-      const listing = (await Listing?.findOne({
+            await offering.save({ session });
+          }
+        });
+      }
+      // Unlink all listings referenced to promotion
+      const listings = await Listing.find({
         promotion: promotion._id,
-      }).session(session)) as ListingInterface;
+      }).session(session);
 
-      if (!listing) next();
+      if (listings.length !== 0) {
+        listings.forEach(async (listing) => {
+          if (promotion.listings.includes(listing._id as ObjectId)) {
+            listing.$set("promotion", undefined);
 
-      offering?.$set("promotion", undefined);
+            await listing.save({ session });
+          }
+        });
+      }
 
-      listing?.$set("promotion", undefined);
-
-      await offering?.save({ session });
-
-      await listing?.save({ session });
+      next();
     });
   } catch (err: any) {
     next(err);
   }
-
-  next();
 });
-
-// Promotion Schema Instance Methods
-PromotionSchema.method("fetchListings", async function (): Promise<any> {
-  await this.populate("listings");
-
-  return this.listings;
-});
-
-PromotionSchema.method(
-  "addListing",
-  async function (listingId: ObjectId): Promise<void> {
-    // if (!this.listings.includes(listingId)) {
-    //   this.offerings.push(listingId);
-
-    //   await this.save();
-    // }
-
-    if (
-      !this.listings.some(
-        (id: ObjectId) => id.toString() === listingId.toString()
-      )
-    ) {
-      this.listings.push(listingId);
-
-      await this.save();
-    }
-  }
-);
-
-PromotionSchema.method(
-  "removeListing",
-  async function (listingId: ObjectId): Promise<void> {
-    const listingIndex = this.listings.indexOf(listingId);
-
-    if (listingIndex > -1) {
-      this.offerings.splice(listingIndex, 1);
-
-      await this.save();
-    }
-  }
-);
-
-PromotionSchema.method("fetchOfferings", async function (): Promise<any> {
-  await this.populate("offerings");
-
-  return this.offerings;
-});
-
-PromotionSchema.method(
-  "addOffering",
-  async function (offeringId: ObjectId): Promise<void> {
-    // if (!this.offerings.includes(offeringId)) {
-    //   this.offerings.push(offeringId);
-
-    //   await this.save();
-    // }
-    if (
-      !this.offerings.some(
-        (id: ObjectId) => id.toString() === offeringId.toString()
-      )
-    ) {
-      this.offerings.push(offeringId);
-
-      await this.save();
-    }
-  }
-);
-
-PromotionSchema.method(
-  "removeOffering",
-  async function (offeringId: ObjectId): Promise<void> {
-    const offeringIndex = this.offerings.indexOf(offeringId);
-
-    if (offeringIndex > -1) {
-      this.offerings.splice(offeringIndex, 1);
-
-      await this.save();
-    }
-  }
-);
-
-PromotionSchema.method(
-  "checkPromotionValidity",
-  function checkPromotionValidity(date: Date = new Date()): boolean {
-    return this.startDate <= date && this.endDate >= date;
-  }
-);
-
-PromotionSchema.method(
-  "reactivatePromotion",
-  async function reactivatePromotion(
-    startDate: Date,
-    endDate: Date
-  ): Promise<void> {
-    this.startDate = this.startDate <= startDate ? startDate : this.startDate;
-
-    this.endDate = this.endDate <= endDate ? endDate : this.endDate;
-
-    if (this.startDate === startDate && this.endDate === endDate)
-      await this.save();
-
-    throw new Error("Invalid Arguments Exception");
-  }
-);
 
 export default PromotionSchema;

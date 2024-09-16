@@ -170,7 +170,7 @@ const OfferingSchema = z.object({
       invalid_type_error: "features must be a string array",
     })
   ),
-  status: z.enum(["open", "closed"]),
+  status: z.enum(["open", "closed"]).optional(),
 });
 
 const PromotionSchema = z.object({

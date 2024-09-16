@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 import https from "node:https";
 import FailureRetry from "./failureRetry";
 import HttpCode from "../enum/httpCode";
-import HttpRequestOptionsInterface from "../interface/httprequestoptionsInterface";
-import HttpResponseInterface from "../interface/httpresponseInterface";
+import IHttpRequestOptions from "../interface/IHttprequestoptions";
+import IHttpResponse from "../interface/IHttpresponse";
 
 /**
  * Http Client
@@ -14,7 +14,7 @@ import HttpResponseInterface from "../interface/httpresponseInterface";
  * @method Delete
  */
 class HttpClient {
-  private httpOptions: HttpRequestOptionsInterface;
+  private httpOptions: IHttpRequestOptions;
 
   private httpHeaders: Record<string, string>;
 
@@ -43,12 +43,12 @@ class HttpClient {
    * @private
    * @param options
    * @param payload
-   * @returns Promise<HttpResponseInterface>
+   * @returns Promise<IHttpResponse>
    */
   private async call(
-    options: HttpRequestOptionsInterface,
+    options: IHttpRequestOptions,
     payload?: any
-  ): Promise<HttpResponseInterface> {
+  ): Promise<IHttpResponse> {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
         let data = "";
@@ -95,12 +95,9 @@ class HttpClient {
    * @private
    * @param method
    * @param payload
-   * @returns Promise<HttpResponseInterface>
+   * @returns Promise<IHttpResponse>
    */
-  private async request(
-    method: string,
-    payload?: any
-  ): Promise<HttpResponseInterface> {
+  private async request(method: string, payload?: any): Promise<IHttpResponse> {
     const headers = { ...this.httpHeaders };
 
     if (
@@ -121,44 +118,44 @@ class HttpClient {
 
   /**
    * Carries out a get request
-   * @returns Promise<HttpResponseInterface>
+   * @returns Promise<IHttpResponse>
    */
-  public Get(): Promise<HttpResponseInterface> {
+  public Get(): Promise<IHttpResponse> {
     return this.request("GET");
   }
 
   /**
    * Carries out a post request
    * @param payload
-   * @returns Promise<HttpResponseInterface>
+   * @returns Promise<IHttpResponse>
    */
-  public Post(payload: any): Promise<HttpResponseInterface> {
+  public Post(payload: any): Promise<IHttpResponse> {
     return this.request("POST", payload);
   }
 
   /**
    * Carries out a put request
    * @param payload
-   * @returns Promise<HttpResponseInterface>
+   * @returns Promise<IHttpResponse>
    */
-  public Put(payload: any): Promise<HttpResponseInterface> {
+  public Put(payload: any): Promise<IHttpResponse> {
     return this.request("PUT", payload);
   }
 
   /**
    * Carries out a patch request
    * @param payload
-   * @returns Promise<HttpResponseInterface>
+   * @returns Promise<IHttpResponse>
    */
-  public Patch(payload: any): Promise<HttpResponseInterface> {
+  public Patch(payload: any): Promise<IHttpResponse> {
     return this.request("PATCH", payload);
   }
 
   /**
    * Carries out a delete request
-   * @returns Promise<HttpResponseInterface>
+   * @returns Promise<IHttpResponse>
    */
-  public Delete(): Promise<HttpResponseInterface> {
+  public Delete(): Promise<IHttpResponse> {
     return this.request("DELETE");
   }
 

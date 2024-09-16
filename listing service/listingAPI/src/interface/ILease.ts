@@ -1,6 +1,6 @@
-import ListingInterface from "./listingInterface";
+import IListing from "./IListing";
 
-export default interface LeaseInterface extends ListingInterface {
+export default interface ILease extends IListing {
   isNegotiable: boolean;
   rental: {
     plan: "monthly" | "quarterly" | "annually" | "mixed";

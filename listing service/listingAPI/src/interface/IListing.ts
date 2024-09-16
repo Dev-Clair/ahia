@@ -1,6 +1,6 @@
-import { Schema } from "mongoose";
+import { Document, Schema } from "mongoose";
 
-export default interface IListing {
+export default interface IListing extends Document {
   name: string;
   description: string;
   slug?: string;
