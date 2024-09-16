@@ -1,6 +1,6 @@
 import ListingController from "../controller/listingController";
 import { NextFunction, Request, Response } from "express";
-import ListingInterface from "../interface/listingInterface";
+import IListing from "../interface/IListing";
 import ListingService from "../service/listingService";
 
 /**
@@ -19,9 +19,9 @@ const DocumentMiddleware = (paramName: string, serviceName: string) => {
         serviceName
       );
 
-      (req as any).listing = document.listing as ListingInterface;
+      (req as Request).listing = document.listing as IListing;
 
-      (req as any).service = document.service as ListingService;
+      (req as Request).service = document.service as ListingService;
 
       next();
     } catch (err: any) {
