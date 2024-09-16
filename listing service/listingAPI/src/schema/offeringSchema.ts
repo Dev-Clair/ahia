@@ -18,8 +18,8 @@ const OfferingSchema: Schema<IOffering> = new Schema({
     // unique: true,
     required: false,
   },
-  offeringType: {
-    type: String,
+  unitsAvailable: {
+    type: Number,
     required: true,
   },
   area: {
@@ -81,7 +81,6 @@ const OfferingSchema: Schema<IOffering> = new Schema({
 // Offering Schema Search Query Index
 OfferingSchema.index({
   name: "text",
-  offeringType: "text",
   "area.size": 1,
   "price.amount": 1,
   status: "text",

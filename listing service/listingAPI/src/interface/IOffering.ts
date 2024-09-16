@@ -3,7 +3,7 @@ import { Document, Schema } from "mongoose";
 export default interface IOffering extends Document {
   name: string;
   slug?: string;
-  offeringType: string;
+  unitsAvailable: number;
   area: {
     size: number;
     unit: "sqm" | "sqft";

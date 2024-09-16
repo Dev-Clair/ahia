@@ -42,7 +42,7 @@ const ListingSchema: Schema<IListing> = new Schema(
     offerings: {
       type: [Schema.Types.ObjectId],
       ref: "Offering",
-      default: undefined,
+      default: [],
     },
     address: {
       type: String,

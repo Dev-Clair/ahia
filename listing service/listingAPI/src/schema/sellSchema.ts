@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import SellInterface from "../interface/sellInterface";
+import ISell from "../interface/ISell";
 
-const SellSchema: Schema<SellInterface> = new Schema({
+const SellSchema: Schema<ISell> = new Schema({
   isNegotiable: {
     type: Boolean,
     required: true,
