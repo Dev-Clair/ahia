@@ -147,7 +147,7 @@ export default abstract class ListingService {
   public async createOffering(
     key: string,
     data: Partial<IOffering>,
-    listingId: Partial<IListing>
+    listingId: Partial<IListing> | any
   ): Promise<void> {
     const session = await mongoose.startSession();
 
@@ -156,10 +156,15 @@ export default abstract class ListingService {
 
       await IdempotencyManager.Create(key, session);
 
-      await Listing.updateOne(
+      const listing = await Listing.findOneAndUpdate(
         { _id: listingId },
-        { $addToSet: { offerings: (offering as any)._id as ObjectId } }
-      ).session(session);
+        { $push: { offerings: (offering as any)._id as ObjectId } },
+        { new: true, session }
+      );
+
+      console.log("logging offering\n", offering);
+
+      console.log("logging listing\n", listing);
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -235,7 +240,7 @@ export default abstract class ListingService {
    */
   public async deleteOffering(
     id: string,
-    listingId: Partial<IListing>
+    listingId: Partial<IListing> | any
   ): Promise<void> {
     const session = await mongoose.startSession();
 
