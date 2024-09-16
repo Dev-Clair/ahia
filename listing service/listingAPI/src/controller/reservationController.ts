@@ -382,7 +382,7 @@ const createOffering = async (
 
     const reservationService = req.service as ReservationService;
 
-    await reservationService.createOffering(key, data, listing);
+    await reservationService.createOffering(key, data, listing._id);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -478,7 +478,7 @@ const deleteOffering = async (
 
     const reservationService = req.service as ReservationService;
 
-    await reservationService.deleteOffering(offeringId, listing);
+    await reservationService.deleteOffering(offeringId, listing._id);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {

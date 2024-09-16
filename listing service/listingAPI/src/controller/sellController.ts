@@ -382,7 +382,7 @@ const createOffering = async (
 
     const sellService = req.service as SellService;
 
-    await sellService.createOffering(key, data, listing);
+    await sellService.createOffering(key, data, listing._id);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -478,7 +478,7 @@ const deleteOffering = async (
 
     const sellService = req.service as SellService;
 
-    await sellService.deleteOffering(offeringId, listing);
+    await sellService.deleteOffering(offeringId, listing._id);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {

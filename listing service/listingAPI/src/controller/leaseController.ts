@@ -5,6 +5,7 @@ import LeaseService from "../service/leaseService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
+import { ObjectId } from "mongoose";
 
 /**
  * Creates a new lease listing in collection
@@ -382,7 +383,7 @@ const createOffering = async (
 
     const leaseService = req.service as LeaseService;
 
-    await leaseService.createOffering(key, data, listing);
+    await leaseService.createOffering(key, data, listing._id);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -478,7 +479,7 @@ const deleteOffering = async (
 
     const leaseService = req.service as LeaseService;
 
-    await leaseService.deleteOffering(offeringId, listing);
+    await leaseService.deleteOffering(offeringId, listing._id);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
