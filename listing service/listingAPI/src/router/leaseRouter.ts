@@ -9,7 +9,7 @@ const LeaseRouter = Router();
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
-const SlugParamRegex = "a-zA-Z0-9";
+const SlugParamRegex = "[a-zA-Z0-9]";
 
 /********************************** Collection Operations ********************************************* */
 LeaseRouter.route("/")
@@ -23,6 +23,7 @@ LeaseRouter.route("/")
   );
 
 LeaseRouter.route("/search").get(LeaseController.Listing.retrieveSearch);
+
 LeaseRouter.route("/near-me").get(LeaseController.Listing.retrieveNearme);
 
 LeaseRouter.route(`/provider/:id(${IdParamRegex})`).get(
@@ -31,9 +32,11 @@ LeaseRouter.route(`/provider/:id(${IdParamRegex})`).get(
 );
 
 LeaseRouter.route("/type/:type").get(LeaseController.Listing.retrieveByType);
+
 LeaseRouter.route("/category/:category").get(
   LeaseController.Listing.retrieveByCategory
 );
+
 LeaseRouter.route("/offerings").get(
   LeaseController.Listing.retrieveByOfferings
 );

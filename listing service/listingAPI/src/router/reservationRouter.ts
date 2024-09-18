@@ -9,7 +9,7 @@ const ReservationRouter = Router();
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
-const SlugParamRegex = "a-zA-Z0-9";
+const SlugParamRegex = "[a-zA-Z0-9]";
 
 /********************************** Collection Operations ********************************************* */
 ReservationRouter.route("/")
@@ -25,6 +25,7 @@ ReservationRouter.route("/")
 ReservationRouter.route("/search").get(
   ReservationController.Listing.retrieveSearch
 );
+
 ReservationRouter.route("/near-me").get(
   ReservationController.Listing.retrieveNearme
 );
@@ -37,9 +38,11 @@ ReservationRouter.route(`/provider/:id(${IdParamRegex})`).get(
 ReservationRouter.route("/type/:type").get(
   ReservationController.Listing.retrieveByType
 );
+
 ReservationRouter.route("/category/:category").get(
   ReservationController.Listing.retrieveByCategory
 );
+
 ReservationRouter.route("/offerings").get(
   ReservationController.Listing.retrieveByOfferings
 );
@@ -90,6 +93,12 @@ ReservationRouter.route(`/:id(${IdParamRegex})/offerings`)
     ReservationController.Offering.createOffering
   );
 
+ReservationRouter.route(`/:id(${IdParamRegex})/bookings`).get(
+  ValidationMiddleware.validateID,
+  DocumentMiddleware("id", "reservation")
+  // ReservationController.Listing.redirectToBookings
+);
+
 ReservationRouter.route(`/:id(${IdParamRegex})/category`).patch(
   AuthMiddleware.IsGranted(["Admin"]),
   ListingMiddleware.isContentType(["application/json"]),
@@ -102,12 +111,6 @@ ReservationRouter.route(`/:id(${IdParamRegex})/status`).patch(
   ListingMiddleware.isContentType(["application/json"]),
   ValidationMiddleware.validateID,
   ReservationController.Listing.changeStatus
-);
-
-ReservationRouter.route(`/:id(${IdParamRegex})/bookings`).get(
-  ValidationMiddleware.validateID,
-  DocumentMiddleware("id", "reservation")
-  // ReservationController.Listing.redirectToBookings
 );
 
 ReservationRouter.route(`/:id(${IdParamRegex})/type`).patch(

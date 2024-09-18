@@ -9,7 +9,7 @@ const SellRouter = Router();
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
-const SlugParamRegex = "a-zA-Z0-9";
+const SlugParamRegex = "[a-zA-Z0-9]";
 
 /********************************** Collection Operations ********************************************* */
 SellRouter.route("/")
@@ -23,6 +23,7 @@ SellRouter.route("/")
   );
 
 SellRouter.route("/search").get(SellController.Listing.retrieveSearch);
+
 SellRouter.route("/near-me").get(SellController.Listing.retrieveNearme);
 
 SellRouter.route(`/provider/:id(${IdParamRegex})`).get(
@@ -31,9 +32,11 @@ SellRouter.route(`/provider/:id(${IdParamRegex})`).get(
 );
 
 SellRouter.route("/type/:type").get(SellController.Listing.retrieveByType);
+
 SellRouter.route("/category/:category").get(
   SellController.Listing.retrieveByCategory
 );
+
 SellRouter.route("/offerings").get(SellController.Listing.retrieveByOfferings);
 
 /********************************** Item Operations ********************************************* */
@@ -87,17 +90,17 @@ SellRouter.route(`/:id(${IdParamRegex})/category`).patch(
   SellController.Listing.updateListing
 );
 
+SellRouter.route(`/:id(${IdParamRegex})/inquiries`).get(
+  ValidationMiddleware.validateID,
+  DocumentMiddleware("id", "sell")
+  // SellController.Listing.redirectToInquiries
+);
+
 SellRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),
   ListingMiddleware.isContentType(["application/json"]),
   ValidationMiddleware.validateID,
   SellController.Listing.changeStatus
-);
-
-SellRouter.route(`/:id(${IdParamRegex})/inquiries`).get(
-  ValidationMiddleware.validateID,
-  DocumentMiddleware("id", "sell")
-  // SellController.Listing.redirectToInquiries
 );
 
 SellRouter.route(`/:id(${IdParamRegex})/type`).patch(
