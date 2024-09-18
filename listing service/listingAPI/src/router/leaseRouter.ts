@@ -118,7 +118,6 @@ LeaseRouter.route(`/:id(${IdParamRegex})/verify`).get(
   LeaseController.Listing.verifyStatus
 );
 
-// General item operations - These should come last among the item-specific routes
 LeaseRouter.route(`/:id(${IdParamRegex})`)
   .get(
     ValidationMiddleware.validateID,
