@@ -9,7 +9,7 @@ import Promotion from "../model/promotionModel";
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
 const OfferingSchema: Schema<IOffering> = new Schema({
-  name: {
+  offeringType: {
     type: String,
     required: true,
   },
@@ -80,7 +80,7 @@ const OfferingSchema: Schema<IOffering> = new Schema({
 
 // Offering Schema Search Query Index
 OfferingSchema.index({
-  name: "text",
+  offeringType: "text",
   "area.size": 1,
   "price.amount": 1,
   status: "text",
@@ -88,8 +88,8 @@ OfferingSchema.index({
 
 // Offering Schema Middleware
 OfferingSchema.pre("save", function (next) {
-  if (this.isModified("name")) {
-    this.slug = slugify(this.name, {
+  if (this.isModified("offeringType")) {
+    this.slug = slugify(this.offeringType, {
       replacement: "-",
       lower: true,
       strict: true,

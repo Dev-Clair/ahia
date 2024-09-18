@@ -156,15 +156,11 @@ export default abstract class ListingService {
 
       await IdempotencyManager.Create(key, session);
 
-      const listing = await Listing.findOneAndUpdate(
+      await Listing.findOneAndUpdate(
         { _id: listingId },
-        { $push: { offerings: (offering as any)._id as ObjectId } },
+        { $addToSet: { offerings: (offering as any)._id as ObjectId } },
         { new: true, session }
       );
-
-      console.log("logging offering\n", offering);
-
-      console.log("logging listing\n", listing);
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -234,23 +230,27 @@ export default abstract class ListingService {
   /**
    * Deletes a listing offering
    * @public
-   * @param id
+   * @param offeringId
    * @param listingId
    * @returns Promise<void>
    */
   public async deleteOffering(
-    id: string,
-    listingId: Partial<IListing> | any
+    offeringId: ObjectId,
+    listingId: ObjectId
   ): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const offering = await Offering.findByIdAndDelete({ _id: id }, session);
+      const offering = (await Offering.findByIdAndDelete(
+        { _id: offeringId },
+        session
+      )) as IOffering;
 
-      await Listing.updateOne(
+      await Listing.findOneAndUpdate(
         { _id: listingId },
-        { $pull: { offerings: (offering as any)._id as ObjectId } }
-      ).session(session);
+        { $pull: { offerings: offering._id } },
+        { new: true, session }
+      );
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);

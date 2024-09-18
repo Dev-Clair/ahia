@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import IdempotencyInterface from "../interface/IIdempotency";
+import IIdempotency from "../interface/IIdempotency";
 
-const IdempotencySchema: Schema<IdempotencyInterface> = new Schema({
+const IdempotencySchema: Schema<IIdempotency> = new Schema({
   key: {
     type: String,
     required: true,
