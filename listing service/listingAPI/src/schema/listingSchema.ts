@@ -1,7 +1,6 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
-import IPromotion from "../interface/IPromotion";
 import Offering from "../model/offeringModel";
 import Promotion from "../model/promotionModel";
 
@@ -150,21 +149,11 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
       await Offering.deleteMany({ listing: listing._id }).session(session);
 
       // Drop all promotion references to listing
-      const promotion = (await Promotion.findOne({
-        id: listing.promotion,
-      }).session(session)) as IPromotion;
-
-      if (promotion) {
-        const listingIndex = promotion?.listings.indexOf(
-          listing._id as ObjectId
-        ) as number;
-
-        if (listingIndex > -1) {
-          promotion.listings.splice(listingIndex, 1);
-
-          await promotion.save({ session });
-        }
-      }
+      await Promotion.findOneAndUpdate(
+        { id: listing.promotion },
+        { $pull: { listings: listing._id } },
+        { new: false, session }
+      );
     });
 
     next();

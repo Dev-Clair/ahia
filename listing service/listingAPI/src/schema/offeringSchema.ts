@@ -1,8 +1,6 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
-import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
-import IPromotion from "../interface/IPromotion";
 import Listing from "../model/listingModel";
 import Promotion from "../model/promotionModel";
 
@@ -110,38 +108,18 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Unlink listing reference to offering
-      const listing = (await Listing.findOne({ _id: offering.listing }).session(
-        session
-      )) as IListing;
-
-      if (listing) {
-        const listingOfferingIndex = listing.offerings.indexOf(
-          offering._id as ObjectId
-        ) as number;
-
-        if (listingOfferingIndex > -1) {
-          listing.offerings.splice(listingOfferingIndex, 1);
-
-          await listing.save({ session });
-        }
-      }
+      await Listing.findOneAndUpdate(
+        { id: offering.listing },
+        { $pull: { offerings: offering._id } },
+        { new: false, session }
+      );
 
       // Unlink promotion reference to offering
-      const promotion = (await Promotion.findOne({
-        id: offering.promotion,
-      }).session(session)) as IPromotion;
-
-      if (promotion) {
-        const promotionOfferingIndex = promotion.offerings.indexOf(
-          offering._id as ObjectId
-        ) as number;
-
-        if (promotionOfferingIndex > -1) {
-          promotion.offerings.splice(promotionOfferingIndex, 1);
-
-          await promotion.save({ session });
-        }
-      }
+      await Promotion.findOneAndUpdate(
+        { id: offering.promotion },
+        { $pull: { offerings: offering._id } },
+        { new: false, session }
+      );
     });
 
     next();
