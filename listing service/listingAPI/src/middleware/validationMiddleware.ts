@@ -136,9 +136,9 @@ const SellSchema = z.object({
 });
 
 const OfferingSchema = z.object({
-  name: z.string({
-    required_error: "name is required",
-    invalid_type_error: "name must be a string",
+  offeringType: z.string({
+    required_error: "offeringType is required",
+    invalid_type_error: "offeringType must be a string",
   }),
   unitsAvailable: z.number({
     required_error: "unitsAvailable is required",

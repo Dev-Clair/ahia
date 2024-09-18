@@ -5,6 +5,9 @@ import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
 import SellService from "../service/sellService";
+import IOffering from "../interface/IOffering";
+import { ObjectId } from "mongoose";
+import ISell from "../interface/ISell";
 
 /**
  * Creates a new sell listing in collection
@@ -374,15 +377,17 @@ const createOffering = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const data = req.body as object;
+    const payload = req.body as Partial<IOffering>;
 
     const listing = req.listing as IListing;
 
-    Object.assign(data, { listing: listing._id });
+    const listingId = listing._id as ObjectId;
+
+    payload.listing = listingId;
 
     const sellService = req.service as SellService;
 
-    await sellService.createOffering(key, data, listing._id);
+    await sellService.createOffering(key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -398,7 +403,7 @@ const retrieveOfferings = async (
   try {
     const listing = req.listing as IListing;
 
-    const offerings = await listing.populate({ path: "offerings" });
+    const offerings = listing.offerings;
 
     return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
@@ -452,13 +457,11 @@ const updateOffering = async (
 
     const key = req.headers["idempotency-key"] as string;
 
-    const data = req.body as object;
-
-    const listing = req.listing as IListing;
+    const payload = req.body as Partial<IOffering>;
 
     const sellService = req.service as SellService;
 
-    if (listing) await sellService.updateOffering(offeringId, key, data);
+    await sellService.updateOffering(offeringId, key, payload);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -476,9 +479,11 @@ const deleteOffering = async (
 
     const listing = req.listing as IListing;
 
+    const listingId = listing._id as string;
+
     const sellService = req.service as SellService;
 
-    await sellService.deleteOffering(offeringId, listing._id);
+    await sellService.deleteOffering(offeringId, listingId);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {

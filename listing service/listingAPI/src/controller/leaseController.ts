@@ -1,11 +1,13 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
+import ILease from "../interface/ILease";
 import IListing from "../interface/IListing";
+import IOffering from "../interface/IOffering";
 import LeaseService from "../service/leaseService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
-import { ObjectId } from "mongoose";
 
 /**
  * Creates a new lease listing in collection
@@ -22,14 +24,12 @@ const createListing = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const payload = req.body as object;
+    const payload = req.body as Partial<ILease>;
 
-    const provider = {
+    payload.provider = {
       id: req.headers["provider-id"] as string,
       email: req.headers["provider-email"] as string,
     };
-
-    Object.assign(payload, { provider: provider });
 
     await LeaseService.Create().save(key, payload);
 
@@ -271,9 +271,9 @@ const updateListing = async (
 
     const key = req.headers["idempotency-key"] as string;
 
-    const body = req.body as object;
+    const payload = req.body as Partial<ILease>;
 
-    const listing = await LeaseService.Create().update(id, key, body);
+    const listing = await LeaseService.Create().update(id, key, payload);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -327,9 +327,9 @@ const changeStatus = async (
 
     const status = req.body as boolean;
 
-    const data = { verification: { status: status } };
+    const payload = { $set: { verification: { status: status } } };
 
-    const listing = await LeaseService.Create().update(id, key, data);
+    const listing = await LeaseService.Create().update(id, key, payload);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -375,15 +375,15 @@ const createOffering = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const data = req.body as object;
+    const payload = req.body as Partial<IOffering>;
 
     const listing = req.listing as IListing;
 
-    Object.assign(data, { listing: listing._id });
+    payload.listing = listing._id as ObjectId;
 
     const leaseService = req.service as LeaseService;
 
-    await leaseService.createOffering(key, data, listing._id);
+    await leaseService.createOffering(key, payload, listing._id);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -399,7 +399,7 @@ const retrieveOfferings = async (
   try {
     const listing = req.listing as IListing;
 
-    const offerings = await listing.populate({ path: "offerings" });
+    const offerings = listing.offerings;
 
     return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
@@ -453,13 +453,11 @@ const updateOffering = async (
 
     const key = req.headers["idempotency-key"] as string;
 
-    const data = req.body as object;
-
-    const listing = req.listing as IListing;
+    const payload = req.body as Partial<IOffering>;
 
     const leaseService = req.service as LeaseService;
 
-    if (listing) await leaseService.updateOffering(offeringId, key, data);
+    await leaseService.updateOffering(offeringId, key, payload);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -477,9 +475,11 @@ const deleteOffering = async (
 
     const listing = req.listing as IListing;
 
+    const listingId = listing._id as string;
+
     const leaseService = req.service as LeaseService;
 
-    await leaseService.deleteOffering(offeringId, listing._id);
+    await leaseService.deleteOffering(offeringId, listingId);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {

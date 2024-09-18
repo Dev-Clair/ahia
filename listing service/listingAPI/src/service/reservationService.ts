@@ -63,7 +63,7 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      );
+      ).populate({ path: "offerings" });
 
       return listing;
     };
@@ -93,7 +93,7 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      );
+      ).populate({ path: "offerings" });
 
       return listing;
     };
@@ -131,7 +131,7 @@ export default class ReservationService extends ListingService {
   async update(
     id: string,
     key: string,
-    data?: Partial<IReservation>
+    data?: Partial<IReservation | any>
   ): Promise<any> {
     const session = await mongoose.startSession();
 

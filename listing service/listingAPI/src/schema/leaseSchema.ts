@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import LeaseInterface from "../interface/ILease";
+import ILease from "../interface/ILease";
 
-const LeaseSchema: Schema<LeaseInterface> = new Schema({
+const LeaseSchema: Schema<ILease> = new Schema({
   isNegotiable: {
     type: Boolean,
     required: true,

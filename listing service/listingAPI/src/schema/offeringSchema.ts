@@ -1,15 +1,13 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
 import slugify from "slugify";
-import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
-import IPromotion from "../interface/IPromotion";
 import Listing from "../model/listingModel";
 import Promotion from "../model/promotionModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
 const OfferingSchema: Schema<IOffering> = new Schema({
-  name: {
+  offeringType: {
     type: String,
     required: true,
   },
@@ -80,7 +78,7 @@ const OfferingSchema: Schema<IOffering> = new Schema({
 
 // Offering Schema Search Query Index
 OfferingSchema.index({
-  name: "text",
+  offeringType: "text",
   "area.size": 1,
   "price.amount": 1,
   status: "text",
@@ -88,8 +86,8 @@ OfferingSchema.index({
 
 // Offering Schema Middleware
 OfferingSchema.pre("save", function (next) {
-  if (this.isModified("name")) {
-    this.slug = slugify(this.name, {
+  if (this.isModified("offeringType")) {
+    this.slug = slugify(this.offeringType, {
       replacement: "-",
       lower: true,
       strict: true,
@@ -110,38 +108,18 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Unlink listing reference to offering
-      const listing = (await Listing.findOne({ _id: offering.listing }).session(
-        session
-      )) as IListing;
-
-      if (listing) {
-        const listingOfferingIndex = listing.offerings.indexOf(
-          offering._id as ObjectId
-        ) as number;
-
-        if (listingOfferingIndex > -1) {
-          listing.offerings.splice(listingOfferingIndex, 1);
-
-          await listing.save({ session });
-        }
-      }
+      await Listing.findOneAndUpdate(
+        { id: offering.listing },
+        { $pull: { offerings: offering._id } },
+        { new: false, session }
+      );
 
       // Unlink promotion reference to offering
-      const promotion = (await Promotion.findOne({
-        id: offering.promotion,
-      }).session(session)) as IPromotion;
-
-      if (promotion) {
-        const promotionOfferingIndex = promotion.offerings.indexOf(
-          offering._id as ObjectId
-        ) as number;
-
-        if (promotionOfferingIndex > -1) {
-          promotion.offerings.splice(promotionOfferingIndex, 1);
-
-          await promotion.save({ session });
-        }
-      }
+      await Promotion.findOneAndUpdate(
+        { id: offering.promotion },
+        { $pull: { offerings: offering._id } },
+        { new: false, session }
+      );
     });
 
     next();

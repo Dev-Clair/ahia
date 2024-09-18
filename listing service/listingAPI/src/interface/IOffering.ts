@@ -1,7 +1,7 @@
 import { Document, Schema } from "mongoose";
 
 export default interface IOffering extends Document {
-  name: string;
+  offeringType: string;
   slug?: string;
   unitsAvailable: number;
   area: {

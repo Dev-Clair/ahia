@@ -1,10 +1,12 @@
 import { Request } from "express";
-import ListingInterface from "../interface/listingInterface";
+import IListing from "../interface/IListing";
 import ListingService from "../service/listingService";
+
+export {};
 
 declare global {
   namespace Express {
-    interface Request {
+    export interface Request {
       listing?: ListingInterface;
       service?: ListingService;
     }
