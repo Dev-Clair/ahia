@@ -131,7 +131,7 @@ export default class ReservationService extends ListingService {
   async update(
     id: string,
     key: string,
-    data?: Partial<IReservation>
+    data?: Partial<IReservation | any>
   ): Promise<any> {
     const session = await mongoose.startSession();
 

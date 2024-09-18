@@ -128,7 +128,11 @@ export default class SellService extends ListingService {
    * @param data
    * @returns Promise<any>
    */
-  async update(id: string, key: string, data?: Partial<ISell>): Promise<any> {
+  async update(
+    id: string,
+    key: string,
+    data?: Partial<ISell | any>
+  ): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {

@@ -63,7 +63,7 @@ export default abstract class ListingService {
   abstract update(
     id: string,
     key: string,
-    data?: Partial<IListing>
+    data?: Partial<IListing | any>
   ): Promise<any>;
 
   /**
@@ -235,8 +235,8 @@ export default abstract class ListingService {
    * @returns Promise<void>
    */
   public async deleteOffering(
-    offeringId: ObjectId,
-    listingId: ObjectId
+    offeringId: string,
+    listingId: string
   ): Promise<void> {
     const session = await mongoose.startSession();
 

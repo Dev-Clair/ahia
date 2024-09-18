@@ -1,6 +1,9 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
+import IOffering from "../interface/IOffering";
+import IReservation from "../interface/IReservation";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
@@ -21,14 +24,12 @@ const createListing = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const payload = req.body as object;
+    const payload = req.body as Partial<IReservation>;
 
-    const provider = {
+    payload.provider = {
       id: req.headers["provider-id"] as string,
       email: req.headers["provider-email"] as string,
     };
-
-    Object.assign(payload, { provider: provider });
 
     await ReservationService.Create().save(key, payload);
 
@@ -270,9 +271,9 @@ const updateListing = async (
 
     const id = req.params.id as string;
 
-    const body = req.body as object;
+    const payload = req.body as Partial<IReservation>;
 
-    const listing = await ReservationService.Create().update(id, key, body);
+    const listing = await ReservationService.Create().update(id, key, payload);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -326,9 +327,9 @@ const changeStatus = async (
 
     const status = req.body as boolean;
 
-    const data = { verification: { status: status } };
+    const payload = { $set: { verification: { status: status } } };
 
-    const listing = await ReservationService.Create().update(id, key, data);
+    const listing = await ReservationService.Create().update(id, key, payload);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -374,15 +375,17 @@ const createOffering = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const data = req.body as object;
+    const payload = req.body as Partial<IOffering>;
 
     const listing = req.listing as IListing;
 
-    Object.assign(data, { listing: listing._id });
+    const listingId = listing._id as ObjectId;
+
+    payload.listing = listingId;
 
     const reservationService = req.service as ReservationService;
 
-    await reservationService.createOffering(key, data, listing._id);
+    await reservationService.createOffering(key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -398,7 +401,7 @@ const retrieveOfferings = async (
   try {
     const listing = req.listing as IListing;
 
-    const offerings = await listing.populate({ path: "offerings" });
+    const offerings = listing.offerings;
 
     return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
@@ -452,13 +455,11 @@ const updateOffering = async (
 
     const key = req.headers["idempotency-key"] as string;
 
-    const data = req.body as object;
-
-    const listing = req.listing as IListing;
+    const payload = req.body as Partial<IOffering>;
 
     const reservationService = req.service as ReservationService;
 
-    if (listing) await reservationService.updateOffering(offeringId, key, data);
+    await reservationService.updateOffering(offeringId, key, payload);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
@@ -476,9 +477,11 @@ const deleteOffering = async (
 
     const listing = req.listing as IListing;
 
+    const listingId = listing._id as string;
+
     const reservationService = req.service as ReservationService;
 
-    await reservationService.deleteOffering(offeringId, listing._id);
+    await reservationService.deleteOffering(offeringId, listingId);
 
     return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (err: any) {
