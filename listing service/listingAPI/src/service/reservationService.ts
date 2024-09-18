@@ -63,7 +63,7 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      );
+      ).populate({ path: "offerings" });
 
       return listing;
     };
@@ -93,7 +93,7 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      );
+      ).populate({ path: "offerings" });
 
       return listing;
     };
