@@ -19,9 +19,9 @@ const DocumentMiddleware = (paramName: string, serviceName: string) => {
         serviceName
       );
 
-      (req as Request).listing = document.listing as IListing;
+      req.listing = document.listing as IListing;
 
-      (req as Request).service = document.service as ListingService;
+      req.service = document.service as ListingService;
 
       next();
     } catch (err: any) {
