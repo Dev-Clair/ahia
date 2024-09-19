@@ -44,16 +44,20 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
         default: undefined,
       },
     },
-    listings: {
-      type: [Schema.Types.ObjectId],
-      ref: "Listing",
-      default: undefined,
-    },
-    offerings: {
-      type: [Schema.Types.ObjectId],
-      ref: "Offering",
-      default: undefined,
-    },
+    listings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Listing",
+        required: false,
+      },
+    ],
+    offerings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Offering",
+        required: false,
+      },
+    ],
   },
   { timestamps: true }
 );

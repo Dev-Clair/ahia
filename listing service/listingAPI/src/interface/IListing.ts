@@ -5,8 +5,8 @@ export default interface IListing extends Document {
   description: string;
   slug?: string;
   listingType: "lease" | "sell" | "reservation";
-  propertyType: "economy" | "premium" | "luxury";
   propertyCategory: "residential" | "commercial" | "mixed";
+  propertyType: "economy" | "premium" | "luxury";
   offerings: Schema.Types.ObjectId[];
   address: {
     street: string;

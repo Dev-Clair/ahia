@@ -24,23 +24,25 @@ const ListingSchema: Schema<IListing> = new Schema(
       enum: ["lease", "sell", "reservation"],
       required: true,
     },
-    propertyType: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
     propertyCategory: {
       type: String,
       enum: ["residential", "commercial", "mixed"],
       set: (value: string) => value.toLowerCase(),
       required: true,
     },
-    offerings: {
-      type: [Schema.Types.ObjectId],
-      ref: "Offering",
-      default: [],
+    propertyType: {
+      type: String,
+      enum: ["economy", "premium", "luxury"],
+      set: (value: string) => value.toLowerCase(),
+      required: true,
     },
+    offerings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Offering",
+        required: false,
+      },
+    ],
     address: {
       street: {
         type: String,
