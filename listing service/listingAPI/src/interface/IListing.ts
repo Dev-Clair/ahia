@@ -8,7 +8,12 @@ export default interface IListing extends Document {
   propertyType: "economy" | "premium" | "luxury";
   propertyCategory: "residential" | "commercial" | "mixed";
   offerings: Schema.Types.ObjectId[];
-  address: string;
+  address: {
+    street: string;
+    countyLGA: string;
+    city: string;
+    state: string;
+  };
   location: {
     type?: string;
     coordinates?: number[];

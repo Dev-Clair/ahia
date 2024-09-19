@@ -21,9 +21,23 @@ const LeaseSchema = z.object({
   }),
   propertyType: z.enum(["economy", "premium", "luxury"]),
   propertyCategory: z.enum(["residential", "commercial", "mixed"]),
-  address: z.string({
-    required_error: "address is required",
-    invalid_type_error: "address must be a string",
+  address: z.object({
+    street: z.string({
+      required_error: "street is required",
+      invalid_type_error: "street must be a string",
+    }),
+    countyLGA: z.string({
+      required_error: "countyLGAt is required",
+      invalid_type_error: "countyLGA must be a string",
+    }),
+    city: z.string({
+      required_error: "city is required",
+      invalid_type_error: "city must be a string",
+    }),
+    state: z.string({
+      required_error: "state is required",
+      invalid_type_error: "state must be a string",
+    }),
   }),
   location: z.object({
     coordinates: z.array(

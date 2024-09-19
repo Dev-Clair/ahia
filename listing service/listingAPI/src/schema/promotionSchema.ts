@@ -1,7 +1,5 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import IPromotion from "../interface/IPromotion";
-import Listing from "../model/listingModel";
-import Offering from "../model/offeringModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/promotions`;
 
@@ -76,36 +74,29 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Unlink all offerings referenced to promotion
-      const offerings = await Offering.find({
-        promotion: promotion._id,
-      }).session(session);
+      const offeringUpdates = promotion.offerings.map((offeringId) => ({
+        updateMany: {
+          filter: { _id: offeringId, promotion: promotion._id },
+          update: { $unset: { promotion: undefined } },
+        },
+      }));
 
-      if (offerings.length !== 0) {
-        offerings.forEach(async (offering) => {
-          if (promotion.offerings.includes(offering._id as ObjectId)) {
-            offering.$set("promotion", undefined);
-
-            await offering.save({ session });
-          }
-        });
-      }
       // Unlink all listings referenced to promotion
-      const listings = await Listing.find({
-        promotion: promotion._id,
-      }).session(session);
+      const listingUpdates = promotion.listings.map((listingId) => ({
+        updateMany: {
+          filter: { _id: listingId, promotion: promotion._id },
+          update: { $unset: { promotion: undefined } },
+        },
+      }));
 
-      if (listings.length !== 0) {
-        listings.forEach(async (listing) => {
-          if (promotion.listings.includes(listing._id as ObjectId)) {
-            listing.$set("promotion", undefined);
+      // Update offerings collection
+      await mongoose.model("Offering").bulkWrite(offeringUpdates, { session });
 
-            await listing.save({ session });
-          }
-        });
-      }
-
-      next();
+      // Update listings collection
+      await mongoose.model("Listing").bulkWrite(listingUpdates, { session });
     });
+
+    next();
   } catch (err: any) {
     next(err);
   }
