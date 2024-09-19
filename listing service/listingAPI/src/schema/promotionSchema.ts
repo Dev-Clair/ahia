@@ -79,7 +79,7 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
     session.withTransaction(async () => {
       // Unlink all offerings referenced to promotion
       const offeringUpdates = promotion.offerings.map((offeringId) => ({
-        updateMany: {
+        updateOne: {
           filter: { _id: offeringId, promotion: promotion._id },
           update: { $unset: { promotion: undefined } },
         },
@@ -87,7 +87,7 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
 
       // Unlink all listings referenced to promotion
       const listingUpdates = promotion.listings.map((listingId) => ({
-        updateMany: {
+        updateOne: {
           filter: { _id: listingId, promotion: promotion._id },
           update: { $unset: { promotion: undefined } },
         },
