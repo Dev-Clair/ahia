@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
+import IReservation from "../interface/IReservation";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 import Reservation from "../model/reservationModel";
-import IReservation from "../interface/IReservation";
 
 export default class ReservationService extends ListingService {
   /** Retrieves a collection of listings for reservations
@@ -63,7 +63,9 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -93,7 +95,9 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };

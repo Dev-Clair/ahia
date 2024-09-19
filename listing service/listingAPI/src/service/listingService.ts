@@ -14,8 +14,8 @@ import Offering from "../model/offeringModel";
  * @abstract save
  * @abstract update
  * @abstract delete
- * @method findListingsByOfferings
- * @method createOffering
+ * @method findListingsByOffering
+ * @method saveOffering
  * @method findOfferingById
  * @method findOfferingBySlug
  * @method updateOffering
@@ -80,7 +80,7 @@ export default abstract class ListingService {
    * @param searchFilter
    * @returns Promise<IListing[]>
    */
-  public async findListingsByOfferings(searchFilter: {
+  public async findListingsByOffering(searchFilter: {
     minArea?: number;
     maxArea?: number;
     name?: string;
@@ -144,7 +144,7 @@ export default abstract class ListingService {
    * @param listingId
    * @returns Promise<void>
    */
-  public async createOffering(
+  public async saveOffering(
     key: string,
     data: Partial<IOffering>,
     listingId: Partial<IListing> | any

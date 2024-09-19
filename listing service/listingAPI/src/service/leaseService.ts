@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
-import Lease from "../model/leaseModel";
 import ILease from "../interface/ILease";
+import Lease from "../model/leaseModel";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 
@@ -63,7 +63,9 @@ export default class LeaseService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -93,7 +95,9 @@ export default class LeaseService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
