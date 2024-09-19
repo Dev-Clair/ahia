@@ -27,7 +27,7 @@ const LeaseSchema = z.object({
       invalid_type_error: "street must be a string",
     }),
     countyLGA: z.string({
-      required_error: "countyLGAt is required",
+      required_error: "countyLGA is required",
       invalid_type_error: "countyLGA must be a string",
     }),
     city: z.string({
@@ -40,12 +40,12 @@ const LeaseSchema = z.object({
     }),
   }),
   location: z.object({
-    coordinates: z.array(
+    geoCoordinates: z.array(
       z.number({
-        invalid_type_error: "location coordinates must be a number array",
-        required_error: "coordinates are required",
-        message: "location coordinates must be of Point type",
-        description: `"coordinates": [lng|long, lat]`,
+        invalid_type_error: "location geoCoordinates must be a number array",
+        required_error: "geoCoordinates are required",
+        message: "location geoCoordinates must be of Point type",
+        description: `"geoCoordinates": [lng|long, lat]`,
       })
     ),
   }),
@@ -78,17 +78,31 @@ const ReservationSchema = z.object({
   }),
   propertyType: z.enum(["economy", "premium", "luxury"]),
   propertyCategory: z.enum(["residential", "commercial", "mixed"]),
-  address: z.string({
-    required_error: "address is required",
-    invalid_type_error: "address must be a string",
+  address: z.object({
+    street: z.string({
+      required_error: "street is required",
+      invalid_type_error: "street must be a string",
+    }),
+    countyLGA: z.string({
+      required_error: "countyLGA is required",
+      invalid_type_error: "countyLGA must be a string",
+    }),
+    city: z.string({
+      required_error: "city is required",
+      invalid_type_error: "city must be a string",
+    }),
+    state: z.string({
+      required_error: "state is required",
+      invalid_type_error: "state must be a string",
+    }),
   }),
   location: z.object({
-    coordinates: z.array(
+    geoCoordinates: z.array(
       z.number({
-        invalid_type_error: "location coordinates must be a number array",
-        required_error: "coordinates are required",
-        message: "location coordinates must be of Point type",
-        description: `"coordinates": [lng|long, lat]`,
+        invalid_type_error: "geoCoordinates must be a number array",
+        required_error: "geoCoordinates are required",
+        message: "geoCoordinates must be of Point type",
+        description: `"geoCoordinates": [lng|long, lat]`,
       })
     ),
   }),
@@ -117,17 +131,31 @@ const SellSchema = z.object({
   }),
   propertyType: z.enum(["economy", "premium", "luxury"]),
   propertyCategory: z.enum(["residential", "commercial", "mixed"]),
-  address: z.string({
-    required_error: "address is required",
-    invalid_type_error: "address must be a string",
+  address: z.object({
+    street: z.string({
+      required_error: "street is required",
+      invalid_type_error: "street must be a string",
+    }),
+    countyLGA: z.string({
+      required_error: "countyLGA is required",
+      invalid_type_error: "countyLGA must be a string",
+    }),
+    city: z.string({
+      required_error: "city is required",
+      invalid_type_error: "city must be a string",
+    }),
+    state: z.string({
+      required_error: "state is required",
+      invalid_type_error: "state must be a string",
+    }),
   }),
   location: z.object({
-    coordinates: z.array(
+    geoCoordinates: z.array(
       z.number({
-        invalid_type_error: "location coordinates must be a number array",
-        required_error: "coordinates are required",
-        message: "location coordinates must be of Point type",
-        description: `"coordinates": [lng|long, lat]`,
+        invalid_type_error: "geoCoordinates must be a number array",
+        required_error: "geoCoordinates are required",
+        message: "geoCoordinates must be of Point type",
+        description: `"geoCoordinates": [lng|long, lat]`,
       })
     ),
   }),
@@ -136,7 +164,15 @@ const SellSchema = z.object({
     required_error: "isNegotiable is required",
   }),
   mortgage: z.object({
-    plan: z.enum(["short", "medium", "long", "mixed"]),
+    plan: z.enum(["short", "medium", "long", "flexible"]),
+    duration: z.date({
+      required_error: "duration is required",
+      invalid_type_error: "duration must be a date",
+    }),
+    initialDeposit: z.number({
+      required_error: "initialDeposit is required",
+      invalid_type_error: "initialDeposit must be a number",
+    }),
     termsAndCondtions: z
       .array(
         z.string({
