@@ -202,7 +202,7 @@ const retrieveByOfferings = async (
   try {
     const queryString = req.query;
 
-    const listings = await LeaseService.Create().findListingsByOfferings(
+    const listings = await LeaseService.Create().findListingsByOffering(
       queryString
     );
 
@@ -388,11 +388,11 @@ const createOffering = async (
 
     const listingId = listing._id as ObjectId;
 
-    payload.listing = listing._id as ObjectId;
+    payload.listing = listingId;
 
     const leaseService = req.service as LeaseService;
 
-    await leaseService.createOffering(key, payload, listingId);
+    await leaseService.saveOffering(key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {

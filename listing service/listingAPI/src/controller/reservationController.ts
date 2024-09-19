@@ -202,7 +202,7 @@ const retrieveByOfferings = async (
   try {
     const queryString = req.query;
 
-    const listings = await ReservationService.Create().findListingsByOfferings(
+    const listings = await ReservationService.Create().findListingsByOffering(
       queryString
     );
 
@@ -392,7 +392,7 @@ const createOffering = async (
 
     const reservationService = req.service as ReservationService;
 
-    await reservationService.createOffering(key, payload, listingId);
+    await reservationService.saveOffering(key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {

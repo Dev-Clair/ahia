@@ -204,7 +204,7 @@ const retrieveByOfferings = async (
   try {
     const queryString = req.query;
 
-    const listings = await SellService.Create().findListingsByOfferings(
+    const listings = await SellService.Create().findListingsByOffering(
       queryString
     );
 
@@ -394,7 +394,7 @@ const createOffering = async (
 
     const sellService = req.service as SellService;
 
-    await sellService.createOffering(key, payload, listingId);
+    await sellService.saveOffering(key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
