@@ -9,7 +9,15 @@ const SellSchema: Schema<ISell> = new Schema({
   mortgage: {
     plan: {
       type: String,
-      enum: ["short", "medium", "long", "mixed"],
+      enum: ["short", "medium", "long", "flexible"],
+      required: true,
+    },
+    duration: {
+      type: Date,
+      required: true,
+    },
+    initialDeposit: {
+      type: Number,
       required: true,
     },
     termsAndConditions: {
