@@ -74,7 +74,7 @@ export class QueryBuilder<T> {
           $geoNear: {
             $geometry: {
               type: "Point",
-              coordinates: [lng, lat],
+              geoCoordinates: [lng, lat],
             },
           },
           $maxDistance: distance,
