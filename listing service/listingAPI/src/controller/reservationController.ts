@@ -11,9 +11,9 @@ import ReservationService from "../service/reservationService";
 
 /**
  * Creates a new reservation listing in collection
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const createListing = async (
@@ -41,9 +41,9 @@ const createListing = async (
 
 /**
  * Retrieves collection of listings for reservation
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveListings = async (
@@ -64,9 +64,9 @@ const retrieveListings = async (
 
 /**
  * Retrieves collection of listings for reservation based on search query
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveSearch = async (
@@ -91,9 +91,9 @@ const retrieveSearch = async (
 
 /**
  * Retrieves collection of listings for reservation near user's current location
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveNearme = async (
@@ -114,9 +114,9 @@ const retrieveNearme = async (
 
 /**
  * Retrieves listing for reservation based on a particular provider
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByProvider = async (
@@ -139,9 +139,9 @@ const retrieveByProvider = async (
 
 /**
  * Retrieves listings for reservation based on type: economy | premium | luxury
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByType = async (
@@ -164,9 +164,9 @@ const retrieveByType = async (
 
 /**
  * Retrieves listings for sell based on category: residential | commercial | mixed
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByCategory = async (
@@ -189,9 +189,9 @@ const retrieveByCategory = async (
 
 /**
  * Retrieves listings for reservation based on offerings
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByOfferings = async (
@@ -214,9 +214,9 @@ const retrieveByOfferings = async (
 
 /**
  * Retrieves a listing for reservation by its slug
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveBySlug = async (
@@ -235,9 +235,9 @@ const retrieveBySlug = async (
 
 /**
  * Retrieves a listing for reservation by its id
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveById = async (
@@ -256,9 +256,9 @@ const retrieveById = async (
 
 /**
  * Finds and modifies a listing for reservation using its id
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const updateListing = async (
@@ -285,9 +285,9 @@ const updateListing = async (
 
 /**
  * Finds and removes a listing for reservation using its id
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const deleteListing = async (
@@ -310,9 +310,9 @@ const deleteListing = async (
 
 /**
  * Modifies the status of a listing for reservation
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const changeStatus = async (
@@ -341,9 +341,9 @@ const changeStatus = async (
 
 /**
  * Verifies a reservation listing status
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const verifyStatus = async (
@@ -367,6 +367,13 @@ const verifyStatus = async (
   }
 };
 
+/**
+ * Create a new reservation listing offering
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const createOffering = async (
   req: Request,
   res: Response,
@@ -393,6 +400,13 @@ const createOffering = async (
   }
 };
 
+/**
+ * Retrieves a reservation listing offerings
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const retrieveOfferings = async (
   req: Request,
   res: Response,
@@ -409,6 +423,13 @@ const retrieveOfferings = async (
   }
 };
 
+/**
+ * Retrieves a reservation listing offering by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const retrieveOfferingById = async (
   req: Request,
   res: Response,
@@ -427,6 +448,13 @@ const retrieveOfferingById = async (
   }
 };
 
+/**
+ * Retrieves a reservation listing offering by slug
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const retrieveOfferingBySlug = async (
   req: Request,
   res: Response,
@@ -445,6 +473,13 @@ const retrieveOfferingBySlug = async (
   }
 };
 
+/**
+ * Updates a reservation listing offering by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const updateOffering = async (
   req: Request,
   res: Response,
@@ -467,6 +502,13 @@ const updateOffering = async (
   }
 };
 
+/**
+ * Deletes a reservation listing offering by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const deleteOffering = async (
   req: Request,
   res: Response,
