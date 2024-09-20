@@ -15,30 +15,30 @@ import Offering from "../model/offeringModel";
  * @abstract update
  * @abstract delete
  * @method findListingsByOffering
- * @method saveOffering
  * @method findOfferingById
  * @method findOfferingBySlug
+ * @method saveOffering
  * @method updateOffering
  * @method deleteOffering
  */
 export default abstract class ListingService {
   /** Retrieves a collection of listings
    * @public
-   * @param queryString
+   * @param queryString query filter object
    * @returns Promise<IListing[]>
    */
   abstract findAll(queryString?: Record<string, any>): Promise<IListing[]>;
 
   /** Retrieves a listing record using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to find
    * @returns Promise<IListing | null>
    */
   abstract findById(id: string): Promise<IListing | null>;
 
   /** Retrieves a listing record using its slug
    * @public
-   * @param string
+   * @param slug the slug of the document to find
    * @returns Promise<IListing | null>
    */
   abstract findBySlug(slug: string): Promise<IListing | null>;
@@ -46,8 +46,8 @@ export default abstract class ListingService {
   /**
    * Creates a new listing record in collection
    * @public
-   * @param key
-   * @param data
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<void>
    */
   abstract save(key: string, data: Partial<IListing>): Promise<void>;
@@ -55,9 +55,9 @@ export default abstract class ListingService {
   /**
    * Updates a listing record using its id
    * @public
-   * @param id
-   * @param key
-   * @param data
+   * @param id the ObjectId of the document to update
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<any>
    */
   abstract update(
@@ -69,7 +69,7 @@ export default abstract class ListingService {
   /**
    * Deletes a listing record using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to delete
    * @returns Promise<any>
    */
   abstract delete(id: string): Promise<any>;
@@ -77,7 +77,7 @@ export default abstract class ListingService {
   /** Retrieves a collection of listings based on offerings
    * that match search filter/criteria
    * @public
-   * @param searchFilter
+   * @param searchFilter query filter object
    * @returns Promise<IListing[]>
    */
   public async findListingsByOffering(searchFilter: {
@@ -94,7 +94,7 @@ export default abstract class ListingService {
 
     // Filtering by name using a case-insensitive regex
     if (name !== undefined) {
-      query.name = { $regex: name, $options: "i" };
+      query.offeringType = { $regex: name, $options: "i" };
     }
 
     // Filtering by area size
@@ -136,39 +136,9 @@ export default abstract class ListingService {
     return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
-  /**
-   * Creates a new offering on a listing
-   * @public
-   * @param key
-   * @param data
-   * @param listingId
-   * @returns Promise<void>
-   */
-  public async saveOffering(
-    key: string,
-    data: Partial<IOffering>,
-    listingId: Partial<IListing> | any
-  ): Promise<void> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      const offering = await Offering.create([data], { session: session });
-
-      await IdempotencyManager.Create(key, session);
-
-      await Listing.findOneAndUpdate(
-        { _id: listingId },
-        { $addToSet: { offerings: (offering as any)._id as ObjectId } },
-        { new: true, session }
-      );
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
-  }
-
   /** Retrieves a listing offering using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to find
    * @returns Promise<IOffering | null>
    */
   async findOfferingById(id: string): Promise<IOffering | null> {
@@ -185,7 +155,7 @@ export default abstract class ListingService {
 
   /** Retrieves a listing offering using its slug
    * @public
-   * @param slug
+   * @param slug the slug of the document to find
    * @returns Promise<IOffering | null>
    */
   async findOfferingBySlug(slug: string): Promise<IOffering | null> {
@@ -201,11 +171,41 @@ export default abstract class ListingService {
   }
 
   /**
+   * Creates a new offering on a listing
+   * @public
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
+   * @param listingId listing id
+   * @returns Promise<void>
+   */
+  public async saveOffering(
+    key: string,
+    payload: Partial<IOffering>,
+    listingId: Partial<IListing> | any
+  ): Promise<void> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const offering = await Offering.create([payload], { session: session });
+
+      await IdempotencyManager.Create(key, session);
+
+      await Listing.findOneAndUpdate(
+        { _id: listingId },
+        { $addToSet: { offerings: (offering as any)._id as ObjectId } },
+        { new: true, session }
+      );
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
+
+  /**
    * Updates a listing offering
    * @public
-   * @param id
-   * @param key
-   * @param data
+   * @param id the ObjectId of the document to update
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<void>
    */
   public async updateOffering(
@@ -227,8 +227,8 @@ export default abstract class ListingService {
   /**
    * Deletes a listing offering
    * @public
-   * @param offeringId
-   * @param listingId
+   * @param offeringId the ObjectId of the document to delete
+   * @param listingId the ObjectId of the document to delete
    * @returns Promise<void>
    */
   public async deleteOffering(
