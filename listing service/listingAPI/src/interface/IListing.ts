@@ -16,7 +16,7 @@ export default interface IListing extends Document {
   };
   location: {
     type?: string;
-    coordinates?: number[];
+    geoCoordinates?: number[];
   };
   provider: {
     id: string;
