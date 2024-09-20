@@ -81,7 +81,7 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
       const offeringUpdates = promotion.offerings.map((offeringId) => ({
         updateOne: {
           filter: { _id: offeringId, promotion: promotion._id },
-          update: { $unset: { promotion: undefined } },
+          update: { $unset: { promotion: "" } },
         },
       }));
 
@@ -89,7 +89,7 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
       const listingUpdates = promotion.listings.map((listingId) => ({
         updateOne: {
           filter: { _id: listingId, promotion: promotion._id },
-          update: { $unset: { promotion: undefined } },
+          update: { $unset: { promotion: "" } },
         },
       }));
 
