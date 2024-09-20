@@ -212,14 +212,11 @@ export default abstract class ListingService {
     id: string,
     key: string,
     data: Partial<IOffering>
-  ): Promise<any> {
+  ): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      await Offering.findByIdAndUpdate({ _id: id }, data, {
-        new: true,
-        session,
-      });
+      await Offering.findByIdAndUpdate({ _id: id }, data, { session });
 
       await IdempotencyManager.Create(key, session);
     });
@@ -249,7 +246,7 @@ export default abstract class ListingService {
       await Listing.findOneAndUpdate(
         { _id: listingId },
         { $pull: { offerings: offering._id } },
-        { new: true, session }
+        { session }
       );
     });
 
