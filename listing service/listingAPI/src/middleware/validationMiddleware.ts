@@ -163,26 +163,47 @@ const SellSchema = z.object({
     invalid_type_error: "isNegotiable must be a boolean type",
     required_error: "isNegotiable is required",
   }),
-  mortgage: z.object({
-    plan: z.enum(["short", "medium", "long", "flexible"]),
-    duration: z.date({
-      required_error: "duration is required",
-      invalid_type_error: "duration must be a date",
-    }),
-    initialDeposit: z.number({
-      required_error: "initialDeposit is required",
-      invalid_type_error: "initialDeposit must be a number",
-    }),
-    termsAndCondtions: z
-      .array(
-        z.string({
-          invalid_type_error:
-            "terms and conditions can only contain string elements",
-          required_error: "terms and conditions is required",
+  paymentOptions: z.array(
+    z.object({
+      paymentOption: z.enum(["outright", "instalment"]),
+      outright: z
+        .object({
+          price: z.number({
+            required_error: "price is required",
+            invalid_type_error: "price must be a number",
+          }),
+          discount: z.number({
+            required_error: "discount is required",
+            invalid_type_error: "discount must be a number",
+          }),
         })
-      )
-      .optional(),
-  }),
+        .optional(),
+      instalment: z
+        .object({
+          plan: z.enum(["short", "medium", "long", "flexible"]),
+          duration: z.number({
+            required_error: "duration is required",
+            invalid_type_error: "duration must be a number",
+          }),
+          initialDeposit: z.number({
+            required_error: "initialDeposit is required",
+            invalid_type_error: "initialDeposit must be a number",
+          }),
+          instalmentAmount: z.number({
+            required_error: "instalmentAmount is required",
+            invalid_type_error: "instalmentAmount must be a number",
+          }),
+          termsAndCondtions: z.array(
+            z.string({
+              invalid_type_error:
+                "terms and conditions can only contain string elements",
+              required_error: "terms and conditions is required",
+            })
+          ),
+        })
+        .optional(),
+    })
+  ),
 });
 
 const OfferingSchema = z.object({
