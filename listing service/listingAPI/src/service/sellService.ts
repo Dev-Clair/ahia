@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
+import ISell from "../interface/ISell";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 import Sell from "../model/sellModel";
-import ISell from "../interface/ISell";
 
 export default class SellService extends ListingService {
   /** Retrieves a collection of listing for sell
    * @public
-   * @param queryString
+   * @param queryString query object
    * @returns Promise<ISell[]>
    */
   async findAll(queryString?: Record<string, any>): Promise<ISell[]> {
@@ -43,7 +43,7 @@ export default class SellService extends ListingService {
 
   /** Retrieves a sell listing using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to find
    * @returns Promise<ISell | null>
    */
   async findById(id: string): Promise<ISell | null> {
@@ -63,7 +63,9 @@ export default class SellService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -73,7 +75,7 @@ export default class SellService extends ListingService {
 
   /** Retrieves a sell listing using its slug
    * @public
-   * @param string
+   * @param slug the slug of the document to find
    * @returns Promise<ISell | null>
    */
   async findBySlug(slug: string): Promise<ISell | null> {
@@ -93,7 +95,9 @@ export default class SellService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -104,15 +108,15 @@ export default class SellService extends ListingService {
   /**
    * Creates a new sell listing in collection
    * @public
-   * @param key
-   * @param data
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<ISell>): Promise<void> {
+  async save(key: string, payload: Partial<ISell>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      await Sell.create([data], { session: session });
+      await Sell.create([payload], { session: session });
 
       await IdempotencyManager.Create(key, session);
     });
@@ -123,21 +127,22 @@ export default class SellService extends ListingService {
   /**
    * Updates a sell listing using its id
    * @public
-   * @param id
-   * @param key
-   * @param data
+   * @param id the ObjectId of the document to update
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<any>
    */
   async update(
     id: string,
     key: string,
-    data?: Partial<ISell | any>
+    payload?: Partial<ISell | any>
   ): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Sell.findByIdAndUpdate({ _id: id }, data, {
+      const listing = await Sell.findByIdAndUpdate({ _id: id }, payload, {
         new: true,
+        projection: id,
         session,
       });
 
@@ -152,7 +157,7 @@ export default class SellService extends ListingService {
   /**
    * Deletes a sell listing using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to delete
    * @returns Promise<any>
    */
   async delete(id: string): Promise<any> {

@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
-import Lease from "../model/leaseModel";
 import ILease from "../interface/ILease";
+import Lease from "../model/leaseModel";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 export default class LeaseService extends ListingService {
   /** Retrieves a collection of listings for lease
    * @public
-   * @param queryString
+   * @param queryString query object
    * @returns Promise<ILease[]>
    */
   async findAll(queryString?: Record<string, any>): Promise<ILease[]> {
@@ -43,7 +43,7 @@ export default class LeaseService extends ListingService {
 
   /** Retrieves a lease listing using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to find
    * @returns Promise<ILease | null>
    */
   async findById(id: string): Promise<ILease | null> {
@@ -63,7 +63,9 @@ export default class LeaseService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -73,7 +75,7 @@ export default class LeaseService extends ListingService {
 
   /** Retrieves a lease listing using its slug
    * @public
-   * @param slug
+   * @param slug the slug of the document to find
    * @returns Promise<ILease | null>
    */
   async findBySlug(slug: string): Promise<ILease | null> {
@@ -93,7 +95,9 @@ export default class LeaseService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -104,15 +108,15 @@ export default class LeaseService extends ListingService {
   /**
    * Creates a new lease listing in collection
    * @public
-   * @param key
-   * @param data
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<ILease>): Promise<void> {
+  async save(key: string, payload: Partial<ILease>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      await Lease.create([data], { session: session });
+      await Lease.create([payload], { session: session });
 
       await IdempotencyManager.Create(key, session);
     });
@@ -123,21 +127,22 @@ export default class LeaseService extends ListingService {
   /**
    * Updates a lease listing using its id
    * @public
-   * @param id
-   * @param key
-   * @param data
+   * @param id the ObjectId of the document to update
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<any>
    */
   async update(
     id: string,
     key: string,
-    data?: Partial<ILease | any>
+    payload?: Partial<ILease | any>
   ): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Lease.findByIdAndUpdate({ _id: id }, data, {
+      const listing = await Lease.findByIdAndUpdate({ _id: id }, payload, {
         new: true,
+        projection: id,
         session,
       });
 
@@ -152,14 +157,17 @@ export default class LeaseService extends ListingService {
   /**
    * Deletes a lease listing using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to delete
    * @returns Promise<any>
    */
   async delete(id: string): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Lease.findByIdAndDelete({ _id: id }, session);
+      const listing = await Lease.findByIdAndDelete(
+        { _id: id },
+        { projection: id, session: session }
+      );
 
       return listing;
     });

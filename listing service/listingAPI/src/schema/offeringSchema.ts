@@ -1,8 +1,6 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IOffering from "../interface/IOffering";
-import Listing from "../model/listingModel";
-import Promotion from "../model/promotionModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
@@ -108,18 +106,22 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Unlink listing reference to offering
-      await Listing.findOneAndUpdate(
-        { id: offering.listing },
-        { $pull: { offerings: offering._id } },
-        { new: false, session }
-      );
+      await mongoose
+        .model("Listing")
+        .findOneAndUpdate(
+          { id: offering.listing },
+          { $pull: { offerings: offering._id } },
+          { new: false, session }
+        );
 
       // Unlink promotion reference to offering
-      await Promotion.findOneAndUpdate(
-        { id: offering.promotion },
-        { $pull: { offerings: offering._id } },
-        { new: false, session }
-      );
+      await mongoose
+        .model("Promotion")
+        .findOneAndUpdate(
+          { id: offering.promotion },
+          { $pull: { offerings: offering._id } },
+          { new: false, session }
+        );
     });
 
     next();

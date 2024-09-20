@@ -1,8 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
-import Offering from "../model/offeringModel";
-import Promotion from "../model/promotionModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -26,26 +24,42 @@ const ListingSchema: Schema<IListing> = new Schema(
       enum: ["lease", "sell", "reservation"],
       required: true,
     },
-    propertyType: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
     propertyCategory: {
       type: String,
       enum: ["residential", "commercial", "mixed"],
       set: (value: string) => value.toLowerCase(),
       required: true,
     },
-    offerings: {
-      type: [Schema.Types.ObjectId],
-      ref: "Offering",
-      default: [],
-    },
-    address: {
+    propertyType: {
       type: String,
+      enum: ["economy", "premium", "luxury"],
+      set: (value: string) => value.toLowerCase(),
       required: true,
+    },
+    offerings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Offering",
+        required: false,
+      },
+    ],
+    address: {
+      street: {
+        type: String,
+        required: true,
+      },
+      countyLGA: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
     },
     location: {
       type: {
@@ -53,8 +67,14 @@ const ListingSchema: Schema<IListing> = new Schema(
         enum: ["Point"],
         default: "Point",
       },
-      coordinates: {
+      geoCoordinates: {
         type: [Number],
+        validate: {
+          validator: function (value: number[]) {
+            return Array.isArray(value) && value.length === 2;
+          },
+          message: "geoCoodinates must be an array of two numbers",
+        },
         required: false,
       },
     },
@@ -146,14 +166,23 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Delete all offering document records referenced to listing
-      await Offering.deleteMany({ listing: listing._id }).session(session);
+      await mongoose.model("Offering").bulkWrite(
+        [
+          {
+            deleteMany: { filter: { listing: listing._id } },
+          },
+        ],
+        { session }
+      );
 
       // Drop all promotion references to listing
-      await Promotion.findOneAndUpdate(
-        { id: listing.promotion },
-        { $pull: { listings: listing._id } },
-        { new: false, session }
-      );
+      await mongoose
+        .model("Promotion")
+        .findOneAndUpdate(
+          { id: listing.promotion },
+          { $pull: { listings: listing._id } },
+          { new: false, session }
+        );
     });
 
     next();

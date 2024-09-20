@@ -1,19 +1,19 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
+import IOffering from "../interface/IOffering";
+import ISell from "../interface/ISell";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
 import SellService from "../service/sellService";
-import IOffering from "../interface/IOffering";
-import { ObjectId } from "mongoose";
-import ISell from "../interface/ISell";
 
 /**
  * Creates a new sell listing in collection
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const createListing = async (
@@ -24,14 +24,12 @@ const createListing = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const payload = req.body as object;
+    const payload = req.body as Partial<ISell>;
 
-    const provider = {
+    payload.provider = {
       id: req.headers["provider-id"] as string,
       email: req.headers["provider-email"] as string,
     };
-
-    Object.assign(payload, { provider: provider });
 
     await SellService.Create().save(key, payload);
 
@@ -43,9 +41,9 @@ const createListing = async (
 
 /**
  * Retrieves collection of listings for sell
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveListings = async (
@@ -66,9 +64,9 @@ const retrieveListings = async (
 
 /**
  * Retrieves collection of listings for sell based on search query
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveSearch = async (
@@ -93,9 +91,9 @@ const retrieveSearch = async (
 
 /**
  * Retrieves collection of listings for sell near user's current location
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveNearme = async (
@@ -116,9 +114,9 @@ const retrieveNearme = async (
 
 /**
  * Retrieves listings for sell based on a particular provider
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByProvider = async (
@@ -141,9 +139,9 @@ const retrieveByProvider = async (
 
 /**
  * Retrieves listings for sell based on type: economy | premium | luxury
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByType = async (
@@ -166,9 +164,9 @@ const retrieveByType = async (
 
 /**
  * Retrieves listings for sell based on category: residential | commercial | mixed
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByCategory = async (
@@ -191,9 +189,9 @@ const retrieveByCategory = async (
 
 /**
  * Retrieves listings for sell based on offerings
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveByOfferings = async (
@@ -204,7 +202,7 @@ const retrieveByOfferings = async (
   try {
     const queryString = req.query;
 
-    const listings = await SellService.Create().findListingsByOfferings(
+    const listings = await SellService.Create().findListingsByOffering(
       queryString
     );
 
@@ -216,9 +214,9 @@ const retrieveByOfferings = async (
 
 /**
  * Retrieves a listing for sell by its slug
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveBySlug = async (
@@ -237,9 +235,9 @@ const retrieveBySlug = async (
 
 /**
  * Retrieves a listing for sell by its id
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const retrieveById = async (
@@ -258,9 +256,9 @@ const retrieveById = async (
 
 /**
  * Finds and modifies a listing for sell using its id
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const updateListing = async (
@@ -273,7 +271,7 @@ const updateListing = async (
 
     const id = req.params.id as string;
 
-    const body = req.body as object;
+    const body = req.body as Partial<ISell>;
 
     const listing = await SellService.Create().update(id, key, body);
 
@@ -287,9 +285,9 @@ const updateListing = async (
 
 /**
  * Finds and removes a listing for sell using its id
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const deleteListing = async (
@@ -312,9 +310,9 @@ const deleteListing = async (
 
 /**
  * Modifies the status of a listing for sell
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const changeStatus = async (
@@ -343,9 +341,9 @@ const changeStatus = async (
 
 /**
  * Verifies a sell listing status
- * @param req
- * @param res
- * @param next
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
 const verifyStatus = async (
@@ -369,6 +367,13 @@ const verifyStatus = async (
   }
 };
 
+/**
+ * Creates a new sell listing offering
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const createOffering = async (
   req: Request,
   res: Response,
@@ -387,7 +392,7 @@ const createOffering = async (
 
     const sellService = req.service as SellService;
 
-    await sellService.createOffering(key, payload, listingId);
+    await sellService.saveOffering(key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -395,6 +400,13 @@ const createOffering = async (
   }
 };
 
+/**
+ * Retrieves a sell listing offerings
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const retrieveOfferings = async (
   req: Request,
   res: Response,
@@ -411,6 +423,13 @@ const retrieveOfferings = async (
   }
 };
 
+/**
+ * Retrieves a sell listing offering by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const retrieveOfferingById = async (
   req: Request,
   res: Response,
@@ -429,6 +448,13 @@ const retrieveOfferingById = async (
   }
 };
 
+/**
+ * Retrieves a sell listing offering by slug
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const retrieveOfferingBySlug = async (
   req: Request,
   res: Response,
@@ -447,6 +473,13 @@ const retrieveOfferingBySlug = async (
   }
 };
 
+/**
+ * Updatess a sell listing offering by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const updateOffering = async (
   req: Request,
   res: Response,
@@ -469,6 +502,13 @@ const updateOffering = async (
   }
 };
 
+/**
+ * Deletes a sell listing offering by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
 const deleteOffering = async (
   req: Request,
   res: Response,

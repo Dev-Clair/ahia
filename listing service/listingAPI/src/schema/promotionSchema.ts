@@ -1,7 +1,5 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import IPromotion from "../interface/IPromotion";
-import Listing from "../model/listingModel";
-import Offering from "../model/offeringModel";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/promotions`;
 
@@ -46,16 +44,20 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
         default: undefined,
       },
     },
-    listings: {
-      type: [Schema.Types.ObjectId],
-      ref: "Listing",
-      default: undefined,
-    },
-    offerings: {
-      type: [Schema.Types.ObjectId],
-      ref: "Offering",
-      default: undefined,
-    },
+    listings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Listing",
+        required: false,
+      },
+    ],
+    offerings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Offering",
+        required: false,
+      },
+    ],
   },
   { timestamps: true }
 );
@@ -76,36 +78,29 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Unlink all offerings referenced to promotion
-      const offerings = await Offering.find({
-        promotion: promotion._id,
-      }).session(session);
+      const offeringUpdates = promotion.offerings.map((offeringId) => ({
+        updateOne: {
+          filter: { _id: offeringId, promotion: promotion._id },
+          update: { $unset: { promotion: "" } },
+        },
+      }));
 
-      if (offerings.length !== 0) {
-        offerings.forEach(async (offering) => {
-          if (promotion.offerings.includes(offering._id as ObjectId)) {
-            offering.$set("promotion", undefined);
-
-            await offering.save({ session });
-          }
-        });
-      }
       // Unlink all listings referenced to promotion
-      const listings = await Listing.find({
-        promotion: promotion._id,
-      }).session(session);
+      const listingUpdates = promotion.listings.map((listingId) => ({
+        updateOne: {
+          filter: { _id: listingId, promotion: promotion._id },
+          update: { $unset: { promotion: "" } },
+        },
+      }));
 
-      if (listings.length !== 0) {
-        listings.forEach(async (listing) => {
-          if (promotion.listings.includes(listing._id as ObjectId)) {
-            listing.$set("promotion", undefined);
+      // Update offerings collection
+      await mongoose.model("Offering").bulkWrite(offeringUpdates, { session });
 
-            await listing.save({ session });
-          }
-        });
-      }
-
-      next();
+      // Update listings collection
+      await mongoose.model("Listing").bulkWrite(listingUpdates, { session });
     });
+
+    next();
   } catch (err: any) {
     next(err);
   }

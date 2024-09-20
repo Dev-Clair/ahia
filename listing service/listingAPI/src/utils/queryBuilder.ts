@@ -74,7 +74,7 @@ export class QueryBuilder<T> {
           $geoNear: {
             $geometry: {
               type: "Point",
-              coordinates: [lng, lat],
+              geoCoordinates: [lng, lat],
             },
           },
           $maxDistance: distance,
@@ -103,6 +103,7 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query projection
+   * @param specifiedFields A string array of fileds to select
    * @returns this
    */
   public Select(specifiedFields: string[] = []): this {
@@ -123,7 +124,9 @@ export class QueryBuilder<T> {
    * Handles query sorting
    * @returns this
    */
-  public Sort(defaultSortField = "-createdAt"): this {
+  public Sort(): this {
+    const defaultSortField = "-createdAt";
+
     const sortBy = this.queryString.sort
       ? this.queryString.sort.split(",").join(" ")
       : defaultSortField;
@@ -135,8 +138,8 @@ export class QueryBuilder<T> {
 
   /**
    * Creates and returns a new instance of the QueryBuilder class
-   * @param query
-   * @param queryString
+   * @param query mongoose query
+   * @param queryString query string object
    * @returns QueryBuilder
    */
   static Create<T>(

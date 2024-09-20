@@ -1,22 +1,18 @@
 import { Schema } from "mongoose";
 import ISell from "../interface/ISell";
+import PaymentOptionsSchema from "./paymentoptionsSchema";
 
 const SellSchema: Schema<ISell> = new Schema({
   isNegotiable: {
     type: Boolean,
     required: true,
   },
-  mortgage: {
-    plan: {
-      type: String,
-      enum: ["short", "medium", "long", "mixed"],
+  paymentOptions: [
+    {
+      type: PaymentOptionsSchema,
       required: true,
     },
-    termsAndConditions: {
-      type: [String],
-      required: false,
-    },
-  },
+  ],
 });
 
 export default SellSchema;

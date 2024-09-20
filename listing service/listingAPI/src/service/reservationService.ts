@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyManager from "../utils/idempotencyManager";
+import IReservation from "../interface/IReservation";
 import ListingService from "./listingService";
 import { QueryBuilder } from "../utils/queryBuilder";
 import Reservation from "../model/reservationModel";
-import IReservation from "../interface/IReservation";
 
 export default class ReservationService extends ListingService {
   /** Retrieves a collection of listings for reservations
    * @public
-   * @param queryString
+   * @param queryString query object
    * @returns Promise<IReservation[]>
    */
   async findAll(queryString?: Record<string, any>): Promise<IReservation[]> {
@@ -43,7 +43,7 @@ export default class ReservationService extends ListingService {
 
   /** Retrieves a reservation listing using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to find
    * @returns Promise<IReservation | null>
    */
   async findById(id: string): Promise<IReservation | null> {
@@ -63,7 +63,9 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -73,7 +75,7 @@ export default class ReservationService extends ListingService {
 
   /** Retrieves a reservation listing using its slug
    * @public
-   * @param string
+   * @param slug the slug of the document to find
    * @returns Promise<IReservation | null>
    */
   async findBySlug(slug: string): Promise<IReservation | null> {
@@ -93,7 +95,9 @@ export default class ReservationService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -104,15 +108,15 @@ export default class ReservationService extends ListingService {
   /**
    * Creates a new reservation listing in collection
    * @public
-   * @param key
-   * @param data
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<void>
    */
-  async save(key: string, data: Partial<IReservation>): Promise<void> {
+  async save(key: string, payload: Partial<IReservation>): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      await Reservation.create([data], { session: session });
+      await Reservation.create([payload], { session: session });
 
       await IdempotencyManager.Create(key, session);
     });
@@ -123,23 +127,28 @@ export default class ReservationService extends ListingService {
   /**
    * Updates a reservation listing using its id
    * @public
-   * @param id
-   * @param key
-   * @param data
+   * @param id the ObjectId of the document to update
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
    * @returns Promise<any>
    */
   async update(
     id: string,
     key: string,
-    data?: Partial<IReservation | any>
+    payload?: Partial<IReservation | any>
   ): Promise<any> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Reservation.findByIdAndUpdate({ _id: id }, data, {
-        new: true,
-        session,
-      });
+      const listing = await Reservation.findByIdAndUpdate(
+        { _id: id },
+        payload,
+        {
+          new: true,
+          projection: id,
+          session,
+        }
+      );
 
       const val = await IdempotencyManager.Create(key, session);
 
@@ -152,7 +161,7 @@ export default class ReservationService extends ListingService {
   /**
    * Deletes a reservation listing using its id
    * @public
-   * @param id
+   * @param id the ObjectId of the document to delete
    * @returns Promise<any>
    */
   async delete(id: string): Promise<any> {
