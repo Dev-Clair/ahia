@@ -63,7 +63,9 @@ export default class SellService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };
@@ -93,7 +95,9 @@ export default class SellService extends ListingService {
           // verification: { status: true },
         },
         projection
-      ).populate({ path: "offerings" });
+      )
+        .populate({ path: "offerings" })
+        .exec();
 
       return listing;
     };

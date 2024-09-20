@@ -1,13 +1,13 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
+import IOffering from "../interface/IOffering";
+import ISell from "../interface/ISell";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
 import SellService from "../service/sellService";
-import IOffering from "../interface/IOffering";
-import { ObjectId } from "mongoose";
-import ISell from "../interface/ISell";
 
 /**
  * Creates a new sell listing in collection
@@ -24,14 +24,12 @@ const createListing = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const payload = req.body as object;
+    const payload = req.body as Partial<ISell>;
 
-    const provider = {
+    payload.provider = {
       id: req.headers["provider-id"] as string,
       email: req.headers["provider-email"] as string,
     };
-
-    Object.assign(payload, { provider: provider });
 
     await SellService.Create().save(key, payload);
 
@@ -273,7 +271,7 @@ const updateListing = async (
 
     const id = req.params.id as string;
 
-    const body = req.body as object;
+    const body = req.body as Partial<ISell>;
 
     const listing = await SellService.Create().update(id, key, body);
 
