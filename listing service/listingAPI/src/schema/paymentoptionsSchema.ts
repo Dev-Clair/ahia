@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
 import IPaymentOptions from "../interface/IPaymentoptions";
 
-const PaymentOptionsSchema = new Schema<IPaymentOptions>({
+const PaymentOptionsSchema: Schema<IPaymentOptions> = new Schema({
   paymentOptionType: {
     type: String,
     enum: ["outright", "instalment"],
