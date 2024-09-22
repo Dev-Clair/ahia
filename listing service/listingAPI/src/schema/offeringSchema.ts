@@ -5,8 +5,19 @@ import IOffering from "../interface/IOffering";
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
 const OfferingSchema: Schema<IOffering> = new Schema({
+  listing: {
+    type: Schema.Types.ObjectId,
+    ref: "Listing",
+    required: true,
+  },
   offeringType: {
     type: String,
+    required: true,
+  },
+  offeringCategory: {
+    type: String,
+    enum: ["economy", "premium", "luxury"],
+    set: (value: string) => value.toLowerCase(),
     required: true,
   },
   slug: {
@@ -62,15 +73,17 @@ const OfferingSchema: Schema<IOffering> = new Schema({
       default: undefined,
     },
   },
-  listing: {
-    type: Schema.Types.ObjectId,
-    ref: "Listing",
-    required: true,
-  },
-  promotion: {
-    type: Schema.Types.ObjectId,
-    ref: "Offering",
-    required: false,
+  featured: {
+    status: {
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+    },
+    type: {
+      type: String,
+      enum: ["basic", "plus", "prime"],
+      default: "basic",
+    },
   },
 });
 
@@ -110,15 +123,6 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
         .model("Listing")
         .findOneAndUpdate(
           { id: offering.listing },
-          { $pull: { offerings: offering._id } },
-          { new: false, session }
-        );
-
-      // Unlink promotion reference to offering
-      await mongoose
-        .model("Promotion")
-        .findOneAndUpdate(
-          { id: offering.promotion },
           { $pull: { offerings: offering._id } },
           { new: false, session }
         );

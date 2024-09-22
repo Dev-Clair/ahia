@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
+import SpaceSchema from "./spaceSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -19,30 +20,16 @@ const ListingSchema: Schema<IListing> = new Schema(
       // unique: true,
       required: false,
     },
-    listingType: {
-      type: String,
-      enum: ["lease", "sell", "reservation"],
-      required: true,
+    space: {
+      type: [SpaceSchema],
+      required: false,
     },
-    propertyCategory: {
+    category: {
       type: String,
       enum: ["residential", "commercial", "mixed"],
       set: (value: string) => value.toLowerCase(),
       required: true,
     },
-    propertyType: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
-    offerings: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Offering",
-        required: false,
-      },
-    ],
     address: {
       street: {
         type: String,
@@ -111,18 +98,6 @@ const ListingSchema: Schema<IListing> = new Schema(
         default: function () {
           return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
         },
-      },
-    },
-    featured: {
-      status: {
-        type: Boolean,
-        enum: [true, false],
-        default: false,
-      },
-      type: {
-        type: String,
-        enum: ["basic", "plus", "prime"],
-        default: "basic",
       },
     },
     promotion: {

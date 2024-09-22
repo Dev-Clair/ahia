@@ -1,7 +1,9 @@
 import { Document, Schema } from "mongoose";
 
 export default interface IOffering extends Document {
+  listing: Schema.Types.ObjectId;
   offeringType: string;
+  offeringCategory: "economy" | "premium" | "luxury";
   slug?: string;
   unitsAvailable: number;
   area: {
@@ -18,6 +20,8 @@ export default interface IOffering extends Document {
     images: string[];
     videos: string[];
   };
-  listing: Schema.Types.ObjectId;
-  promotion: Schema.Types.ObjectId;
+  featured: {
+    status: true | false;
+    type: "basic" | "plus" | "prime";
+  };
 }
