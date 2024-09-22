@@ -1,17 +1,17 @@
 import { Schema } from "mongoose";
-import IPaymentOptions from "./IPaymentoptions";
+import ISellOption from "./ISelloption";
 
 export default interface ISpace {
-  spaceType: "lease" | "sell" | "reservation";
+  space: "lease" | "sell" | "reservation";
   offerings: Schema.Types.ObjectId[];
   isNegotiable?: boolean;
-  rental: {
+  lease: {
     plan?: "monthly" | "quarterly" | "annually" | "mixed";
     termsAndConditions?: string[];
   };
-  booking: {
+  reservation: {
     plan?: "daily" | "extended";
     termsAndConditions?: string;
   };
-  paymentOptions?: [IPaymentOptions];
+  sell?: [ISellOption];
 }

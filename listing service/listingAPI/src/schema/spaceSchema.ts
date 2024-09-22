@@ -1,9 +1,9 @@
 import { Schema } from "mongoose";
 import ISpace from "../interface/ISpace";
-import PaymentOptionsSchema from "./paymentoptionsSchema";
+import SellOptionSchema from "./selloptionSchema";
 
 const SpaceSchema: Schema<ISpace> = new Schema({
-  spaceType: {
+  space: {
     type: String,
     enum: ["lease", "reservation", "sell"],
     required: true,
@@ -18,15 +18,15 @@ const SpaceSchema: Schema<ISpace> = new Schema({
   isNegotiable: {
     type: Boolean,
     required: function () {
-      return this.spaceType === "reservation" || this.spaceType === "sell";
+      return this.space === "reservation" || this.space === "sell";
     },
   },
-  rental: {
+  lease: {
     plan: {
       type: String,
       enum: ["monthly", "quarterly", "annually", "mixed"],
       required: function () {
-        return this.spaceType === "lease";
+        return this.space === "lease";
       },
     },
     termsAndConditions: {
@@ -34,12 +34,12 @@ const SpaceSchema: Schema<ISpace> = new Schema({
       required: false,
     },
   },
-  booking: {
+  reservation: {
     plan: {
       type: String,
       enum: ["daily", "extended", "mixed"],
       required: function () {
-        return this.spaceType === "reservation";
+        return this.space === "reservation";
       },
     },
     termsAndConditions: {
@@ -47,11 +47,11 @@ const SpaceSchema: Schema<ISpace> = new Schema({
       required: false,
     },
   },
-  paymentOptions: [
+  sell: [
     {
-      type: PaymentOptionsSchema,
+      type: SellOptionSchema,
       required: function () {
-        return this.spaceType === "sell";
+        return this.space === "sell";
       },
     },
   ],
