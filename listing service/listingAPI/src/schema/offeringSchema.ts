@@ -29,7 +29,7 @@ const OfferingSchema: Schema<IOffering> = new Schema({
     type: Number,
     required: true,
   },
-  area: {
+  averageArea: {
     size: {
       type: Number,
       required: true,
@@ -40,7 +40,7 @@ const OfferingSchema: Schema<IOffering> = new Schema({
       required: true,
     },
   },
-  price: {
+  averagePrice: {
     amount: {
       type: Number,
       required: true,
@@ -90,8 +90,9 @@ const OfferingSchema: Schema<IOffering> = new Schema({
 // Offering Schema Search Query Index
 OfferingSchema.index({
   offeringType: "text",
-  "area.size": 1,
-  "price.amount": 1,
+  offeringCategory: "text",
+  "averageArea.size": 1,
+  "averagePrice.amount": 1,
   status: "text",
 });
 
@@ -119,13 +120,15 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Unlink listing reference to offering
-      await mongoose
-        .model("Listing")
-        .findOneAndUpdate(
-          { id: offering.listing },
-          { $pull: { offerings: offering._id } },
-          { new: false, session }
-        );
+      await mongoose.model("Listing").findOneAndUpdate(
+        { id: offering.listing },
+        {
+          spaces: {
+            $pull: { offerings: offering._id },
+          },
+        },
+        { new: false, session }
+      );
     });
 
     next();

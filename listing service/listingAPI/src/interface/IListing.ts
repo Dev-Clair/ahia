@@ -5,7 +5,7 @@ export default interface IListing extends Document {
   name: string;
   description: string;
   slug?: string;
-  space?: [ISpace];
+  spaces?: [ISpace];
   category: "residential" | "commercial" | "mixed";
   address: {
     street: string;

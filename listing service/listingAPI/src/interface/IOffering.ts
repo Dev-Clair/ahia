@@ -6,11 +6,11 @@ export default interface IOffering extends Document {
   offeringCategory: "economy" | "premium" | "luxury";
   slug?: string;
   unitsAvailable: number;
-  area: {
+  averageArea: {
     size: number;
     unit: "sqm" | "sqft";
   };
-  price: {
+  averagePrice: {
     amount: number;
     currency: string;
   };

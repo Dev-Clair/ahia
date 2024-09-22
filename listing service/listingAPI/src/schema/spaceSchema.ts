@@ -57,4 +57,10 @@ const SpaceSchema: Schema<ISpace> = new Schema({
   ],
 });
 
+// Space Schema Search Query Index
+SpaceSchema.index({
+  space: "text",
+  offerings: 1,
+});
+
 export default SpaceSchema;

@@ -3,7 +3,7 @@ import ISellOption from "./ISelloption";
 
 export default interface ISpace {
   space: "lease" | "sell" | "reservation";
-  offerings: Schema.Types.ObjectId[];
+  offerings?: Schema.Types.ObjectId[];
   isNegotiable?: boolean;
   lease: {
     plan?: "monthly" | "quarterly" | "annually" | "mixed";

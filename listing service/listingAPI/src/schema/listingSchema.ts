@@ -20,7 +20,7 @@ const ListingSchema: Schema<IListing> = new Schema(
       // unique: true,
       required: false,
     },
-    space: {
+    spaces: {
       type: [SpaceSchema],
       required: false,
     },
@@ -113,7 +113,8 @@ const ListingSchema: Schema<IListing> = new Schema(
 ListingSchema.index({
   name: "text",
   description: "text",
-  offerings: 1,
+  "spaces.space": "text",
+  "spaces.offerings": 1,
   location: "2dsphere",
 });
 
