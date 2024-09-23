@@ -13,10 +13,7 @@ import Offering from "../model/offeringModel";
  * @method findOfferingBySlug
  */
 export default abstract class ListingRepository {
-  public static LISTING_COLLECTION_PROJECTION = [
-    "-verification",
-    "-provider.email",
-  ];
+  static LISTING_COLLECTION_PROJECTION = ["-verification", "-provider.email"];
 
   static LISTING_ITEM_PROJECTION = {
     verification: 0,
