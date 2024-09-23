@@ -113,13 +113,21 @@ const ListingSchema: Schema<IListing> = new Schema(
 ListingSchema.index({
   name: "text",
   description: "text",
-  "spaces.space": "text",
-  "spaces.offerings": 1,
   location: "2dsphere",
 });
 
 // Listing Schema Middleware
 ListingSchema.pre("save", function (next) {
+  if (this.isNew) {
+    if (this.spaces.length === 0) {
+      this.spaces = [
+        { space: "lease" },
+        { space: "reservation" },
+        { space: "sell" },
+      ];
+    }
+  }
+
   if (this.isModified("name")) {
     this.slug = slugify(this.name, {
       replacement: "-",
