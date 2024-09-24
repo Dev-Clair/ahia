@@ -1,11 +1,11 @@
 import { Document, Schema } from "mongoose";
-import ISpace from "./ISpace";
+import IAsset from "./IAsset";
 
 export default interface IListing extends Document {
   name: string;
   description: string;
   slug?: string;
-  spaces: ISpace[];
+  asset: IAsset[];
   category: "residential" | "commercial" | "mixed";
   address: {
     street: string;
@@ -14,20 +14,20 @@ export default interface IListing extends Document {
     state: string;
   };
   location: {
-    type?: string;
-    geoCoordinates?: number[];
+    type: string;
+    geoCoordinates: number[];
   };
   provider: {
     id: string;
     email: string;
   };
   media: {
-    image?: string;
-    video?: string;
+    image: string;
+    video: string;
   };
   verification: {
-    status?: boolean;
-    expiry?: Date;
+    status: boolean;
+    expiry: Date;
   };
   promotion?: Schema.Types.ObjectId;
 }

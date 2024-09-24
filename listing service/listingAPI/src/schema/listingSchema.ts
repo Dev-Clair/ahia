@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
-import SpaceSchema from "./spaceSchema";
+import AssetSchema from "./assetSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -20,8 +20,8 @@ const ListingSchema: Schema<IListing> = new Schema(
       // unique: true,
       required: false,
     },
-    spaces: {
-      type: [SpaceSchema],
+    asset: {
+      type: [AssetSchema],
       required: false,
     },
     category: {
@@ -119,12 +119,8 @@ ListingSchema.index({
 // Listing Schema Middleware
 ListingSchema.pre("save", function (next) {
   if (this.isNew) {
-    if (this.spaces.length === 0) {
-      this.spaces = [
-        { space: "lease" },
-        { space: "reservation" },
-        { space: "sell" },
-      ];
+    if (this.asset.length === 0) {
+      this.asset = [{ assetType: "land" }, { assetType: "property" }];
     }
   }
 
