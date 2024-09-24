@@ -1,35 +1,32 @@
 import { Schema } from "mongoose";
-import ILeaseOffering from "../interface/ILeaseOffering";
+import ILeaseOffering from "../interface/ILeaseoffering";
 
-const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema(
-  {
-    isNegotiable: {
-      type: Boolean,
+const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
+  isNegotiable: {
+    type: Boolean,
+    required: false,
+  },
+  lease: {
+    plan: {
+      type: String,
+      enum: ["monthly", "quarterly", "annually"],
+      required: true,
+    },
+    termsAndConditions: {
+      type: [String],
       required: false,
     },
-    lease: {
-      plan: {
-        type: String,
-        enum: ["monthly", "quarterly", "annually", "mixed"],
-        required: true,
-      },
-      termsAndConditions: {
-        type: [String],
-        required: false,
-      },
+  },
+  price: {
+    amount: {
+      type: Number,
+      required: true,
     },
-    price: {
-      amount: {
-        type: Number,
-        required: true,
-      },
-      currency: {
-        type: String,
-        required: true,
-      },
+    currency: {
+      type: String,
+      required: true,
     },
   },
-  { _id: false, versionKey: false }
-);
+});
 
 export default LeaseOfferingSchema;

@@ -3,7 +3,7 @@ import IOffering from "./IOffering";
 export default interface ILeaseOffering extends IOffering {
   isNegotiable?: boolean;
   lease: {
-    plan: "monthly" | "quarterly" | "annually" | "mixed";
+    plan: "monthly" | "quarterly" | "annually";
     termsAndConditions?: string[];
   };
   price: {
