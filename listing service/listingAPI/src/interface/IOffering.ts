@@ -2,19 +2,16 @@ import { Document, Schema } from "mongoose";
 
 export default interface IOffering extends Document {
   listing: Schema.Types.ObjectId;
-  offeringType: string;
+  name: string;
+  offeringType: "lease" | "reservation" | "sell";
   offeringCategory: "economy" | "premium" | "luxury";
   slug?: string;
-  unitsAvailable: number;
-  averageArea: {
+  quantity: number;
+  area: {
     size: number;
     unit: "sqm" | "sqft";
   };
-  averagePrice: {
-    amount: number;
-    currency: string;
-  };
-  features: string[];
+  amenities: string[];
   status: "open" | "closed";
   media: {
     images: string[];
