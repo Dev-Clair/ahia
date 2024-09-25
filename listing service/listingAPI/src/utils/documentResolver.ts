@@ -1,7 +1,9 @@
 import NotFoundError from "../error/notfoundError";
 import IListing from "../interface/IListing";
+import IOffering from "../interface/IOffering";
 import LeaseService from "../service/leaseService";
 import ListingService from "../service/listingService";
+import OfferingService from "../service/offeringService";
 import ReservationService from "../service/reservationService";
 import SellService from "../service/sellService";
 
@@ -11,7 +13,7 @@ class DocumentValueResolver {
   /**
    * Resolves a document by its id or slug
    * @param paramValue - The name of the route parameter (e.g., 'id' or 'slug')
-   * @param serviceName - The name of the service to resolve the listing
+   * @param serviceName - The name of the service to resolve the document
    * @returns Promise that resolves to the listing and its associated service
    */
   public async Resolve() {
@@ -21,10 +23,13 @@ class DocumentValueResolver {
   /**
    * Selects and returns the appropriate service based on the service name
    * @param serviceName - The name of the service to resolve (e.g., 'lease', 'reservation', 'sell')
-   * @returns ListingService instance
+   * @returns ListingService or offeringService instance
    */
-  private ServiceFactory(): ListingService {
+  private ServiceFactory(): ListingService | OfferingService {
     switch (this.serviceName) {
+      case "listing":
+        return ListingService.Create();
+
       case "lease":
         return LeaseService.Create();
 
@@ -44,20 +49,31 @@ class DocumentValueResolver {
    * @param paramValue - The id or slug to resolve
    * @param service - The service to use for resolution
    * @throws NotFoundError
-   * @returns A promise resolving to an object containing the listing and service
+   * @returns A promise resolving to an object containing the document and service
    */
   private async ResolveDocument(
     paramValue: string,
-    service: ListingService
-  ): Promise<{ listing: IListing; service: ListingService }> {
-    const listing =
-      (await service.findById(paramValue)) ??
-      (await service.findBySlug(paramValue));
+    service: ListingService | OfferingService
+  ): Promise<{
+    document: IListing | IOffering;
+    service: ListingService | OfferingService;
+  }> {
+    let document;
 
-    if (!listing)
-      throw new NotFoundError(`No record found for listing: ${paramValue}`);
+    if (service instanceof ListingService)
+      document =
+        (await service.findById(paramValue)) ??
+        (await service.findBySlug(paramValue));
 
-    return { listing, service };
+    if (service instanceof OfferingService)
+      document =
+        (await service.findById(paramValue)) ??
+        (await service.findBySlug(paramValue));
+
+    if (!document)
+      throw new NotFoundError(`No document found for: ${paramValue}`);
+
+    return { document, service };
   }
 
   /**
