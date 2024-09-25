@@ -1,19 +1,15 @@
-import mongoose, { ObjectId } from "mongoose";
-import FailureRetry from "../utils/failureRetry";
-import IdempotencyManager from "../utils/idempotencyManager";
 import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
-import Listing from "../model/listingModel";
-import Offering from "../model/offeringModel";
+import ListingRepository from "../repository/listingRepository";
 
 /**
  * Listing Service
- * @abstract findAll
- * @abstract findById
- * @abstract findBySlug
- * @abstract save
- * @abstract update
- * @abstract delete
+ * @method findAll
+ * @method findById
+ * @method findBySlug
+ * @method save
+ * @method update
+ * @method delete
  * @method findListingsByOffering
  * @method findOfferingById
  * @method findOfferingBySlug
@@ -21,183 +17,113 @@ import Offering from "../model/offeringModel";
  * @method updateOffering
  * @method deleteOffering
  */
-export default abstract class ListingService {
+export default class ListingService {
   /** Retrieves a collection of listings
    * @public
-   * @param queryString query filter object
+   * @param queryString query object
    * @returns Promise<IListing[]>
    */
-  abstract findAll(queryString?: Record<string, any>): Promise<IListing[]>;
+  async findAll(queryString?: Record<string, any>): Promise<IListing[]> {
+    return await ListingRepository.Create().findAll(queryString);
+  }
 
-  /** Retrieves a listing record using its id
+  /** Retrieves a listing by id
    * @public
    * @param id the ObjectId of the document to find
+   * @param asset the asset type of the document to find
+   * @param page the ordered set to retrieve per query
+   * @param limit the number of subdocuments to retrieve per query
    * @returns Promise<IListing | null>
    */
-  abstract findById(id: string): Promise<IListing | null>;
+  async findById(
+    id: string,
+    asset: string,
+    page?: number,
+    limit?: number
+  ): Promise<IListing | null> {
+    return await ListingRepository.Create().findById(id, asset, page, limit);
+  }
 
-  /** Retrieves a listing record using its slug
+  /** Retrieves a listing by slug
    * @public
    * @param slug the slug of the document to find
+   * @param asset the asset type of the document to find
+   * @param page the ordered set to retrieve per query
+   * @param limit the number of subdocuments to retrieve per query
    * @returns Promise<IListing | null>
    */
-  abstract findBySlug(slug: string): Promise<IListing | null>;
+  async findBySlug(
+    slug: string,
+    asset: string,
+    page?: number,
+    limit?: number
+  ): Promise<IListing | null> {
+    return await ListingRepository.Create().findBySlug(
+      slug,
+      asset,
+      page,
+      limit
+    );
+  }
 
   /**
-   * Creates a new listing record in collection
+   * Creates a new listing collection
    * @public
    * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @returns Promise<void>
+   * @returns Promise<IListing>
    */
-  abstract save(key: string, data: Partial<IListing>): Promise<void>;
+  async save(key: string, payload: Partial<IListing>): Promise<IListing> {
+    return await ListingRepository.Create().save(key, payload);
+  }
 
   /**
-   * Updates a listing record using its id
+   * Updates a listing by id
    * @public
    * @param id the ObjectId of the document to update
    * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @returns Promise<any>
+   * @returns Promise<IListing>
    */
-  abstract update(
+  async update(
     id: string,
     key: string,
-    data?: Partial<IListing | any>
-  ): Promise<any>;
+    payload: Partial<IListing>
+  ): Promise<IListing> {
+    return await ListingRepository.Create().update(id, key, payload);
+  }
 
   /**
-   * Deletes a listing record using its id
+   * Deletes a listing by id
    * @public
    * @param id the ObjectId of the document to delete
-   * @returns Promise<any>
+   * @returns Promise<IListing>
    */
-  abstract delete(id: string): Promise<any>;
-
-  /** Retrieves a collection of listings based on offerings
-   * that match search filter/criteria
-   * @public
-   * @param searchFilter query filter object
-   * @returns Promise<IListing[]>
-   */
-  public async findListingsByOffering(searchFilter: {
-    minArea?: number;
-    maxArea?: number;
-    name?: string;
-    minPrice?: number;
-    maxPrice?: number;
-  }): Promise<IListing[]> {
-    const { minArea, maxArea, name, minPrice, maxPrice } = searchFilter;
-
-    //Build the query for offerings
-    const query: Record<string, any> = {};
-
-    // Filtering by name using a case-insensitive regex
-    if (name !== undefined) {
-      query.offeringType = { $regex: name, $options: "i" };
-    }
-
-    // Filtering by area size
-    if (minArea !== undefined || maxArea !== undefined) {
-      query["area.size"] = {};
-
-      if (minArea !== undefined) query["area.size"].$gte = minArea;
-
-      if (maxArea !== undefined) query["area.size"].$lte = maxArea;
-    }
-
-    // Filtering by price amount
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      query["price.amount"] = {};
-
-      if (minPrice !== undefined) query["price.amount"].$gte = minPrice;
-
-      if (maxPrice !== undefined) query["price.amount"].$lte = maxPrice;
-    }
-
-    // Projection to retrieve only offering IDs
-    const projection = { _id: 1 };
-
-    const operation = async () => {
-      // Find offering IDs based on the criteria
-      const offerings = await Offering.find(query, projection).exec();
-
-      const offeringIds = offerings.map((offering) => offering._id);
-
-      if (!Array.isArray(offeringIds) || offeringIds.length === 0) {
-        return []; // Defaults to an empty array if no matching offerings are found
-      }
-
-      // Find listings that contain these offering IDs
-      const listings = await this.findAll({ offerings: { $in: offeringIds } });
-      return listings;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
-  }
-
-  /** Retrieves a listing offering using its id
-   * @public
-   * @param id the ObjectId of the document to find
-   * @returns Promise<IOffering | null>
-   */
-  async findOfferingById(id: string): Promise<IOffering | null> {
-    const projection = { createdAt: 0, updatedAt: 0, __v: 0 };
-
-    const operation = async () => {
-      const offering = await Offering.findOne({ _id: id }, projection);
-
-      return offering;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
-  }
-
-  /** Retrieves a listing offering using its slug
-   * @public
-   * @param slug the slug of the document to find
-   * @returns Promise<IOffering | null>
-   */
-  async findOfferingBySlug(slug: string): Promise<IOffering | null> {
-    const projection = { createdAt: 0, updatedAt: 0, __v: 0 };
-
-    const operation = async () => {
-      const offering = await Offering.findOne({ slug: slug }, projection);
-
-      return offering;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+  async delete(id: string): Promise<IListing> {
+    return await ListingRepository.Create().delete(id);
   }
 
   /**
    * Creates a new offering on a listing
    * @public
    * @param key the unique idempotency key for the operation
+   * @param asset the listing asset type
    * @param payload the data object
    * @param listingId listing id
    * @returns Promise<void>
    */
   public async saveOffering(
     key: string,
+    asset: string,
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
   ): Promise<void> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      const offering = await Offering.create([payload], { session: session });
-
-      await IdempotencyManager.Create(key, session);
-
-      await Listing.findOneAndUpdate(
-        { _id: listingId },
-        { $addToSet: { offerings: (offering as any)._id as ObjectId } },
-        { new: true, session }
-      );
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    return await ListingRepository.Create().saveOffering(
+      key,
+      asset,
+      payload,
+      listingId
+    );
   }
 
   /**
@@ -211,45 +137,36 @@ export default abstract class ListingService {
   public async updateOffering(
     id: string,
     key: string,
-    data: Partial<IOffering>
+    payload: Partial<IOffering>
   ): Promise<void> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      await Offering.findByIdAndUpdate({ _id: id }, data, { session });
-
-      await IdempotencyManager.Create(key, session);
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    return ListingRepository.Create().updateOffering(id, key, payload);
   }
 
   /**
    * Deletes a listing offering
    * @public
-   * @param offeringId the ObjectId of the document to delete
-   * @param listingId the ObjectId of the document to delete
+   * @param asset the listing asset type
+   * @param offeringId the ObjectId of the offering document to delete
+   * @param listingId the ObjectId of the listing document to delete
    * @returns Promise<void>
    */
   public async deleteOffering(
+    asset: string,
     offeringId: string,
     listingId: string
   ): Promise<void> {
-    const session = await mongoose.startSession();
+    return ListingRepository.Create().deleteOffering(
+      asset,
+      offeringId,
+      listingId
+    );
+  }
 
-    const operation = session.withTransaction(async () => {
-      const offering = (await Offering.findByIdAndDelete(
-        { _id: offeringId },
-        session
-      )) as IOffering;
-
-      await Listing.findOneAndUpdate(
-        { _id: listingId },
-        { $pull: { offerings: offering._id } },
-        { session }
-      );
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+  /**
+   * Creates and returns a new instance of the ListingService class
+   * @returns ListingService
+   */
+  static Create(): ListingService {
+    return new ListingService();
   }
 }

@@ -1,175 +1,73 @@
-import mongoose from "mongoose";
-import FailureRetry from "../utils/failureRetry";
-import IdempotencyManager from "../utils/idempotencyManager";
-import ISell from "../interface/ISell";
-import ListingService from "./listingService";
-import { QueryBuilder } from "../utils/queryBuilder";
-import Sell from "../model/sellModel";
+import ISellOffering from "../interface/ISelloffering";
+import SellRepository from "../repository/sellRepository";
+import OfferingService from "./offeringService";
 
-export default class SellService extends ListingService {
-  /** Retrieves a collection of listing for sell
+export default class SellService extends OfferingService {
+  /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
-   * @returns Promise<ISell[]>
+   * @returns Promise<ISellOffering[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<ISell[]> {
-    const operation = async () => {
-      const query = Sell.find();
-
-      const filter = {
-        ...queryString,
-        listingType: "Sell",
-        // verification: { status: true },
-      };
-
-      const projection = ["-verification -provider.email"];
-
-      const queryBuilder = QueryBuilder.Create(query, filter);
-
-      const data = (
-        await queryBuilder
-          .GeoNear()
-          .Filter()
-          .Sort()
-          .Select(projection)
-          .Paginate()
-      ).Exec();
-
-      return data;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+  async findAll(queryString?: Record<string, any>): Promise<ISellOffering[]> {
+    return await SellRepository.Create().findAll(queryString);
   }
 
-  /** Retrieves a sell listing using its id
+  /** Retrieves an offering by id
    * @public
    * @param id the ObjectId of the document to find
-   * @returns Promise<ISell | null>
+   * @returns Promise<ISellOffering | null>
    */
-  async findById(id: string): Promise<ISell | null> {
-    const projection = {
-      verification: 0,
-      "provider.email": 0,
-      createdAt: 0,
-      updatedAt: 0,
-      __v: 0,
-    };
-
-    const operation = async () => {
-      const listing = await Sell.findOne(
-        {
-          _id: id,
-          listingType: "Sell",
-          // verification: { status: true },
-        },
-        projection
-      )
-        .populate({ path: "offerings" })
-        .exec();
-
-      return listing;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+  async findById(id: string): Promise<ISellOffering | null> {
+    return await SellRepository.Create().findById(id);
   }
 
-  /** Retrieves a sell listing using its slug
+  /** Retrieves an offering by slug
    * @public
    * @param slug the slug of the document to find
-   * @returns Promise<ISell | null>
+   * @returns Promise<ISellOffering | null>
    */
-  async findBySlug(slug: string): Promise<ISell | null> {
-    const projection = {
-      verification: 0,
-      "provider.email": 0,
-      createdAt: 0,
-      updatedAt: 0,
-      __v: 0,
-    };
-
-    const operation = async () => {
-      const listing = await Sell.findOne(
-        {
-          slug: slug,
-          listingType: "Sell",
-          // verification: { status: true },
-        },
-        projection
-      )
-        .populate({ path: "offerings" })
-        .exec();
-
-      return listing;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+  async findBySlug(slug: string): Promise<ISellOffering | null> {
+    return await SellRepository.Create().findBySlug(slug);
   }
 
   /**
-   * Creates a new sell listing in collection
+   * Creates a new offering in collection
    * @public
    * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @returns Promise<void>
+   * @returns Promise<ISellOffering>
    */
-  async save(key: string, payload: Partial<ISell>): Promise<void> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      await Sell.create([payload], { session: session });
-
-      await IdempotencyManager.Create(key, session);
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+  async save(
+    key: string,
+    payload: Partial<ISellOffering>
+  ): Promise<ISellOffering> {
+    return await SellRepository.Create().save(key, payload);
   }
 
   /**
-   * Updates a sell listing using its id
+   * Updates a offering by id
    * @public
    * @param id the ObjectId of the document to update
    * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @returns Promise<any>
+   * @returns Promise<ISellOffering>
    */
   async update(
     id: string,
     key: string,
-    payload?: Partial<ISell | any>
-  ): Promise<any> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      const listing = await Sell.findByIdAndUpdate({ _id: id }, payload, {
-        new: true,
-        projection: id,
-        session,
-      });
-
-      const val = await IdempotencyManager.Create(key, session);
-
-      return listing;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    payload: Partial<ISellOffering>
+  ): Promise<ISellOffering> {
+    return await SellRepository.Create().update(id, key, payload);
   }
 
   /**
-   * Deletes a sell listing using its id
+   * Deletes a offering by id
    * @public
    * @param id the ObjectId of the document to delete
-   * @returns Promise<any>
+   * @returns Promise<ISellOffering>
    */
-  async delete(id: string): Promise<any> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      const listing = await Sell.findByIdAndDelete({ _id: id }, session);
-
-      return listing;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+  async delete(id: string): Promise<ISellOffering> {
+    return await SellRepository.Create().delete(id);
   }
 
   /**

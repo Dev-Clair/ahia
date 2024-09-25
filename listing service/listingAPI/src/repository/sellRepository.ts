@@ -1,24 +1,22 @@
+import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import IListing from "../interface/IListing";
-import Listing from "../model/listingModel";
-import ListingRepository from "./listingRepository";
+import IdempotencyManager from "../utils/idempotencyManager";
+import ISellOffering from "../interface/ISelloffering";
+import Sell from "../model/sellModel";
+import OfferingRepository from "./offeringRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
 
-export default class SellRepository extends ListingRepository {
-  /** Retrieves a collection of listings for sell
+export default class SellRepository extends OfferingRepository {
+  /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
-   * @returns Promise<IListing[]>
+   * @returns Promise<ISellOffering[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<IListing[]> {
+  async findAll(queryString?: Record<string, any>): Promise<ISellOffering[]> {
     const operation = async () => {
-      const query = Listing.find();
+      const query = Sell.find();
 
-      const filter = {
-        spaces: { $elemMatch: { space: "sell" } },
-        ...queryString,
-        // verification: { status: true },
-      };
+      const filter = { ...queryString, type: "sell" };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
@@ -26,8 +24,8 @@ export default class SellRepository extends ListingRepository {
         await queryBuilder
           .GeoNear()
           .Filter()
-          .Sort()
-          .Select(SellRepository.LISTING_COLLECTION_PROJECTION)
+          .Sort(SellRepository.SORT_OFFERINGS)
+          .Select(SellRepository.OFFERINGS_PROJECTION)
           .Paginate()
       ).Exec();
 
@@ -37,103 +35,112 @@ export default class SellRepository extends ListingRepository {
     return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
-  /** Retrieves a sell listing using its id
+  /** Retrieves an offering by id
    * @public
    * @param id the ObjectId of the document to find
-   * @param page the ordered set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
-   * @returns Promise<IListing | null>
+   * @returns Promise<ISellOffering | null>
    */
-  async findById(
-    id: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<IListing | null> {
+  async findById(id: string): Promise<ISellOffering | null> {
     const operation = async () => {
-      const listing = await Listing.findOne(
-        {
-          _id: id,
-          // verification: { status: true },
-        },
-        SellRepository.LISTING_ITEM_PROJECTION
-      )
-        .populate({
-          path: "spaces.offerings",
-          match: { "spaces.space": "sell" },
-          model: "Offering",
-          select: SellRepository.OFFERING_ITEM_PROJECTION,
-          options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
-          },
-        })
-        .exec();
+      const offering = await Sell.findOne(
+        { _id: id, type: "sell" },
+        SellRepository.OFFERING_PROJECTION
+      ).exec();
 
-      return listing;
+      return offering;
     };
 
     return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
-  /** Retrieves a sell listing using its slug
+  /** Retrieves an offering its slug
    * @public
    * @param slug the slug of the document to find
-   * @param page the ordered set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
-   * @returns Promise<IListing | null>
+   * @returns Promise<ISellOffering | null>
    */
-  async findBySlug(
-    slug: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<IListing | null> {
-    const projection = {
-      listing: {
-        verification: 0,
-        "provider.email": 0,
-        createdAt: 0,
-        updatedAt: 0,
-        __v: 0,
-      },
-      offering: {
-        createdAt: 0,
-        updatedAt: 0,
-        __v: 0,
-      },
-    };
-
+  async findBySlug(slug: string): Promise<ISellOffering | null> {
     const operation = async () => {
-      const listing = await Listing.findOne(
+      const offering = await Sell.findOne(
         {
           slug: slug,
-          // verification: { status: true },
+          type: "sell",
         },
-        projection.listing
-      )
-        .populate({
-          path: "spaces.offerings",
-          match: { "spaces.space": "sell" },
-          model: "Offering",
-          select: projection.offering,
-          options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
-          },
-        })
-        .exec();
+        SellRepository.OFFERING_PROJECTION
+      ).exec();
 
-      return listing;
+      return offering;
     };
 
     return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
+  /**
+   * Creates a new offering in collection
+   * @public
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
+   * @param listingId listing id
+   * @returns Promise<void>
+   */
+  public async save(
+    key: string,
+    payload: Partial<ISellOffering>
+  ): Promise<ISellOffering> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const offering = await Sell.create([payload], {
+        session: session,
+      });
+
+      await IdempotencyManager.Create(key, session);
+
+      return offering;
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
+
+  /**
+   * Updates a listing offering by id
+   * @public
+   * @param id the ObjectId of the document to update
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
+   * @returns Promise<ISellOffering>
+   */
+  public async update(
+    id: string,
+    key: string,
+    payload: Partial<ISellOffering>
+  ): Promise<ISellOffering> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      await Sell.findByIdAndUpdate({ _id: id }, payload, { session });
+
+      await IdempotencyManager.Create(key, session);
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
+
+  /**
+   * Deletes an offering by id
+   * @public
+   * @param id the ObjectId of the listing document to delete
+   * @returns Promise<ISellOffering>
+   */
+  public async delete(id: string): Promise<ISellOffering> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const offering = await Sell.findByIdAndDelete({ _id: id }, session);
+
+      return offering;
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
   }
 
   /**

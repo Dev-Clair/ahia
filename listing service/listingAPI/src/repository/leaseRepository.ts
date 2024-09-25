@@ -1,24 +1,22 @@
+import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import IListing from "../interface/IListing";
-import Listing from "../model/listingModel";
-import ListingRepository from "./listingRepository";
+import IdempotencyManager from "../utils/idempotencyManager";
+import ILeaseOffering from "../interface/ILeaseoffering";
+import Lease from "../model/leaseModel";
+import OfferingRepository from "./offeringRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
 
-export default class LeaseRepository extends ListingRepository {
-  /** Retrieves a collection of listings for lease
+export default class LeaseRepository extends OfferingRepository {
+  /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
-   * @returns Promise<IListing[]>
+   * @returns Promise<ILeaseOffering[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<IListing[]> {
+  async findAll(queryString?: Record<string, any>): Promise<ILeaseOffering[]> {
     const operation = async () => {
-      const query = Listing.find();
+      const query = Lease.find();
 
-      const filter = {
-        spaces: { $elemMatch: { space: "lease" } },
-        ...queryString,
-        // verification: { status: true },
-      };
+      const filter = { ...queryString, type: "lease" };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
@@ -26,8 +24,8 @@ export default class LeaseRepository extends ListingRepository {
         await queryBuilder
           .GeoNear()
           .Filter()
-          .Sort()
-          .Select(LeaseRepository.LISTING_COLLECTION_PROJECTION)
+          .Sort(LeaseRepository.SORT_OFFERINGS)
+          .Select(LeaseRepository.OFFERINGS_PROJECTION)
           .Paginate()
       ).Exec();
 
@@ -37,88 +35,110 @@ export default class LeaseRepository extends ListingRepository {
     return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
-  /** Retrieves a lease listing using its id
+  /** Retrieves an offering by id
    * @public
    * @param id the ObjectId of the document to find
-   * @param page the ordered set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
-   * @returns Promise<IListing | null>
+   * @returns Promise<ILeaseOffering | null>
    */
-  async findById(
-    id: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<IListing | null> {
+  async findById(id: string): Promise<ILeaseOffering | null> {
     const operation = async () => {
-      const listing = await Listing.findOne(
-        {
-          _id: id,
-          // verification: { status: true },
-        },
-        LeaseRepository.LISTING_ITEM_PROJECTION
-      )
-        .populate({
-          path: "spaces.offerings",
-          match: { "spaces.space": "lease" },
-          model: "Offering",
-          select: LeaseRepository.OFFERING_ITEM_PROJECTION,
-          options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
-          },
-        })
-        .exec();
+      const offering = await Lease.findOne(
+        { _id: id, type: "lease" },
+        LeaseRepository.OFFERING_PROJECTION
+      ).exec();
 
-      return listing;
+      return offering;
     };
 
     return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
-  /** Retrieves a lease listing using its slug
+  /** Retrieves an offering its slug
    * @public
    * @param slug the slug of the document to find
-   * @param page the ordered set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
-   * @returns Promise<IListing | null>
+   * @returns Promise<ILeaseOffering | null>
    */
-  async findBySlug(
-    slug: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<IListing | null> {
+  async findBySlug(slug: string): Promise<ILeaseOffering | null> {
     const operation = async () => {
-      const listing = await Listing.findOne(
+      const offering = await Lease.findOne(
         {
           slug: slug,
-          // verification: { status: true },
+          type: "lease",
         },
-        LeaseRepository.LISTING_ITEM_PROJECTION
-      )
-        .populate({
-          path: "spaces.offerings",
-          match: { "spaces.space": "lease" },
-          model: "Offering",
-          select: LeaseRepository.OFFERING_ITEM_PROJECTION,
-          options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
-          },
-        })
-        .exec();
+        LeaseRepository.OFFERING_PROJECTION
+      ).exec();
 
-      return listing;
+      return offering;
     };
 
     return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
+  /**
+   * Creates a new offering in collection
+   * @public
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
+   * @param listingId listing id
+   * @returns Promise<void>
+   */
+  public async save(
+    key: string,
+    payload: Partial<ILeaseOffering>
+  ): Promise<ILeaseOffering> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const offering = await Lease.create([payload], { session: session });
+
+      await IdempotencyManager.Create(key, session);
+
+      return offering;
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
+
+  /**
+   * Updates a listing offering by id
+   * @public
+   * @param id the ObjectId of the document to update
+   * @param key the unique idempotency key for the operation
+   * @param payload the data object
+   * @returns Promise<ILeaseOffering>
+   */
+  public async update(
+    id: string,
+    key: string,
+    payload: Partial<ILeaseOffering>
+  ): Promise<ILeaseOffering> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      await Lease.findByIdAndUpdate({ _id: id }, payload, { session });
+
+      await IdempotencyManager.Create(key, session);
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
+  }
+
+  /**
+   * Deletes an offering by id
+   * @public
+   * @param id the ObjectId of the listing document to delete
+   * @returns Promise<ILeaseOffering>
+   */
+  public async delete(id: string): Promise<ILeaseOffering> {
+    const session = await mongoose.startSession();
+
+    const operation = session.withTransaction(async () => {
+      const offering = await Lease.findByIdAndDelete({ _id: id }, session);
+
+      return offering;
+    });
+
+    return await FailureRetry.ExponentialBackoff(() => operation);
   }
 
   /**

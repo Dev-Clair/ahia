@@ -1,178 +1,73 @@
-import mongoose from "mongoose";
-import FailureRetry from "../utils/failureRetry";
-import IdempotencyManager from "../utils/idempotencyManager";
-import ILease from "../interface/ILease";
-import Lease from "../model/leaseModel";
-import ListingService from "./listingService";
-import { QueryBuilder } from "../utils/queryBuilder";
+import ILeaseOffering from "../interface/ILeaseoffering";
+import LeaseRepository from "../repository/leaseRepository";
+import OfferingService from "./offeringService";
 
-export default class LeaseService extends ListingService {
-  /** Retrieves a collection of listings for lease
+export default class LeaseService extends OfferingService {
+  /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
-   * @returns Promise<ILease[]>
+   * @returns Promise<ILeaseOffering[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<ILease[]> {
-    const operation = async () => {
-      const query = Lease.find();
-
-      const filter = {
-        ...queryString,
-        listingType: "Lease",
-        // verification: { status: true },
-      };
-
-      const projection = ["-verification -provider.email"];
-
-      const queryBuilder = QueryBuilder.Create(query, filter);
-
-      const data = (
-        await queryBuilder
-          .GeoNear()
-          .Filter()
-          .Sort()
-          .Select(projection)
-          .Paginate()
-      ).Exec();
-
-      return data;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+  async findAll(queryString?: Record<string, any>): Promise<ILeaseOffering[]> {
+    return await LeaseRepository.Create().findAll(queryString);
   }
 
-  /** Retrieves a lease listing using its id
+  /** Retrieves an offering by id
    * @public
    * @param id the ObjectId of the document to find
-   * @returns Promise<ILease | null>
+   * @returns Promise<ILeaseOffering | null>
    */
-  async findById(id: string): Promise<ILease | null> {
-    const projection = {
-      verification: 0,
-      "provider.email": 0,
-      createdAt: 0,
-      updatedAt: 0,
-      __v: 0,
-    };
-
-    const operation = async () => {
-      const listing = await Lease.findOne(
-        {
-          _id: id,
-          listingType: "Lease",
-          // verification: { status: true },
-        },
-        projection
-      )
-        .populate({ path: "offerings" })
-        .exec();
-
-      return listing;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+  async findById(id: string): Promise<ILeaseOffering | null> {
+    return await LeaseRepository.Create().findById(id);
   }
 
-  /** Retrieves a lease listing using its slug
+  /** Retrieves an offering by slug
    * @public
    * @param slug the slug of the document to find
-   * @returns Promise<ILease | null>
+   * @returns Promise<ILeaseOffering | null>
    */
-  async findBySlug(slug: string): Promise<ILease | null> {
-    const projection = {
-      verification: 0,
-      "provider.email": 0,
-      createdAt: 0,
-      updatedAt: 0,
-      __v: 0,
-    };
-
-    const operation = async () => {
-      const listing = await Lease.findOne(
-        {
-          slug: slug,
-          listingType: "Lease",
-          // verification: { status: true },
-        },
-        projection
-      )
-        .populate({ path: "offerings" })
-        .exec();
-
-      return listing;
-    };
-
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+  async findBySlug(slug: string): Promise<ILeaseOffering | null> {
+    return await LeaseRepository.Create().findBySlug(slug);
   }
 
   /**
-   * Creates a new lease listing in collection
+   * Creates a new offering in collection
    * @public
    * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @returns Promise<void>
+   * @returns Promise<ILeaseOffering>
    */
-  async save(key: string, payload: Partial<ILease>): Promise<void> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      await Lease.create([payload], { session: session });
-
-      await IdempotencyManager.Create(key, session);
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+  async save(
+    key: string,
+    payload: Partial<ILeaseOffering>
+  ): Promise<ILeaseOffering> {
+    return await LeaseRepository.Create().save(key, payload);
   }
 
   /**
-   * Updates a lease listing using its id
+   * Updates an offering by id
    * @public
    * @param id the ObjectId of the document to update
    * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @returns Promise<any>
+   * @returns Promise<ILeaseOffering>
    */
   async update(
     id: string,
     key: string,
-    payload?: Partial<ILease | any>
-  ): Promise<any> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      const listing = await Lease.findByIdAndUpdate({ _id: id }, payload, {
-        new: true,
-        projection: id,
-        session,
-      });
-
-      const val = await IdempotencyManager.Create(key, session);
-
-      return listing;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    payload: Partial<ILeaseOffering>
+  ): Promise<ILeaseOffering> {
+    return await LeaseRepository.Create().update(id, key, payload);
   }
 
   /**
-   * Deletes a lease listing using its id
+   * Deletes an offering by id
    * @public
    * @param id the ObjectId of the document to delete
-   * @returns Promise<any>
+   * @returns Promise<ILeaseOffering>
    */
-  async delete(id: string): Promise<any> {
-    const session = await mongoose.startSession();
-
-    const operation = session.withTransaction(async () => {
-      const listing = await Lease.findByIdAndDelete(
-        { _id: id },
-        { projection: id, session: session }
-      );
-
-      return listing;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+  async delete(id: string): Promise<ILeaseOffering> {
+    return await LeaseRepository.Create().delete(id);
   }
 
   /**
