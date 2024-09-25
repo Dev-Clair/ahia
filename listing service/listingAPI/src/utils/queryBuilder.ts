@@ -103,17 +103,17 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query projection
-   * @param specifiedFields A string array of fileds to select
+   * @param selectFields A key-value pair of fields to select
    * @returns this
    */
-  public Select(specifiedFields: string[] = []): this {
-    const defaultFields = ["-__v", "-createdAt", "-updatedAt"];
+  public Select(selectFields: Record<string, any>): this {
+    const defaultSelectFields = { __v: 0, createdAt: 0, updatedAt: 0 };
 
     const fields = [
       this.queryString.fields,
-      ...specifiedFields,
-      ...defaultFields,
-    ].join(" ");
+      selectFields,
+      defaultSelectFields,
+    ].join();
 
     this.query = this.query.select(fields);
 
@@ -122,14 +122,17 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query sorting
+   * @param sortFields A key-value pair of fields to sort
    * @returns this
    */
-  public Sort(): this {
-    const defaultSortField = "-createdAt";
+  public Sort(sortFields: Record<string, any>): this {
+    const defaultSortField = { createdAt: -1 };
 
-    const sortBy = this.queryString.sort
-      ? this.queryString.sort.split(",").join(" ")
-      : defaultSortField;
+    const sortBy = [
+      this.queryString.fields,
+      sortFields,
+      defaultSortField,
+    ].join();
 
     this.query = this.query.sort(sortBy);
 
