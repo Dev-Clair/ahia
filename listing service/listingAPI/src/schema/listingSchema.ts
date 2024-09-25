@@ -24,12 +24,6 @@ const ListingSchema: Schema<IListing> = new Schema(
       type: [AssetSchema],
       required: false,
     },
-    category: {
-      type: String,
-      enum: ["residential", "commercial", "mixed"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
     address: {
       street: {
         type: String,

@@ -15,17 +15,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: false,
     },
-    offeringType: {
-      type: String,
-      enum: ["lease", "reservation", "sell"],
-      required: true,
-    },
-    offeringCategory: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
     slug: {
       type: String,
       // unique: true,
@@ -50,11 +39,36 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: [String],
       required: true,
     },
+    category: {
+      type: String,
+      enum: ["economy", "premium", "luxury"],
+      set: (value: string) => value.toLowerCase(),
+      required: true,
+    },
     status: {
       type: String,
       enum: ["open", "closed"],
       default: "open",
     },
+    type: {
+      type: String,
+      enum: ["lease", "reservation", "sell"],
+      required: true,
+    },
+    // use: {
+    //   type: String,
+    //   enum: [
+    //     "residential",
+    //     "commercial",
+    //     "industrial",
+    //     "institutional",
+    //     "agricultural",
+    //     "special",
+    //     "mixed",
+    //   ],
+    //   set: (value: string) => value.toLowerCase(),
+    //   required: true,
+    // },
     media: {
       images: {
         type: [String],
@@ -82,7 +96,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       },
     },
   },
-  { discriminatorKey: "offeringType" }
+  { discriminatorKey: "type" }
 );
 
 // Offering Schema Search Query Index

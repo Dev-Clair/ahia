@@ -6,7 +6,6 @@ export default interface IListing extends Document {
   description: string;
   slug?: string;
   asset: IAsset[];
-  category: "residential" | "commercial" | "mixed";
   address: {
     street: string;
     countyLGA: string;

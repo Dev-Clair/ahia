@@ -3,16 +3,23 @@ import { Document, Schema } from "mongoose";
 export default interface IOffering extends Document {
   listing: Schema.Types.ObjectId;
   name: string;
-  offeringType: "lease" | "reservation" | "sell";
-  offeringCategory: "economy" | "premium" | "luxury";
   slug?: string;
   quantity: number;
   area: {
     size: number;
     unit: "sqm" | "sqft";
   };
-  amenities: string[];
+  category: "economy" | "premium" | "luxury";
   status: "open" | "closed";
+  type: "lease" | "reservation" | "sell";
+  // use:
+  //   | "residential"
+  //   | "commercial"
+  //   | "industrial"
+  //   | "agricultural"
+  //   | "special"
+  //   | "mixed";
+  amenities: string[];
   media: {
     images: string[];
     videos: string[];
