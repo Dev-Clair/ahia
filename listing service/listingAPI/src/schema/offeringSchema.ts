@@ -35,7 +35,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         required: true,
       },
     },
-    amenities: {
+    features: {
       type: [String],
       required: true,
     },

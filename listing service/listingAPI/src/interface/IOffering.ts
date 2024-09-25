@@ -19,7 +19,7 @@ export default interface IOffering extends Document {
   //   | "agricultural"
   //   | "special"
   //   | "mixed";
-  amenities: string[];
+  features: string[];
   media: {
     images: string[];
     videos: string[];
