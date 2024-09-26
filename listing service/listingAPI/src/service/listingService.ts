@@ -11,6 +11,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method update
  * @method delete
  * @method findListingsByOffering
+ * @method findOfferings
  * @method findOfferingById
  * @method findOfferingBySlug
  * @method saveOffering
@@ -114,6 +115,29 @@ export default class ListingService {
     );
 
     return offerings;
+  }
+
+  /** Retrieves a listing offering by id
+   * @public
+   * @param id the offering ObjectId
+   * @param type offering type
+   * @returns Promise<IOffering | null>
+   */
+  async findOfferingById(id: string, type: string): Promise<IOffering | null> {
+    return await ListingRepository.Create().findOfferingBySlug(id, type);
+  }
+
+  /** Retrieves a listing offering by slug
+   * @public
+   * @param slug the offering slug
+   * @param type offering type
+   * @returns Promise<IOffering | null>
+   */
+  async findOfferingBySlug(
+    slug: string,
+    type: string
+  ): Promise<IOffering | null> {
+    return await ListingRepository.Create().findOfferingBySlug(slug, type);
   }
 
   /**
