@@ -1,11 +1,11 @@
 import { Document, Schema } from "mongoose";
-import IAsset from "./IAsset";
 
 export default interface IListing extends Document {
   name: string;
   description: string;
   slug?: string;
-  asset: IAsset[];
+  type: "property" | "land";
+  offerings?: Schema.Types.ObjectId[];
   address: {
     street: string;
     countyLGA: string;

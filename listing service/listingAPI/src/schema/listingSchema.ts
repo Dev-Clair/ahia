@@ -1,7 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
-import AssetSchema from "./assetSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -20,10 +19,18 @@ const ListingSchema: Schema<IListing> = new Schema(
       // unique: true,
       required: false,
     },
-    asset: {
-      type: [AssetSchema],
-      required: false,
+    type: {
+      type: String,
+      enum: ["property", "land"],
+      required: true,
     },
+    offerings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Offering",
+        required: false,
+      },
+    ],
     address: {
       street: {
         type: String,
@@ -107,17 +114,13 @@ const ListingSchema: Schema<IListing> = new Schema(
 ListingSchema.index({
   name: "text",
   description: "text",
+  type: "text",
+  offerings: 1,
   location: "2dsphere",
 });
 
 // Listing Schema Middleware
 ListingSchema.pre("save", function (next) {
-  if (this.isNew) {
-    if (this.asset.length === 0) {
-      this.asset = [{ assetType: "land" }, { assetType: "property" }];
-    }
-  }
-
   if (this.isModified("name")) {
     this.slug = slugify(this.name, {
       replacement: "-",

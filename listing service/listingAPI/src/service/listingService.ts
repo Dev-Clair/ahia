@@ -30,40 +30,35 @@ export default class ListingService {
   /** Retrieves a listing by id
    * @public
    * @param id the ObjectId of the document to find
-   * @param asset the asset type of the document to find
-   * @param page the ordered set to retrieve per query
+   * @param type the type of the document to find
+   * @param page the set to retrieve per query
    * @param limit the number of subdocuments to retrieve per query
    * @returns Promise<IListing | null>
    */
   async findById(
     id: string,
-    asset: string,
+    type?: string,
     page?: number,
     limit?: number
   ): Promise<IListing | null> {
-    return await ListingRepository.Create().findById(id, asset, page, limit);
+    return await ListingRepository.Create().findById(id, type, page, limit);
   }
 
   /** Retrieves a listing by slug
    * @public
    * @param slug the slug of the document to find
-   * @param asset the asset type of the document to find
-   * @param page the ordered set to retrieve per query
+   * @param type the type of the document to find
+   * @param page the set to retrieve per query
    * @param limit the number of subdocuments to retrieve per query
    * @returns Promise<IListing | null>
    */
   async findBySlug(
     slug: string,
-    asset: string,
+    type?: string,
     page?: number,
     limit?: number
   ): Promise<IListing | null> {
-    return await ListingRepository.Create().findBySlug(
-      slug,
-      asset,
-      page,
-      limit
-    );
+    return await ListingRepository.Create().findBySlug(slug, type, page, limit);
   }
 
   /**
@@ -80,15 +75,15 @@ export default class ListingService {
   /**
    * Updates a listing by id
    * @public
-   * @param id the ObjectId of the document to update
-   * @param key the unique idempotency key for the operation
+   * @param id the listing ObjectId
+   * @param key the operation idempotency key
    * @param payload the data object
    * @returns Promise<IListing>
    */
   async update(
     id: string,
     key: string,
-    payload: Partial<IListing>
+    payload: Partial<IListing | any>
   ): Promise<IListing> {
     return await ListingRepository.Create().update(id, key, payload);
   }
@@ -96,67 +91,87 @@ export default class ListingService {
   /**
    * Deletes a listing by id
    * @public
-   * @param id the ObjectId of the document to delete
+   * @param id the listing ObjectId
    * @returns Promise<IListing>
    */
   async delete(id: string): Promise<IListing> {
     return await ListingRepository.Create().delete(id);
   }
 
+  /** Retrieves a collection of offerings
+   * @public
+   * @param type offering type
+   * @param queryString query object
+   * @returns Promise<IOffering[]>
+   */
+  async findOfferings(
+    type: string,
+    queryString?: Record<string, any>
+  ): Promise<IOffering[]> {
+    const offerings = ListingRepository.Create().findOfferings(
+      type,
+      queryString
+    );
+
+    return offerings;
+  }
+
   /**
    * Creates a new offering on a listing
    * @public
-   * @param key the unique idempotency key for the operation
-   * @param asset the listing asset type
+   * @param key the operation idempotency key
+   * @param type offering type
    * @param payload the data object
    * @param listingId listing id
    * @returns Promise<void>
    */
   public async saveOffering(
     key: string,
-    asset: string,
+    type: string,
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
   ): Promise<void> {
     return await ListingRepository.Create().saveOffering(
       key,
-      asset,
+      type,
       payload,
       listingId
     );
   }
 
   /**
-   * Updates a listing offering
+   * Updates a listing offering by id
    * @public
-   * @param id the ObjectId of the document to update
-   * @param key the unique idempotency key for the operation
+   * @param id the ObjectId
+   * @param key the operation idempotency key
+   * @param type offering type
    * @param payload the data object
    * @returns Promise<void>
    */
   public async updateOffering(
     id: string,
     key: string,
+    type: string,
     payload: Partial<IOffering>
   ): Promise<void> {
-    return ListingRepository.Create().updateOffering(id, key, payload);
+    return ListingRepository.Create().updateOffering(id, key, type, payload);
   }
 
   /**
-   * Deletes a listing offering
+   * Deletes a listing offering by id
    * @public
-   * @param asset the listing asset type
-   * @param offeringId the ObjectId of the offering document to delete
-   * @param listingId the ObjectId of the listing document to delete
+   * @param type offering type
+   * @param offeringId the offering ObjectId
+   * @param listingId the listing ObjectId
    * @returns Promise<void>
    */
   public async deleteOffering(
-    asset: string,
+    type: string,
     offeringId: string,
     listingId: string
   ): Promise<void> {
     return ListingRepository.Create().deleteOffering(
-      asset,
+      type,
       offeringId,
       listingId
     );
