@@ -1,10 +1,11 @@
 import NotFoundError from "../error/notfoundError";
+import IListing from "../interface/IListing";
 import DocumentValueResolver from "../utils/documentResolver";
 import IdempotencyManager from "../utils/idempotencyManager";
 
-const getDocument = async (paramValue: string, serviceName: string) => {
-  return await DocumentValueResolver.Create(paramValue, serviceName)
-    .Resolve()
+const getDocument = async (paramValue: string): Promise<IListing | null> => {
+  return await DocumentValueResolver.Create()
+    .Resolve(paramValue)
     .catch((err: Error | NotFoundError) => {
       throw err;
     });
