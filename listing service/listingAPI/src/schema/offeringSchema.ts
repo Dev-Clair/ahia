@@ -135,7 +135,7 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
         .model("Listing")
         .updateOne(
           { id: offering.listing },
-          { $pull: { "asset.$.offerings": offering._id } },
+          { $pull: { offerings: offering._id } },
           { session: session }
         );
     });
