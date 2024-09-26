@@ -96,9 +96,7 @@ const filterInsertion = (fields: string[]) => {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Insertions are not allowed on fields: ${errorCache.join(
-            ", "
-          )}`,
+          message: `Insertions are not allowed on fields: ${errorCache.join()}`,
         },
       });
 
@@ -127,9 +125,7 @@ const filterUpdate = (fields: string[]) => {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Updates are not allowed on fields: ${errorCache.join(
-            ", "
-          )}}`,
+          message: `Updates are not allowed on fields: ${errorCache.join()}}`,
         },
       });
 
