@@ -52,6 +52,10 @@ const ListingSchema = z.object({
 });
 
 const OfferingSchema = z.object({
+  name: z.string({
+    required_error: "name is required",
+    invalid_type_error: "name must be a string",
+  }),
   category: z.enum(["economy", "premium", "luxury"]),
   quantity: z.number({
     required_error: "quantity is required",
