@@ -137,7 +137,7 @@ const retrieveListingsByProvider = async (
 };
 
 /**
- * Retrieves listings based on asset class: land | property
+ * Retrieves listings by type: land | property
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -156,6 +156,59 @@ const retrieveListingsByType = async (
     const listings = await ListingService.Create().findAll(queryString);
 
     return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieves listings by offerings
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
+const retrieveListingsByOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query;
+
+    const listings = await ListingService.Create().findListingsByOfferings(
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: listings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
+const retrieveOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query;
+
+    const type = req.query.type as string;
+
+    const offerings = await ListingService.Create().findOfferings(
+      type,
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
     return next(err);
   }
@@ -433,34 +486,6 @@ const createListingOffering = async (
 };
 
 /**
- * Retrieve listing offerings
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const retrieveOfferings = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const queryString = req.query;
-
-    const type = req.query.type as string;
-
-    const offerings = await ListingService.Create().findOfferings(
-      type,
-      queryString
-    );
-
-    return res.status(HttpCode.OK).json({ data: offerings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Retrieves a listing offering by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -583,6 +608,8 @@ export default {
   retrieveListingsNearme,
   retrieveListingsByProvider,
   retrieveListingsByType,
+  retrieveListingsByOfferings,
+  retrieveOfferings,
   retrieveListingBySlug,
   retrieveListingById,
   retrieveListingBySlugWithOfferings,
@@ -592,7 +619,6 @@ export default {
   changeListingStatus,
   checkListingStatus,
   createListingOffering,
-  retrieveOfferings,
   retrieveListingOfferingBySlug,
   retrieveListingOfferingById,
   updateListingOffering,

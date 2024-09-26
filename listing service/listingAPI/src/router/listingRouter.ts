@@ -27,6 +27,10 @@ ListingRouter.route("/search").get(ListingController.retrieveListingsSearch);
 
 ListingRouter.route("/near-me").get(ListingController.retrieveListingsNearme);
 
+ListingRouter.route(`/offerings/:type(${TypeParamRegex})`).get(
+  ListingController.retrieveOfferings
+);
+
 ListingRouter.route(`/provider/:id(${IdParamRegex})`).get(
   ListingController.retrieveListingsByProvider
 );

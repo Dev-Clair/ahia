@@ -19,7 +19,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method save
  * @method update
  * @method delete
- * @method findListingsByOffering
+ * @method findListingsByOfferings
  * @method findOfferings
  * @method findOfferingById
  * @method findOfferingBySlug
@@ -262,7 +262,7 @@ export default class ListingRepository {
    * @param searchFilter query filter object
    * @returns Promise<IListing[]>
    */
-  public async findListingsByOffering(searchFilter: {
+  public async findListingsByOfferings(searchFilter: {
     minArea?: number;
     maxArea?: number;
     name?: string;

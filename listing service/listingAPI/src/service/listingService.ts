@@ -10,7 +10,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method save
  * @method update
  * @method delete
- * @method findListingsByOffering
+ * @method findListingsByOfferings
  * @method findOfferings
  * @method findOfferingById
  * @method findOfferingBySlug
@@ -97,6 +97,20 @@ export default class ListingService {
    */
   async delete(id: string): Promise<IListing> {
     return await ListingRepository.Create().delete(id);
+  }
+
+  /** Retrieves a collection of listings based on offerings
+   * that match search filter/criteria
+   * @public
+   * @param searchFilter query filter object
+   * @returns Promise<IListing[]>
+   */
+  public async findListingsByOfferings(searchFilter: {
+    minArea?: number;
+    maxArea?: number;
+    name?: string;
+  }): Promise<IListing[]> {
+    return ListingRepository.Create().findListingsByOfferings(searchFilter);
   }
 
   /** Retrieves a collection of offerings
