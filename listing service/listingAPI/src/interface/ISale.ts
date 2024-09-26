@@ -1,4 +1,5 @@
 export default interface ISale {
+  isNegotiable?: boolean;
   sale: "outright" | "instalment";
   outright: {
     price: {

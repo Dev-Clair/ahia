@@ -3,6 +3,10 @@ import ISale from "../interface/ISale";
 
 const SaleSchema: Schema<ISale> = new Schema(
   {
+    isNegotiable: {
+      type: Boolean,
+      required: false,
+    },
     sale: {
       type: String,
       enum: ["outright", "instalment"],

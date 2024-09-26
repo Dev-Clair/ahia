@@ -2,11 +2,11 @@ import { Schema } from "mongoose";
 import ILeaseOffering from "../interface/ILeaseoffering";
 
 const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
-  isNegotiable: {
-    type: Boolean,
-    required: false,
-  },
   lease: {
+    isNegotiable: {
+      type: Boolean,
+      required: false,
+    },
     plan: {
       type: String,
       enum: ["monthly", "quarterly", "annually"],
