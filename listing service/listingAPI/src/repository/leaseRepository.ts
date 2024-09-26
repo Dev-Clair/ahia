@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
+import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import IdempotencyManager from "../utils/idempotencyManager";
 import ILeaseOffering from "../interface/ILeaseoffering";
 import Lease from "../model/leaseModel";
 import OfferingRepository from "./offeringRepository";
@@ -14,9 +13,9 @@ export default class LeaseRepository extends OfferingRepository {
    */
   async findAll(queryString?: Record<string, any>): Promise<ILeaseOffering[]> {
     const operation = async () => {
-      const query = Lease.find();
+      const query = Lease.find().lean(true);
 
-      const filter = { ...queryString, type: "lease" };
+      const filter = { ...queryString };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
@@ -43,9 +42,11 @@ export default class LeaseRepository extends OfferingRepository {
   async findById(id: string): Promise<ILeaseOffering | null> {
     const operation = async () => {
       const offering = await Lease.findOne(
-        { _id: id, type: "lease" },
+        { _id: id },
         LeaseRepository.OFFERING_PROJECTION
-      ).exec();
+      )
+        .lean(true)
+        .exec();
 
       return offering;
     };
@@ -61,12 +62,11 @@ export default class LeaseRepository extends OfferingRepository {
   async findBySlug(slug: string): Promise<ILeaseOffering | null> {
     const operation = async () => {
       const offering = await Lease.findOne(
-        {
-          slug: slug,
-          type: "lease",
-        },
+        { slug: slug },
         LeaseRepository.OFFERING_PROJECTION
-      ).exec();
+      )
+        .lean(true)
+        .exec();
 
       return offering;
     };
@@ -77,48 +77,41 @@ export default class LeaseRepository extends OfferingRepository {
   /**
    * Creates a new offering in collection
    * @public
-   * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @param listingId listing id
-   * @returns Promise<void>
+   * @param session mongoose transaction session
+   * @returns Promise<ILeaseOffering>
    */
   public async save(
-    key: string,
-    payload: Partial<ILeaseOffering>
+    payload: Partial<ILeaseOffering>,
+    session: ClientSession
   ): Promise<ILeaseOffering> {
-    const session = await mongoose.startSession();
+    const offering = await Lease.create([payload], { session: session });
 
-    const operation = session.withTransaction(async () => {
-      const offering = await Lease.create([payload], { session: session });
-
-      await IdempotencyManager.Create(key, session);
-
-      return offering;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    return offering as any;
   }
 
   /**
-   * Updates a listing offering by id
+   * Updates an offering by id
    * @public
    * @param id the ObjectId of the document to update
-   * @param key the unique idempotency key for the operation
    * @param payload the data object
+   * @param session mongoose transaction session
    * @returns Promise<ILeaseOffering>
    */
   public async update(
     id: string,
-    key: string,
-    payload: Partial<ILeaseOffering>
+    payload: Partial<ILeaseOffering>,
+    session: ClientSession
   ): Promise<ILeaseOffering> {
-    const session = await mongoose.startSession();
+    const operation = async () => {
+      const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
+        new: true,
+        lean: true,
+        session,
+      });
 
-    const operation = session.withTransaction(async () => {
-      await Lease.findByIdAndUpdate({ _id: id }, payload, { session });
-
-      await IdempotencyManager.Create(key, session);
-    });
+      return offering;
+    };
 
     return await FailureRetry.ExponentialBackoff(() => operation);
   }
@@ -126,19 +119,20 @@ export default class LeaseRepository extends OfferingRepository {
   /**
    * Deletes an offering by id
    * @public
-   * @param id the ObjectId of the listing document to delete
+   * @param id the ObjectId of the document to delete
+   * @param session mongoose transaction session
    * @returns Promise<ILeaseOffering>
    */
-  public async delete(id: string): Promise<ILeaseOffering> {
-    const session = await mongoose.startSession();
+  public async delete(
+    id: string,
+    session: ClientSession
+  ): Promise<ILeaseOffering> {
+    const offering = await Lease.findByIdAndDelete(
+      { _id: id },
+      { session, lean: true }
+    );
 
-    const operation = session.withTransaction(async () => {
-      const offering = await Lease.findByIdAndDelete({ _id: id }, session);
-
-      return offering;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    return offering as any;
   }
 
   /**

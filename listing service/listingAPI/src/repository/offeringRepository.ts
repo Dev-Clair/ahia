@@ -1,3 +1,4 @@
+import { ClientSession } from "mongoose";
 import IOffering from "../interface/IOffering";
 
 /**
@@ -47,31 +48,35 @@ export default abstract class OfferingRepository {
   /**
    * Creates a new offering document in collection
    * @public
-   * @param key the unique idempotency key for the operation
    * @param payload the data object
+   * @param session mongoose transaction session
    * @returns Promise<IOffering>
    */
-  abstract save(key: string, payload: Partial<IOffering>): Promise<IOffering>;
+  abstract save(
+    payload: Partial<IOffering>,
+    session: ClientSession
+  ): Promise<IOffering>;
 
   /**
    * Updates an offering document by id
    * @public
    * @param id the ObjectId of the document to update
-   * @param key the unique idempotency key for the operation
    * @param payload the data object
+   * @param session mongoose transaction session
    * @returns Promise<IOffering>
    */
   abstract update(
     id: string,
-    key: string,
-    payload?: Partial<IOffering | any>
+    payload: Partial<IOffering | any>,
+    session: ClientSession
   ): Promise<IOffering>;
 
   /**
    * Deletes an offering by id
    * @public
    * @param id the ObjectId of the document to delete
+   * @param session mongoose transaction session
    * @returns Promise<IOffering>
    */
-  abstract delete(id: string): Promise<IOffering>;
+  abstract delete(id: string, session: ClientSession): Promise<IOffering>;
 }

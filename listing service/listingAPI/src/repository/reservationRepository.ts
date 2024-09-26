@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
+import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import IdempotencyManager from "../utils/idempotencyManager";
 import IReservationOffering from "../interface/IReservationoffering";
 import Reservation from "../model/reservationModel";
 import OfferingRepository from "./offeringRepository";
@@ -16,9 +15,9 @@ export default class ReservationRepository extends OfferingRepository {
     queryString?: Record<string, any>
   ): Promise<IReservationOffering[]> {
     const operation = async () => {
-      const query = Reservation.find();
+      const query = Reservation.find().lean(true);
 
-      const filter = { ...queryString, type: "reservation" };
+      const filter = { ...queryString };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
@@ -45,9 +44,11 @@ export default class ReservationRepository extends OfferingRepository {
   async findById(id: string): Promise<IReservationOffering | null> {
     const operation = async () => {
       const offering = await Reservation.findOne(
-        { _id: id, type: "reservation" },
+        { _id: id },
         ReservationRepository.OFFERING_PROJECTION
-      ).exec();
+      )
+        .lean(true)
+        .exec();
 
       return offering;
     };
@@ -63,12 +64,11 @@ export default class ReservationRepository extends OfferingRepository {
   async findBySlug(slug: string): Promise<IReservationOffering | null> {
     const operation = async () => {
       const offering = await Reservation.findOne(
-        {
-          slug: slug,
-          type: "reservation",
-        },
+        { slug: slug },
         ReservationRepository.OFFERING_PROJECTION
-      ).exec();
+      )
+        .lean(true)
+        .exec();
 
       return offering;
     };
@@ -79,50 +79,45 @@ export default class ReservationRepository extends OfferingRepository {
   /**
    * Creates a new offering in collection
    * @public
-   * @param key the unique idempotency key for the operation
    * @param payload the data object
-   * @param listingId listing id
-   * @returns Promise<void>
+   * @param session mongoose transaction session
+   * @returns Promise<IReservationOffering>
    */
   public async save(
-    key: string,
-    payload: Partial<IReservationOffering>
+    payload: Partial<IReservationOffering>,
+    session: ClientSession
   ): Promise<IReservationOffering> {
-    const session = await mongoose.startSession();
+    const offering = await Reservation.create([payload], { session: session });
 
-    const operation = session.withTransaction(async () => {
-      const offering = await Reservation.create([payload], {
-        session: session,
-      });
-
-      await IdempotencyManager.Create(key, session);
-
-      return offering;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    return offering as any;
   }
 
   /**
-   * Updates a listing offering by id
+   * Updates an offering by id
    * @public
    * @param id the ObjectId of the document to update
-   * @param key the unique idempotency key for the operation
    * @param payload the data object
+   * @param session mongoose transaction session
    * @returns Promise<IReservationOffering>
    */
   public async update(
     id: string,
-    key: string,
-    payload: Partial<IReservationOffering>
+    payload: Partial<IReservationOffering>,
+    session: ClientSession
   ): Promise<IReservationOffering> {
-    const session = await mongoose.startSession();
+    const operation = async () => {
+      const offering = await Reservation.findByIdAndUpdate(
+        { _id: id },
+        payload,
+        {
+          new: true,
+          lean: true,
+          session,
+        }
+      );
 
-    const operation = session.withTransaction(async () => {
-      await Reservation.findByIdAndUpdate({ _id: id }, payload, { session });
-
-      await IdempotencyManager.Create(key, session);
-    });
+      return offering;
+    };
 
     return await FailureRetry.ExponentialBackoff(() => operation);
   }
@@ -130,22 +125,20 @@ export default class ReservationRepository extends OfferingRepository {
   /**
    * Deletes an offering by id
    * @public
-   * @param id the ObjectId of the listing document to delete
+   * @param id the ObjectId of the document to delete
+   * @param session mongoose transaction session
    * @returns Promise<IReservationOffering>
    */
-  public async delete(id: string): Promise<IReservationOffering> {
-    const session = await mongoose.startSession();
+  public async delete(
+    id: string,
+    session: ClientSession
+  ): Promise<IReservationOffering> {
+    const offering = await Reservation.findByIdAndDelete(
+      { _id: id },
+      { session, lean: true }
+    );
 
-    const operation = session.withTransaction(async () => {
-      const offering = await Reservation.findByIdAndDelete(
-        { _id: id },
-        session
-      );
-
-      return offering;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    return offering as any;
   }
 
   /**
