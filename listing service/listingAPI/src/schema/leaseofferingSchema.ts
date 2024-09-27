@@ -12,19 +12,19 @@ const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
       enum: ["monthly", "quarterly", "annually"],
       required: true,
     },
+    price: {
+      amount: {
+        type: Number,
+        required: true,
+      },
+      currency: {
+        type: String,
+        required: true,
+      },
+    },
     termsAndConditions: {
       type: [String],
       required: false,
-    },
-  },
-  price: {
-    amount: {
-      type: Number,
-      required: true,
-    },
-    currency: {
-      type: String,
-      required: true,
     },
   },
 });
