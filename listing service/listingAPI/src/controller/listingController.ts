@@ -340,7 +340,7 @@ const retrieveListingBySlugWithOfferings = async (
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const updateListing = async (
+const updateListingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -369,7 +369,7 @@ const updateListing = async (
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const deleteListing = async (
+const deleteListingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -465,7 +465,7 @@ const createListingOffering = async (
   try {
     const key = req.headers["idempotency-key"] as string;
 
-    const type = req.params.type as string;
+    const type = req.query.type as string;
 
     const payload = req.body as Partial<IOffering>;
 
@@ -614,8 +614,8 @@ export default {
   retrieveListingById,
   retrieveListingBySlugWithOfferings,
   retrieveListingByIdWithOfferings,
-  updateListing,
-  deleteListing,
+  updateListingById,
+  deleteListingById,
   changeListingStatus,
   checkListingStatus,
   createListingOffering,

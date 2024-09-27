@@ -58,7 +58,7 @@ export default class ListingRepository {
    */
   async findAll(queryString?: Record<string, any>): Promise<IListing[]> {
     const operation = async () => {
-      const query = Listing.find().lean(true);
+      const query = Listing.find();
 
       const filter = {
         ...queryString,
@@ -105,27 +105,26 @@ export default class ListingRepository {
         ListingRepository.LISTING_PROJECTION
       );
 
-      const leanOnly = operation.lean().exec();
+      const leanOnly = operation;
 
-      const leanAndPopulate = operation
-        .populate({
-          path: "offerings",
-          match: { type: type },
-          model: "Offering",
-          select: ListingRepository.OFFERING_PROJECTION,
-          options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
+      const leanAndPopulate = operation.populate({
+        path: "offerings",
+        match: { type: type },
+        model: "Offering",
+        select: ListingRepository.OFFERING_PROJECTION,
+        options: {
+          skip: (page - 1) * limit,
+          limit: limit,
+          sort: {
+            createdAt: -1,
+            featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
           },
-        })
-        .lean(true)
-        .exec();
+        },
+      });
 
-      const listing = type ? await leanAndPopulate : await leanOnly;
+      const listing = type
+        ? await leanAndPopulate.lean().exec()
+        : await leanOnly.lean().exec();
 
       return listing;
     };
@@ -156,27 +155,26 @@ export default class ListingRepository {
         ListingRepository.LISTING_PROJECTION
       );
 
-      const leanOnly = operation.lean().exec();
+      const leanOnly = operation;
 
-      const leanAndPopulate = operation
-        .populate({
-          path: "offerings",
-          match: { type: type },
-          model: "Offering",
-          select: ListingRepository.OFFERING_PROJECTION,
-          options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
+      const leanAndPopulate = operation.populate({
+        path: "offerings",
+        match: { type: type },
+        model: "Offering",
+        select: ListingRepository.OFFERING_PROJECTION,
+        options: {
+          skip: (page - 1) * limit,
+          limit: limit,
+          sort: {
+            createdAt: -1,
+            featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
           },
-        })
-        .lean(true)
-        .exec();
+        },
+      });
 
-      const listing = type ? await leanAndPopulate : await leanOnly;
+      const listing = type
+        ? await leanAndPopulate.lean().exec()
+        : await leanOnly.lean().exec();
 
       return listing;
     };
@@ -464,7 +462,7 @@ export default class ListingRepository {
         return SellRepository.Create();
 
       default:
-        throw new Error("Invalid repositpry key");
+        throw new Error("Invalid repository key");
     }
   }
 
