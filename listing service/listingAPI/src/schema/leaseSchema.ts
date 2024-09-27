@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import IRent from "../interface/IRent";
+import ILease from "../interface/ILease";
 
-const RentSchema: Schema<IRent> = new Schema(
+const LeaseSchema: Schema<ILease> = new Schema(
   {
     isNegotiable: {
       type: Boolean,
@@ -30,4 +30,4 @@ const RentSchema: Schema<IRent> = new Schema(
   { _id: false, versionKey: false }
 );
 
-export default RentSchema;
+export default LeaseSchema;

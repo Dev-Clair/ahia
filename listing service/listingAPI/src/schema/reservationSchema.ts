@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import IBooking from "../interface/IBooking";
+import IReservation from "../interface/IReservation";
 
-const BookingSchema: Schema<IBooking> = new Schema(
+const ReservationSchema: Schema<IReservation> = new Schema(
   {
     plan: {
       type: String,
@@ -26,4 +26,4 @@ const BookingSchema: Schema<IBooking> = new Schema(
   { _id: false, versionKey: false }
 );
 
-export default BookingSchema;
+export default ReservationSchema;
