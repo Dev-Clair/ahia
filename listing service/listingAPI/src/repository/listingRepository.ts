@@ -117,14 +117,14 @@ export default class ListingRepository {
           limit: limit,
           sort: {
             createdAt: -1,
-            featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
+            // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
           },
         },
       });
 
       const listing = type
-        ? await leanAndPopulate.lean().exec()
-        : await leanOnly.lean().exec();
+        ? await leanAndPopulate.exec()
+        : await leanOnly.exec();
 
       return listing;
     };
@@ -167,14 +167,14 @@ export default class ListingRepository {
           limit: limit,
           sort: {
             createdAt: -1,
-            featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
+            // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
           },
         },
       });
 
       const listing = type
-        ? await leanAndPopulate.lean().exec()
-        : await leanOnly.lean().exec();
+        ? await leanAndPopulate.exec()
+        : await leanOnly.exec();
 
       return listing;
     };
@@ -301,7 +301,7 @@ export default class ListingRepository {
 
       // Find listings that contain these offering IDs
       const listings = await this.findAll({
-        offerings: { $in: offeringIds },
+        offerings: { in: offeringIds },
       });
 
       return listings;
@@ -381,7 +381,7 @@ export default class ListingRepository {
         { _id: listingId },
         {
           $addToSet: {
-            offerings: offering._id,
+            offerings: offering,
           },
         },
         { session }

@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import ILeaseOffering from "../interface/ILeaseoffering";
 import Lease from "../model/leaseModel";
@@ -13,7 +13,7 @@ export default class LeaseRepository extends OfferingRepository {
    */
   async findAll(queryString?: Record<string, any>): Promise<ILeaseOffering[]> {
     const operation = async () => {
-      const query = Lease.find().lean(true);
+      const query = Lease.find();
 
       const filter = { ...queryString };
 
@@ -44,9 +44,7 @@ export default class LeaseRepository extends OfferingRepository {
       const offering = await Lease.findOne(
         { _id: id },
         LeaseRepository.OFFERING_PROJECTION
-      )
-        .lean(true)
-        .exec();
+      ).exec();
 
       return offering;
     };
@@ -64,9 +62,7 @@ export default class LeaseRepository extends OfferingRepository {
       const offering = await Lease.findOne(
         { slug: slug },
         LeaseRepository.OFFERING_PROJECTION
-      )
-        .lean(true)
-        .exec();
+      ).exec();
 
       return offering;
     };
@@ -79,15 +75,17 @@ export default class LeaseRepository extends OfferingRepository {
    * @public
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<ILeaseOffering>
+   * @returns Promise<ILeaseOffering | any>
    */
   public async save(
     payload: Partial<ILeaseOffering>,
     session: ClientSession
-  ): Promise<ILeaseOffering> {
-    const offering = await Lease.create([payload], { session: session });
+  ): Promise<ILeaseOffering | any> {
+    const offerings = await Lease.create([payload], { session: session });
 
-    return offering as any;
+    const offering = offerings[0]._id as ObjectId;
+
+    return offering;
   }
 
   /**
