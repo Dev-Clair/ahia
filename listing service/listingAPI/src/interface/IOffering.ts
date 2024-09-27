@@ -12,13 +12,14 @@ export default interface IOffering extends Document {
   category: "economy" | "premium" | "luxury";
   status: "open" | "closed";
   type: "lease" | "reservation" | "sell";
-  // use:
-  //   | "residential"
-  //   | "commercial"
-  //   | "industrial"
-  //   | "agricultural"
-  //   | "special"
-  //   | "mixed";
+  use:
+    | "residential"
+    | "commercial"
+    | "industrial"
+    | "institutional"
+    | "agricultural"
+    | "special"
+    | "mixed";
   features: string[];
   media: {
     images: string[];

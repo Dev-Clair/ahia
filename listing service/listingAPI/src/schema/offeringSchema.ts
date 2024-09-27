@@ -55,20 +55,20 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       enum: ["lease", "reservation", "sell"],
       required: true,
     },
-    // use: {
-    //   type: String,
-    //   enum: [
-    //     "residential",
-    //     "commercial",
-    //     "industrial",
-    //     "institutional",
-    //     "agricultural",
-    //     "special",
-    //     "mixed",
-    //   ],
-    //   set: (value: string) => value.toLowerCase(),
-    //   required: true,
-    // },
+    use: {
+      type: String,
+      enum: [
+        "residential",
+        "commercial",
+        "industrial",
+        "institutional",
+        "agricultural",
+        "special",
+        "mixed",
+      ],
+      set: (value: string) => value.toLowerCase(),
+      required: true,
+    },
     media: {
       images: {
         type: [String],
