@@ -1,13 +1,6 @@
 import IOffering from "./IOffering";
+import IRent from "./IRent";
 
 export default interface ILeaseOffering extends IOffering {
-  lease: {
-    isNegotiable?: boolean;
-    plan: "monthly" | "quarterly" | "annually";
-    termsAndConditions?: string[];
-  };
-  price: {
-    amount: number;
-    currency: string;
-  };
+  lease: [IRent];
 }
