@@ -5,22 +5,22 @@ const ReservationOfferingSchema: Schema<IReservationOffering> = new Schema({
   reservation: {
     plan: {
       type: String,
-      enum: ["daily", "extended", "mixed"],
+      enum: ["daily", "extended"],
       required: true,
+    },
+    price: {
+      amount: {
+        type: Number,
+        required: true,
+      },
+      currency: {
+        type: String,
+        required: true,
+      },
     },
     termsAndConditions: {
       type: [String],
       required: false,
-    },
-  },
-  price: {
-    amount: {
-      type: Number,
-      required: true,
-    },
-    currency: {
-      type: String,
-      required: true,
     },
   },
 });
