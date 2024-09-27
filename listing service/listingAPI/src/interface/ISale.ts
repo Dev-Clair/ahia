@@ -11,8 +11,14 @@ export default interface ISale {
   instalment: {
     plan: "short" | "medium" | "long";
     duration: number;
-    initialDeposit: number;
-    instalmentAmount: number;
+    downPayment: {
+      amount: number;
+      currency: string;
+    };
+    instalmentPayment: {
+      amount: number;
+      currency: string;
+    };
     termsAndConditions?: string[];
   };
 }

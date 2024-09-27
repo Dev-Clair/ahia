@@ -46,16 +46,32 @@ const SaleSchema: Schema<ISale> = new Schema(
           return this.sale === "instalment";
         },
       },
-      initialDeposit: {
-        type: Number,
-        required: function () {
-          return this.sale === "instalment";
+      downPayment: {
+        amount: {
+          type: Number,
+          required: function () {
+            return this.sale === "instalment";
+          },
+        },
+        currency: {
+          type: String,
+          required: function () {
+            return this.sale === "instalment";
+          },
         },
       },
-      instalmentAmount: {
-        type: Number,
-        required: function () {
-          return this.sale === "instalment";
+      instalmentPayment: {
+        amount: {
+          type: Number,
+          required: function () {
+            return this.sale === "instalment";
+          },
+        },
+        currency: {
+          type: String,
+          required: function () {
+            return this.sale === "instalment";
+          },
         },
       },
       termsAndConditions: {
