@@ -3,6 +3,51 @@ import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 
 /**
+ * Verifies request header content types
+ * @param contentTypes List of allowed content types
+ * @returns Response | void
+ */
+const isContentType = (contentTypes: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): Response | void => {
+    const getContentType = req.headers["content-type"] as string;
+
+    if (!contentTypes.includes(getContentType)) {
+      return res.status(HttpCode.BAD_REQUEST).json({
+        error: {
+          name: HttpStatus.BAD_REQUEST,
+          message: {
+            expected: contentTypes.join(", "),
+            received: `${getContentType}`,
+          },
+        },
+      });
+    }
+
+    next();
+  };
+};
+
+/**
+ * Handles not allowed operations
+ * @param req
+ * @param res
+ * @param next
+ * @returns Response
+ */
+const isNotAllowed = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Response => {
+  return res.status(HttpCode.NOT_ALLOWED).json({
+    error: {
+      name: HttpStatus.NOT_ALLOWED,
+      message: "operation not allowed",
+    },
+  });
+};
+
+/**
  * Verifies request security
  * @param req
  * @param res
@@ -31,36 +76,11 @@ const isSecure = (
 };
 
 /**
- * Verifies request header content types
- * @param contentTypes List of allowed content types
- * @returns Response | void
- */
-const isContentType = (contentTypes: string[]) => {
-  return (req: Request, res: Response, next: NextFunction): Response | void => {
-    const getContentType = req.headers["content-type"] as string;
-
-    if (!contentTypes.includes(getContentType)) {
-      return res.status(HttpCode.BAD_REQUEST).json({
-        error: {
-          name: HttpStatus.BAD_REQUEST,
-          message: {
-            expected: contentTypes.join(", "),
-            received: `${getContentType}`,
-          },
-        },
-      });
-    }
-
-    next();
-  };
-};
-
-/**
  * Verifies request body contains creatable fields
- * @param fields List of fields that cannot be created
+ * @param fields List of fields that cannot be inserted
  * @returns Response | void
  */
-const isCreatable = (fields: string[]) => {
+const filterInsertion = (fields: string[]) => {
   return (req: Request, res: Response, next: NextFunction): Response | void => {
     const getRequestBody = req.body as object;
 
@@ -76,9 +96,7 @@ const isCreatable = (fields: string[]) => {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Insertions are not allowed on fields: ${errorCache.join(
-            ", "
-          )}`,
+          message: `Insertions are not allowed on fields: ${errorCache.join()}`,
         },
       });
 
@@ -91,7 +109,7 @@ const isCreatable = (fields: string[]) => {
  * @param fields List of fields that cannot be updated
  * @returns Response | void
  */
-const isUpdatable = (fields: string[]) => {
+const filterUpdate = (fields: string[]) => {
   return (req: Request, res: Response, next: NextFunction): Response | void => {
     const getRequestBody = req.body as object;
 
@@ -107,9 +125,7 @@ const isUpdatable = (fields: string[]) => {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Updates are not allowed on fields: ${errorCache.join(
-            ", "
-          )}}`,
+          message: `Updates are not allowed on fields: ${errorCache.join()}}`,
         },
       });
 
@@ -117,30 +133,10 @@ const isUpdatable = (fields: string[]) => {
   };
 };
 
-/**
- * Handles not allowed operations
- * @param req
- * @param res
- * @param next
- * @returns Response
- */
-const isNotAllowed = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Response => {
-  return res.status(HttpCode.NOT_ALLOWED).json({
-    error: {
-      name: HttpStatus.NOT_ALLOWED,
-      message: "operation not allowed",
-    },
-  });
-};
-
 export default {
-  isSecure,
   isContentType,
-  isCreatable,
-  isUpdatable,
   isNotAllowed,
+  isSecure,
+  filterInsertion,
+  filterUpdate,
 };

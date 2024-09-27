@@ -19,21 +19,9 @@ const ListingSchema: Schema<IListing> = new Schema(
       // unique: true,
       required: false,
     },
-    listingType: {
+    type: {
       type: String,
-      enum: ["lease", "sell", "reservation"],
-      required: true,
-    },
-    propertyCategory: {
-      type: String,
-      enum: ["residential", "commercial", "mixed"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
-    propertyType: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
+      enum: ["property", "land"],
       required: true,
     },
     offerings: [
@@ -113,18 +101,6 @@ const ListingSchema: Schema<IListing> = new Schema(
         },
       },
     },
-    featured: {
-      status: {
-        type: Boolean,
-        enum: [true, false],
-        default: false,
-      },
-      type: {
-        type: String,
-        enum: ["basic", "plus", "prime"],
-        default: "basic",
-      },
-    },
     promotion: {
       type: Schema.Types.ObjectId,
       ref: "Promotion",
@@ -138,6 +114,7 @@ const ListingSchema: Schema<IListing> = new Schema(
 ListingSchema.index({
   name: "text",
   description: "text",
+  type: "text",
   offerings: 1,
   location: "2dsphere",
 });

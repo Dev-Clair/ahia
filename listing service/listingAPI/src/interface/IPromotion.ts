@@ -12,5 +12,4 @@ export default interface IPromotion extends Document {
     videos: string[];
   };
   listings: Schema.Types.ObjectId[];
-  offerings: Schema.Types.ObjectId[];
 }

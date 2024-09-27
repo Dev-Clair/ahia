@@ -1,23 +1,32 @@
 import { Document, Schema } from "mongoose";
 
 export default interface IOffering extends Document {
-  offeringType: string;
+  listing: Schema.Types.ObjectId;
+  name: string;
   slug?: string;
-  unitsAvailable: number;
+  quantity: number;
   area: {
     size: number;
     unit: "sqm" | "sqft";
   };
-  price: {
-    amount: number;
-    currency: string;
-  };
-  features: string[];
+  category: "economy" | "premium" | "luxury";
   status: "open" | "closed";
+  type: "lease" | "reservation" | "sell";
+  use:
+    | "residential"
+    | "commercial"
+    | "industrial"
+    | "institutional"
+    | "agricultural"
+    | "special"
+    | "mixed";
+  features: string[];
   media: {
     images: string[];
     videos: string[];
   };
-  listing: Schema.Types.ObjectId;
-  promotion: Schema.Types.ObjectId;
+  featured: {
+    status: true | false;
+    type: "basic" | "plus" | "prime";
+  };
 }

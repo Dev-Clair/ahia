@@ -7,8 +7,7 @@ export {};
 declare global {
   namespace Express {
     export interface Request {
-      listing?: ListingInterface;
-      service?: ListingService;
+      listing: ListingInterface;
     }
   }
 }

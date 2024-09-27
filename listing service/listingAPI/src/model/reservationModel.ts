@@ -1,10 +1,10 @@
-import Listing from "./listingModel";
-import IReservation from "../interface/IReservation";
-import ReservationSchema from "../schema/reservationSchema";
+import Offering from "./offeringModel";
+import IReservationOffering from "../interface/IReservationoffering";
+import ReservationOfferingSchema from "../schema/reservationofferingSchema";
 
-const Reservation = Listing.discriminator<IReservation>(
+const Reservation = Offering.discriminator<IReservationOffering>(
   "Reservation",
-  ReservationSchema
+  ReservationOfferingSchema
 );
 
 export default Reservation;

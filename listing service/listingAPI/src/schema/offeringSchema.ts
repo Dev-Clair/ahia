@@ -4,79 +4,104 @@ import IOffering from "../interface/IOffering";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
-const OfferingSchema: Schema<IOffering> = new Schema({
-  offeringType: {
-    type: String,
-    required: true,
-  },
-  slug: {
-    type: String,
-    // unique: true,
-    required: false,
-  },
-  unitsAvailable: {
-    type: Number,
-    required: true,
-  },
-  area: {
-    size: {
+const OfferingSchema: Schema<IOffering> = new Schema(
+  {
+    listing: {
+      type: Schema.Types.ObjectId,
+      ref: "Listing",
+      required: true,
+    },
+    name: {
+      type: String,
+      required: false,
+    },
+    slug: {
+      type: String,
+      // unique: true,
+      required: false,
+    },
+    quantity: {
       type: Number,
       required: true,
     },
-    unit: {
-      type: String,
-      enum: ["sqm", "sqft"],
-      required: true,
+    area: {
+      size: {
+        type: Number,
+        required: true,
+      },
+      unit: {
+        type: String,
+        enum: ["sqm", "sqft"],
+        required: true,
+      },
     },
-  },
-  price: {
-    amount: {
-      type: Number,
-      required: true,
-    },
-    currency: {
-      type: String,
-      required: true,
-    },
-  },
-  features: {
-    type: [String],
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["open", "closed"],
-    default: "open",
-  },
-  media: {
-    images: {
+    features: {
       type: [String],
-      get: (values: string[]) =>
-        values.map((value) => `${baseStoragePath}${value}`),
-      default: undefined,
+      required: true,
     },
-    videos: {
-      type: [String],
-      get: (values: string[]) =>
-        values.map((value) => `${baseStoragePath}${value}`),
-      default: undefined,
+    category: {
+      type: String,
+      enum: ["economy", "premium", "luxury"],
+      set: (value: string) => value.toLowerCase(),
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["open", "closed"],
+      default: "open",
+    },
+    type: {
+      type: String,
+      enum: ["lease", "reservation", "sell"],
+      required: true,
+    },
+    use: {
+      type: String,
+      enum: [
+        "residential",
+        "commercial",
+        "industrial",
+        "institutional",
+        "agricultural",
+        "special",
+        "mixed",
+      ],
+      set: (value: string) => value.toLowerCase(),
+      required: true,
+    },
+    media: {
+      images: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        default: undefined,
+      },
+      videos: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        default: undefined,
+      },
+    },
+    featured: {
+      status: {
+        type: Boolean,
+        enum: [true, false],
+        default: false,
+      },
+      type: {
+        type: String,
+        enum: ["basic", "plus", "prime"],
+        default: "basic",
+      },
     },
   },
-  listing: {
-    type: Schema.Types.ObjectId,
-    ref: "Listing",
-    required: true,
-  },
-  promotion: {
-    type: Schema.Types.ObjectId,
-    ref: "Offering",
-    required: false,
-  },
-});
+  { discriminatorKey: "type" }
+);
 
 // Offering Schema Search Query Index
 OfferingSchema.index({
-  offeringType: "text",
+  name: "text",
   "area.size": 1,
   "price.amount": 1,
   status: "text",
@@ -84,8 +109,8 @@ OfferingSchema.index({
 
 // Offering Schema Middleware
 OfferingSchema.pre("save", function (next) {
-  if (this.isModified("offeringType")) {
-    this.slug = slugify(this.offeringType, {
+  if (this.isModified("name")) {
+    this.slug = slugify(this.name, {
       replacement: "-",
       lower: true,
       strict: true,
@@ -108,19 +133,10 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
       // Unlink listing reference to offering
       await mongoose
         .model("Listing")
-        .findOneAndUpdate(
+        .updateOne(
           { id: offering.listing },
           { $pull: { offerings: offering._id } },
-          { new: false, session }
-        );
-
-      // Unlink promotion reference to offering
-      await mongoose
-        .model("Promotion")
-        .findOneAndUpdate(
-          { id: offering.promotion },
-          { $pull: { offerings: offering._id } },
-          { new: false, session }
+          { session: session }
         );
     });
 

@@ -4,10 +4,8 @@ export default interface IListing extends Document {
   name: string;
   description: string;
   slug?: string;
-  listingType: "lease" | "sell" | "reservation";
-  propertyCategory: "residential" | "commercial" | "mixed";
-  propertyType: "economy" | "premium" | "luxury";
-  offerings: Schema.Types.ObjectId[];
+  type: "property" | "land";
+  offerings?: Schema.Types.ObjectId[];
   address: {
     street: string;
     countyLGA: string;
@@ -15,24 +13,20 @@ export default interface IListing extends Document {
     state: string;
   };
   location: {
-    type?: string;
-    geoCoordinates?: number[];
+    type: string;
+    geoCoordinates: number[];
   };
   provider: {
     id: string;
     email: string;
   };
   media: {
-    image?: string;
-    video?: string;
+    image: string;
+    video: string;
   };
   verification: {
-    status?: boolean;
-    expiry?: Date;
-  };
-  featured: {
-    status: true | false;
-    type: "basic" | "plus" | "prime";
+    status: boolean;
+    expiry: Date;
   };
   promotion?: Schema.Types.ObjectId;
 }

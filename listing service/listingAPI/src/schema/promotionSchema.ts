@@ -51,13 +51,6 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
         required: false,
       },
     ],
-    offerings: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Offering",
-        required: false,
-      },
-    ],
   },
   { timestamps: true }
 );
@@ -77,14 +70,6 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
     const session = await mongoose.startSession();
 
     session.withTransaction(async () => {
-      // Unlink all offerings referenced to promotion
-      const offeringUpdates = promotion.offerings.map((offeringId) => ({
-        updateOne: {
-          filter: { _id: offeringId, promotion: promotion._id },
-          update: { $unset: { promotion: "" } },
-        },
-      }));
-
       // Unlink all listings referenced to promotion
       const listingUpdates = promotion.listings.map((listingId) => ({
         updateOne: {
@@ -92,9 +77,6 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
           update: { $unset: { promotion: "" } },
         },
       }));
-
-      // Update offerings collection
-      await mongoose.model("Offering").bulkWrite(offeringUpdates, { session });
 
       // Update listings collection
       await mongoose.model("Listing").bulkWrite(listingUpdates, { session });
