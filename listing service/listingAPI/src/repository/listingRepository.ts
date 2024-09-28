@@ -16,6 +16,8 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findAll
  * @method findById
  * @method findBySlug
+ * @method findByIdAndpopulate
+ * @method findBySlugAndPopulate
  * @method save
  * @method update
  * @method delete
@@ -84,47 +86,20 @@ export default class ListingRepository {
 
   /** Retrieves a listing by id
    * @public
-   * @param id the id of the document to find
-   * @param type the type of the document to find
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
+   * @param id listing id
    * @returns Promise<IListing | null>
    */
-  async findById(
-    id: string,
-    type?: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<IListing | null> {
+  async findById(id: string): Promise<IListing | null> {
     const operation = async () => {
-      const operation = Listing.findOne(
+      const listing = await Listing.findOne(
         {
           _id: id,
           // verification: { status: true },
         },
         ListingRepository.LISTING_PROJECTION
-      );
-
-      const leanOnly = operation;
-
-      const leanAndPopulate = operation.populate({
-        path: "offerings",
-        match: { type: type },
-        model: "Offering",
-        select: ListingRepository.OFFERING_PROJECTION,
-        options: {
-          skip: (page - 1) * limit,
-          limit: limit,
-          sort: {
-            createdAt: -1,
-            // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-          },
-        },
-      });
-
-      const listing = type
-        ? await leanAndPopulate.exec()
-        : await leanOnly.exec();
+      )
+        .lean()
+        .exec();
 
       return listing;
     };
@@ -134,47 +109,108 @@ export default class ListingRepository {
 
   /** Retrieves a listing by slug
    * @public
+   * @param slug listing slug
+   * @returns Promise<IListing | null>
+   */
+  async findBySlug(slug: string): Promise<IListing | null> {
+    const operation = async () => {
+      const listing = await Listing.findOne(
+        {
+          slug: slug,
+          // verification: { status: true },
+        },
+        ListingRepository.LISTING_PROJECTION
+      )
+        .lean()
+        .exec();
+
+      return listing;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
+  /** Retrieves a listing by id and populates offering subdocument
+   * @public
+   * @param id the id of the document to find
+   * @param type the type of the document to find
+   * @param page the set to retrieve per query
+   * @param limit the number of subdocument to retrieve per query
+   * @returns Promise<IListing | null>
+   */
+  async findByIdAndPopulate(
+    id: string,
+    type?: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<IListing | null> {
+    const operation = async () => {
+      const listing = await Listing.findOne(
+        {
+          _id: id,
+          // verification: { status: true },
+        },
+        ListingRepository.LISTING_PROJECTION
+      )
+        .lean()
+        .populate({
+          path: "offerings",
+          match: type,
+          model: "Offering",
+          select: ListingRepository.OFFERING_PROJECTION,
+          options: {
+            skip: (page - 1) * limit,
+            limit: limit,
+            sort: {
+              createdAt: -1,
+              // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
+            },
+          },
+        });
+
+      return listing;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
+  /** Retrieves a listing by slug and populates offering subdocument
+   * @public
    * @param slug the slug of the document to find
    * @param type the type of the document to find
    * @param page the set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
+   * @param limit the number of subdocument to retrieve per query
    * @returns Promise<IListing | null>
    */
-  async findBySlug(
+  async findBySlugAndPopulate(
     slug: string,
     type?: string,
     page: number = 1,
     limit: number = 10
   ): Promise<IListing | null> {
     const operation = async () => {
-      const operation = Listing.findOne(
+      const listing = await Listing.findOne(
         {
           slug: slug,
           // verification: { status: true },
         },
         ListingRepository.LISTING_PROJECTION
-      );
-
-      const leanOnly = operation;
-
-      const leanAndPopulate = operation.populate({
-        path: "offerings",
-        match: { type: type },
-        model: "Offering",
-        select: ListingRepository.OFFERING_PROJECTION,
-        options: {
-          skip: (page - 1) * limit,
-          limit: limit,
-          sort: {
-            createdAt: -1,
-            // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
+      )
+        .lean()
+        .populate({
+          path: "offerings",
+          match: type,
+          model: "Offering",
+          select: ListingRepository.OFFERING_PROJECTION,
+          options: {
+            skip: (page - 1) * limit,
+            limit: limit,
+            sort: {
+              createdAt: -1,
+              // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
+            },
           },
-        },
-      });
-
-      const listing = type
-        ? await leanAndPopulate.exec()
-        : await leanOnly.exec();
+        });
 
       return listing;
     };
@@ -221,7 +257,6 @@ export default class ListingRepository {
     const operation = session.withTransaction(async () => {
       const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
         new: true,
-        projection: id,
         session,
       });
 
@@ -243,10 +278,7 @@ export default class ListingRepository {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const listing = await Listing.findByIdAndDelete(
-        { _id: id },
-        { projection: id, session: session }
-      );
+      const listing = await Listing.findByIdAndDelete({ _id: id }, session);
 
       return listing;
     });
@@ -320,7 +352,7 @@ export default class ListingRepository {
     type: string,
     queryString?: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = this.RepositoryFactory(type).findAll(queryString);
+    const offerings = this.OfferingRepositoryFactory(type).findAll(queryString);
 
     return offerings;
   }
@@ -332,7 +364,7 @@ export default class ListingRepository {
    * @returns Promise<IOffering | null>
    */
   async findOfferingById(id: string, type: string): Promise<IOffering | null> {
-    const offering = await this.RepositoryFactory(type).findBySlug(id);
+    const offering = await this.OfferingRepositoryFactory(type).findBySlug(id);
 
     return offering;
   }
@@ -347,7 +379,9 @@ export default class ListingRepository {
     slug: string,
     type: string
   ): Promise<IOffering | null> {
-    const offering = await this.RepositoryFactory(type).findBySlug(slug);
+    const offering = await this.OfferingRepositoryFactory(type).findBySlug(
+      slug
+    );
 
     return offering;
   }
@@ -370,7 +404,7 @@ export default class ListingRepository {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      const offering = await this.RepositoryFactory(type).save(
+      const offering = await this.OfferingRepositoryFactory(type).save(
         payload,
         session
       );
@@ -409,7 +443,7 @@ export default class ListingRepository {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      await this.RepositoryFactory(type).update(id, payload, session);
+      await this.OfferingRepositoryFactory(type).update(id, payload, session);
 
       await IdempotencyManager.Create(key, session);
     });
@@ -433,7 +467,7 @@ export default class ListingRepository {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
-      await this.RepositoryFactory(type).delete(offeringId, session);
+      await this.OfferingRepositoryFactory(type).delete(offeringId, session);
 
       await Listing.updateOne(
         { _id: listingId },
@@ -448,9 +482,11 @@ export default class ListingRepository {
   /**
    * Selects and returns the appropriate repository based on the repository name
    * @param repositoryName - The name of the repository to resolve (e.g., 'lease', 'reservation', 'sell')
-   * @returns OfferingRepositpry instance
+   * @returns OfferingRepository instance type
    */
-  private RepositoryFactory(repositoryName: string): OfferingRepository {
+  private OfferingRepositoryFactory(
+    repositoryName: string
+  ): OfferingRepository {
     switch (repositoryName) {
       case "lease":
         return LeaseRepository.Create();

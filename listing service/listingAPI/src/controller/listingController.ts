@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
@@ -6,7 +7,6 @@ import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
 import IOffering from "../interface/IOffering";
-import { ObjectId } from "mongoose";
 
 /**
  * Creates a new listing in collection
@@ -257,13 +257,13 @@ const retrieveListingBySlug = async (
 };
 
 /**
- * Retrieves a listing by id with offerings
+ * Retrieves a listing by id and populate
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const retrieveListingByIdWithOfferings = async (
+const retrieveListingByIdAndPopulate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -277,7 +277,7 @@ const retrieveListingByIdWithOfferings = async (
 
     const limit = parseInt((req.query.limit as string) ?? "10", 10);
 
-    const listing = await ListingService.Create().findById(
+    const listing = await ListingService.Create().findByIdAndPopulate(
       id,
       type,
       page,
@@ -295,13 +295,13 @@ const retrieveListingByIdWithOfferings = async (
 };
 
 /**
- * Retrieves a listing by slug with offerings
+ * Retrieves a listing by slug and populate
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const retrieveListingBySlugWithOfferings = async (
+const retrieveListingBySlugAndPopulate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -315,7 +315,7 @@ const retrieveListingBySlugWithOfferings = async (
 
     const limit = parseInt((req.query.limit as string) ?? "10", 10);
 
-    const listing = await ListingService.Create().findBySlug(
+    const listing = await ListingService.Create().findBySlugAndPopulate(
       slug,
       type,
       page,
@@ -612,8 +612,8 @@ export default {
   retrieveOfferings,
   retrieveListingBySlug,
   retrieveListingById,
-  retrieveListingBySlugWithOfferings,
-  retrieveListingByIdWithOfferings,
+  retrieveListingBySlugAndPopulate,
+  retrieveListingByIdAndPopulate,
   updateListingById,
   deleteListingById,
   changeListingStatus,

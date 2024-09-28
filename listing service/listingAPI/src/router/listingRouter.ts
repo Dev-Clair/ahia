@@ -82,7 +82,7 @@ ListingRouter.route(
 ListingRouter.route(`/:id(${IdParamRegex})/offerings`)
   .get(
     ValidationMiddleware.validateID,
-    ListingController.retrieveListingByIdWithOfferings
+    ListingController.retrieveListingByIdAndPopulate
   )
   .post(
     AuthMiddleware.IsGranted(["Provider"]),
@@ -113,7 +113,7 @@ ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
 );
 
 ListingRouter.route(`/:slug(${SlugParamRegex})/offerings`).get(
-  ListingController.retrieveListingBySlugWithOfferings
+  ListingController.retrieveListingBySlugAndPopulate
 );
 
 export default ListingRouter;

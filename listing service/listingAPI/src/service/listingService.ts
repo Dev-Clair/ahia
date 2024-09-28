@@ -7,6 +7,8 @@ import ListingRepository from "../repository/listingRepository";
  * @method findAll
  * @method findById
  * @method findBySlug
+ * @method findByIdAndpopulate
+ * @method findBySlugAndPopulate
  * @method save
  * @method update
  * @method delete
@@ -30,36 +32,64 @@ export default class ListingService {
 
   /** Retrieves a listing by id
    * @public
-   * @param id the ObjectId of the document to find
-   * @param type the type of the document to find
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
+   * @param id listing id
    * @returns Promise<IListing | null>
    */
-  async findById(
-    id: string,
-    type?: string,
-    page?: number,
-    limit?: number
-  ): Promise<IListing | null> {
-    return await ListingRepository.Create().findById(id, type, page, limit);
+  async findById(id: string): Promise<IListing | null> {
+    return ListingRepository.Create().findById(id);
   }
 
   /** Retrieves a listing by slug
    * @public
+   * @param slug listing slug
+   * @returns Promise<IListing | null>
+   */
+  async findBySlug(slug: string): Promise<IListing | null> {
+    return ListingRepository.Create().findBySlug(slug);
+  }
+
+  /** Retrieves a listing by id and populates offering subdocument
+   * @public
+   * @param id the id of the document to find
+   * @param type the type of the document to find
+   * @param page the set to retrieve per query
+   * @param limit the number of subdocument to retrieve per query
+   * @returns Promise<IListing | null>
+   */
+  async findByIdAndPopulate(
+    id: string,
+    type?: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<IListing | null> {
+    return ListingRepository.Create().findByIdAndPopulate(
+      id,
+      type,
+      page,
+      limit
+    );
+  }
+
+  /** Retrieves a listing by slug and populates offering subdocument
+   * @public
    * @param slug the slug of the document to find
    * @param type the type of the document to find
    * @param page the set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
+   * @param limit the number of subdocument to retrieve per query
    * @returns Promise<IListing | null>
    */
-  async findBySlug(
+  async findBySlugAndPopulate(
     slug: string,
     type?: string,
-    page?: number,
-    limit?: number
+    page: number = 1,
+    limit: number = 10
   ): Promise<IListing | null> {
-    return await ListingRepository.Create().findBySlug(slug, type, page, limit);
+    return ListingRepository.Create().findBySlugAndPopulate(
+      slug,
+      type,
+      page,
+      limit
+    );
   }
 
   /**
