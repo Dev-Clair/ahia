@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IReservationOffering from "../interface/IReservationoffering";
 import Reservation from "../model/reservationModel";
@@ -15,7 +15,7 @@ export default class ReservationRepository extends OfferingRepository {
     queryString?: Record<string, any>
   ): Promise<IReservationOffering[]> {
     const operation = async () => {
-      const query = Reservation.find().lean(true);
+      const query = Reservation.find();
 
       const filter = { ...queryString };
 
@@ -23,7 +23,6 @@ export default class ReservationRepository extends OfferingRepository {
 
       const data = (
         await queryBuilder
-          .GeoNear()
           .Filter()
           .Sort(ReservationRepository.SORT_OFFERINGS)
           .Select(ReservationRepository.OFFERINGS_PROJECTION)
@@ -38,7 +37,7 @@ export default class ReservationRepository extends OfferingRepository {
 
   /** Retrieves an offering by id
    * @public
-   * @param id the ObjectId of the document to find
+   * @param id offering id
    * @returns Promise<IReservationOffering | null>
    */
   async findById(id: string): Promise<IReservationOffering | null> {
@@ -46,9 +45,7 @@ export default class ReservationRepository extends OfferingRepository {
       const offering = await Reservation.findOne(
         { _id: id },
         ReservationRepository.OFFERING_PROJECTION
-      )
-        .lean(true)
-        .exec();
+      ).exec();
 
       return offering;
     };
@@ -58,7 +55,7 @@ export default class ReservationRepository extends OfferingRepository {
 
   /** Retrieves an offering its slug
    * @public
-   * @param slug the slug of the document to find
+   * @param slug offering slug
    * @returns Promise<IReservationOffering | null>
    */
   async findBySlug(slug: string): Promise<IReservationOffering | null> {
@@ -66,9 +63,7 @@ export default class ReservationRepository extends OfferingRepository {
       const offering = await Reservation.findOne(
         { slug: slug },
         ReservationRepository.OFFERING_PROJECTION
-      )
-        .lean(true)
-        .exec();
+      ).exec();
 
       return offering;
     };
@@ -81,37 +76,39 @@ export default class ReservationRepository extends OfferingRepository {
    * @public
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<IReservationOffering>
+   * @returns Promise<ObjectId>
    */
   public async save(
     payload: Partial<IReservationOffering>,
     session: ClientSession
-  ): Promise<IReservationOffering> {
-    const offering = await Reservation.create([payload], { session: session });
+  ): Promise<ObjectId> {
+    const offerings = await Reservation.create([payload], { session: session });
 
-    return offering as any;
+    const offering = offerings[0]._id as ObjectId;
+
+    return offering;
   }
 
   /**
    * Updates an offering by id
    * @public
-   * @param id the ObjectId of the document to update
+   * @param id offering id
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<IReservationOffering>
+   * @returns Promise<ObjectId>
    */
   public async update(
     id: string,
     payload: Partial<IReservationOffering>,
     session: ClientSession
-  ): Promise<IReservationOffering> {
+  ): Promise<ObjectId> {
     const operation = async () => {
       const offering = await Reservation.findByIdAndUpdate(
         { _id: id },
         payload,
         {
           new: true,
-          lean: true,
+          projection: id,
           session,
         }
       );
@@ -125,18 +122,12 @@ export default class ReservationRepository extends OfferingRepository {
   /**
    * Deletes an offering by id
    * @public
-   * @param id the ObjectId of the document to delete
+   * @param id offering id
    * @param session mongoose transaction session
-   * @returns Promise<IReservationOffering>
+   * @returns Promiseany>
    */
-  public async delete(
-    id: string,
-    session: ClientSession
-  ): Promise<IReservationOffering> {
-    const offering = await Reservation.findByIdAndDelete(
-      { _id: id },
-      { session, lean: true }
-    );
+  public async delete(id: string, session: ClientSession): Promise<any> {
+    const offering = await Reservation.findByIdAndDelete({ _id: id }, session);
 
     return offering as any;
   }

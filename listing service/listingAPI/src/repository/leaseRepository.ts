@@ -21,7 +21,6 @@ export default class LeaseRepository extends OfferingRepository {
 
       const data = (
         await queryBuilder
-          .GeoNear()
           .Filter()
           .Sort(LeaseRepository.SORT_OFFERINGS)
           .Select(LeaseRepository.OFFERINGS_PROJECTION)
@@ -36,7 +35,7 @@ export default class LeaseRepository extends OfferingRepository {
 
   /** Retrieves an offering by id
    * @public
-   * @param id the ObjectId of the document to find
+   * @param id offering id
    * @returns Promise<ILeaseOffering | null>
    */
   async findById(id: string): Promise<ILeaseOffering | null> {
@@ -54,7 +53,7 @@ export default class LeaseRepository extends OfferingRepository {
 
   /** Retrieves an offering its slug
    * @public
-   * @param slug the slug of the document to find
+   * @param slug offering slug
    * @returns Promise<ILeaseOffering | null>
    */
   async findBySlug(slug: string): Promise<ILeaseOffering | null> {
@@ -75,12 +74,12 @@ export default class LeaseRepository extends OfferingRepository {
    * @public
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<ILeaseOffering | any>
+   * @returns Promise<ObjectId>
    */
   public async save(
     payload: Partial<ILeaseOffering>,
     session: ClientSession
-  ): Promise<ILeaseOffering | any> {
+  ): Promise<ObjectId> {
     const offerings = await Lease.create([payload], { session: session });
 
     const offering = offerings[0]._id as ObjectId;
@@ -91,20 +90,20 @@ export default class LeaseRepository extends OfferingRepository {
   /**
    * Updates an offering by id
    * @public
-   * @param id the ObjectId of the document to update
+   * @param id offering id
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<ILeaseOffering>
+   * @returns Promise<ObjectId>
    */
   public async update(
     id: string,
     payload: Partial<ILeaseOffering>,
     session: ClientSession
-  ): Promise<ILeaseOffering> {
+  ): Promise<ObjectId> {
     const operation = async () => {
       const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
         new: true,
-        lean: true,
+        projection: id,
         session,
       });
 
@@ -117,18 +116,12 @@ export default class LeaseRepository extends OfferingRepository {
   /**
    * Deletes an offering by id
    * @public
-   * @param id the ObjectId of the document to delete
+   * @param id offering id
    * @param session mongoose transaction session
-   * @returns Promise<ILeaseOffering>
+   * @returns Promiseany>
    */
-  public async delete(
-    id: string,
-    session: ClientSession
-  ): Promise<ILeaseOffering> {
-    const offering = await Lease.findByIdAndDelete(
-      { _id: id },
-      { session, lean: true }
-    );
+  public async delete(id: string, session: ClientSession): Promise<any> {
+    const offering = await Lease.findByIdAndDelete({ _id: id }, session);
 
     return offering as any;
   }

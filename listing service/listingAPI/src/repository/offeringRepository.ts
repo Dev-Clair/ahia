@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import IOffering from "../interface/IOffering";
 
 /**
@@ -31,14 +31,14 @@ export default abstract class OfferingRepository {
    */
   abstract findAll(queryString?: Record<string, any>): Promise<IOffering[]>;
 
-  /** Retrieves an offering document using its id
+  /** Retrieves an offering by id
    * @public
    * @param id the ObjectId of the document to find
    * @returns Promise<IOffering | null>
    */
   abstract findById(id: string): Promise<IOffering | null>;
 
-  /** Retrieves an offering document using its slug
+  /** Retrieves an offering by slug
    * @public
    * @param slug the slug of the document to find
    * @returns Promise<IOffering | null>
@@ -46,37 +46,37 @@ export default abstract class OfferingRepository {
   abstract findBySlug(slug: string): Promise<IOffering | null>;
 
   /**
-   * Creates a new offering document in collection
+   * Creates a new offering in collection
    * @public
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<IOffering>
+   * @returns Promise<ObjectId>
    */
   abstract save(
     payload: Partial<IOffering>,
     session: ClientSession
-  ): Promise<IOffering>;
+  ): Promise<ObjectId>;
 
   /**
-   * Updates an offering document by id
+   * Updates an offering by id
    * @public
-   * @param id the ObjectId of the document to update
+   * @param id the offering ObjectId
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<IOffering>
+   * @returns Promise<ObjectId>
    */
   abstract update(
     id: string,
     payload: Partial<IOffering | any>,
     session: ClientSession
-  ): Promise<IOffering>;
+  ): Promise<ObjectId>;
 
   /**
    * Deletes an offering by id
    * @public
-   * @param id the ObjectId of the document to delete
+   * @param id the offering ObjectId
    * @param session mongoose transaction session
-   * @returns Promise<IOffering>
+   * @returns Promise<any>
    */
-  abstract delete(id: string, session: ClientSession): Promise<IOffering>;
+  abstract delete(id: string, session: ClientSession): Promise<any>;
 }
