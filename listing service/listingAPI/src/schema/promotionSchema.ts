@@ -13,7 +13,7 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
       type: String,
       required: true,
     },
-    promotionType: {
+    type: {
       type: String,
       enum: ["offer", "discount"],
       required: true,
