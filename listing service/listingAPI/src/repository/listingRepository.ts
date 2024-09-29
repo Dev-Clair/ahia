@@ -1,10 +1,9 @@
 import mongoose, { ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import IdempotencyManager from "../utils/idempotencyManager";
 import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
+import Idempotency from "../model/idempotencyModel";
 import Listing from "../model/listingModel";
-import Offering from "../model/offeringModel";
 import OfferingRepository from "./offeringRepository";
 import LeaseRepository from "./leaseRepository";
 import ReservationRepository from "./reservationRepository";
@@ -40,7 +39,7 @@ export default class ListingRepository {
     __v: 0,
   };
 
-  static SORT_LISTINGS = { type: 0 };
+  static SORT_LISTINGS = {};
 
   static OFFERING_PROJECTION = {
     createdAt: 0,
@@ -50,7 +49,7 @@ export default class ListingRepository {
   };
 
   static SORT_OFFERINGS = {
-    featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
+    // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
   };
 
   /** Retrieves a collection of listings
@@ -132,15 +131,15 @@ export default class ListingRepository {
 
   /** Retrieves a listing by id and populates offering subdocument
    * @public
-   * @param id the id of the document to find
-   * @param type the type of the document to find
+   * @param id listing id
+   * @param type subdocument type
    * @param page the set to retrieve per query
    * @param limit the number of subdocument to retrieve per query
    * @returns Promise<IListing | null>
    */
   async findByIdAndPopulate(
     id: string,
-    type?: string,
+    type: string,
     page: number = 1,
     limit: number = 10
   ): Promise<IListing | null> {
@@ -176,15 +175,15 @@ export default class ListingRepository {
 
   /** Retrieves a listing by slug and populates offering subdocument
    * @public
-   * @param slug the slug of the document to find
-   * @param type the type of the document to find
+   * @param slug listing slug
+   * @param type subdocument type
    * @param page the set to retrieve per query
    * @param limit the number of subdocument to retrieve per query
    * @returns Promise<IListing | null>
    */
   async findBySlugAndPopulate(
     slug: string,
-    type?: string,
+    type: string,
     page: number = 1,
     limit: number = 10
   ): Promise<IListing | null> {
@@ -221,109 +220,134 @@ export default class ListingRepository {
   /**
    * Creates a new listing in collection
    * @public
-   * @param key the unique idempotency key for the operation
+   * @param key operation idempotency key
    * @param payload the data object
    * @returns Promise<IListing>
    */
-  async save(key: string, payload: Partial<IListing>): Promise<IListing> {
+  async save(
+    key: Record<string, any>,
+    payload: Partial<IListing>
+  ): Promise<IListing> {
     const session = await mongoose.startSession();
 
-    const operation = session.withTransaction(async () => {
-      const listing = await Listing.create([payload], { session: session });
+    try {
+      const operation = await session.withTransaction(async () => {
+        const listing = await Listing.create([payload], { session: session });
 
-      await IdempotencyManager.Create(key, session);
+        await Idempotency.create([key], { session: session });
 
-      return listing;
-    });
+        return listing;
+      });
 
-    return await FailureRetry.ExponentialBackoff(() => operation);
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
    * Updates a listing by id
    * @public
-   * @param id the ObjectId of the document to update
-   * @param key the unique idempotency key for the operation
+   * @param id listing ObjectId
+   * @param key operation idempotency key
    * @param payload the data object
    * @returns Promise<IListing>
    */
   async update(
     id: string,
-    key: string,
+    key: Record<string, any>,
     payload: Partial<IListing | any>
   ): Promise<IListing> {
     const session = await mongoose.startSession();
 
-    const operation = session.withTransaction(async () => {
-      const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
-        new: true,
-        session,
+    try {
+      const operation = await session.withTransaction(async () => {
+        const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
+          new: true,
+          session,
+        });
+
+        if (!listing) throw new Error("listing not found");
+
+        const val = await Idempotency.create([key], { session: session });
+
+        return listing;
       });
 
-      const val = await IdempotencyManager.Create(key, session);
-
-      return listing;
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
    * Deletes a listing by id
    * @public
-   * @param id the ObjectId of the document to delete
+   * @param id listing ObjectId
    * @returns Promise<IListing>
    */
   async delete(id: string): Promise<IListing> {
     const session = await mongoose.startSession();
 
-    const operation = session.withTransaction(async () => {
-      const listing = await Listing.findByIdAndDelete({ _id: id }, session);
+    try {
+      const operation = await session.withTransaction(async () => {
+        const listing = await Listing.findByIdAndDelete({ _id: id }, session);
 
-      return listing;
-    });
+        if (!listing) throw new Error("listing not found");
 
-    return await FailureRetry.ExponentialBackoff(() => operation);
+        return listing;
+      });
+
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /** Retrieves a collection of listings based on offerings
-   * that match search filter/criteria
+   * that match search filter
    * @public
    * @param searchFilter query filter object
    * @returns Promise<IListing[]>
    */
   public async findListingsByOfferings(searchFilter: {
+    category: string;
+    status: string;
+    type: string;
     minArea?: number;
     maxArea?: number;
-    name?: string;
   }): Promise<IListing[]> {
-    const { minArea, maxArea, name } = searchFilter;
+    const { category, minArea, maxArea, status, type } = searchFilter;
 
     //Build the query for offerings
     const query: Record<string, any> = {};
 
-    // Filtering by name using a case-insensitive regex
-    if (name !== undefined) {
-      query.name = { $regex: name, $options: "i" };
-    }
+    // Filtering by category using a case-insensitive regex
+    if (category) query.category = { $regex: category, $options: "i" };
 
     // Filtering by area size
     if (minArea !== undefined || maxArea !== undefined) {
       query["area.size"] = {};
 
-      if (minArea !== undefined) query["area.size"].$gte = minArea;
+      if (minArea !== undefined) query["area.size"] = { gte: minArea };
 
-      if (maxArea !== undefined) query["area.size"].$lte = maxArea;
+      if (maxArea !== undefined) query["area.size"] = { lte: maxArea };
     }
 
-    // Projection to retrieve only offering IDs
-    const projection = { _id: 1 };
+    // Filtering by status using a case-insensitive regex
+    if (status) query.status = { $regex: status, $options: "i" };
 
     const operation = async () => {
-      // Find offering IDs based on the criteria
-      const offerings = await Offering.find(query, projection)
-        .lean(true)
-        .exec();
+      // Find offerings that match offering type based on the filter
+      const offerings = await this.OfferingRepositoryFactory(type).findAll(
+        query
+      );
 
       const offeringIds = offerings.map((offering) => offering._id);
 
@@ -332,9 +356,7 @@ export default class ListingRepository {
       }
 
       // Find listings that contain these offering IDs
-      const listings = await this.findAll({
-        offerings: { in: offeringIds },
-      });
+      const listings = await this.findAll({ offerings: { in: offeringIds } });
 
       return listings;
     };
@@ -359,7 +381,7 @@ export default class ListingRepository {
 
   /** Retrieves a listing offering by id
    * @public
-   * @param id the offering ObjectId
+   * @param id offering id
    * @param type offering type
    * @returns Promise<IOffering | null>
    */
@@ -371,7 +393,7 @@ export default class ListingRepository {
 
   /** Retrieves a listing offering by slug
    * @public
-   * @param slug the offering slug
+   * @param slug offering slug
    * @param type offering type
    * @returns Promise<IOffering | null>
    */
@@ -389,74 +411,86 @@ export default class ListingRepository {
   /**
    * Creates a new offering on a listing
    * @public
-   * @param key the operation idempotency key
-   * @param payload the data object
+   * @param key operation idempotency key
    * @param type offering type
+   * @param payload the data object
    * @param listingId the listing ObjectId
    * @returns Promise<void>
    */
   public async saveOffering(
-    key: string,
     type: string,
+    key: Record<string, any>,
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
   ): Promise<void> {
     const session = await mongoose.startSession();
 
-    const operation = session.withTransaction(async () => {
-      const offering = await this.OfferingRepositoryFactory(type).save(
-        payload,
-        session
-      );
+    try {
+      const operation = await session.withTransaction(async () => {
+        const offering = await this.OfferingRepositoryFactory(type).save(
+          payload,
+          session
+        );
 
-      await IdempotencyManager.Create(key, session);
+        await Idempotency.create([key], { session: session });
 
-      await Listing.updateOne(
-        { _id: listingId },
-        {
-          $addToSet: {
-            offerings: offering,
+        await Listing.updateOne(
+          { _id: listingId },
+          {
+            $addToSet: {
+              offerings: offering,
+            },
           },
-        },
-        { session }
-      );
-    });
+          { session }
+        );
+      });
 
-    return await FailureRetry.ExponentialBackoff(() => operation);
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
    * Updates a listing offering
    * @public
-   * @param id the offering ObjectId
-   * @param key the operation idempotency key
+   * @param id offering id
    * @param type offering type
+   * @param key operation idempotency key
    * @param payload the data object
    * @returns Promise<void>
    */
   public async updateOffering(
     id: string,
-    key: string,
     type: string,
+    key: Record<string, any>,
     payload: Partial<IOffering>
   ): Promise<void> {
     const session = await mongoose.startSession();
 
-    const operation = session.withTransaction(async () => {
-      await this.OfferingRepositoryFactory(type).update(id, payload, session);
+    try {
+      const operation = await session.withTransaction(async () => {
+        await this.OfferingRepositoryFactory(type).update(id, payload, session);
 
-      await IdempotencyManager.Create(key, session);
-    });
+        await Idempotency.create([key], { session: session });
+      });
 
-    return await FailureRetry.ExponentialBackoff(() => operation);
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
    * Deletes a listing offering
    * @public
    * @param type offering type
-   * @param offeringId the offering ObjectId
-   * @param listingId the listing ObjectId
+   * @param offeringId offering id
+   * @param listingId listing id
    * @returns Promise<void>
    */
   public async deleteOffering(
@@ -466,22 +500,33 @@ export default class ListingRepository {
   ): Promise<void> {
     const session = await mongoose.startSession();
 
-    const operation = session.withTransaction(async () => {
-      await this.OfferingRepositoryFactory(type).delete(offeringId, session);
+    try {
+      const operation = await session.withTransaction(async () => {
+        const offering = await this.OfferingRepositoryFactory(type).delete(
+          offeringId,
+          session
+        );
 
-      await Listing.updateOne(
-        { _id: listingId },
-        { $pull: { offerings: offeringId } },
-        { session }
-      );
-    });
+        await Listing.updateOne(
+          { _id: listingId },
+          { $pull: { offerings: offering } },
+          { session }
+        );
+      });
 
-    return await FailureRetry.ExponentialBackoff(() => operation);
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
-   * Selects and returns the appropriate repository based on the repository name
-   * @param repositoryName - The name of the repository to resolve (e.g., 'lease', 'reservation', 'sell')
+   * Selects and returns the appropriate repository
+   * based on the repository name
+   * @param repositoryName - The name/type of the repository
+   * to return (e.g., 'lease', 'reservation', 'sell')
    * @returns OfferingRepository instance type
    */
   private OfferingRepositoryFactory(
@@ -503,7 +548,8 @@ export default class ListingRepository {
   }
 
   /**
-   * Creates and returns a new instance of the ListingRepository class
+   * Creates and returns a new instance
+   * of the ListingRepository class
    * @returns ListingRepository
    */
   static Create(): ListingRepository {

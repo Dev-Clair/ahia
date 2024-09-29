@@ -2,11 +2,11 @@ import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
+import IOffering from "../interface/IOffering";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
-import IOffering from "../interface/IOffering";
 
 /**
  * Creates a new listing in collection
@@ -21,7 +21,7 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const payload = req.body as Partial<IListing>;
 
@@ -51,7 +51,7 @@ const retrieveListings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const queryString = req.query as Record<string, any>;
 
     const listings = await ListingService.Create().findAll(queryString);
 
@@ -101,7 +101,7 @@ const retrieveListingsNearme = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const queryString = req.query as Record<string, any>;
 
     const listings = await ListingService.Create().findAll(queryString);
 
@@ -174,7 +174,13 @@ const retrieveListingsByOfferings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const queryString = {
+      category: req.query.category as string,
+      status: req.query.status as string,
+      type: req.query.type as string,
+      minArea: parseInt(req.query?.minArea as string, 10),
+      maxArea: parseInt(req.query?.maxArea as string, 10),
+    };
 
     const listings = await ListingService.Create().findListingsByOfferings(
       queryString
@@ -199,9 +205,9 @@ const retrieveOfferings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const type = req.params.type as string;
 
-    const type = req.query.type as string;
+    const queryString = req.query as Record<string, any>;
 
     const offerings = await ListingService.Create().findOfferings(
       type,
@@ -271,7 +277,7 @@ const retrieveListingByIdAndPopulate = async (
   try {
     const id = req.params.id as string;
 
-    const type = (req.query.type as string) ?? "";
+    const type = req.params.type as string;
 
     const page = parseInt((req.query.page as string) ?? "1", 10);
 
@@ -309,7 +315,7 @@ const retrieveListingBySlugAndPopulate = async (
   try {
     const slug = req.params.slug as string;
 
-    const type = (req.query.type as string) ?? "";
+    const type = req.params.type as string;
 
     const page = parseInt((req.query.page as string) ?? "1", 10);
 
@@ -348,7 +354,7 @@ const updateListingById = async (
   try {
     const id = req.params.id as string;
 
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const payload = req.body as Partial<IListing>;
 
@@ -402,7 +408,7 @@ const changeListingStatus = async (
   try {
     const id = req.params.id as string;
 
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const status = req.body as boolean;
 
@@ -463,7 +469,7 @@ const createListingOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const type = req.query.type as string;
 
@@ -475,9 +481,7 @@ const createListingOffering = async (
 
     payload.listing = listingId;
 
-    const service = ListingService.Create();
-
-    await service.saveOffering(key, type, payload, listingId);
+    await ListingService.Create().saveOffering(type, key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -502,7 +506,10 @@ const retrieveListingOfferingById = async (
 
     const type = req.query.type as string;
 
-    const offering = ListingService.Create().findOfferingById(offeringId, type);
+    const offering = await ListingService.Create().findOfferingById(
+      offeringId,
+      type
+    );
 
     return res.status(HttpCode.OK).json({ data: offering });
   } catch (err: any) {
@@ -527,7 +534,7 @@ const retrieveListingOfferingBySlug = async (
 
     const type = req.query.type as string;
 
-    const offering = ListingService.Create().findOfferingBySlug(
+    const offering = await ListingService.Create().findOfferingBySlug(
       offeringSlug,
       type
     );
@@ -553,7 +560,7 @@ const updateListingOffering = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const type = req.query.type as string;
 
@@ -561,8 +568,8 @@ const updateListingOffering = async (
 
     await ListingService.Create().updateOffering(
       offeringId,
-      key,
       type,
+      key,
       payload
     );
 

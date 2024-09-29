@@ -79,7 +79,7 @@ ListingRouter.route(
   `/:id(${IdParamRegex})/offerings/:offeringSlug(${SlugParamRegex})`
 ).get(ListingController.retrieveListingOfferingBySlug);
 
-ListingRouter.route(`/:id(${IdParamRegex})/offerings`)
+ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
   .get(
     ValidationMiddleware.validateID,
     ListingController.retrieveListingByIdAndPopulate
@@ -87,7 +87,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/offerings`)
   .post(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterInsertion([]),
+    ListingMiddleware.filterInsertion(["media"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateOffering,
     DocumentMiddleware("id"),
@@ -112,8 +112,15 @@ ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
   ListingController.retrieveListingBySlug
 );
 
-ListingRouter.route(`/:slug(${SlugParamRegex})/offerings`).get(
-  ListingController.retrieveListingBySlugAndPopulate
-);
+ListingRouter.route(`/:slug(${SlugParamRegex})/offerings/:type`)
+  .get(ListingController.retrieveListingBySlugAndPopulate)
+  .post(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.filterInsertion(["media"]),
+    ValidationMiddleware.validateOffering,
+    DocumentMiddleware("slug"),
+    ListingController.createListingOffering
+  );
 
 export default ListingRouter;
