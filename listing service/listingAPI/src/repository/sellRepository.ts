@@ -107,7 +107,11 @@ export default class SellRepository extends OfferingRepository {
         session,
       });
 
-      return offering;
+      if (!offering) throw new Error("offering not found");
+
+      const offeringId = offering._id as ObjectId;
+
+      return offeringId;
     };
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -123,7 +127,11 @@ export default class SellRepository extends OfferingRepository {
   public async delete(id: string, session: ClientSession): Promise<any> {
     const offering = await Sell.findByIdAndDelete({ _id: id }, session);
 
-    return offering as any;
+    if (!offering) throw new Error("offering not found");
+
+    const offeringId = offering._id as ObjectId;
+
+    return offeringId;
   }
 
   /**

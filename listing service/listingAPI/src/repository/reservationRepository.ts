@@ -84,9 +84,9 @@ export default class ReservationRepository extends OfferingRepository {
   ): Promise<ObjectId> {
     const offerings = await Reservation.create([payload], { session: session });
 
-    const offering = offerings[0]._id as ObjectId;
+    const offeringId = offerings[0]._id as ObjectId;
 
-    return offering;
+    return offeringId;
   }
 
   /**
@@ -108,12 +108,15 @@ export default class ReservationRepository extends OfferingRepository {
         payload,
         {
           new: true,
-          projection: id,
           session,
         }
       );
 
-      return offering;
+      if (!offering) throw new Error("offering not found");
+
+      const offeringId = offering._id as ObjectId;
+
+      return offeringId;
     };
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -129,7 +132,11 @@ export default class ReservationRepository extends OfferingRepository {
   public async delete(id: string, session: ClientSession): Promise<any> {
     const offering = await Reservation.findByIdAndDelete({ _id: id }, session);
 
-    return offering as any;
+    if (!offering) throw new Error("offering not found");
+
+    const offeringId = offering._id as ObjectId;
+
+    return offeringId;
   }
 
   /**

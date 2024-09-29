@@ -82,9 +82,9 @@ export default class LeaseRepository extends OfferingRepository {
   ): Promise<ObjectId> {
     const offerings = await Lease.create([payload], { session: session });
 
-    const offering = offerings[0]._id as ObjectId;
+    const offeringId = offerings[0]._id as ObjectId;
 
-    return offering;
+    return offeringId;
   }
 
   /**
@@ -103,11 +103,14 @@ export default class LeaseRepository extends OfferingRepository {
     const operation = async () => {
       const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
         new: true,
-        projection: id,
         session,
       });
 
-      return offering;
+      if (!offering) throw new Error("offering not found");
+
+      const offeringId = offering._id as ObjectId;
+
+      return offeringId;
     };
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -118,12 +121,16 @@ export default class LeaseRepository extends OfferingRepository {
    * @public
    * @param id offering id
    * @param session mongoose transaction session
-   * @returns Promiseany>
+   * @returns Promise<ObjectId>
    */
-  public async delete(id: string, session: ClientSession): Promise<any> {
+  public async delete(id: string, session: ClientSession): Promise<ObjectId> {
     const offering = await Lease.findByIdAndDelete({ _id: id }, session);
 
-    return offering as any;
+    if (!offering) throw new Error("offering not found");
+
+    const offeringId = offering._id as ObjectId;
+
+    return offeringId;
   }
 
   /**
