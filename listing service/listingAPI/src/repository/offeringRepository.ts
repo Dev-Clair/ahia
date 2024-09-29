@@ -11,7 +11,7 @@ import IOffering from "../interface/IOffering";
  * @abstract delete
  */
 export default abstract class OfferingRepository {
-  static OFFERINGS_PROJECTION = { type: 0 };
+  static OFFERINGS_PROJECTION = {};
 
   static OFFERING_PROJECTION = {
     createdAt: 0,
@@ -21,7 +21,7 @@ export default abstract class OfferingRepository {
   };
 
   static SORT_OFFERINGS = {
-    featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
+    // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
   };
 
   /** Retrieves a collection of offerings
@@ -33,14 +33,14 @@ export default abstract class OfferingRepository {
 
   /** Retrieves an offering by id
    * @public
-   * @param id the ObjectId of the document to find
+   * @param id offering id
    * @returns Promise<IOffering | null>
    */
   abstract findById(id: string): Promise<IOffering | null>;
 
   /** Retrieves an offering by slug
    * @public
-   * @param slug the slug of the document to find
+   * @param slug offering slug
    * @returns Promise<IOffering | null>
    */
   abstract findBySlug(slug: string): Promise<IOffering | null>;
@@ -60,7 +60,7 @@ export default abstract class OfferingRepository {
   /**
    * Updates an offering by id
    * @public
-   * @param id the offering ObjectId
+   * @param id offering id
    * @param payload the data object
    * @param session mongoose transaction session
    * @returns Promise<ObjectId>
@@ -74,9 +74,9 @@ export default abstract class OfferingRepository {
   /**
    * Deletes an offering by id
    * @public
-   * @param id the offering ObjectId
+   * @param id offering id
    * @param session mongoose transaction session
-   * @returns Promise<any>
+   * @returns Promise<ObjectId>
    */
-  abstract delete(id: string, session: ClientSession): Promise<any>;
+  abstract delete(id: string, session: ClientSession): Promise<ObjectId>;
 }
