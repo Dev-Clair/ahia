@@ -36,7 +36,10 @@ export default class PromotionService {
    * @param payload the data object
    * @returns Promise<void>
    */
-  async save(key: string, payload: Partial<IPromotion>): Promise<void> {
+  async save(
+    key: Record<string, any>,
+    payload: Partial<IPromotion>
+  ): Promise<void> {
     return PromotionRepository.Create().save(key, payload);
   }
 
@@ -50,7 +53,7 @@ export default class PromotionService {
    */
   async update(
     id: string,
-    key: string,
+    key: Record<string, any>,
     payload?: Partial<IPromotion>
   ): Promise<void> {
     return PromotionRepository.Create().update(id, key, payload);

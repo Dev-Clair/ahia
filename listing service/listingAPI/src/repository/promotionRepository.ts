@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import IdempotencyManager from "../utils/idempotencyManager";
+import Idempotency from "../model/idempotencyModel";
 import IPromotion from "../interface/IPromotion";
 import Promotion from "../model/promotionModel";
 import { QueryBuilder } from "../utils/queryBuilder";
@@ -84,13 +84,16 @@ export default class PromotionRepository {
    * @param payload the data object
    * @returns Promise<void>
    */
-  async save(key: string, payload: Partial<IPromotion>): Promise<void> {
+  async save(
+    key: Record<string, any>,
+    payload: Partial<IPromotion>
+  ): Promise<void> {
     const session = await mongoose.startSession();
 
     const operation = session.withTransaction(async () => {
       await Promotion.create([payload], { session: session });
 
-      await IdempotencyManager.Create(key, session);
+      await Idempotency.create([key], { session: session });
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -106,7 +109,7 @@ export default class PromotionRepository {
    */
   async update(
     id: string,
-    key: string,
+    key: Record<string, any>,
     payload?: Partial<IPromotion>
   ): Promise<void> {
     const session = await mongoose.startSession();
@@ -117,7 +120,7 @@ export default class PromotionRepository {
         session,
       });
 
-      await IdempotencyManager.Create(key, session);
+      await Idempotency.create([key], { session: session });
     });
 
     return await FailureRetry.ExponentialBackoff(() => operation);
