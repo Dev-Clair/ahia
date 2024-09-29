@@ -270,7 +270,7 @@ const validateType =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse({ id: req.params.type });
+      schema.parse({ type: req.params.type });
 
       next();
     } catch (err) {
@@ -314,7 +314,7 @@ const validateBody =
 
 export default {
   validateID: validateID(IdSchema),
-  validateType: validateID(TypeSchema),
+  validateType: validateType(TypeSchema),
   validateListing: validateBody(ListingSchema),
   validateOffering: validateBody(OfferingSchema),
   validatePromotion: validateBody(PromotionSchema),

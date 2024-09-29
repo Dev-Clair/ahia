@@ -15,10 +15,11 @@ const DocumentMiddleware = (paramName: string) => {
     try {
       const paramValue = req.params[paramName] as string;
 
+      const service = ListingService.Create();
+
       const document =
-        paramValue === "id"
-          ? await ListingService.Create().findById(paramValue)
-          : await ListingService.Create().findBySlug(paramValue);
+        (await service.findById(paramValue)) ??
+        (await service.findBySlug(paramValue));
 
       if (!document)
         throw new NotFoundError(`No record found for document: ${paramValue}`);
