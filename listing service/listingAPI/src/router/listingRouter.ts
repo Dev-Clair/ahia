@@ -4,20 +4,12 @@ import DocumentMiddleware from "../middleware/documentMiddleware";
 import ListingMiddleware from "../middleware/listingMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import ListingController from "../controller/listingController";
-import OfferingRouter from "./offeringRouter";
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
 const SlugParamRegex = "[a-zA-Z0-9]+";
 
 const ListingRouter = Router();
-
-ListingRouter.use(
-  "/:id/offerings/:type",
-  ValidationMiddleware.validateID,
-  ValidationMiddleware.validateType,
-  OfferingRouter
-);
 
 ListingRouter.route("/")
   .get(ListingController.retrieveListings)
@@ -45,6 +37,53 @@ ListingRouter.route("/offerings").get(
   ListingController.retrieveListingsByOfferings
 );
 
+// ***********************************************
+
+// ListingRouter.route("/:id/offerings/:type")
+//   .get(
+//     ValidationMiddleware.validateID,
+//     ValidationMiddleware.validateType,
+//     ListingController.retrieveListingByIdAndPopulate
+//   )
+//   .post(
+//     AuthMiddleware.IsGranted(["Provider"]),
+//     ListingMiddleware.isContentType(["application/json"]),
+//     ListingMiddleware.filterInsertion(["media"]),
+//     ValidationMiddleware.validateID,
+//     ValidationMiddleware.validateType,
+//     ValidationMiddleware.validateOffering,
+//     DocumentMiddleware("id"),
+//     ListingController.createListingOffering
+//   );
+
+// ListingRouter.route(`/:id/offerings/:type/:offeringId(${IdParamRegex})`)
+//   .get(DocumentMiddleware("id"), ListingController.retrieveListingOfferingById)
+//   .patch(
+//     ListingMiddleware.isContentType(["application/json"]),
+//     ListingMiddleware.filterUpdate(["category", "type", "use"]),
+//     ValidationMiddleware.validateID,
+//     ValidationMiddleware.validateType,
+//     DocumentMiddleware("id"),
+//     ListingController.updateListingOfferingById
+//   )
+//   .delete(
+//     ValidationMiddleware.validateID,
+//     ValidationMiddleware.validateType,
+//     DocumentMiddleware("id"),
+//     ListingController.deleteListingOfferingById
+//   );
+
+// ListingRouter.route(
+//   `/:id/offerings/:type/:offeringSlug(${SlugParamRegex})`
+// ).get(
+//   ValidationMiddleware.validateID,
+//   ValidationMiddleware.validateType,
+//   DocumentMiddleware("id"),
+//   ListingController.retrieveListingOfferingBySlug
+// );
+
+// ************************************************
+
 ListingRouter.route(`/:id(${IdParamRegex})`)
   .get(
     ValidationMiddleware.validateID,
@@ -53,7 +92,7 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
   )
   .patch(
     AuthMiddleware.IsGranted(["Provider"]),
-    ListingMiddleware.filterUpdate(["type", "address", "location"]),
+    ListingMiddleware.filterUpdate(["address", "location", "type"]),
     ValidationMiddleware.validateID,
     ListingController.updateListingById
   )
@@ -62,6 +101,53 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
     ValidationMiddleware.validateID,
     ListingController.deleteListingById
   );
+
+// ************************************************
+
+ListingRouter.route("/:id/offerings/:type")
+  .get(
+    ValidationMiddleware.validateID,
+    ValidationMiddleware.validateType,
+    ListingController.retrieveListingByIdAndPopulate
+  )
+  .post(
+    AuthMiddleware.IsGranted(["Provider"]),
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.filterInsertion(["media"]),
+    ValidationMiddleware.validateID,
+    ValidationMiddleware.validateType,
+    ValidationMiddleware.validateOffering,
+    DocumentMiddleware("id"),
+    ListingController.createListingOffering
+  );
+
+ListingRouter.route(`/:id/offerings/:type/:offeringId(${IdParamRegex})`)
+  .get(DocumentMiddleware("id"), ListingController.retrieveListingOfferingById)
+  .patch(
+    ListingMiddleware.isContentType(["application/json"]),
+    ListingMiddleware.filterUpdate(["category", "type", "use"]),
+    ValidationMiddleware.validateID,
+    ValidationMiddleware.validateType,
+    DocumentMiddleware("id"),
+    ListingController.updateListingOfferingById
+  )
+  .delete(
+    ValidationMiddleware.validateID,
+    ValidationMiddleware.validateType,
+    DocumentMiddleware("id"),
+    ListingController.deleteListingOfferingById
+  );
+
+ListingRouter.route(
+  `/:id/offerings/:type/:offeringSlug(${SlugParamRegex})`
+).get(
+  ValidationMiddleware.validateID,
+  ValidationMiddleware.validateType,
+  DocumentMiddleware("id"),
+  ListingController.retrieveListingOfferingBySlug
+);
+
+// ************************************************
 
 ListingRouter.route(`/:id(${IdParamRegex})/status`)
   .get(
@@ -77,7 +163,6 @@ ListingRouter.route(`/:id(${IdParamRegex})/status`)
   );
 
 ListingRouter.route(`/:slug(${SlugParamRegex})/type/:type`).get(
-  DocumentMiddleware("slug"),
   ListingController.retrieveListingBySlugAndPopulate
 );
 

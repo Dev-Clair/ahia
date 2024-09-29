@@ -165,7 +165,8 @@ export default class ListingRepository {
               // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
             },
           },
-        });
+        })
+        .exec();
 
       return listing;
     };
@@ -209,7 +210,8 @@ export default class ListingRepository {
               // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
             },
           },
-        });
+        })
+        .exec();
 
       return listing;
     };
