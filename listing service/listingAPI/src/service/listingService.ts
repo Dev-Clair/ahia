@@ -7,6 +7,8 @@ import ListingRepository from "../repository/listingRepository";
  * @method findAll
  * @method findById
  * @method findBySlug
+ * @method findByIdAndpopulate
+ * @method findBySlugAndPopulate
  * @method save
  * @method update
  * @method delete
@@ -30,46 +32,77 @@ export default class ListingService {
 
   /** Retrieves a listing by id
    * @public
-   * @param id the ObjectId of the document to find
-   * @param type the type of the document to find
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
+   * @param id listing id
    * @returns Promise<IListing | null>
    */
-  async findById(
-    id: string,
-    type?: string,
-    page?: number,
-    limit?: number
-  ): Promise<IListing | null> {
-    return await ListingRepository.Create().findById(id, type, page, limit);
+  async findById(id: string): Promise<IListing | null> {
+    return ListingRepository.Create().findById(id);
   }
 
   /** Retrieves a listing by slug
    * @public
-   * @param slug the slug of the document to find
-   * @param type the type of the document to find
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocuments to retrieve per query
+   * @param slug listing slug
    * @returns Promise<IListing | null>
    */
-  async findBySlug(
-    slug: string,
-    type?: string,
-    page?: number,
-    limit?: number
+  async findBySlug(slug: string): Promise<IListing | null> {
+    return ListingRepository.Create().findBySlug(slug);
+  }
+
+  /** Retrieves a listing by id and populates offering subdocument
+   * @public
+   * @param id listing id
+   * @param type offering type
+   * @param page the set to retrieve per query
+   * @param limit the number of subdocument to retrieve per query
+   * @returns Promise<IListing | null>
+   */
+  async findByIdAndPopulate(
+    id: string,
+    type: string,
+    page: number = 1,
+    limit: number = 10
   ): Promise<IListing | null> {
-    return await ListingRepository.Create().findBySlug(slug, type, page, limit);
+    return ListingRepository.Create().findByIdAndPopulate(
+      id,
+      type,
+      page,
+      limit
+    );
+  }
+
+  /** Retrieves a listing by slug and populates offering subdocument
+   * @public
+   * @param slug listing slug
+   * @param type offering type
+   * @param page the set to retrieve per query
+   * @param limit the number of subdocument to retrieve per query
+   * @returns Promise<IListing | null>
+   */
+  async findBySlugAndPopulate(
+    slug: string,
+    type: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<IListing | null> {
+    return ListingRepository.Create().findBySlugAndPopulate(
+      slug,
+      type,
+      page,
+      limit
+    );
   }
 
   /**
    * Creates a new listing collection
    * @public
-   * @param key the unique idempotency key for the operation
+   * @param key operation idempotency key
    * @param payload the data object
    * @returns Promise<IListing>
    */
-  async save(key: string, payload: Partial<IListing>): Promise<IListing> {
+  async save(
+    key: Record<string, any>,
+    payload: Partial<IListing>
+  ): Promise<IListing> {
     return await ListingRepository.Create().save(key, payload);
   }
 
@@ -77,13 +110,13 @@ export default class ListingService {
    * Updates a listing by id
    * @public
    * @param id the listing ObjectId
-   * @param key the operation idempotency key
+   * @param key operation idempotency key
    * @param payload the data object
    * @returns Promise<IListing>
    */
   async update(
     id: string,
-    key: string,
+    key: Record<string, any>,
     payload: Partial<IListing | any>
   ): Promise<IListing> {
     return await ListingRepository.Create().update(id, key, payload);
@@ -106,9 +139,11 @@ export default class ListingService {
    * @returns Promise<IListing[]>
    */
   public async findListingsByOfferings(searchFilter: {
+    category: string;
+    status: string;
+    type: string;
     minArea?: number;
     maxArea?: number;
-    name?: string;
   }): Promise<IListing[]> {
     return ListingRepository.Create().findListingsByOfferings(searchFilter);
   }
@@ -133,7 +168,7 @@ export default class ListingService {
 
   /** Retrieves a listing offering by id
    * @public
-   * @param id the offering ObjectId
+   * @param id offering id
    * @param type offering type
    * @returns Promise<IOffering | null>
    */
@@ -143,7 +178,7 @@ export default class ListingService {
 
   /** Retrieves a listing offering by slug
    * @public
-   * @param slug the offering slug
+   * @param slug offering slug
    * @param type offering type
    * @returns Promise<IOffering | null>
    */
@@ -157,21 +192,21 @@ export default class ListingService {
   /**
    * Creates a new offering on a listing
    * @public
-   * @param key the operation idempotency key
    * @param type offering type
+   * @param key operation idempotency key
    * @param payload the data object
    * @param listingId listing id
    * @returns Promise<void>
    */
   public async saveOffering(
-    key: string,
     type: string,
+    key: Record<string, any>,
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
   ): Promise<void> {
     return await ListingRepository.Create().saveOffering(
-      key,
       type,
+      key,
       payload,
       listingId
     );
@@ -180,27 +215,27 @@ export default class ListingService {
   /**
    * Updates a listing offering by id
    * @public
-   * @param id the ObjectId
-   * @param key the operation idempotency key
+   * @param id offering id
    * @param type offering type
+   * @param key the operation idempotency key
    * @param payload the data object
    * @returns Promise<void>
    */
   public async updateOffering(
     id: string,
-    key: string,
     type: string,
+    key: Record<string, any>,
     payload: Partial<IOffering>
   ): Promise<void> {
-    return ListingRepository.Create().updateOffering(id, key, type, payload);
+    return ListingRepository.Create().updateOffering(id, type, key, payload);
   }
 
   /**
    * Deletes a listing offering by id
    * @public
    * @param type offering type
-   * @param offeringId the offering ObjectId
-   * @param listingId the listing ObjectId
+   * @param offeringId offering id
+   * @param listingId listing id
    * @returns Promise<void>
    */
   public async deleteOffering(

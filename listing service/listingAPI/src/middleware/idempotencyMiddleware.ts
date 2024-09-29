@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
-import UtilsController from "../controller/utilsController";
+import Idempotency from "../model/idempotencyModel";
 
 /**
  * Verifies operation idempotency
@@ -26,7 +26,7 @@ const isIdempotent = async (
     });
   }
 
-  if (await UtilsController.verifyIdempotencyKey(key))
+  if ((await Idempotency.findOne({ key: key })) as boolean)
     return res.status(HttpCode.CONFLICT).json({
       error: {
         name: HttpStatus.CONFLICT,

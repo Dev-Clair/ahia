@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import ISellOffering from "../interface/ISelloffering";
 import Sell from "../model/sellModel";
@@ -13,7 +13,7 @@ export default class SellRepository extends OfferingRepository {
    */
   async findAll(queryString?: Record<string, any>): Promise<ISellOffering[]> {
     const operation = async () => {
-      const query = Sell.find().lean(true);
+      const query = Sell.find();
 
       const filter = { ...queryString };
 
@@ -21,7 +21,6 @@ export default class SellRepository extends OfferingRepository {
 
       const data = (
         await queryBuilder
-          .GeoNear()
           .Filter()
           .Sort(SellRepository.SORT_OFFERINGS)
           .Select(SellRepository.OFFERINGS_PROJECTION)
@@ -36,7 +35,7 @@ export default class SellRepository extends OfferingRepository {
 
   /** Retrieves an offering by id
    * @public
-   * @param id the ObjectId of the document to find
+   * @param id offering id
    * @returns Promise<ISellOffering | null>
    */
   async findById(id: string): Promise<ISellOffering | null> {
@@ -44,9 +43,7 @@ export default class SellRepository extends OfferingRepository {
       const offering = await Sell.findOne(
         { _id: id },
         SellRepository.OFFERING_PROJECTION
-      )
-        .lean(true)
-        .exec();
+      ).exec();
 
       return offering;
     };
@@ -56,7 +53,7 @@ export default class SellRepository extends OfferingRepository {
 
   /** Retrieves an offering its slug
    * @public
-   * @param slug the slug of the document to find
+   * @param slug offering slug
    * @returns Promise<ISellOffering | null>
    */
   async findBySlug(slug: string): Promise<ISellOffering | null> {
@@ -64,9 +61,7 @@ export default class SellRepository extends OfferingRepository {
       const offering = await Sell.findOne(
         { slug: slug },
         SellRepository.OFFERING_PROJECTION
-      )
-        .lean(true)
-        .exec();
+      ).exec();
 
       return offering;
     };
@@ -79,38 +74,44 @@ export default class SellRepository extends OfferingRepository {
    * @public
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<ISellOffering>
+   * @returns Promise<ObjectId>
    */
   public async save(
     payload: Partial<ISellOffering>,
     session: ClientSession
-  ): Promise<ISellOffering> {
-    const offering = await Sell.create([payload], { session: session });
+  ): Promise<ObjectId> {
+    const offerings = await Sell.create([payload], { session: session });
 
-    return offering as any;
+    const offering = offerings[0]._id as ObjectId;
+
+    return offering;
   }
 
   /**
    * Updates an offering by id
    * @public
-   * @param id the ObjectId of the document to update
+   * @param id offering id
    * @param payload the data object
    * @param session mongoose transaction session
-   * @returns Promise<ISellOffering>
+   * @returns Promise<ObjectId>
    */
   public async update(
     id: string,
     payload: Partial<ISellOffering>,
     session: ClientSession
-  ): Promise<ISellOffering> {
+  ): Promise<ObjectId> {
     const operation = async () => {
       const offering = await Sell.findByIdAndUpdate({ _id: id }, payload, {
         new: true,
-        lean: true,
+        projection: id,
         session,
       });
 
-      return offering;
+      if (!offering) throw new Error("offering not found");
+
+      const offeringId = offering._id as ObjectId;
+
+      return offeringId;
     };
 
     return await FailureRetry.ExponentialBackoff(() => operation);
@@ -119,20 +120,18 @@ export default class SellRepository extends OfferingRepository {
   /**
    * Deletes an offering by id
    * @public
-   * @param id the ObjectId of the document to delete
+   * @param id offering id
    * @param session mongoose transaction session
-   * @returns Promise<ISellOffering>
+   * @returns Promiseany>
    */
-  public async delete(
-    id: string,
-    session: ClientSession
-  ): Promise<ISellOffering> {
-    const offering = await Sell.findByIdAndDelete(
-      { _id: id },
-      { session, lean: true }
-    );
+  public async delete(id: string, session: ClientSession): Promise<any> {
+    const offering = await Sell.findByIdAndDelete({ _id: id }, session);
 
-    return offering as any;
+    if (!offering) throw new Error("offering not found");
+
+    const offeringId = offering._id as ObjectId;
+
+    return offeringId;
   }
 
   /**

@@ -3,7 +3,7 @@ import { Document, Schema } from "mongoose";
 export default interface IPromotion extends Document {
   title: string;
   description: string;
-  promotionType: "offer" | "discount";
+  type: "offer" | "discount";
   rate: number;
   startDate: Date;
   endDate: Date;

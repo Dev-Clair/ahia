@@ -1,10 +1,10 @@
 import { Schema } from "mongoose";
-import BookingSchema from "./bookingSchema";
+import ReservationSchema from "./reservationSchema";
 import IReservationOffering from "../interface/IReservationoffering";
 
 const ReservationOfferingSchema: Schema<IReservationOffering> = new Schema({
   reservation: {
-    type: [BookingSchema],
+    type: [ReservationSchema],
     required: true,
   },
 });

@@ -1,10 +1,10 @@
 import { Schema } from "mongoose";
 import ILeaseOffering from "../interface/ILeaseoffering";
-import RentSchema from "./rentSchema";
+import LeaseSchema from "./leaseSchema";
 
 const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
   lease: {
-    type: [RentSchema],
+    type: [LeaseSchema],
     required: true,
   },
 });

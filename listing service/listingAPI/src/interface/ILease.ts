@@ -1,4 +1,4 @@
-export default interface IRent {
+export default interface ILease {
   isNegotiable?: boolean;
   plan: "monthly" | "quarterly" | "annually";
   price: {

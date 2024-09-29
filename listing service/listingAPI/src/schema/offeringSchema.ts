@@ -15,6 +15,10 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: false,
     },
+    description: {
+      type: String,
+      required: true,
+    },
     slug: {
       type: String,
       // unique: true,

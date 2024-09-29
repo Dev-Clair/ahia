@@ -3,6 +3,7 @@ import { Document, Schema } from "mongoose";
 export default interface IOffering extends Document {
   listing: Schema.Types.ObjectId;
   name: string;
+  description: string;
   slug?: string;
   quantity: number;
   area: {

@@ -1,12 +1,12 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
+import IOffering from "../interface/IOffering";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
-import IOffering from "../interface/IOffering";
-import { ObjectId } from "mongoose";
 
 /**
  * Creates a new listing in collection
@@ -21,7 +21,7 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const payload = req.body as Partial<IListing>;
 
@@ -51,7 +51,7 @@ const retrieveListings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const queryString = req.query as Record<string, any>;
 
     const listings = await ListingService.Create().findAll(queryString);
 
@@ -101,7 +101,7 @@ const retrieveListingsNearme = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const queryString = req.query as Record<string, any>;
 
     const listings = await ListingService.Create().findAll(queryString);
 
@@ -174,7 +174,13 @@ const retrieveListingsByOfferings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const queryString = {
+      category: req.query.category as string,
+      status: req.query.status as string,
+      type: req.query.type as string,
+      minArea: parseInt(req.query?.minArea as string, 10),
+      maxArea: parseInt(req.query?.maxArea as string, 10),
+    };
 
     const listings = await ListingService.Create().findListingsByOfferings(
       queryString
@@ -199,9 +205,9 @@ const retrieveOfferings = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query;
+    const type = req.params.type as string;
 
-    const type = req.query.type as string;
+    const queryString = req.query as Record<string, any>;
 
     const offerings = await ListingService.Create().findOfferings(
       type,
@@ -257,13 +263,13 @@ const retrieveListingBySlug = async (
 };
 
 /**
- * Retrieves a listing by id with offerings
+ * Retrieves a listing by id and populate
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const retrieveListingByIdWithOfferings = async (
+const retrieveListingByIdAndPopulate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -271,13 +277,13 @@ const retrieveListingByIdWithOfferings = async (
   try {
     const id = req.params.id as string;
 
-    const type = (req.query.type as string) ?? "";
+    const type = req.params.type as string;
 
     const page = parseInt((req.query.page as string) ?? "1", 10);
 
     const limit = parseInt((req.query.limit as string) ?? "10", 10);
 
-    const listing = await ListingService.Create().findById(
+    const listing = await ListingService.Create().findByIdAndPopulate(
       id,
       type,
       page,
@@ -295,13 +301,13 @@ const retrieveListingByIdWithOfferings = async (
 };
 
 /**
- * Retrieves a listing by slug with offerings
+ * Retrieves a listing by slug and populate
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const retrieveListingBySlugWithOfferings = async (
+const retrieveListingBySlugAndPopulate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -309,13 +315,13 @@ const retrieveListingBySlugWithOfferings = async (
   try {
     const slug = req.params.slug as string;
 
-    const type = (req.query.type as string) ?? "";
+    const type = req.params.type as string;
 
     const page = parseInt((req.query.page as string) ?? "1", 10);
 
     const limit = parseInt((req.query.limit as string) ?? "10", 10);
 
-    const listing = await ListingService.Create().findBySlug(
+    const listing = await ListingService.Create().findBySlugAndPopulate(
       slug,
       type,
       page,
@@ -348,7 +354,7 @@ const updateListingById = async (
   try {
     const id = req.params.id as string;
 
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const payload = req.body as Partial<IListing>;
 
@@ -402,7 +408,7 @@ const changeListingStatus = async (
   try {
     const id = req.params.id as string;
 
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
     const status = req.body as boolean;
 
@@ -463,9 +469,9 @@ const createListingOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const payload = req.body as Partial<IOffering>;
 
@@ -475,9 +481,7 @@ const createListingOffering = async (
 
     payload.listing = listingId;
 
-    const service = ListingService.Create();
-
-    await service.saveOffering(key, type, payload, listingId);
+    await ListingService.Create().saveOffering(type, key, payload, listingId);
 
     return res.status(HttpCode.CREATED).json({ data: null });
   } catch (err: any) {
@@ -500,9 +504,12 @@ const retrieveListingOfferingById = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
-    const offering = ListingService.Create().findOfferingById(offeringId, type);
+    const offering = await ListingService.Create().findOfferingById(
+      offeringId,
+      type
+    );
 
     return res.status(HttpCode.OK).json({ data: offering });
   } catch (err: any) {
@@ -525,9 +532,9 @@ const retrieveListingOfferingBySlug = async (
   try {
     const offeringSlug = req.params.offeringSlug as string;
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
-    const offering = ListingService.Create().findOfferingBySlug(
+    const offering = await ListingService.Create().findOfferingBySlug(
       offeringSlug,
       type
     );
@@ -545,7 +552,7 @@ const retrieveListingOfferingBySlug = async (
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const updateListingOffering = async (
+const updateListingOfferingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -553,16 +560,16 @@ const updateListingOffering = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const key = req.headers["idempotency-key"] as string;
+    const key = { key: req.headers["idempotency-key"] as string };
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const payload = req.body as Partial<IOffering>;
 
     await ListingService.Create().updateOffering(
       offeringId,
-      key,
       type,
+      key,
       payload
     );
 
@@ -579,7 +586,7 @@ const updateListingOffering = async (
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const deleteListingOffering = async (
+const deleteListingOfferingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -587,7 +594,7 @@ const deleteListingOffering = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const listing = req.listing as IListing;
 
@@ -612,8 +619,8 @@ export default {
   retrieveOfferings,
   retrieveListingBySlug,
   retrieveListingById,
-  retrieveListingBySlugWithOfferings,
-  retrieveListingByIdWithOfferings,
+  retrieveListingBySlugAndPopulate,
+  retrieveListingByIdAndPopulate,
   updateListingById,
   deleteListingById,
   changeListingStatus,
@@ -621,6 +628,6 @@ export default {
   createListingOffering,
   retrieveListingOfferingBySlug,
   retrieveListingOfferingById,
-  updateListingOffering,
-  deleteListingOffering,
+  updateListingOfferingById,
+  deleteListingOfferingById,
 };
