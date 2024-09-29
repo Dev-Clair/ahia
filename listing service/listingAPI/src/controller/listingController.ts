@@ -471,7 +471,7 @@ const createListingOffering = async (
   try {
     const key = { key: req.headers["idempotency-key"] as string };
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const payload = req.body as Partial<IOffering>;
 
@@ -504,7 +504,7 @@ const retrieveListingOfferingById = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const offering = await ListingService.Create().findOfferingById(
       offeringId,
@@ -532,7 +532,7 @@ const retrieveListingOfferingBySlug = async (
   try {
     const offeringSlug = req.params.offeringSlug as string;
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const offering = await ListingService.Create().findOfferingBySlug(
       offeringSlug,
@@ -552,7 +552,7 @@ const retrieveListingOfferingBySlug = async (
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const updateListingOffering = async (
+const updateListingOfferingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -562,7 +562,7 @@ const updateListingOffering = async (
 
     const key = { key: req.headers["idempotency-key"] as string };
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const payload = req.body as Partial<IOffering>;
 
@@ -586,7 +586,7 @@ const updateListingOffering = async (
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const deleteListingOffering = async (
+const deleteListingOfferingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -594,7 +594,7 @@ const deleteListingOffering = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const type = req.query.type as string;
+    const type = req.params.type as string;
 
     const listing = req.listing as IListing;
 
@@ -628,6 +628,6 @@ export default {
   createListingOffering,
   retrieveListingOfferingBySlug,
   retrieveListingOfferingById,
-  updateListingOffering,
-  deleteListingOffering,
+  updateListingOfferingById,
+  deleteListingOfferingById,
 };
