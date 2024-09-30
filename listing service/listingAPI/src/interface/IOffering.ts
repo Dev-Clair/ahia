@@ -28,6 +28,6 @@ export default interface IOffering extends Document {
   };
   featured: {
     status: true | false;
-    type: "basic" | "plus" | "prime";
+    type: "none" | "basic" | "plus" | "prime";
   };
 }

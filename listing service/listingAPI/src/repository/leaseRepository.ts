@@ -15,7 +15,10 @@ export default class LeaseRepository extends OfferingRepository {
     const operation = async () => {
       const query = Lease.find();
 
-      const filter = { ...queryString };
+      const filter = {
+        ...queryString,
+        // featured: { status: true },
+      };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 

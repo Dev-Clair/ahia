@@ -15,7 +15,10 @@ export default class SellRepository extends OfferingRepository {
     const operation = async () => {
       const query = Sell.find();
 
-      const filter = { ...queryString };
+      const filter = {
+        ...queryString,
+        // featured: { status: true },
+      };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 

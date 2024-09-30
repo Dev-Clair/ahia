@@ -17,7 +17,10 @@ export default class ReservationRepository extends OfferingRepository {
     const operation = async () => {
       const query = Reservation.find();
 
-      const filter = { ...queryString };
+      const filter = {
+        ...queryString,
+        // featured: { status: true },
+      };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
