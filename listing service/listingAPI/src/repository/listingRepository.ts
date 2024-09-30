@@ -149,7 +149,7 @@ export default class ListingRepository {
       )
         .populate({
           path: "offerings",
-          match: type,
+          match: new RegExp(type, "i"),
           model: "Offering",
           select: ListingRepository.OFFERING_PROJECTION,
           options: {
@@ -193,7 +193,7 @@ export default class ListingRepository {
       )
         .populate({
           path: "offerings",
-          match: type,
+          match: new RegExp(type, "i"),
           model: "Offering",
           select: ListingRepository.OFFERING_PROJECTION,
           options: {
@@ -312,7 +312,7 @@ export default class ListingRepository {
    * @param searchFilter query filter object
    * @returns Promise<IListing[]>
    */
-  public async findListingsByOfferings(searchFilter: {
+  public async findListingsByOfferingSearch(searchFilter: {
     category: string;
     status: string;
     type: string;

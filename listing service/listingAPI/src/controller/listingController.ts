@@ -162,13 +162,13 @@ const retrieveListingsByType = async (
 };
 
 /**
- * Retrieves listings by offerings
+ * Retrieves listings by offerings search
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const retrieveListingsByOfferings = async (
+const retrieveListingsByOfferingSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -182,39 +182,11 @@ const retrieveListingsByOfferings = async (
       maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
     };
 
-    const listings = await ListingService.Create().findListingsByOfferings(
+    const listings = await ListingService.Create().findListingsByOfferingSearch(
       queryString
     );
 
     return res.status(HttpCode.OK).json({ data: listings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve offerings
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const retrieveOfferings = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const type = req.params.type as string;
-
-    const queryString = req.query as Record<string, any>;
-
-    const offerings = await ListingService.Create().findOfferings(
-      type,
-      queryString
-    );
-
-    return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
     return next(err);
   }
@@ -425,6 +397,40 @@ const changeListingStatus = async (
 };
 
 /**
+ * Retrieve listing offerings
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
+const retrieveListingOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const type = req.params.type as string;
+
+    const queryString = req.query as Record<string, any>;
+
+    const listing = req.listing as IListing;
+
+    const listingId = listing._id as ObjectId;
+
+    queryString.listing = listingId;
+
+    const offerings = await ListingService.Create().findOfferings(
+      type,
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
  * Creates a new listing offering
  * @param req Express Request Object
  * @param res Express Response Object
@@ -583,8 +589,7 @@ export default {
   retrieveListingsNearme,
   retrieveListingsByProvider,
   retrieveListingsByType,
-  retrieveListingsByOfferings,
-  retrieveOfferings,
+  retrieveListingsByOfferingSearch,
   retrieveListingBySlug,
   retrieveListingById,
   retrieveListingBySlugAndPopulate,
@@ -592,6 +597,7 @@ export default {
   updateListingById,
   deleteListingById,
   changeListingStatus,
+  retrieveListingOfferings,
   createListingOffering,
   retrieveListingOfferingBySlug,
   retrieveListingOfferingById,

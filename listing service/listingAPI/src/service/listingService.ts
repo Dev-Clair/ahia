@@ -138,14 +138,16 @@ export default class ListingService {
    * @param searchFilter query filter object
    * @returns Promise<IListing[]>
    */
-  public async findListingsByOfferings(searchFilter: {
+  public async findListingsByOfferingSearch(searchFilter: {
     category: string;
     status: string;
     type: string;
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    return ListingRepository.Create().findListingsByOfferings(searchFilter);
+    return ListingRepository.Create().findListingsByOfferingSearch(
+      searchFilter
+    );
   }
 
   /** Retrieves a collection of offerings
