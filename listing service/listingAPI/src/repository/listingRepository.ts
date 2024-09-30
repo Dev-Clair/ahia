@@ -382,7 +382,7 @@ export default class ListingRepository {
    * @returns Promise<IOffering | null>
    */
   async findOfferingById(id: string, type: string): Promise<IOffering | null> {
-    const offering = await this.OfferingRepositoryFactory(type).findBySlug(id);
+    const offering = await this.OfferingRepositoryFactory(type).findById(id);
 
     return offering;
   }

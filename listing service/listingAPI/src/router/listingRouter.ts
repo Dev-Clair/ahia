@@ -9,8 +9,6 @@ const IdParamRegex = "[0-9a-fA-F]{24}";
 
 const SlugParamRegex = "[a-zA-Z0-9]+";
 
-const TypeParamRegex = "[lease|reservation|sell]";
-
 const ListingRouter = Router();
 
 ListingRouter.route("/")
@@ -57,7 +55,7 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
     ListingController.deleteListingById
   );
 
-ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type(${TypeParamRegex})`)
+ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
   .get(
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
@@ -76,7 +74,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type(${TypeParamRegex})`)
   );
 
 ListingRouter.route(
-  `/:id(${IdParamRegex})/offerings/:type(${TypeParamRegex})/:offeringId(${IdParamRegex})`
+  `/:id(${IdParamRegex})/offerings/:type/:offeringId(${IdParamRegex})`
 )
   .get(DocumentMiddleware("id"), ListingController.retrieveListingOfferingById)
   .patch(
@@ -95,7 +93,7 @@ ListingRouter.route(
   );
 
 ListingRouter.route(
-  `/:id(${IdParamRegex})/offerings/:type(${TypeParamRegex})/:offeringId(${IdParamRegex})`
+  `/:id(${IdParamRegex})/offerings/:type/:offeringId(${IdParamRegex})`
 ).get(
   ValidationMiddleware.validateID,
   ValidationMiddleware.validateType,
@@ -104,7 +102,7 @@ ListingRouter.route(
 );
 
 ListingRouter.route(
-  `/:slug(${SlugParamRegex})/offerings/:type(${TypeParamRegex})/:offeringSlug(${SlugParamRegex})`
+  `/:slug(${SlugParamRegex})/offerings/:type/:offeringSlug(${SlugParamRegex})`
 ).get(
   ValidationMiddleware.validateType,
   DocumentMiddleware("slug"),
@@ -118,7 +116,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/status`).patch(
   ListingController.changeListingStatus
 );
 
-ListingRouter.route(`/:id(${IdParamRegex})/type/:type(${TypeParamRegex})`).get(
+ListingRouter.route(`/:id(${IdParamRegex})/type/:type`).get(
   ListingController.retrieveListingByIdAndPopulate
 );
 
@@ -127,8 +125,8 @@ ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
   ListingController.retrieveListingBySlug
 );
 
-ListingRouter.route(
-  `/:slug(${SlugParamRegex})/type/:type(${TypeParamRegex})`
-).get(ListingController.retrieveListingBySlugAndPopulate);
+ListingRouter.route(`/:slug(${SlugParamRegex})/type/:type`).get(
+  ListingController.retrieveListingBySlugAndPopulate
+);
 
 export default ListingRouter;
