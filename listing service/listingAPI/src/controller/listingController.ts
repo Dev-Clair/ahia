@@ -178,8 +178,8 @@ const retrieveListingsByOfferings = async (
       category: req.query.category as string,
       status: req.query.status as string,
       type: req.query.type as string,
-      minArea: parseInt(req.query?.minArea as string, 10),
-      maxArea: parseInt(req.query?.maxArea as string, 10),
+      minArea: parseInt((req.query?.minArea as string) ?? "", 10),
+      maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
     };
 
     const listings = await ListingService.Create().findListingsByOfferings(
@@ -425,38 +425,6 @@ const changeListingStatus = async (
 };
 
 /**
- * Checks a listing status
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const checkListingStatus = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const id = req.params.id as string;
-
-    const listing = await ListingService.Create().findById(id);
-
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
-
-    if (!listing.verification.status)
-      throw new PaymentRequiredError(
-        `${listing.name.toUpperCase()} has not been verified for listing. Kindly pay the listing fee to verify your listing`
-      );
-
-    return res.status(HttpCode.OK).json({
-      data: `${listing.name.toUpperCase()} has been been verified for listing. Kindly proceed to create offerings and promotions for your listing`,
-    });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Creates a new listing offering
  * @param req Express Request Object
  * @param res Express Response Object
@@ -624,7 +592,6 @@ export default {
   updateListingById,
   deleteListingById,
   changeListingStatus,
-  checkListingStatus,
   createListingOffering,
   retrieveListingOfferingBySlug,
   retrieveListingOfferingById,

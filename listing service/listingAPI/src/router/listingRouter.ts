@@ -149,18 +149,12 @@ ListingRouter.route(
 
 // ************************************************
 
-ListingRouter.route(`/:id(${IdParamRegex})/status`)
-  .get(
-    AuthMiddleware.IsGranted(["Provider"]),
-    ValidationMiddleware.validateID,
-    ListingController.checkListingStatus
-  )
-  .patch(
-    AuthMiddleware.IsGranted(["Admin"]),
-    ListingMiddleware.isContentType(["application/json"]),
-    ValidationMiddleware.validateID,
-    ListingController.changeListingStatus
-  );
+ListingRouter.route(`/:id(${IdParamRegex})/status`).patch(
+  AuthMiddleware.IsGranted(["Admin"]),
+  ListingMiddleware.isContentType(["application/json"]),
+  ValidationMiddleware.validateID,
+  ListingController.changeListingStatus
+);
 
 ListingRouter.route(`/:slug(${SlugParamRegex})/type/:type`).get(
   ListingController.retrieveListingBySlugAndPopulate
