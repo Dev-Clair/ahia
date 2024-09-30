@@ -7,7 +7,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method findAll
  * @method findById
  * @method findBySlug
- * @method findByIdAndpopulate
+ * @method findByIdAndPopulate
  * @method findBySlugAndPopulate
  * @method save
  * @method update
@@ -173,7 +173,7 @@ export default class ListingService {
    * @returns Promise<IOffering | null>
    */
   async findOfferingById(id: string, type: string): Promise<IOffering | null> {
-    return await ListingRepository.Create().findOfferingBySlug(id, type);
+    return await ListingRepository.Create().findOfferingById(id, type);
   }
 
   /** Retrieves a listing offering by slug

@@ -15,7 +15,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findAll
  * @method findById
  * @method findBySlug
- * @method findByIdAndpopulate
+ * @method findByIdAndPopulate
  * @method findBySlugAndPopulate
  * @method save
  * @method update
@@ -96,9 +96,7 @@ export default class ListingRepository {
           // verification: { status: true },
         },
         ListingRepository.LISTING_PROJECTION
-      )
-        .lean()
-        .exec();
+      ).exec();
 
       return listing;
     };
@@ -119,9 +117,7 @@ export default class ListingRepository {
           // verification: { status: true },
         },
         ListingRepository.LISTING_PROJECTION
-      )
-        .lean()
-        .exec();
+      ).exec();
 
       return listing;
     };
@@ -151,7 +147,6 @@ export default class ListingRepository {
         },
         ListingRepository.LISTING_PROJECTION
       )
-        .lean()
         .populate({
           path: "offerings",
           match: type,
@@ -196,7 +191,6 @@ export default class ListingRepository {
         },
         ListingRepository.LISTING_PROJECTION
       )
-        .lean()
         .populate({
           path: "offerings",
           match: type,
