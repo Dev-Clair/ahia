@@ -97,7 +97,7 @@ export default class LeaseRepository extends OfferingRepository {
    */
   public async update(
     id: string,
-    payload: Partial<ILeaseOffering>,
+    payload: Partial<ILeaseOffering | any>,
     session: ClientSession
   ): Promise<ObjectId> {
     const operation = async () => {

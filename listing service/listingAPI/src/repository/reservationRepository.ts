@@ -99,7 +99,7 @@ export default class ReservationRepository extends OfferingRepository {
    */
   public async update(
     id: string,
-    payload: Partial<IReservationOffering>,
+    payload: Partial<IReservationOffering | any>,
     session: ClientSession
   ): Promise<ObjectId> {
     const operation = async () => {

@@ -110,7 +110,7 @@ export default class PromotionRepository {
   async update(
     id: string,
     key: Record<string, any>,
-    payload?: Partial<IPromotion>
+    payload?: Partial<IPromotion | any>
   ): Promise<void> {
     const session = await mongoose.startSession();
 

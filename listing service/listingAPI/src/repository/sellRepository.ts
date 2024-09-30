@@ -97,7 +97,7 @@ export default class SellRepository extends OfferingRepository {
    */
   public async update(
     id: string,
-    payload: Partial<ISellOffering>,
+    payload: Partial<ISellOffering | any>,
     session: ClientSession
   ): Promise<ObjectId> {
     const operation = async () => {
