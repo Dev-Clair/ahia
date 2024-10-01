@@ -263,9 +263,7 @@ const retrieveListingByIdAndPopulate = async (
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-    const offerings = listing.offerings;
-
-    return res.status(HttpCode.OK).json({ data: { listing, offerings } });
+    return res.status(HttpCode.OK).json({ data: { listing } });
   } catch (err: any) {
     return next(err);
   }
@@ -302,9 +300,7 @@ const retrieveListingBySlugAndPopulate = async (
     if (!listing)
       throw new NotFoundError(`No record found for listing: ${slug}`);
 
-    const offerings = listing.offerings;
-
-    return res.status(HttpCode.OK).json({ data: { listing, offerings } });
+    return res.status(HttpCode.OK).json({ data: { listing } });
   } catch (err: any) {
     return next(err);
   }
