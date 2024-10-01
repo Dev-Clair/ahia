@@ -35,13 +35,13 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
         type: [String],
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
+        required: false,
       },
       videos: {
         type: [String],
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
+        required: false,
       },
     },
     listings: [

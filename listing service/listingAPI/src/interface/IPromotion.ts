@@ -8,8 +8,8 @@ export default interface IPromotion extends Document {
   startDate: Date;
   endDate: Date;
   media: {
-    images: string[];
-    videos: string[];
+    images?: string[];
+    videos?: string[];
   };
   listings: Schema.Types.ObjectId[];
 }

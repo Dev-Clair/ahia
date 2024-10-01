@@ -89,9 +89,9 @@ export default class PromotionRepository implements IPromotionRepository {
     payload: Partial<IPromotion>,
     options: { session: ClientSession; key?: Record<string, any> }
   ): Promise<ObjectId> {
-    try {
-      const { key, session } = options;
+    const { key, session } = options;
 
+    try {
       const operation = session.withTransaction(async () => {
         const promotions = await Promotion.create([payload], {
           session: session,
@@ -109,6 +109,8 @@ export default class PromotionRepository implements IPromotionRepository {
       return await FailureRetry.ExponentialBackoff(() => operation);
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -116,8 +118,8 @@ export default class PromotionRepository implements IPromotionRepository {
    * Updates a promotion by id
    * @public
    * @param id promotion id
-   * @param key operation idempotency key
    * @param payload the data object
+   * @param options operation metadata
    * @returns Promise<ObjectId>
    */
   async update(
@@ -125,9 +127,9 @@ export default class PromotionRepository implements IPromotionRepository {
     payload: Partial<IPromotion | any>,
     options: { session: ClientSession; key?: Record<string, any> }
   ): Promise<ObjectId> {
-    try {
-      const { key, session } = options;
+    const { key, session } = options;
 
+    try {
       const operation = session.withTransaction(async () => {
         const promotion = await Promotion.findByIdAndUpdate(
           { _id: id },
@@ -150,6 +152,8 @@ export default class PromotionRepository implements IPromotionRepository {
       return await FailureRetry.ExponentialBackoff(() => operation);
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -157,15 +161,16 @@ export default class PromotionRepository implements IPromotionRepository {
    * Deletes a promotion by id
    * @public
    * @param id promotion id
+   * @param options operation metadata
    * @returns Promise<ObjectId>
    */
   async delete(
     id: string,
     options: { session: ClientSession }
   ): Promise<ObjectId> {
-    try {
-      const { session } = options;
+    const { session } = options;
 
+    try {
       const operation = session.withTransaction(async () => {
         const promotion = await Promotion.findByIdAndDelete(
           { _id: id },
@@ -182,6 +187,8 @@ export default class PromotionRepository implements IPromotionRepository {
       return await FailureRetry.ExponentialBackoff(() => operation);
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 

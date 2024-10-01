@@ -1,3 +1,4 @@
+import mongoose, { ClientSession, ObjectId } from "mongoose";
 import IPromotion from "../interface/IPromotion";
 import PromotionRepository from "../repository/promotionRepository";
 
@@ -34,13 +35,17 @@ export default class PromotionService {
    * @public
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   async save(
     key: Record<string, any>,
     payload: Partial<IPromotion>
-  ): Promise<void> {
-    return PromotionRepository.Create().save(key, payload);
+  ): Promise<ObjectId> {
+    const session = await this.TransactionManagerFactory();
+
+    const options = { session: session, key: key };
+
+    return PromotionRepository.Create().save(payload, options);
   }
 
   /**
@@ -49,24 +54,40 @@ export default class PromotionService {
    * @param id promotion id
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   async update(
     id: string,
     key: Record<string, any>,
-    payload?: Partial<IPromotion>
-  ): Promise<void> {
-    return PromotionRepository.Create().update(id, key, payload);
+    payload: Partial<IPromotion>
+  ): Promise<ObjectId> {
+    const session = await this.TransactionManagerFactory();
+
+    const options = { session: session, key: key };
+
+    return PromotionRepository.Create().update(id, payload, options);
   }
 
   /**
    * Deletes a promotion by id
    * @public
    * @param id promotion id
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
-  async delete(id: string): Promise<void> {
-    return PromotionRepository.Create().delete(id);
+  async delete(id: string): Promise<ObjectId> {
+    const session = await this.TransactionManagerFactory();
+
+    const options = { session: session };
+
+    return PromotionRepository.Create().delete(id, options);
+  }
+
+  /**
+   * Starts and returns a transaction session object
+   * @returns Promise<ClientSession>
+   */
+  private async TransactionManagerFactory(): Promise<ClientSession> {
+    return await mongoose.startSession();
   }
 
   /**
