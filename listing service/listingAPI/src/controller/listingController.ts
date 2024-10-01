@@ -6,7 +6,6 @@ import IOffering from "../interface/IOffering";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
-import PaymentRequiredError from "../error/paymentrequiredError";
 
 /**
  * Creates a new listing in collection
@@ -312,7 +311,7 @@ const retrieveListingBySlugAndPopulate = async (
 };
 
 /**
- * Finds and modifies a listing using its id
+ * Finds and modifies a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -341,38 +340,13 @@ const updateListingById = async (
 };
 
 /**
- * Finds and removes a listing using its id
+ * Find and modify a listing verification status by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const deleteListingById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const id = req.params.id as string;
-
-    const listing = await ListingService.Create().delete(id);
-
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
-
-    return res.status(HttpCode.MODIFIED).json({ data: null });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Modifies the verification status of a listing
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const changeListingStatus = async (
+const updateListingStatusById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -387,6 +361,31 @@ const changeListingStatus = async (
     const payload = { $set: { verification: { status: status } } };
 
     const listing = await ListingService.Create().update(id, key, payload);
+
+    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
+
+    return res.status(HttpCode.MODIFIED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Finds and removes a listing by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
+const deleteListingById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const id = req.params.id as string;
+
+    const listing = await ListingService.Create().delete(id);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -595,8 +594,8 @@ export default {
   retrieveListingBySlugAndPopulate,
   retrieveListingByIdAndPopulate,
   updateListingById,
+  updateListingStatusById,
   deleteListingById,
-  changeListingStatus,
   retrieveListingOfferings,
   createListingOffering,
   retrieveListingOfferingBySlug,

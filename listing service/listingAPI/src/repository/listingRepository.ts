@@ -254,7 +254,7 @@ export default class ListingRepository implements IListingRepository {
   /**
    * Updates a listing by id
    * @public
-   * @param id listing ObjectId
+   * @param id listing id
    * @param payload data object
    * @param options operation metadata
    * @returns Promise<ObjectId>
@@ -296,7 +296,7 @@ export default class ListingRepository implements IListingRepository {
   /**
    * Deletes a listing by id
    * @public
-   * @param id listing ObjectId
+   * @param id listing id
    * @param options operation metadata
    * @returns Promise<ObjectId>
    */
@@ -428,7 +428,7 @@ export default class ListingRepository implements IListingRepository {
    * @public
    * @param type offering type
    * @param payload data object
-   * @param listingId listing ObjectId
+   * @param listingId listing id
    * @param options operation metadata
    * @returns Promise<void>
    */

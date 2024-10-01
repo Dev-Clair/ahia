@@ -113,7 +113,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),
   ListingMiddleware.isContentType(["application/json"]),
   ValidationMiddleware.validateID,
-  ListingController.changeListingStatus
+  ListingController.updateListingStatusById
 );
 
 ListingRouter.route(`/:id(${IdParamRegex})/type/:type`).get(
