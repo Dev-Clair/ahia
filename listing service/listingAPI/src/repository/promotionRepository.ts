@@ -1,11 +1,12 @@
-import mongoose from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import IPromotion from "../interface/IPromotion";
+import IPromotionRepository from "../interface/IPromotionrepository";
 import Promotion from "../model/promotionModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
-export default class PromotionRepository {
+export default class PromotionRepository implements IPromotionRepository {
   static PROMOTION_PROJECTION = {
     createdAt: 0,
     updatedAt: 0,
@@ -80,66 +81,115 @@ export default class PromotionRepository {
   /**
    * Creates a new promotion in collection
    * @public
-   * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<void>
+   * @param options operation metadata
+   * @returns Promise<ObjectId>
    */
   async save(
-    key: Record<string, any>,
-    payload: Partial<IPromotion>
-  ): Promise<void> {
-    const session = await mongoose.startSession();
+    payload: Partial<IPromotion>,
+    options: { session: ClientSession; key?: Record<string, any> }
+  ): Promise<ObjectId> {
+    const { key, session } = options;
 
-    const operation = session.withTransaction(async () => {
-      await Promotion.create([payload], { session: session });
+    try {
+      const operation = session.withTransaction(async () => {
+        const promotions = await Promotion.create([payload], {
+          session: session,
+        });
 
-      await Idempotency.create([key], { session: session });
-    });
+        if (!!key) await Idempotency.create([key], { session: session });
 
-    return await FailureRetry.ExponentialBackoff(() => operation);
+        const promotion = promotions[0];
+
+        const promotionId = promotion._id as ObjectId;
+
+        return promotionId;
+      });
+
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
    * Updates a promotion by id
    * @public
    * @param id promotion id
-   * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<void>
+   * @param options operation metadata
+   * @returns Promise<ObjectId>
    */
   async update(
     id: string,
-    key: Record<string, any>,
-    payload?: Partial<IPromotion>
-  ): Promise<void> {
-    const session = await mongoose.startSession();
+    payload: Partial<IPromotion | any>,
+    options: { session: ClientSession; key?: Record<string, any> }
+  ): Promise<ObjectId> {
+    const { key, session } = options;
 
-    const operation = session.withTransaction(async () => {
-      await Promotion.findByIdAndUpdate({ _id: id }, payload, {
-        new: true,
-        session,
+    try {
+      const operation = session.withTransaction(async () => {
+        const promotion = await Promotion.findByIdAndUpdate(
+          { _id: id },
+          payload,
+          {
+            new: true,
+            session,
+          }
+        );
+
+        if (!!key) await Idempotency.create([key], { session: session });
+
+        if (!promotion) throw new Error("promotion not found");
+
+        const promotionId = promotion._id as ObjectId;
+
+        return promotionId;
       });
 
-      await Idempotency.create([key], { session: session });
-    });
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
    * Deletes a promotion by id
    * @public
    * @param id promotion id
-   * @returns Promise<void>
+   * @param options operation metadata
+   * @returns Promise<ObjectId>
    */
-  async delete(id: string): Promise<void> {
-    const session = await mongoose.startSession();
+  async delete(
+    id: string,
+    options: { session: ClientSession }
+  ): Promise<ObjectId> {
+    const { session } = options;
 
-    const operation = session.withTransaction(async () => {
-      await Promotion.findByIdAndDelete({ _id: id }, session);
-    });
+    try {
+      const operation = session.withTransaction(async () => {
+        const promotion = await Promotion.findByIdAndDelete(
+          { _id: id },
+          session
+        );
 
-    return await FailureRetry.ExponentialBackoff(() => operation);
+        if (!promotion) throw new Error("promotion not found");
+
+        const promotionId = promotion._id as ObjectId;
+
+        return promotionId;
+      });
+
+      return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**

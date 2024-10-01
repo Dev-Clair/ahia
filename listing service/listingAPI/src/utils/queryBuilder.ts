@@ -128,11 +128,7 @@ export class QueryBuilder<T> {
   public Sort(sortFields: Record<string, any>): this {
     const defaultSortField = { createdAt: -1 };
 
-    const sortBy = [
-      this.queryString.fields,
-      sortFields,
-      defaultSortField,
-    ].join();
+    const sortBy = [this.queryString.sort, sortFields, defaultSortField].join();
 
     this.query = this.query.sort(sortBy);
 

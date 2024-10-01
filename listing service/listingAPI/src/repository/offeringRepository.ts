@@ -1,5 +1,6 @@
 import { ClientSession, ObjectId } from "mongoose";
 import IOffering from "../interface/IOffering";
+import IOfferingRepository from "../interface/IOfferingRepository";
 
 /**
  * Offering Repository
@@ -10,7 +11,9 @@ import IOffering from "../interface/IOffering";
  * @abstract update
  * @abstract delete
  */
-export default abstract class OfferingRepository {
+export default abstract class OfferingRepository
+  implements IOfferingRepository
+{
   static OFFERINGS_PROJECTION = {};
 
   static OFFERING_PROJECTION = {
@@ -49,12 +52,15 @@ export default abstract class OfferingRepository {
    * Creates a new offering in collection
    * @public
    * @param payload the data object
-   * @param session mongoose transaction session
+   * @param options operation metadata
    * @returns Promise<ObjectId>
    */
   abstract save(
     payload: Partial<IOffering>,
-    session: ClientSession
+    options: {
+      session: ClientSession;
+      key?: Record<string, any>;
+    }
   ): Promise<ObjectId>;
 
   /**
@@ -62,21 +68,27 @@ export default abstract class OfferingRepository {
    * @public
    * @param id offering id
    * @param payload the data object
-   * @param session mongoose transaction session
+   * @param options operation metadata
    * @returns Promise<ObjectId>
    */
   abstract update(
     id: string,
     payload: Partial<IOffering | any>,
-    session: ClientSession
+    options: {
+      session: ClientSession;
+      key?: Record<string, any>;
+    }
   ): Promise<ObjectId>;
 
   /**
    * Deletes an offering by id
    * @public
    * @param id offering id
-   * @param session mongoose transaction session
+   * @param options operation metadata
    * @returns Promise<ObjectId>
    */
-  abstract delete(id: string, session: ClientSession): Promise<ObjectId>;
+  abstract delete(
+    id: string,
+    options: { session: ClientSession }
+  ): Promise<ObjectId>;
 }

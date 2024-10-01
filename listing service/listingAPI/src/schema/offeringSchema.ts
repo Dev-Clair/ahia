@@ -95,8 +95,8 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       },
       type: {
         type: String,
-        enum: ["basic", "plus", "prime"],
-        default: "basic",
+        enum: ["none", "basic", "plus", "prime"],
+        default: "none",
       },
     },
   },

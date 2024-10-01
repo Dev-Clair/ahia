@@ -155,7 +155,7 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
       // Drop all promotion references to listing
       await mongoose
         .model("Promotion")
-        .findOneAndUpdate(
+        .updateOne(
           { id: listing.promotion },
           { $pull: { listings: listing._id } },
           { new: false, session }

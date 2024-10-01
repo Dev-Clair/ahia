@@ -1,3 +1,4 @@
+import mongoose, { ClientSession, ObjectId } from "mongoose";
 import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
 import ListingRepository from "../repository/listingRepository";
@@ -7,7 +8,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method findAll
  * @method findById
  * @method findBySlug
- * @method findByIdAndpopulate
+ * @method findByIdAndPopulate
  * @method findBySlugAndPopulate
  * @method save
  * @method update
@@ -97,13 +98,21 @@ export default class ListingService {
    * @public
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<IListing>
+   * @returns Promise<ObjectId>
    */
   async save(
     key: Record<string, any>,
     payload: Partial<IListing>
-  ): Promise<IListing> {
-    return await ListingRepository.Create().save(key, payload);
+  ): Promise<ObjectId> {
+    try {
+      const session = await this.TransactionManagerFactory();
+
+      const options = { session: session, key: key };
+
+      return await ListingRepository.Create().save(payload, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -112,24 +121,40 @@ export default class ListingService {
    * @param id the listing ObjectId
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<IListing>
+   * @returns Promise<ObjectId>
    */
   async update(
     id: string,
     key: Record<string, any>,
     payload: Partial<IListing | any>
-  ): Promise<IListing> {
-    return await ListingRepository.Create().update(id, key, payload);
+  ): Promise<ObjectId> {
+    try {
+      const session = await this.TransactionManagerFactory();
+
+      const options = { session: session, key: key };
+
+      return await ListingRepository.Create().update(id, payload, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
    * Deletes a listing by id
    * @public
    * @param id the listing ObjectId
-   * @returns Promise<IListing>
+   * @returns Promise<ObjectId>
    */
-  async delete(id: string): Promise<IListing> {
-    return await ListingRepository.Create().delete(id);
+  async delete(id: string): Promise<ObjectId> {
+    try {
+      const session = await this.TransactionManagerFactory();
+
+      const options = { session: session };
+
+      return await ListingRepository.Create().delete(id, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a collection of listings based on offerings
@@ -138,14 +163,16 @@ export default class ListingService {
    * @param searchFilter query filter object
    * @returns Promise<IListing[]>
    */
-  public async findListingsByOfferings(searchFilter: {
+  public async findListingsByOfferingSearch(searchFilter: {
     category: string;
     status: string;
     type: string;
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    return ListingRepository.Create().findListingsByOfferings(searchFilter);
+    return ListingRepository.Create().findListingsByOfferingSearch(
+      searchFilter
+    );
   }
 
   /** Retrieves a collection of offerings
@@ -173,7 +200,7 @@ export default class ListingService {
    * @returns Promise<IOffering | null>
    */
   async findOfferingById(id: string, type: string): Promise<IOffering | null> {
-    return await ListingRepository.Create().findOfferingBySlug(id, type);
+    return await ListingRepository.Create().findOfferingById(id, type);
   }
 
   /** Retrieves a listing offering by slug
@@ -204,12 +231,20 @@ export default class ListingService {
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
   ): Promise<void> {
-    return await ListingRepository.Create().saveOffering(
-      type,
-      key,
-      payload,
-      listingId
-    );
+    try {
+      const session = await this.TransactionManagerFactory();
+
+      const options = { session: session, key: key };
+
+      return await ListingRepository.Create().saveOffering(
+        type,
+        payload,
+        listingId,
+        options
+      );
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -225,9 +260,22 @@ export default class ListingService {
     id: string,
     type: string,
     key: Record<string, any>,
-    payload: Partial<IOffering>
+    payload: Partial<IOffering | any>
   ): Promise<void> {
-    return ListingRepository.Create().updateOffering(id, type, key, payload);
+    try {
+      const session = await this.TransactionManagerFactory();
+
+      const options = { session: session, key: key };
+
+      return ListingRepository.Create().updateOffering(
+        id,
+        type,
+        payload,
+        options
+      );
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -243,11 +291,28 @@ export default class ListingService {
     offeringId: string,
     listingId: string
   ): Promise<void> {
-    return ListingRepository.Create().deleteOffering(
-      type,
-      offeringId,
-      listingId
-    );
+    try {
+      const session = await this.TransactionManagerFactory();
+
+      const options = { session: session };
+
+      return ListingRepository.Create().deleteOffering(
+        type,
+        offeringId,
+        listingId,
+        options
+      );
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Starts and returns a transaction session object
+   * @returns Promise<ClientSession>
+   */
+  private async TransactionManagerFactory(): Promise<ClientSession> {
+    return await mongoose.startSession();
   }
 
   /**

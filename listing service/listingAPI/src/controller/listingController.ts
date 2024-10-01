@@ -6,7 +6,6 @@ import IOffering from "../interface/IOffering";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
-import PaymentRequiredError from "../error/paymentrequiredError";
 
 /**
  * Creates a new listing in collection
@@ -162,13 +161,13 @@ const retrieveListingsByType = async (
 };
 
 /**
- * Retrieves listings by offerings
+ * Retrieves listings by offerings search
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const retrieveListingsByOfferings = async (
+const retrieveListingsByOfferingSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -178,43 +177,15 @@ const retrieveListingsByOfferings = async (
       category: req.query.category as string,
       status: req.query.status as string,
       type: req.query.type as string,
-      minArea: parseInt(req.query?.minArea as string, 10),
-      maxArea: parseInt(req.query?.maxArea as string, 10),
+      minArea: parseInt((req.query?.minArea as string) ?? "", 10),
+      maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
     };
 
-    const listings = await ListingService.Create().findListingsByOfferings(
+    const listings = await ListingService.Create().findListingsByOfferingSearch(
       queryString
     );
 
     return res.status(HttpCode.OK).json({ data: listings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve offerings
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const retrieveOfferings = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const type = req.params.type as string;
-
-    const queryString = req.query as Record<string, any>;
-
-    const offerings = await ListingService.Create().findOfferings(
-      type,
-      queryString
-    );
-
-    return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
     return next(err);
   }
@@ -292,9 +263,7 @@ const retrieveListingByIdAndPopulate = async (
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-    const offerings = listing.offerings;
-
-    return res.status(HttpCode.OK).json({ data: { listing, offerings } });
+    return res.status(HttpCode.OK).json({ data: { listing } });
   } catch (err: any) {
     return next(err);
   }
@@ -331,16 +300,14 @@ const retrieveListingBySlugAndPopulate = async (
     if (!listing)
       throw new NotFoundError(`No record found for listing: ${slug}`);
 
-    const offerings = listing.offerings;
-
-    return res.status(HttpCode.OK).json({ data: { listing, offerings } });
+    return res.status(HttpCode.OK).json({ data: { listing } });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Finds and modifies a listing using its id
+ * Finds and modifies a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -369,38 +336,13 @@ const updateListingById = async (
 };
 
 /**
- * Finds and removes a listing using its id
+ * Find and modify a listing verification status by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const deleteListingById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const id = req.params.id as string;
-
-    const listing = await ListingService.Create().delete(id);
-
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
-
-    return res.status(HttpCode.MODIFIED).json({ data: null });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Modifies the verification status of a listing
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const changeListingStatus = async (
+const updateListingStatusById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -425,13 +367,13 @@ const changeListingStatus = async (
 };
 
 /**
- * Checks a listing status
+ * Finds and removes a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<Response | void>
  */
-const checkListingStatus = async (
+const deleteListingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -439,18 +381,45 @@ const checkListingStatus = async (
   try {
     const id = req.params.id as string;
 
-    const listing = await ListingService.Create().findById(id);
+    const listing = await ListingService.Create().delete(id);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-    if (!listing.verification.status)
-      throw new PaymentRequiredError(
-        `${listing.name.toUpperCase()} has not been verified for listing. Kindly pay the listing fee to verify your listing`
-      );
+    return res.status(HttpCode.MODIFIED).json({ data: null });
+  } catch (err: any) {
+    return next(err);
+  }
+};
 
-    return res.status(HttpCode.OK).json({
-      data: `${listing.name.toUpperCase()} has been been verified for listing. Kindly proceed to create offerings and promotions for your listing`,
-    });
+/**
+ * Retrieve listing offerings
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
+const retrieveListingOfferings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const type = req.params.type as string;
+
+    const queryString = req.query as Record<string, any>;
+
+    const listing = req.listing as IListing;
+
+    const listingId = listing._id as ObjectId;
+
+    queryString.listing = listingId;
+
+    const offerings = await ListingService.Create().findOfferings(
+      type,
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
     return next(err);
   }
@@ -615,16 +584,15 @@ export default {
   retrieveListingsNearme,
   retrieveListingsByProvider,
   retrieveListingsByType,
-  retrieveListingsByOfferings,
-  retrieveOfferings,
+  retrieveListingsByOfferingSearch,
   retrieveListingBySlug,
   retrieveListingById,
   retrieveListingBySlugAndPopulate,
   retrieveListingByIdAndPopulate,
   updateListingById,
+  updateListingStatusById,
   deleteListingById,
-  changeListingStatus,
-  checkListingStatus,
+  retrieveListingOfferings,
   createListingOffering,
   retrieveListingOfferingBySlug,
   retrieveListingOfferingById,
