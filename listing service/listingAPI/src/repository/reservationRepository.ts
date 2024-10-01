@@ -77,35 +77,51 @@ export default class ReservationRepository extends OfferingRepository {
   /**
    * Creates a new offering in collection
    * @public
-   * @param payload the data object
-   * @param session mongoose transaction session
+   * @param payload data object
+   * @param options operation metadata
    * @returns Promise<ObjectId>
    */
-  public async save(
+  async save(
     payload: Partial<IReservationOffering>,
-    session: ClientSession
+    options: {
+      session: ClientSession;
+      key?: Record<string, any>;
+    }
   ): Promise<ObjectId> {
-    const offerings = await Reservation.create([payload], { session: session });
+    try {
+      const { session } = options;
 
-    const offeringId = offerings[0]._id as ObjectId;
+      const offerings = await Reservation.create([payload], {
+        session: session,
+      });
 
-    return offeringId;
+      const offeringId = offerings[0]._id as ObjectId;
+
+      return offeringId;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
    * Updates an offering by id
    * @public
    * @param id offering id
-   * @param payload the data object
-   * @param session mongoose transaction session
+   * @param payload data object
+   * @param options operation metadata
    * @returns Promise<ObjectId>
    */
-  public async update(
+  async update(
     id: string,
     payload: Partial<IReservationOffering | any>,
-    session: ClientSession
+    options: {
+      session: ClientSession;
+      key?: Record<string, any>;
+    }
   ): Promise<ObjectId> {
-    const operation = async () => {
+    try {
+      const { session } = options;
+
       const offering = await Reservation.findByIdAndUpdate(
         { _id: id },
         payload,
@@ -120,26 +136,38 @@ export default class ReservationRepository extends OfferingRepository {
       const offeringId = offering._id as ObjectId;
 
       return offeringId;
-    };
-
-    return await FailureRetry.ExponentialBackoff(() => operation);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
    * Deletes an offering by id
    * @public
    * @param id offering id
-   * @param session mongoose transaction session
-   * @returns Promiseany>
+   * @param options operation metadata
+   * @returns Promise<ObjectId>
    */
-  public async delete(id: string, session: ClientSession): Promise<any> {
-    const offering = await Reservation.findByIdAndDelete({ _id: id }, session);
+  async delete(
+    id: string,
+    options: { session: ClientSession }
+  ): Promise<ObjectId> {
+    try {
+      const { session } = options;
 
-    if (!offering) throw new Error("offering not found");
+      const offering = await Reservation.findByIdAndDelete(
+        { _id: id },
+        session
+      );
 
-    const offeringId = offering._id as ObjectId;
+      if (!offering) throw new Error("offering not found");
 
-    return offeringId;
+      const offeringId = offering._id as ObjectId;
+
+      return offeringId;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
