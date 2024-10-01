@@ -483,7 +483,7 @@ export default class ListingRepository implements IListingRepository {
   async updateOffering(
     id: string,
     type: string,
-    payload: Partial<IOffering>,
+    payload: Partial<IOffering | any>,
     options: {
       session: ClientSession;
       key?: Record<string, any>;
