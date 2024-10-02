@@ -2,7 +2,7 @@ import { Router } from "express";
 import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import ListingMiddleware from "../middleware/listingMiddleware";
-import verificationMiddleware from "../middleware/verificationMiddleware";
+import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import ListingController from "../controller/listingController";
 
