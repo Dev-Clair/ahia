@@ -101,14 +101,6 @@ ListingRouter.route(
   ListingController.retrieveListingOfferingById
 );
 
-ListingRouter.route(
-  `/:slug(${SlugParamRegex})/offerings/:type/:offeringSlug(${SlugParamRegex})`
-).get(
-  ValidationMiddleware.validateType,
-  DocumentMiddleware("slug"),
-  ListingController.retrieveListingOfferingBySlug
-);
-
 ListingRouter.route(`/:id(${IdParamRegex})/status`).patch(
   AuthMiddleware.IsGranted(["Admin"]),
   ListingMiddleware.isContentType(["application/json"]),
@@ -127,6 +119,14 @@ ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
 
 ListingRouter.route(`/:slug(${SlugParamRegex})/type/:type`).get(
   ListingController.retrieveListingBySlugAndPopulate
+);
+
+ListingRouter.route(
+  `/:slug(${SlugParamRegex})/offerings/:type/:offeringSlug(${SlugParamRegex})`
+).get(
+  ValidationMiddleware.validateType,
+  DocumentMiddleware("slug"),
+  ListingController.retrieveListingOfferingBySlug
 );
 
 export default ListingRouter;
