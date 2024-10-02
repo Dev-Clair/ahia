@@ -94,7 +94,7 @@ const ListingSchema: Schema<IListing> = new Schema(
       required: false,
     },
   },
-  { timestamps: true, discriminatorKey: "listingType" }
+  { timestamps: true }
 );
 
 // Listing Schema Search Query Index
