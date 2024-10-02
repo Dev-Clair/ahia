@@ -10,7 +10,7 @@ const IdSchema = z.object({
   }),
 });
 
-const TypeSchema = z.object({
+const OfferingTypeSchema = z.object({
   type: z.enum(["lease", "reservation", "sell"]),
 });
 
@@ -63,6 +63,7 @@ const OfferingSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
+  category: z.enum(["economy", "premium", "luxury"]),
   quantity: z.number({
     required_error: "quantity is required",
     invalid_type_error: "quantity must be a number",
@@ -83,8 +84,6 @@ const OfferingSchema = z.object({
       invalid_type_error: "features must be a string array",
     })
   ),
-  category: z.enum(["economy", "premium", "luxury"]),
-  status: z.enum(["open", "closed"]).optional(),
   use: z.enum([
     "residential",
     "commercial",
@@ -94,6 +93,7 @@ const OfferingSchema = z.object({
     "special",
     "mixed",
   ]),
+  promotion: z.enum(["none", "basic", "plus", "prime"]),
   lease: z
     .array(
       z.object({
@@ -314,7 +314,7 @@ const validateBody =
 
 export default {
   validateID: validateID(IdSchema),
-  validateType: validateType(TypeSchema),
+  validateType: validateType(OfferingTypeSchema),
   validateListing: validateBody(ListingSchema),
   validateOffering: validateBody(OfferingSchema),
   validatePromotion: validateBody(PromotionSchema),
