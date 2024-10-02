@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
-import DatabaseServiceError from "../error/databaseserviceError";
+import DatabaseServiceError from "../error/connectionserviceError";
 import FailureRetry from "../utils/failureRetry";
 
 /**
- * Database Service
+ * Connection Service
  * @method connect
  * @method getConnection
  */
-class DatabaseService {
+class ConnectionService {
   private connectionUri: string;
 
   constructor(connectionUri: string) {
@@ -15,25 +15,10 @@ class DatabaseService {
   }
 
   /**
-   * Establishes connection to the database
-   * @private
-   */
-  private async connect(): Promise<void> {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(this.connectionUri, {
-        serverSelectionTimeoutMS: 10000,
-        maxPoolSize: 120,
-        minPoolSize: 20,
-        socketTimeoutMS: 60000,
-      });
-    }
-  }
-
-  /**
    * Provides connection resource with round-robin retry strategy on failure
    * @public
    */
-  public async getConnection(): Promise<void> {
+  async getConnection(): Promise<void> {
     try {
       await FailureRetry.ExponentialBackoff(() => this.connect());
     } catch (err: any) {
@@ -49,13 +34,28 @@ class DatabaseService {
   }
 
   /**
-   * Creates and returns a new instance of the DatabaseService class
-   * @param connectionUri
-   * @returns DatabaseService
+   * Establishes connection to the database
+   * @returns Promise<void>
    */
-  public static Create(connectionUri: string): DatabaseService {
-    return new DatabaseService(connectionUri);
+  private async connect(): Promise<void> {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(this.connectionUri, {
+        serverSelectionTimeoutMS: 10000,
+        maxPoolSize: 120,
+        minPoolSize: 20,
+        socketTimeoutMS: 60000,
+      });
+    }
+  }
+
+  /**
+   * Creates and returns a new instance of the ConnectionService class
+   * @param connectionUri
+   * @returns ConnectionService
+   */
+  public static Create(connectionUri: string): ConnectionService {
+    return new ConnectionService(connectionUri);
   }
 }
 
-export default DatabaseService;
+export default ConnectionService;
