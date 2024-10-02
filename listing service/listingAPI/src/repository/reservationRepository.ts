@@ -19,12 +19,12 @@ export default class ReservationRepository extends OfferingRepository {
 
       const filter = {
         ...queryString,
-        // featured: { status: true },
+        // verification: { status: true },
       };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const data = (
+      const offerings = (
         await queryBuilder
           .Filter()
           .Sort(ReservationRepository.SORT_OFFERINGS)
@@ -32,7 +32,7 @@ export default class ReservationRepository extends OfferingRepository {
           .Paginate()
       ).Exec();
 
-      return data;
+      return offerings;
     };
 
     return await FailureRetry.LinearJitterBackoff(() => operation());

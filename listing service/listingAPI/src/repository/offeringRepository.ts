@@ -20,12 +20,10 @@ export default abstract class OfferingRepository
     createdAt: 0,
     updatedAt: 0,
     __v: 0,
-    featured: 0,
+    verification: 0,
   };
 
-  static SORT_OFFERINGS = {
-    // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-  };
+  static SORT_OFFERINGS = {};
 
   /** Retrieves a collection of offerings
    * @public

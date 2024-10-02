@@ -30,7 +30,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteOffering
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTINGS_PROJECTION = { verification: 0, provider: { email: 0 } };
+  static LISTINGS_PROJECTION = { provider: { email: 0 } };
 
   static LISTING_PROJECTION = {
     verification: 0,
@@ -46,12 +46,10 @@ export default class ListingRepository implements IListingRepository {
     createdAt: 0,
     updatedAt: 0,
     __v: 0,
-    featured: 0,
+    verification: 0,
   };
 
-  static SORT_OFFERINGS = {
-    // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-  };
+  static SORT_OFFERINGS = {};
 
   /** Retrieves a collection of listings
    * @publics
@@ -62,14 +60,11 @@ export default class ListingRepository implements IListingRepository {
     const operation = async () => {
       const query = Listing.find();
 
-      const filter = {
-        ...queryString,
-        // verification: { status: true },
-      };
+      const filter = { ...queryString };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const data = (
+      const listings = (
         await queryBuilder
           .GeoNear()
           .Filter()
@@ -78,7 +73,7 @@ export default class ListingRepository implements IListingRepository {
           .Paginate()
       ).Exec();
 
-      return data;
+      return listings;
     };
 
     return await FailureRetry.LinearJitterBackoff(() => operation());

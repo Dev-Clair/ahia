@@ -17,12 +17,12 @@ export default class LeaseRepository extends OfferingRepository {
 
       const filter = {
         ...queryString,
-        // featured: { status: true },
+        // verification: { status: true },
       };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const data = (
+      const offerings = (
         await queryBuilder
           .Filter()
           .Sort(LeaseRepository.SORT_OFFERINGS)
@@ -30,7 +30,7 @@ export default class LeaseRepository extends OfferingRepository {
           .Paginate()
       ).Exec();
 
-      return data;
+      return offerings;
     };
 
     return await FailureRetry.LinearJitterBackoff(() => operation());
