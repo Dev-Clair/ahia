@@ -10,14 +10,14 @@ const ListingSchema: Schema<IListing> = new Schema(
       type: String,
       required: true,
     },
-    description: {
-      type: String,
-      required: true,
-    },
     slug: {
       type: String,
       // unique: true,
       required: false,
+    },
+    description: {
+      type: String,
+      required: true,
     },
     type: {
       type: String,
@@ -86,19 +86,6 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: String,
         get: (value: string) => `${baseStoragePath}${value}`,
         required: false,
-      },
-    },
-    verification: {
-      status: {
-        type: Boolean,
-        enum: [true, false],
-        default: false,
-      },
-      expiry: {
-        type: Date,
-        default: function () {
-          return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
-        },
       },
     },
     promotion: {

@@ -2,8 +2,8 @@ import { Document, Schema } from "mongoose";
 
 export default interface IListing extends Document {
   name: string;
-  description: string;
   slug?: string;
+  description: string;
   type: "property" | "land";
   offerings?: Schema.Types.ObjectId[];
   address: {
@@ -23,10 +23,6 @@ export default interface IListing extends Document {
   media: {
     image: string;
     video: string;
-  };
-  verification: {
-    status: boolean;
-    expiry: Date;
   };
   promotion?: Schema.Types.ObjectId;
 }
