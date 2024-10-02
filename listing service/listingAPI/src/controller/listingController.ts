@@ -336,37 +336,6 @@ const updateListingById = async (
 };
 
 /**
- * Find and modify a listing verification status by id
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const updateListingStatusById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const id = req.params.id as string;
-
-    const key = { key: req.headers["idempotency-key"] as string };
-
-    const status = req.body as boolean;
-
-    const payload = { $set: { verification: { status: status } } };
-
-    const listing = await ListingService.Create().update(id, key, payload);
-
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
-
-    return res.status(HttpCode.MODIFIED).json({ data: null });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Finds and removes a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -590,7 +559,6 @@ export default {
   retrieveListingBySlugAndPopulate,
   retrieveListingByIdAndPopulate,
   updateListingById,
-  updateListingStatusById,
   deleteListingById,
   retrieveListingOfferings,
   createListingOffering,

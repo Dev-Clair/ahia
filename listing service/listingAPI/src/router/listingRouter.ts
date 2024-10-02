@@ -16,7 +16,7 @@ ListingRouter.route("/")
   .post(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterInsertion(["media", "verification"]),
+    ListingMiddleware.filterInsertion(["media"]),
     ValidationMiddleware.validateListing,
     ListingController.createListing
   );
@@ -65,7 +65,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
   .post(
     AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterInsertion(["media"]),
+    ListingMiddleware.filterInsertion(["media", "verification"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     ValidationMiddleware.validateOffering,
@@ -78,14 +78,16 @@ ListingRouter.route(
 )
   .get(DocumentMiddleware("id"), ListingController.retrieveListingOfferingById)
   .patch(
+    AuthMiddleware.IsGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterUpdate(["category", "type", "use"]),
+    ListingMiddleware.filterUpdate(["category", "type", "use", "verification"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("id"),
     ListingController.updateListingOfferingById
   )
   .delete(
+    AuthMiddleware.IsGranted(["Provider"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("id"),
@@ -101,14 +103,8 @@ ListingRouter.route(
   ListingController.retrieveListingOfferingById
 );
 
-ListingRouter.route(`/:id(${IdParamRegex})/status`).patch(
-  AuthMiddleware.IsGranted(["Admin"]),
-  ListingMiddleware.isContentType(["application/json"]),
-  ValidationMiddleware.validateID,
-  ListingController.updateListingStatusById
-);
-
 ListingRouter.route(`/:id(${IdParamRegex})/type/:type`).get(
+  ValidationMiddleware.validateType,
   ListingController.retrieveListingByIdAndPopulate
 );
 
@@ -118,6 +114,7 @@ ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
 );
 
 ListingRouter.route(`/:slug(${SlugParamRegex})/type/:type`).get(
+  ValidationMiddleware.validateType,
   ListingController.retrieveListingBySlugAndPopulate
 );
 
