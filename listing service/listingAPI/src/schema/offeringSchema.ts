@@ -15,14 +15,18 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: false,
     },
-    description: {
-      type: String,
-      required: true,
-    },
     slug: {
       type: String,
       // unique: true,
       required: false,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    features: {
+      type: [String],
+      required: true,
     },
     quantity: {
       type: Number,
@@ -39,20 +43,11 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         required: true,
       },
     },
-    features: {
-      type: [String],
-      required: true,
-    },
     category: {
       type: String,
       enum: ["economy", "premium", "luxury"],
       set: (value: string) => value.toLowerCase(),
       required: true,
-    },
-    status: {
-      type: String,
-      enum: ["open", "closed"],
-      default: "open",
     },
     type: {
       type: String,
@@ -62,13 +57,13 @@ const OfferingSchema: Schema<IOffering> = new Schema(
     use: {
       type: String,
       enum: [
-        "residential",
+        "agricultural",
         "commercial",
         "industrial",
         "institutional",
-        "agricultural",
-        "special",
         "mixed",
+        "residential",
+        "special",
       ],
       set: (value: string) => value.toLowerCase(),
       required: true,
@@ -87,16 +82,22 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         default: undefined,
       },
     },
-    featured: {
+    promotion: {
+      type: String,
+      enum: ["none", "basic", "plus", "prime"],
+      default: "none",
+    },
+    verification: {
       status: {
         type: Boolean,
         enum: [true, false],
         default: false,
       },
-      type: {
-        type: String,
-        enum: ["none", "basic", "plus", "prime"],
-        default: "none",
+      expiry: {
+        type: Date,
+        default: function () {
+          return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
+        },
       },
     },
   },
@@ -107,7 +108,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 OfferingSchema.index({
   name: "text",
   "area.size": 1,
-  "price.amount": 1,
   status: "text",
 });
 

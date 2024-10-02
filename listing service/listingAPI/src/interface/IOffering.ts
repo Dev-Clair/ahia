@@ -3,31 +3,31 @@ import { Document, Schema } from "mongoose";
 export default interface IOffering extends Document {
   listing: Schema.Types.ObjectId;
   name: string;
-  description: string;
   slug?: string;
+  description: string;
+  category: "economy" | "premium" | "luxury";
+  features: string[];
   quantity: number;
   area: {
     size: number;
     unit: "sqm" | "sqft";
   };
-  category: "economy" | "premium" | "luxury";
-  status: "open" | "closed";
   type: "lease" | "reservation" | "sell";
   use:
-    | "residential"
+    | "agricultural"
     | "commercial"
     | "industrial"
     | "institutional"
-    | "agricultural"
-    | "special"
-    | "mixed";
-  features: string[];
+    | "mixed"
+    | "residential"
+    | "special";
   media: {
     images: string[];
     videos: string[];
   };
-  featured: {
-    status: true | false;
-    type: "none" | "basic" | "plus" | "prime";
+  promotion: "none" | "basic" | "plus" | "prime";
+  verification: {
+    status: boolean;
+    expiry: Date;
   };
 }
