@@ -18,6 +18,10 @@ const SpaceSchema: Schema<ISpace> = new Schema(
   { _id: false, versionKey: false }
 );
 
+// Space Schema Search Query Index
+SpaceSchema.index({ category: "text", type: "text" });
+
+// Space Schema Middleware
 SpaceSchema.pre("validate", function (next) {
   const categories = SpaceTypes[this.category];
 

@@ -14,4 +14,7 @@ const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
   },
 });
 
+// LeaseOffering Schema Search Query Index
+LeaseOfferingSchema.index({ status: "text", "lease.price.amount": 1 });
+
 export default LeaseOfferingSchema;

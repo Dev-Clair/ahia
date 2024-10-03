@@ -100,7 +100,9 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 OfferingSchema.index({
   name: "text",
   "area.size": 1,
-  status: "text",
+  space: "text",
+  "space.category": "text",
+  "space.type": "text",
 });
 
 // Offering Schema Middleware
