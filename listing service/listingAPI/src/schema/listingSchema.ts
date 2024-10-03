@@ -12,7 +12,7 @@ const ListingSchema: Schema<IListing> = new Schema(
     },
     slug: {
       type: String,
-      // unique: true,
+      unique: true,
       required: false,
     },
     description: {
