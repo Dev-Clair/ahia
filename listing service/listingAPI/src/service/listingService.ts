@@ -13,7 +13,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method save
  * @method update
  * @method delete
- * @method findListingsByOfferings
+ * @method findListingsByOfferingSearch
  * @method findOfferings
  * @method findOfferingById
  * @method findOfferingBySlug
@@ -223,14 +223,14 @@ export default class ListingService {
    * @param key operation idempotency key
    * @param payload the data object
    * @param listingId listing id
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   public async saveOffering(
     type: string,
     key: Record<string, any>,
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
-  ): Promise<void> {
+  ): Promise<ObjectId> {
     try {
       const session = await this.TransactionManagerFactory();
 
@@ -254,14 +254,14 @@ export default class ListingService {
    * @param type offering type
    * @param key the operation idempotency key
    * @param payload the data object
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   public async updateOffering(
     id: string,
     type: string,
     key: Record<string, any>,
     payload: Partial<IOffering | any>
-  ): Promise<void> {
+  ): Promise<ObjectId> {
     try {
       const session = await this.TransactionManagerFactory();
 
@@ -284,13 +284,13 @@ export default class ListingService {
    * @param type offering type
    * @param offeringId offering id
    * @param listingId listing id
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   public async deleteOffering(
     type: string,
     offeringId: string,
     listingId: string
-  ): Promise<void> {
+  ): Promise<ObjectId> {
     try {
       const session = await this.TransactionManagerFactory();
 

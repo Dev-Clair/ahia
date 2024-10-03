@@ -29,9 +29,9 @@ const createListing = async (
       email: req.headers["provider-email"] as string,
     };
 
-    await ListingService.Create().save(key, payload);
+    const listing = await ListingService.Create().save(key, payload);
 
-    return res.status(HttpCode.CREATED).json({ data: null });
+    return res.status(HttpCode.CREATED).json({ data: listing });
   } catch (err: any) {
     return next(err);
   }
@@ -329,7 +329,7 @@ const updateListingById = async (
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-    return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: listing });
   } catch (err: any) {
     return next(err);
   }
@@ -354,7 +354,7 @@ const deleteListingById = async (
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
-    return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: listing });
   } catch (err: any) {
     return next(err);
   }
@@ -379,7 +379,7 @@ const retrieveListingOfferings = async (
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id as ObjectId;
+    const listingId = listing._id;
 
     queryString.listing = listingId;
 
@@ -415,13 +415,18 @@ const createListingOffering = async (
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id as ObjectId;
+    const listingId = listing._id;
 
     payload.listing = listingId;
 
-    await ListingService.Create().saveOffering(type, key, payload, listingId);
+    const offering = await ListingService.Create().saveOffering(
+      type,
+      key,
+      payload,
+      listingId
+    );
 
-    return res.status(HttpCode.CREATED).json({ data: null });
+    return res.status(HttpCode.CREATED).json({ data: offering });
   } catch (err: any) {
     return next(err);
   }
@@ -504,14 +509,14 @@ const updateListingOfferingById = async (
 
     const payload = req.body as Partial<IOffering>;
 
-    await ListingService.Create().updateOffering(
+    const offering = await ListingService.Create().updateOffering(
       offeringId,
       type,
       key,
       payload
     );
 
-    return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: offering });
   } catch (err: any) {
     return next(err);
   }
@@ -536,11 +541,15 @@ const deleteListingOfferingById = async (
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id as string;
+    const listingId = listing._id.toString();
 
-    await ListingService.Create().deleteOffering(type, offeringId, listingId);
+    const offering = await ListingService.Create().deleteOffering(
+      type,
+      offeringId,
+      listingId
+    );
 
-    return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: offering });
   } catch (err: any) {
     return next(err);
   }

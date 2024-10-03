@@ -5,8 +5,8 @@ import IListingRepository from "../interface/IListingRepository";
 import IOffering from "../interface/IOffering";
 import Idempotency from "../model/idempotencyModel";
 import Listing from "../model/listingModel";
-import OfferingRepository from "./offeringRepository";
 import LeaseRepository from "./leaseRepository";
+import OfferingRepository from "./offeringRepository";
 import ReservationRepository from "./reservationRepository";
 import SellRepository from "./sellRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
@@ -21,7 +21,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method save
  * @method update
  * @method delete
- * @method findListingsByOfferings
+ * @method findListingsByOfferingSearch
  * @method findOfferings
  * @method findOfferingById
  * @method findOfferingBySlug
@@ -425,7 +425,7 @@ export default class ListingRepository implements IListingRepository {
    * @param payload data object
    * @param listingId listing id
    * @param options operation metadata
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   async saveOffering(
     type: string,
@@ -435,7 +435,7 @@ export default class ListingRepository implements IListingRepository {
       session: ClientSession;
       key?: Record<string, any>;
     }
-  ): Promise<void> {
+  ): Promise<ObjectId> {
     const { key, session } = options;
 
     try {
@@ -473,7 +473,7 @@ export default class ListingRepository implements IListingRepository {
    * @param type offering type
    * @param payload data object
    * @param options operation metadata
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   async updateOffering(
     id: string,
@@ -483,7 +483,7 @@ export default class ListingRepository implements IListingRepository {
       session: ClientSession;
       key?: Record<string, any>;
     }
-  ): Promise<void> {
+  ): Promise<ObjectId> {
     const { key, session } = options;
 
     try {
@@ -510,14 +510,14 @@ export default class ListingRepository implements IListingRepository {
    * @param offeringId offering id
    * @param listingId listing id
    * @param options operation metadata
-   * @returns Promise<void>
+   * @returns Promise<ObjectId>
    */
   async deleteOffering(
     type: string,
     offeringId: string,
     listingId: string,
     options: { session: ClientSession }
-  ): Promise<void> {
+  ): Promise<ObjectId> {
     const { session } = options;
 
     try {
