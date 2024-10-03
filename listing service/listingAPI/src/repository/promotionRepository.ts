@@ -101,7 +101,7 @@ export default class PromotionRepository implements IPromotionRepository {
 
         const promotion = promotions[0];
 
-        const promotionId = promotion._id as ObjectId;
+        const promotionId = promotion._id;
 
         return promotionId;
       });
@@ -144,7 +144,7 @@ export default class PromotionRepository implements IPromotionRepository {
 
         if (!promotion) throw new Error("promotion not found");
 
-        const promotionId = promotion._id as ObjectId;
+        const promotionId = promotion._id;
 
         return promotionId;
       });
@@ -179,7 +179,7 @@ export default class PromotionRepository implements IPromotionRepository {
 
         if (!promotion) throw new Error("promotion not found");
 
-        const promotionId = promotion._id as ObjectId;
+        const promotionId = promotion._id;
 
         return promotionId;
       });
