@@ -99,6 +99,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 // Offering Schema Search Query Index
 OfferingSchema.index({
   name: "text",
+  category: "text",
   "area.size": 1,
   space: "text",
   "space.category": "text",

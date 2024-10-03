@@ -12,7 +12,7 @@ const SpaceTypes = {
     "timeshare",
   ],
   industrial: ["factory", "warehouse"],
-  land: ["agricultural", "commercial-lo", "residential", "mixed"],
+  land: ["agricultural", "commercial", "residential", "mixed"],
   mixed: [
     "hotel-residential-complex",
     "lifestyle",
