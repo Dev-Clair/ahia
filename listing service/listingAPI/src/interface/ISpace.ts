@@ -1,4 +1,4 @@
-import SpaceTypes from "./spaceTypes";
+import SpaceTypes from "../constant/spaceTypes";
 
 export default interface ISpace {
   category: keyof typeof SpaceTypes;

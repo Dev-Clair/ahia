@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 import ISpace from "../interface/ISpace";
-import SpaceTypes from "../interface/spaceTypes";
+import SpaceTypes from "../constant/spaceTypes";
 
 const SpaceSchema: Schema<ISpace> = new Schema(
   {
