@@ -1,6 +1,7 @@
 import { Document, Schema } from "mongoose";
 
 export default interface IListing extends Document {
+  _id: Schema.Types.ObjectId;
   name: string;
   slug?: string;
   description: string;
@@ -8,9 +9,9 @@ export default interface IListing extends Document {
   offerings?: Schema.Types.ObjectId[];
   address: {
     street: string;
-    countyLGA: string;
     city: string;
     state: string;
+    zip?: string;
   };
   location: {
     type: string;

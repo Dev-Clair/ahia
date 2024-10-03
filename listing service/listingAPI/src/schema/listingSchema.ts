@@ -36,15 +36,15 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: String,
         required: true,
       },
-      countyLGA: {
-        type: String,
-        required: true,
-      },
       city: {
         type: String,
         required: true,
       },
       state: {
+        type: String,
+        required: true,
+      },
+      zip: {
         type: String,
         required: true,
       },
@@ -61,7 +61,7 @@ const ListingSchema: Schema<IListing> = new Schema(
           validator: function (value: number[]) {
             return Array.isArray(value) && value.length === 2;
           },
-          message: "geoCoodinates must be an array of two numbers",
+          message: "geoCoordinates must be an array of two numbers",
         },
         required: false,
       },
