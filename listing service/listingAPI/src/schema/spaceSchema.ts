@@ -4,7 +4,7 @@ import SpaceTypes from "../constant/spaceTypes";
 
 const SpaceSchema: Schema<ISpace> = new Schema(
   {
-    category: {
+    name: {
       type: String,
       enum: Object.keys(SpaceTypes).flat(),
       required: true,
@@ -19,14 +19,14 @@ const SpaceSchema: Schema<ISpace> = new Schema(
 );
 
 // Space Schema Search Query Index
-SpaceSchema.index({ category: "text", type: "text" });
+SpaceSchema.index({ name: "text", type: "text" });
 
 // Space Schema Middleware
 SpaceSchema.pre("validate", function (next) {
-  const categories = SpaceTypes[this.category];
+  const names = SpaceTypes[this.name];
 
-  if (!categories.includes(this.type))
-    throw new Error(`Invalid type for category ${this.category}`);
+  if (!names.includes(this.type))
+    throw new Error(`Invalid space type option for name: ${this.name}`);
 
   next();
 });

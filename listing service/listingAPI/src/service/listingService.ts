@@ -165,6 +165,7 @@ export default class ListingService {
    */
   public async findListingsByOfferingSearch(searchFilter: {
     category: string;
+    space: { name: string; type: string };
     status: string;
     type: string;
     minArea?: number;

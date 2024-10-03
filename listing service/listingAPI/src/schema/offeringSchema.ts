@@ -101,8 +101,7 @@ OfferingSchema.index({
   name: "text",
   category: "text",
   "area.size": 1,
-  space: "text",
-  "space.category": "text",
+  "space.name": "text",
   "space.type": "text",
 });
 

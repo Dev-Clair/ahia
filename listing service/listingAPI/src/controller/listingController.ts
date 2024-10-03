@@ -175,6 +175,10 @@ const retrieveListingsByOfferingSearch = async (
   try {
     const queryString = {
       category: req.query.category as string,
+      space: {
+        name: req.query.spaceName as string,
+        type: req.query.spaceType as string,
+      },
       status: req.query.status as string,
       type: req.query.type as string,
       minArea: parseInt((req.query?.minArea as string) ?? "", 10),
