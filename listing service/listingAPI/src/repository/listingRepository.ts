@@ -233,7 +233,7 @@ export default class ListingRepository implements IListingRepository {
 
         if (!!key) await Idempotency.create([key], { session: session });
 
-        const listingId = listings[0]._id as ObjectId;
+        const listingId = listings[0]._id;
 
         return listingId;
       });
@@ -275,7 +275,7 @@ export default class ListingRepository implements IListingRepository {
 
         if (!listing) throw new Error("listing not found");
 
-        const listingId = listing._id as ObjectId;
+        const listingId = listing._id;
 
         return listingId;
       });
@@ -307,7 +307,7 @@ export default class ListingRepository implements IListingRepository {
 
         if (!listing) throw new Error("listing not found");
 
-        const listingId = listing._id as ObjectId;
+        const listingId = listing._id;
 
         return listingId;
       });

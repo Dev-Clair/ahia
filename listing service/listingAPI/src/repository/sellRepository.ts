@@ -91,7 +91,7 @@ export default class SellRepository extends OfferingRepository {
 
       const offerings = await Sell.create([payload], { session: session });
 
-      const offeringId = offerings[0]._id as ObjectId;
+      const offeringId = offerings[0]._id;
 
       return offeringId;
     } catch (error: any) {
@@ -125,7 +125,7 @@ export default class SellRepository extends OfferingRepository {
 
       if (!offering) throw new Error("offering not found");
 
-      const offeringId = offering._id as ObjectId;
+      const offeringId = offering._id;
 
       return offeringId;
     } catch (error: any) {
@@ -151,7 +151,7 @@ export default class SellRepository extends OfferingRepository {
 
       if (!offering) throw new Error("offering not found");
 
-      const offeringId = offering._id as ObjectId;
+      const offeringId = offering._id;
 
       return offeringId;
     } catch (error: any) {
