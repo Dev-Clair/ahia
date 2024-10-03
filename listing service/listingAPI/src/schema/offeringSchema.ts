@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IOffering from "../interface/IOffering";
+import SpaceSchema from "./spaceSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
@@ -24,6 +25,21 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: true,
     },
+    category: {
+      type: String,
+      enum: ["economy", "premium", "luxury"],
+      set: (value: string) => value.toLowerCase(),
+      required: true,
+    },
+    space: {
+      type: SpaceSchema,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["lease", "reservation", "sell"],
+      required: true,
+    },
     features: {
       type: [String],
       required: true,
@@ -43,31 +59,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         required: true,
       },
     },
-    category: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: ["lease", "reservation", "sell"],
-      required: true,
-    },
-    use: {
-      type: String,
-      enum: [
-        "agricultural",
-        "commercial",
-        "industrial",
-        "institutional",
-        "mixed",
-        "residential",
-        "special",
-      ],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
     media: {
       images: {
         type: [String],
@@ -80,6 +71,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
         default: undefined,
+        required: false,
       },
     },
     promotion: {
