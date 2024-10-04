@@ -10,14 +10,14 @@ const ListingSchema: Schema<IListing> = new Schema(
       type: String,
       required: true,
     },
+    slug: {
+      type: String,
+      unique: true,
+      required: false,
+    },
     description: {
       type: String,
       required: true,
-    },
-    slug: {
-      type: String,
-      // unique: true,
-      required: false,
     },
     type: {
       type: String,
@@ -36,15 +36,15 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: String,
         required: true,
       },
-      countyLGA: {
-        type: String,
-        required: true,
-      },
       city: {
         type: String,
         required: true,
       },
       state: {
+        type: String,
+        required: true,
+      },
+      zip: {
         type: String,
         required: true,
       },
@@ -61,7 +61,7 @@ const ListingSchema: Schema<IListing> = new Schema(
           validator: function (value: number[]) {
             return Array.isArray(value) && value.length === 2;
           },
-          message: "geoCoodinates must be an array of two numbers",
+          message: "geoCoordinates must be an array of two numbers",
         },
         required: false,
       },
@@ -88,26 +88,13 @@ const ListingSchema: Schema<IListing> = new Schema(
         required: false,
       },
     },
-    verification: {
-      status: {
-        type: Boolean,
-        enum: [true, false],
-        default: false,
-      },
-      expiry: {
-        type: Date,
-        default: function () {
-          return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
-        },
-      },
-    },
     promotion: {
       type: Schema.Types.ObjectId,
       ref: "Promotion",
       required: false,
     },
   },
-  { timestamps: true, discriminatorKey: "listingType" }
+  { timestamps: true }
 );
 
 // Listing Schema Search Query Index

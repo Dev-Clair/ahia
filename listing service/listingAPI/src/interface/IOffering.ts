@@ -1,33 +1,28 @@
 import { Document, Schema } from "mongoose";
+import ISpace from "./ISpace";
 
 export default interface IOffering extends Document {
+  _id: Schema.Types.ObjectId;
   listing: Schema.Types.ObjectId;
   name: string;
-  description: string;
   slug?: string;
+  description: string;
+  category: "economy" | "premium" | "luxury";
+  space: ISpace;
+  type: "lease" | "reservation" | "sell";
+  features: string[];
   quantity: number;
   area: {
     size: number;
     unit: "sqm" | "sqft";
   };
-  category: "economy" | "premium" | "luxury";
-  status: "open" | "closed";
-  type: "lease" | "reservation" | "sell";
-  use:
-    | "residential"
-    | "commercial"
-    | "industrial"
-    | "institutional"
-    | "agricultural"
-    | "special"
-    | "mixed";
-  features: string[];
   media: {
     images: string[];
-    videos: string[];
+    videos?: string[];
   };
-  featured: {
-    status: true | false;
-    type: "none" | "basic" | "plus" | "prime";
+  promotion: "none" | "basic" | "plus" | "prime";
+  verification: {
+    status: boolean;
+    expiry: Date;
   };
 }

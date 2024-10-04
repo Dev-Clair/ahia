@@ -3,10 +3,18 @@ import ILeaseOffering from "../interface/ILeaseoffering";
 import LeaseSchema from "./leaseSchema";
 
 const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
+  status: {
+    type: String,
+    enum: ["now-letting", "closed"],
+    default: "now-letting",
+  },
   lease: {
     type: [LeaseSchema],
     required: true,
   },
 });
+
+// LeaseOffering Schema Search Query Index
+LeaseOfferingSchema.index({ status: "text", "lease.price.amount": 1 });
 
 export default LeaseOfferingSchema;

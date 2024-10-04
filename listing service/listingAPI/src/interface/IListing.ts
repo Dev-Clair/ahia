@@ -1,16 +1,17 @@
 import { Document, Schema } from "mongoose";
 
 export default interface IListing extends Document {
+  _id: Schema.Types.ObjectId;
   name: string;
-  description: string;
   slug?: string;
+  description: string;
   type: "property" | "land";
   offerings?: Schema.Types.ObjectId[];
   address: {
     street: string;
-    countyLGA: string;
     city: string;
     state: string;
+    zip?: string;
   };
   location: {
     type: string;
@@ -23,10 +24,6 @@ export default interface IListing extends Document {
   media: {
     image: string;
     video: string;
-  };
-  verification: {
-    status: boolean;
-    expiry: Date;
   };
   promotion?: Schema.Types.ObjectId;
 }

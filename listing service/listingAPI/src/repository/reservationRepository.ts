@@ -1,5 +1,6 @@
-import { ClientSession, ObjectId } from "mongoose";
+import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
+import Idempotency from "../model/idempotencyModel";
 import IReservationOffering from "../interface/IReservationoffering";
 import Reservation from "../model/reservationModel";
 import OfferingRepository from "./offeringRepository";
@@ -9,22 +10,25 @@ export default class ReservationRepository extends OfferingRepository {
   /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
-   * @returns Promise<IReservationOffering[]>
+   * @param options configuration options
    */
   async findAll(
-    queryString?: Record<string, any>
+    queryString: Record<string, any>,
+    options: { retry: boolean }
   ): Promise<IReservationOffering[]> {
+    const { retry } = options;
+
     const operation = async () => {
       const query = Reservation.find();
 
       const filter = {
         ...queryString,
-        // featured: { status: true },
+        // verification: { status: true },
       };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const data = (
+      const offerings = (
         await queryBuilder
           .Filter()
           .Sort(ReservationRepository.SORT_OFFERINGS)
@@ -32,18 +36,27 @@ export default class ReservationRepository extends OfferingRepository {
           .Paginate()
       ).Exec();
 
-      return data;
+      return offerings;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const offerings = retry
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offerings as Promise<IReservationOffering[]>;
   }
 
   /** Retrieves an offering by id
    * @public
    * @param id offering id
-   * @returns Promise<IReservationOffering | null>
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IReservationOffering | null> {
+  async findById(
+    id: string,
+    options: { retry: boolean }
+  ): Promise<IReservationOffering | null> {
+    const { retry } = options;
+
     const operation = async () => {
       const offering = await Reservation.findOne(
         { _id: id },
@@ -53,15 +66,24 @@ export default class ReservationRepository extends OfferingRepository {
       return offering;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const offering = retry
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offering as Promise<IReservationOffering | null>;
   }
 
-  /** Retrieves an offering its slug
+  /** Retrieves an offering by slug
    * @public
    * @param slug offering slug
-   * @returns Promise<IReservationOffering | null>
+   * @param options configuration options
    */
-  async findBySlug(slug: string): Promise<IReservationOffering | null> {
+  async findBySlug(
+    slug: string,
+    options: { retry: boolean }
+  ): Promise<IReservationOffering | null> {
+    const { retry } = options;
+
     const operation = async () => {
       const offering = await Reservation.findOne(
         { slug: slug },
@@ -71,35 +93,120 @@ export default class ReservationRepository extends OfferingRepository {
       return offering;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const offering = retry
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offering as Promise<IReservationOffering | null>;
+  }
+
+  /** Retrieves an offering by id and populates listing subdocument
+   * @public
+   * @param id offering id
+   * @param options configuration options
+   */
+  async findByIdAndPopulate(
+    id: string,
+    options: { retry: boolean }
+  ): Promise<IReservationOffering | null> {
+    const { retry } = options;
+
+    const operation = async () => {
+      const offering = await Reservation.findOne(
+        { _id: id },
+        ReservationRepository.OFFERING_PROJECTION
+      )
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: ReservationRepository.OFFERING_PROJECTION,
+          options: { sort: { createdAt: -1 } },
+        })
+        .exec();
+
+      return offering;
+    };
+
+    const offering = retry
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offering as Promise<IReservationOffering | null>;
+  }
+
+  /** Retrieves a listing by slug and populates offering subdocument
+   * @public
+   * @param slug listing slug
+   * @param options configuration options
+   */
+  async findBySlugAndPopulate(
+    slug: string,
+    options: { retry: boolean }
+  ): Promise<IReservationOffering | null> {
+    const { retry = true } = options;
+
+    const operation = async () => {
+      const offering = await Reservation.findOne(
+        { slug: slug },
+        ReservationRepository.OFFERING_PROJECTION
+      )
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: ReservationRepository.OFFERING_PROJECTION,
+          options: { sort: { createdAt: -1 } },
+        })
+        .exec();
+
+      return offering;
+    };
+
+    const offering = retry
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offering as Promise<IReservationOffering | null>;
   }
 
   /**
    * Creates a new offering in collection
    * @public
-   * @param payload data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param payload the data object
+   * @param options configuration options
    */
   async save(
     payload: Partial<IReservationOffering>,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
     }
-  ): Promise<ObjectId> {
-    try {
-      const { session } = options;
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
 
-      const offerings = await Reservation.create([payload], {
-        session: session,
+    try {
+      const operation = await session.withTransaction(async () => {
+        const offerings = await Reservation.create([payload], {
+          session: session,
+        });
+
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        const offeringId = offerings[0]._id;
+
+        return offeringId.toString();
       });
 
-      const offeringId = offerings[0]._id as ObjectId;
+      const offeringId = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
 
-      return offeringId;
+      return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -107,37 +214,50 @@ export default class ReservationRepository extends OfferingRepository {
    * Updates an offering by id
    * @public
    * @param id offering id
-   * @param payload data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param payload the data object
+   * @param options configuration options
    */
   async update(
     id: string,
     payload: Partial<IReservationOffering | any>,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
     }
-  ): Promise<ObjectId> {
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
+
     try {
-      const { session } = options;
+      const operation = await session.withTransaction(async () => {
+        const offering = await Reservation.findByIdAndUpdate(
+          { _id: id },
+          payload,
+          {
+            new: true,
+            session,
+          }
+        );
 
-      const offering = await Reservation.findByIdAndUpdate(
-        { _id: id },
-        payload,
-        {
-          new: true,
-          session,
-        }
-      );
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      if (!offering) throw new Error("offering not found");
+        if (!offering) throw new Error("offering not found");
 
-      const offeringId = offering._id as ObjectId;
+        const offeringId = offering._id;
 
-      return offeringId;
+        return offeringId.toString();
+      });
+
+      const offeringId = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
+
+      return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -145,28 +265,37 @@ export default class ReservationRepository extends OfferingRepository {
    * Deletes an offering by id
    * @public
    * @param id offering id
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async delete(
     id: string,
-    options: { session: ClientSession }
-  ): Promise<ObjectId> {
+    options: { session: ClientSession; retry: boolean }
+  ): Promise<string> {
+    const { session, retry } = options;
+
     try {
-      const { session } = options;
+      const operation = await session.withTransaction(async () => {
+        const offering = await Reservation.findByIdAndDelete(
+          { _id: id },
+          session
+        );
 
-      const offering = await Reservation.findByIdAndDelete(
-        { _id: id },
-        session
-      );
+        if (!offering) throw new Error("offering not found");
 
-      if (!offering) throw new Error("offering not found");
+        const offeringId = offering._id;
 
-      const offeringId = offering._id as ObjectId;
+        return offeringId.toString();
+      });
 
-      return offeringId;
+      const offeringId = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
+
+      return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 

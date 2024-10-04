@@ -1,6 +1,7 @@
 import { Document, Schema } from "mongoose";
 
 export default interface IPromotion extends Document {
+  _id: Schema.Types.ObjectId;
   title: string;
   description: string;
   type: "offer" | "discount";

@@ -1,12 +1,12 @@
-import { ClientSession, ObjectId } from "mongoose";
+import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IListing from "../interface/IListing";
-import IListingRepository from "../interface/IListingRepository";
+import IListingRepository from "../interface/IListingrepository";
 import IOffering from "../interface/IOffering";
 import Idempotency from "../model/idempotencyModel";
 import Listing from "../model/listingModel";
-import OfferingRepository from "./offeringRepository";
 import LeaseRepository from "./leaseRepository";
+import OfferingRepository from "./offeringRepository";
 import ReservationRepository from "./reservationRepository";
 import SellRepository from "./sellRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
@@ -22,6 +22,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method update
  * @method delete
  * @method findListingsByOfferings
+ * @method findListingsByOfferingSearch
  * @method findOfferings
  * @method findOfferingById
  * @method findOfferingBySlug
@@ -30,7 +31,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteOffering
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTINGS_PROJECTION = { verification: 0, provider: { email: 0 } };
+  static LISTINGS_PROJECTION = { provider: { email: 0 } };
 
   static LISTING_PROJECTION = {
     verification: 0,
@@ -46,30 +47,30 @@ export default class ListingRepository implements IListingRepository {
     createdAt: 0,
     updatedAt: 0,
     __v: 0,
-    featured: 0,
+    verification: 0,
   };
 
-  static SORT_OFFERINGS = {
-    // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-  };
+  static SORT_OFFERINGS = {};
 
   /** Retrieves a collection of listings
    * @publics
    * @param queryString query object
-   * @returns Promise<IListing[]>
+   * @param options configuration options
    */
-  async findAll(queryString?: Record<string, any>): Promise<IListing[]> {
+  async findAll(
+    queryString: Record<string, any>,
+    options: { retry: boolean }
+  ): Promise<IListing[]> {
+    const { retry } = options;
+
     const operation = async () => {
       const query = Listing.find();
 
-      const filter = {
-        ...queryString,
-        // verification: { status: true },
-      };
+      const filter = { ...queryString };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const data = (
+      const listings = (
         await queryBuilder
           .GeoNear()
           .Filter()
@@ -78,74 +79,90 @@ export default class ListingRepository implements IListingRepository {
           .Paginate()
       ).Exec();
 
-      return data;
+      return listings;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const listings = retry
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return listings as Promise<IListing[]>;
   }
 
   /** Retrieves a listing by id
    * @public
    * @param id listing id
-   * @returns Promise<IListing | null>
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IListing | null> {
+  async findById(
+    id: string,
+    options: { retry: boolean }
+  ): Promise<IListing | null> {
+    const { retry } = options;
+
     const operation = async () => {
       const listing = await Listing.findOne(
-        {
-          _id: id,
-          // verification: { status: true },
-        },
+        { _id: id },
         ListingRepository.LISTING_PROJECTION
       ).exec();
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const listing = retry
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return listing as Promise<IListing | null>;
   }
 
   /** Retrieves a listing by slug
    * @public
    * @param slug listing slug
+   * @param options configuration options
    * @returns Promise<IListing | null>
    */
-  async findBySlug(slug: string): Promise<IListing | null> {
+  async findBySlug(
+    slug: string,
+    options: { retry: boolean }
+  ): Promise<IListing | null> {
+    const { retry } = options;
+
     const operation = async () => {
       const listing = await Listing.findOne(
-        {
-          slug: slug,
-          // verification: { status: true },
-        },
+        { slug: slug },
         ListingRepository.LISTING_PROJECTION
       ).exec();
 
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const listing = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return listing as Promise<IListing | null>;
   }
 
   /** Retrieves a listing by id and populates offering subdocument
    * @public
    * @param id listing id
-   * @param type subdocument type
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocument to retrieve per query
-   * @returns Promise<IListing | null>
+   * @param options configuration options
    */
   async findByIdAndPopulate(
     id: string,
-    type: string,
-    page: number = 1,
-    limit: number = 10
+    options: {
+      type: string;
+      page: number;
+      limit: number;
+      retry: boolean;
+    }
   ): Promise<IListing | null> {
+    const { type, page, limit, retry } = options;
+
     const operation = async () => {
       const listing = await Listing.findOne(
-        {
-          _id: id,
-          // verification: { status: true },
-        },
+        { _id: id },
         ListingRepository.LISTING_PROJECTION
       )
         .populate({
@@ -154,12 +171,9 @@ export default class ListingRepository implements IListingRepository {
           model: "Offering",
           select: ListingRepository.OFFERING_PROJECTION,
           options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
+            skip: (page ?? 1 - 1) * limit ?? 10,
+            limit: limit ?? 10,
+            sort: { createdAt: -1 },
           },
         })
         .exec();
@@ -167,29 +181,32 @@ export default class ListingRepository implements IListingRepository {
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const listing = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return listing as Promise<IListing | null>;
   }
 
   /** Retrieves a listing by slug and populates offering subdocument
    * @public
    * @param slug listing slug
-   * @param type subdocument type
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocument to retrieve per query
-   * @returns Promise<IListing | null>
+   * @param options configuration options
    */
   async findBySlugAndPopulate(
     slug: string,
-    type: string,
-    page: number = 1,
-    limit: number = 10
+    options: {
+      type: string;
+      page: number;
+      limit: number;
+      retry: boolean;
+    }
   ): Promise<IListing | null> {
+    const { type, page, limit, retry } = options;
+
     const operation = async () => {
       const listing = await Listing.findOne(
-        {
-          slug: slug,
-          // verification: { status: true },
-        },
+        { slug: slug },
         ListingRepository.LISTING_PROJECTION
       )
         .populate({
@@ -198,12 +215,9 @@ export default class ListingRepository implements IListingRepository {
           model: "Offering",
           select: ListingRepository.OFFERING_PROJECTION,
           options: {
-            skip: (page - 1) * limit,
-            limit: limit,
-            sort: {
-              createdAt: -1,
-              // featured: { $meta: { prime: 1, plus: 2, basic: 3 } },
-            },
+            skip: (page ?? 1 - 1) * limit ?? 10,
+            limit: limit ?? 10,
+            sort: { createdAt: -1 },
           },
         })
         .exec();
@@ -211,24 +225,28 @@ export default class ListingRepository implements IListingRepository {
       return listing;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const listing = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return listing as Promise<IListing | null>;
   }
 
   /**
    * Creates a new listing in collection
    * @public
    * @param payload data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async save(
     payload: Partial<IListing>,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
     }
-  ): Promise<ObjectId> {
-    const { key, session } = options;
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
 
     try {
       const operation = await session.withTransaction(async () => {
@@ -236,14 +254,19 @@ export default class ListingRepository implements IListingRepository {
           session: session,
         });
 
-        if (!!key) await Idempotency.create([key], { session: session });
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-        const listingId = listings[0]._id as ObjectId;
+        const listingId = listings[0]._id;
 
-        return listingId;
+        return listingId.toString();
       });
 
-      return await FailureRetry.ExponentialBackoff(() => operation);
+      const listingId = retry
+        ? FailureRetry.LinearJitterBackoff(() => operation)
+        : () => operation;
+
+      return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -256,18 +279,18 @@ export default class ListingRepository implements IListingRepository {
    * @public
    * @param id listing id
    * @param payload data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async update(
     id: string,
     payload: Partial<IListing | any>,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
     }
-  ): Promise<ObjectId> {
-    const { key, session } = options;
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
 
     try {
       const operation = await session.withTransaction(async () => {
@@ -276,16 +299,21 @@ export default class ListingRepository implements IListingRepository {
           session,
         });
 
-        if (!!key) await Idempotency.create([key], { session: session });
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
         if (!listing) throw new Error("listing not found");
 
-        const listingId = listing._id as ObjectId;
+        const listingId = listing._id;
 
-        return listingId;
+        return listingId.toString();
       });
 
-      return await FailureRetry.ExponentialBackoff(() => operation);
+      const listingId = retry
+        ? FailureRetry.LinearJitterBackoff(() => operation)
+        : () => operation;
+
+      return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -297,14 +325,13 @@ export default class ListingRepository implements IListingRepository {
    * Deletes a listing by id
    * @public
    * @param id listing id
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async delete(
     id: string,
-    options: { session: ClientSession }
-  ): Promise<ObjectId> {
-    const { session } = options;
+    options: { session: ClientSession; retry: boolean }
+  ): Promise<string> {
+    const { session, retry } = options;
 
     try {
       const operation = await session.withTransaction(async () => {
@@ -312,12 +339,16 @@ export default class ListingRepository implements IListingRepository {
 
         if (!listing) throw new Error("listing not found");
 
-        const listingId = listing._id as ObjectId;
+        const listingId = listing._id;
 
-        return listingId;
+        return listingId.toString();
       });
 
-      return await FailureRetry.ExponentialBackoff(() => operation);
+      const listingId = retry
+        ? FailureRetry.LinearJitterBackoff(() => operation)
+        : () => operation;
+
+      return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -326,19 +357,37 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /** Retrieves a collection of listings based on offerings
+   * @public
+   * @param offerings array of offering ids
+   */
+  async findListingsByOfferings(offerings: string[]): Promise<IListing[]> {
+    if (!Array.isArray(offerings) || offerings.length === 0) {
+      throw new Error(`Invalid Argument Type Error`);
+    }
+
+    // Find listings that contain these offering IDs
+    const listings = await this.findAll(
+      { offerings: { in: offerings } },
+      { retry: true }
+    );
+
+    return listings;
+  }
+
+  /** Retrieves a collection of listings based on offerings
    * that match search filter
    * @public
    * @param searchFilter query filter object
-   * @returns Promise<IListing[]>
    */
   async findListingsByOfferingSearch(searchFilter: {
     category: string;
+    space: { name: string; type: string };
     status: string;
     type: string;
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    const { category, minArea, maxArea, status, type } = searchFilter;
+    const { category, minArea, maxArea, space, status, type } = searchFilter;
 
     //Build the query for offerings
     const query: Record<string, any> = {};
@@ -355,13 +404,21 @@ export default class ListingRepository implements IListingRepository {
       if (maxArea !== undefined) query["area.size"] = { lte: maxArea };
     }
 
+    // Filtering by space (name and type) using a case-insensitive regex
+    if (space)
+      query.space = {
+        name: new RegExp(space.name.toLowerCase()),
+        type: new RegExp(space.type.toLowerCase()),
+      };
+
     // Filtering by status using a case-insensitive regex
-    if (status) query.status = { $regex: status, $options: "i" };
+    if (status) query.status = new RegExp(status.toLowerCase());
 
     const operation = async () => {
       // Find offerings that match offering type based on the filter
       const offerings = await this.OfferingRepositoryFactory(type).findAll(
-        query
+        query,
+        { retry: false }
       );
 
       const offeringIds = offerings.map((offering) => offering._id);
@@ -371,7 +428,10 @@ export default class ListingRepository implements IListingRepository {
       }
 
       // Find listings that contain these offering IDs
-      const listings = await this.findAll({ offerings: { in: offeringIds } });
+      const listings = await this.findAll(
+        { offerings: { in: offeringIds } },
+        { retry: false }
+      );
 
       return listings;
     };
@@ -383,13 +443,15 @@ export default class ListingRepository implements IListingRepository {
    * @public
    * @param type offering type
    * @param queryString query object
-   * @returns Promise<IOffering[]>
    */
   async findOfferings(
     type: string,
-    queryString?: Record<string, any>
+    queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = this.OfferingRepositoryFactory(type).findAll(queryString);
+    const offerings = this.OfferingRepositoryFactory(type).findAll(
+      queryString,
+      { retry: true }
+    );
 
     return offerings;
   }
@@ -398,10 +460,11 @@ export default class ListingRepository implements IListingRepository {
    * @public
    * @param id offering id
    * @param type offering type
-   * @returns Promise<IOffering | null>
    */
   async findOfferingById(id: string, type: string): Promise<IOffering | null> {
-    const offering = await this.OfferingRepositoryFactory(type).findById(id);
+    const offering = await this.OfferingRepositoryFactory(type).findById(id, {
+      retry: true,
+    });
 
     return offering;
   }
@@ -410,14 +473,14 @@ export default class ListingRepository implements IListingRepository {
    * @public
    * @param slug offering slug
    * @param type offering type
-   * @returns Promise<IOffering | null>
    */
   async findOfferingBySlug(
     slug: string,
     type: string
   ): Promise<IOffering | null> {
     const offering = await this.OfferingRepositoryFactory(type).findBySlug(
-      slug
+      slug,
+      { retry: true }
     );
 
     return offering;
@@ -429,8 +492,7 @@ export default class ListingRepository implements IListingRepository {
    * @param type offering type
    * @param payload data object
    * @param listingId listing id
-   * @param options operation metadata
-   * @returns Promise<void>
+   * @param options configuration options
    */
   async saveOffering(
     type: string,
@@ -438,19 +500,21 @@ export default class ListingRepository implements IListingRepository {
     listingId: Partial<IListing> | any,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any>;
+      retry: boolean;
     }
-  ): Promise<void> {
-    const { key, session } = options;
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
 
     try {
       const operation = await session.withTransaction(async () => {
         const offering = await this.OfferingRepositoryFactory(type).save(
           payload,
-          { session }
+          { session: session, idempotent: null, retry: false }
         );
 
-        if (!!key) await Idempotency.create([key], { session: session });
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
         await Listing.updateOne(
           { _id: listingId },
@@ -461,9 +525,15 @@ export default class ListingRepository implements IListingRepository {
           },
           { session }
         );
+
+        return offering;
       });
 
-      return await FailureRetry.ExponentialBackoff(() => operation);
+      const offering = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
+
+      return offering as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -477,8 +547,7 @@ export default class ListingRepository implements IListingRepository {
    * @param id offering id
    * @param type offering type
    * @param payload data object
-   * @param options operation metadata
-   * @returns Promise<void>
+   * @param options configuration options
    */
   async updateOffering(
     id: string,
@@ -486,21 +555,35 @@ export default class ListingRepository implements IListingRepository {
     payload: Partial<IOffering | any>,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
     }
-  ): Promise<void> {
-    const { key, session } = options;
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
 
     try {
       const operation = await session.withTransaction(async () => {
-        await this.OfferingRepositoryFactory(type).update(id, payload, {
-          session,
-        });
+        const offering = await this.OfferingRepositoryFactory(type).update(
+          id,
+          payload,
+          {
+            session: session,
+            idempotent: null,
+            retry: false,
+          }
+        );
 
-        if (!!key) await Idempotency.create([key], { session: session });
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        return offering;
       });
 
-      return await FailureRetry.ExponentialBackoff(() => operation);
+      const offering = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
+
+      return offering as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -514,22 +597,21 @@ export default class ListingRepository implements IListingRepository {
    * @param type offering type
    * @param offeringId offering id
    * @param listingId listing id
-   * @param options operation metadata
-   * @returns Promise<void>
+   * @param options configuration options
    */
   async deleteOffering(
     type: string,
     offeringId: string,
     listingId: string,
-    options: { session: ClientSession }
-  ): Promise<void> {
-    const { session } = options;
+    options: { session: ClientSession; retry: boolean }
+  ): Promise<string> {
+    const { session, retry } = options;
 
     try {
       const operation = await session.withTransaction(async () => {
         const offering = await this.OfferingRepositoryFactory(type).delete(
           offeringId,
-          { session }
+          { session: session, retry: false }
         );
 
         await Listing.updateOne(
@@ -537,9 +619,15 @@ export default class ListingRepository implements IListingRepository {
           { $pull: { offerings: offering } },
           { session }
         );
+
+        return offering;
       });
 
-      return await FailureRetry.ExponentialBackoff(() => operation);
+      const offering = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
+
+      return offering as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -552,7 +640,6 @@ export default class ListingRepository implements IListingRepository {
    * based on the repository name
    * @param repositoryName - The name/type of the repository
    * to return (e.g., 'lease', 'reservation', 'sell')
-   * @returns OfferingRepository instance type
    */
   private OfferingRepositoryFactory(
     repositoryName: string
@@ -568,14 +655,13 @@ export default class ListingRepository implements IListingRepository {
         return SellRepository.Create();
 
       default:
-        throw new Error("Invalid repository key");
+        throw new Error("Invalid repository name");
     }
   }
 
   /**
    * Creates and returns a new instance
    * of the ListingRepository class
-   * @returns ListingRepository
    */
   static Create(): ListingRepository {
     return new ListingRepository();

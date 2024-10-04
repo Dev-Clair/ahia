@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IOffering from "../interface/IOffering";
+import SpaceSchema from "./spaceSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
@@ -15,14 +16,33 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: false,
     },
+    slug: {
+      type: String,
+      unique: true,
+      required: false,
+    },
     description: {
       type: String,
       required: true,
     },
-    slug: {
+    category: {
       type: String,
-      // unique: true,
-      required: false,
+      enum: ["economy", "premium", "luxury"],
+      set: (value: string) => value.toLowerCase(),
+      required: true,
+    },
+    space: {
+      type: SpaceSchema,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["lease", "reservation", "sell"],
+      required: true,
+    },
+    features: {
+      type: [String],
+      required: true,
     },
     quantity: {
       type: Number,
@@ -39,40 +59,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         required: true,
       },
     },
-    features: {
-      type: [String],
-      required: true,
-    },
-    category: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ["open", "closed"],
-      default: "open",
-    },
-    type: {
-      type: String,
-      enum: ["lease", "reservation", "sell"],
-      required: true,
-    },
-    use: {
-      type: String,
-      enum: [
-        "residential",
-        "commercial",
-        "industrial",
-        "institutional",
-        "agricultural",
-        "special",
-        "mixed",
-      ],
-      set: (value: string) => value.toLowerCase(),
-      required: true,
-    },
     media: {
       images: {
         type: [String],
@@ -85,18 +71,25 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
         default: undefined,
+        required: false,
       },
     },
-    featured: {
+    promotion: {
+      type: String,
+      enum: ["none", "basic", "plus", "prime"],
+      default: "none",
+    },
+    verification: {
       status: {
         type: Boolean,
         enum: [true, false],
         default: false,
       },
-      type: {
-        type: String,
-        enum: ["none", "basic", "plus", "prime"],
-        default: "none",
+      expiry: {
+        type: Date,
+        default: function () {
+          return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
+        },
       },
     },
   },
@@ -106,9 +99,10 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 // Offering Schema Search Query Index
 OfferingSchema.index({
   name: "text",
+  category: "text",
   "area.size": 1,
-  "price.amount": 1,
-  status: "text",
+  "space.name": "text",
+  "space.type": "text",
 });
 
 // Offering Schema Middleware
