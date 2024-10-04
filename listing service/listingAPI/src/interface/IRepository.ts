@@ -1,51 +1,56 @@
-import { ClientSession, ObjectId } from "mongoose";
-import IQueryString from "./IQuerystring";
+import { ObjectId } from "mongoose";
 
 export default interface IRepository<T> {
   /**
    * Retrieves a collection of documents
    * @param queryString query object
+   * @param options configuration options
    */
-  findAll(queryString?: IQueryString): Promise<T[]>;
+  findAll(
+    queryString: Record<string, any>,
+    options?: { [key: string]: any }
+  ): Promise<T[]>;
 
   /**
    * Retrieves a document by id
    * @param id document id
+   * @param options configuration options
    */
-  findById(id: string): Promise<T | null>;
+  findById(id: string, options?: { [key: string]: any }): Promise<T | null>;
 
   /**
    * Retrieves a document by slug
    * @param slug document slug
+   * @param options configuration options
    */
-  findBySlug(slug: string): Promise<T | null>;
+  findBySlug(slug: string, options?: { [key: string]: any }): Promise<T | null>;
 
   /**
    * Creates a new document in collection
    * @param payload data object
-   * @param options operation metadata
+   * @param options configuration options
    */
   save(
     payload: Partial<T>,
-    options: { session: ClientSession; key?: Record<string, any> }
+    options?: { [key: string]: any }
   ): Promise<ObjectId>;
 
   /**
    * Updates a document by id
    * @param id document id
    * @param payload data object
-   * @param options operation metadata
+   * @param options congiguration options
    */
   update(
     id: string,
     payload: Partial<T | any>,
-    options: { session: ClientSession; key?: Record<string, any> }
+    options?: { [key: string]: any }
   ): Promise<ObjectId>;
 
   /**
    * Deletes a document by id
    * @param id document id
-   * @param options operation metadata
+   * @param options configuration options
    */
-  delete(id: string, options?: { session: ClientSession }): Promise<ObjectId>;
+  delete(id: string, options?: { [key: string]: any }): Promise<ObjectId>;
 }
