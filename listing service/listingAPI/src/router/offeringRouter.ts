@@ -9,6 +9,8 @@ const SlugParamRegex = "[a-zA-Z0-9]+";
 
 const OfferingRouter = Router();
 
+OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
+
 OfferingRouter.route("/search").get(
   ListingController.retrieveListingsByOfferingSearch
 );
