@@ -1,4 +1,4 @@
-import mongoose, { ClientSession, ObjectId } from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
 import ListingRepository from "../repository/listingRepository";
@@ -13,6 +13,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method save
  * @method update
  * @method delete
+ * @method findListingsByOffering
  * @method findListingsByOfferingSearch
  * @method findOfferings
  * @method findOfferingById
@@ -27,8 +28,10 @@ export default class ListingService {
    * @param queryString query object
    * @returns Promise<IListing[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<IListing[]> {
-    return await ListingRepository.Create().findAll(queryString);
+  async findAll(queryString: Record<string, any>): Promise<IListing[]> {
+    return await ListingRepository.Create().findAll(queryString, {
+      retry: true,
+    });
   }
 
   /** Retrieves a listing by id
@@ -37,7 +40,7 @@ export default class ListingService {
    * @returns Promise<IListing | null>
    */
   async findById(id: string): Promise<IListing | null> {
-    return ListingRepository.Create().findById(id);
+    return ListingRepository.Create().findById(id, { retry: true });
   }
 
   /** Retrieves a listing by slug
@@ -46,7 +49,7 @@ export default class ListingService {
    * @returns Promise<IListing | null>
    */
   async findBySlug(slug: string): Promise<IListing | null> {
-    return ListingRepository.Create().findBySlug(slug);
+    return ListingRepository.Create().findBySlug(slug, { retry: true });
   }
 
   /** Retrieves a listing by id and populates offering subdocument
@@ -59,16 +62,16 @@ export default class ListingService {
    */
   async findByIdAndPopulate(
     id: string,
-    type: string,
-    page: number = 1,
-    limit: number = 10
+    options: {
+      type: string;
+      page: number;
+      limit: number;
+    }
   ): Promise<IListing | null> {
-    return ListingRepository.Create().findByIdAndPopulate(
-      id,
-      type,
-      page,
-      limit
-    );
+    return ListingRepository.Create().findByIdAndPopulate(id, {
+      ...options,
+      retry: true,
+    });
   }
 
   /** Retrieves a listing by slug and populates offering subdocument
@@ -81,16 +84,16 @@ export default class ListingService {
    */
   async findBySlugAndPopulate(
     slug: string,
-    type: string,
-    page: number = 1,
-    limit: number = 10
+    options: {
+      type: string;
+      page: number;
+      limit: number;
+    }
   ): Promise<IListing | null> {
-    return ListingRepository.Create().findBySlugAndPopulate(
-      slug,
-      type,
-      page,
-      limit
-    );
+    return ListingRepository.Create().findBySlugAndPopulate(slug, {
+      ...options,
+      retry: true,
+    });
   }
 
   /**
@@ -98,16 +101,16 @@ export default class ListingService {
    * @public
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<ObjectId>
+   * @returns Promise<string>
    */
   async save(
     key: Record<string, any>,
     payload: Partial<IListing>
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     try {
       const session = await this.TransactionManagerFactory();
 
-      const options = { session: session, key: key };
+      const options = { session: session, idempotent: key, retry: true };
 
       return await ListingRepository.Create().save(payload, options);
     } catch (error: any) {
@@ -118,20 +121,20 @@ export default class ListingService {
   /**
    * Updates a listing by id
    * @public
-   * @param id the listing ObjectId
+   * @param id the listing string
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<ObjectId>
+   * @returns Promise<string>
    */
   async update(
     id: string,
     key: Record<string, any>,
     payload: Partial<IListing | any>
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     try {
       const session = await this.TransactionManagerFactory();
 
-      const options = { session: session, key: key };
+      const options = { session: session, idempotent: key, retry: true };
 
       return await ListingRepository.Create().update(id, payload, options);
     } catch (error: any) {
@@ -142,14 +145,14 @@ export default class ListingService {
   /**
    * Deletes a listing by id
    * @public
-   * @param id the listing ObjectId
-   * @returns Promise<ObjectId>
+   * @param id the listing string
+   * @returns Promise<string>
    */
-  async delete(id: string): Promise<ObjectId> {
+  async delete(id: string): Promise<string> {
     try {
       const session = await this.TransactionManagerFactory();
 
-      const options = { session: session };
+      const options = { session: session, retry: true };
 
       return await ListingRepository.Create().delete(id, options);
     } catch (error: any) {
@@ -184,7 +187,7 @@ export default class ListingService {
    */
   async findOfferings(
     type: string,
-    queryString?: Record<string, any>
+    queryString: Record<string, any>
   ): Promise<IOffering[]> {
     const offerings = ListingRepository.Create().findOfferings(
       type,
@@ -224,18 +227,18 @@ export default class ListingService {
    * @param key operation idempotency key
    * @param payload the data object
    * @param listingId listing id
-   * @returns Promise<ObjectId>
+   * @returns Promise<string>
    */
   public async saveOffering(
     type: string,
     key: Record<string, any>,
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     try {
       const session = await this.TransactionManagerFactory();
 
-      const options = { session: session, key: key };
+      const options = { session: session, idempotent: key, retry: true };
 
       return await ListingRepository.Create().saveOffering(
         type,
@@ -255,18 +258,18 @@ export default class ListingService {
    * @param type offering type
    * @param key the operation idempotency key
    * @param payload the data object
-   * @returns Promise<ObjectId>
+   * @returns Promise<string>
    */
   public async updateOffering(
     id: string,
     type: string,
     key: Record<string, any>,
     payload: Partial<IOffering | any>
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     try {
       const session = await this.TransactionManagerFactory();
 
-      const options = { session: session, key: key };
+      const options = { session: session, idempotent: key, retry: true };
 
       return ListingRepository.Create().updateOffering(
         id,
@@ -285,17 +288,17 @@ export default class ListingService {
    * @param type offering type
    * @param offeringId offering id
    * @param listingId listing id
-   * @returns Promise<ObjectId>
+   * @returns Promise<string>
    */
   public async deleteOffering(
     type: string,
     offeringId: string,
     listingId: string
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     try {
       const session = await this.TransactionManagerFactory();
 
-      const options = { session: session };
+      const options = { session: session, retry: true };
 
       return ListingRepository.Create().deleteOffering(
         type,

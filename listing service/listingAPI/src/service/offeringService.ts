@@ -14,8 +14,10 @@ export default class OfferingService {
    * @param queryString query object
    * @returns Promise<IOffering[]>
    */
-  async findAll(queryString?: Record<string, any>): Promise<IOffering[]> {
-    const offerings = OfferingRepository.Create().findAll(queryString);
+  async findAll(queryString: Record<string, any>): Promise<IOffering[]> {
+    const offerings = OfferingRepository.Create().findAll(queryString, {
+      retry: true,
+    });
 
     return offerings;
   }
@@ -26,7 +28,9 @@ export default class OfferingService {
    * @returns Promise<IOffering | null>
    */
   async findById(id: string): Promise<IOffering | null> {
-    return await OfferingRepository.Create().findById(id);
+    return await OfferingRepository.Create().findById(id, {
+      retry: true,
+    });
   }
 
   /** Retrieves an offering by slug
@@ -36,7 +40,9 @@ export default class OfferingService {
    * @returns Promise<IOffering | null>
    */
   async findBySlug(slug: string): Promise<IOffering | null> {
-    return await OfferingRepository.Create().findBySlug(slug);
+    return await OfferingRepository.Create().findBySlug(slug, {
+      retry: true,
+    });
   }
 
   /**

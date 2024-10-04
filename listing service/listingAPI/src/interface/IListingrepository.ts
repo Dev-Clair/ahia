@@ -1,4 +1,3 @@
-import { ObjectId } from "mongoose";
 import IListing from "./IListing";
 import IRepository from "./IRepository";
 
@@ -41,7 +40,7 @@ export default interface IListingRepository extends IRepository<IListing> {
   save(
     payload: Partial<IListing>,
     options?: { [key: string]: any }
-  ): Promise<ObjectId>;
+  ): Promise<string>;
 
   /**
    * Updates a listing by id
@@ -53,12 +52,12 @@ export default interface IListingRepository extends IRepository<IListing> {
     id: string,
     payload: Partial<IListing | any>,
     options?: { [key: string]: any }
-  ): Promise<ObjectId>;
+  ): Promise<string>;
 
   /**
    * Deletes a listing by id
    * @param id listing id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<ObjectId>;
+  delete(id: string, options?: { [key: string]: any }): Promise<string>;
 }

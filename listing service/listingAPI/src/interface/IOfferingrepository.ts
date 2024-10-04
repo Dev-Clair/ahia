@@ -1,4 +1,3 @@
-import { ObjectId } from "mongoose";
 import IOffering from "./IOffering";
 import IRepository from "./IRepository";
 
@@ -41,7 +40,7 @@ export default interface IOfferingRepository extends IRepository<IOffering> {
   save(
     payload: Partial<IOffering>,
     options?: { [key: string]: any }
-  ): Promise<ObjectId>;
+  ): Promise<string>;
 
   /**
    * Updates a offering by id
@@ -53,12 +52,12 @@ export default interface IOfferingRepository extends IRepository<IOffering> {
     id: string,
     payload: Partial<IOffering | any>,
     options?: { [key: string]: any }
-  ): Promise<ObjectId>;
+  ): Promise<string>;
 
   /**
    * Deletes a offering by id
    * @param id offering id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<ObjectId>;
+  delete(id: string, options?: { [key: string]: any }): Promise<string>;
 }

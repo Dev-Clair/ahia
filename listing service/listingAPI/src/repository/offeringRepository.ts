@@ -1,4 +1,4 @@
-import { ClientSession, ObjectId } from "mongoose";
+import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import IOffering from "../interface/IOffering";
@@ -211,7 +211,7 @@ export default class OfferingRepository implements IOfferingRepository {
       idempotent: Record<string, any> | null;
       retry: boolean;
     }
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     const { session, idempotent, retry } = options;
 
     try {
@@ -232,7 +232,7 @@ export default class OfferingRepository implements IOfferingRepository {
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId;
+      return offeringId.toString();
     } catch (error: any) {
       throw error;
     } finally {
@@ -255,7 +255,7 @@ export default class OfferingRepository implements IOfferingRepository {
       idempotent: Record<string, any> | null;
       retry: boolean;
     }
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     const { session, idempotent, retry } = options;
 
     try {
@@ -283,7 +283,7 @@ export default class OfferingRepository implements IOfferingRepository {
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId;
+      return offeringId.toString();
     } catch (error: any) {
       throw error;
     } finally {
@@ -300,7 +300,7 @@ export default class OfferingRepository implements IOfferingRepository {
   async delete(
     id: string,
     options: { session: ClientSession; retry: boolean }
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     const { session, retry } = options;
 
     try {
@@ -318,7 +318,7 @@ export default class OfferingRepository implements IOfferingRepository {
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId;
+      return offeringId.toString();
     } catch (error: any) {
       throw error;
     } finally {

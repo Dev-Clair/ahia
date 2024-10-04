@@ -1,5 +1,3 @@
-import { ObjectId } from "mongoose";
-
 export default interface IRepository<T> {
   /**
    * Retrieves a collection of documents
@@ -30,10 +28,7 @@ export default interface IRepository<T> {
    * @param payload data object
    * @param options configuration options
    */
-  save(
-    payload: Partial<T>,
-    options?: { [key: string]: any }
-  ): Promise<ObjectId>;
+  save(payload: Partial<T>, options?: { [key: string]: any }): Promise<string>;
 
   /**
    * Updates a document by id
@@ -45,12 +40,12 @@ export default interface IRepository<T> {
     id: string,
     payload: Partial<T | any>,
     options?: { [key: string]: any }
-  ): Promise<ObjectId>;
+  ): Promise<string>;
 
   /**
    * Deletes a document by id
    * @param id document id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<ObjectId>;
+  delete(id: string, options?: { [key: string]: any }): Promise<string>;
 }

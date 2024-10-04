@@ -1,4 +1,4 @@
-import { ClientSession, ObjectId } from "mongoose";
+import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import IReservationOffering from "../interface/IReservationoffering";
@@ -107,12 +107,9 @@ export default class ReservationRepository extends OfferingRepository {
    */
   async findByIdAndPopulate(
     id: string,
-    options: {
-      retry: boolean;
-      type?: string;
-    }
+    options: { retry: boolean }
   ): Promise<IReservationOffering | null> {
-    const { type, retry } = options;
+    const { retry } = options;
 
     const operation = async () => {
       const offering = await Reservation.findOne(
@@ -121,7 +118,6 @@ export default class ReservationRepository extends OfferingRepository {
       )
         .populate({
           path: "listing",
-          match: type ? new RegExp(type, "i") : undefined,
           model: "Listing",
           select: ReservationRepository.OFFERING_PROJECTION,
           options: { sort: { createdAt: -1 } },
@@ -145,12 +141,9 @@ export default class ReservationRepository extends OfferingRepository {
    */
   async findBySlugAndPopulate(
     slug: string,
-    options: {
-      retry: boolean;
-      type?: string;
-    }
+    options: { retry: boolean }
   ): Promise<IReservationOffering | null> {
-    const { type, retry = true } = options;
+    const { retry = true } = options;
 
     const operation = async () => {
       const offering = await Reservation.findOne(
@@ -159,7 +152,6 @@ export default class ReservationRepository extends OfferingRepository {
       )
         .populate({
           path: "listing",
-          match: type ? new RegExp(type, "i") : undefined,
           model: "Listing",
           select: ReservationRepository.OFFERING_PROJECTION,
           options: { sort: { createdAt: -1 } },
@@ -189,7 +181,7 @@ export default class ReservationRepository extends OfferingRepository {
       idempotent: Record<string, any> | null;
       retry: boolean;
     }
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     const { session, idempotent, retry } = options;
 
     try {
@@ -210,7 +202,7 @@ export default class ReservationRepository extends OfferingRepository {
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId;
+      return offeringId.toString();
     } catch (error: any) {
       throw error;
     } finally {
@@ -233,7 +225,7 @@ export default class ReservationRepository extends OfferingRepository {
       idempotent: Record<string, any> | null;
       retry: boolean;
     }
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     const { session, idempotent, retry } = options;
 
     try {
@@ -261,7 +253,7 @@ export default class ReservationRepository extends OfferingRepository {
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId;
+      return offeringId.toString();
     } catch (error: any) {
       throw error;
     } finally {
@@ -278,7 +270,7 @@ export default class ReservationRepository extends OfferingRepository {
   async delete(
     id: string,
     options: { session: ClientSession; retry: boolean }
-  ): Promise<ObjectId> {
+  ): Promise<string> {
     const { session, retry } = options;
 
     try {
@@ -299,7 +291,7 @@ export default class ReservationRepository extends OfferingRepository {
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId;
+      return offeringId.toString();
     } catch (error: any) {
       throw error;
     } finally {
