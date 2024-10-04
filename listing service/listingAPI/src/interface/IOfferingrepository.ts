@@ -13,7 +13,7 @@ export default interface IOfferingRepository extends IRepository<IOffering> {
   ): Promise<IOffering[]>;
 
   /**
-   * Retrieves a offering by id and populate the subdocument field
+   * Retrieves a offering by id and populate it's subdocument field
    * @param id offering id
    * @param options configuration options
    */
@@ -23,7 +23,7 @@ export default interface IOfferingRepository extends IRepository<IOffering> {
   ): Promise<IOffering | null>;
 
   /**
-   * Retrieves a offering by slug and populate the subdocument field
+   * Retrieves a offering by slug and populate it's subdocument field
    * @param slug offering slug
    * @param options configuration options
    */

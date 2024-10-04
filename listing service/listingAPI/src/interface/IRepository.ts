@@ -34,7 +34,7 @@ export default interface IRepository<T> {
    * Updates a document by id
    * @param id document id
    * @param payload data object
-   * @param options congiguration options
+   * @param options configuration options
    */
   update(
     id: string,

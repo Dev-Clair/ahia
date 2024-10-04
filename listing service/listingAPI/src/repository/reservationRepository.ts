@@ -40,10 +40,10 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offerings = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      ? FailureRetry.LinearJitterBackoff(() => operation())
       : operation();
 
-    return offerings;
+    return offerings as Promise<IReservationOffering[]>;
   }
 
   /** Retrieves an offering by id
@@ -67,10 +67,10 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      ? FailureRetry.LinearJitterBackoff(() => operation())
       : operation();
 
-    return offering;
+    return offering as Promise<IReservationOffering | null>;
   }
 
   /** Retrieves an offering by slug
@@ -94,10 +94,10 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      ? FailureRetry.LinearJitterBackoff(() => operation())
       : operation();
 
-    return offering;
+    return offering as Promise<IReservationOffering | null>;
   }
 
   /** Retrieves an offering by id and populates listing subdocument
@@ -128,10 +128,10 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
 
-    return await offering;
+    return offering as Promise<IReservationOffering | null>;
   }
 
   /** Retrieves a listing by slug and populates offering subdocument
@@ -162,10 +162,10 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      ? FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
 
-    return await offering;
+    return offering as Promise<IReservationOffering | null>;
   }
 
   /**
@@ -195,14 +195,14 @@ export default class ReservationRepository extends OfferingRepository {
 
         const offeringId = offerings[0]._id;
 
-        return offeringId;
+        return offeringId.toString();
       });
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId.toString();
+      return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -246,14 +246,14 @@ export default class ReservationRepository extends OfferingRepository {
 
         const offeringId = offering._id;
 
-        return offeringId;
+        return offeringId.toString();
       });
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId.toString();
+      return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
@@ -284,14 +284,14 @@ export default class ReservationRepository extends OfferingRepository {
 
         const offeringId = offering._id;
 
-        return offeringId;
+        return offeringId.toString();
       });
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
         : () => operation;
 
-      return offeringId.toString();
+      return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
     } finally {
