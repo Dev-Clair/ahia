@@ -34,10 +34,6 @@ ListingRouter.route("/search").get(ListingController.retrieveListingsSearch);
 
 ListingRouter.route("/near-me").get(ListingController.retrieveListingsNearme);
 
-ListingRouter.route("/offerings").get(
-  ListingController.retrieveListingsByOfferingSearch
-);
-
 ListingRouter.route(`/:id(${IdParamRegex})`)
   .get(
     ValidationMiddleware.validateID,
