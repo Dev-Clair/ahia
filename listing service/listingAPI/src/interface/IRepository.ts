@@ -17,13 +17,6 @@ export default interface IRepository<T> {
   findById(id: string, options?: { [key: string]: any }): Promise<T | null>;
 
   /**
-   * Retrieves a document by slug
-   * @param slug document slug
-   * @param options configuration options
-   */
-  findBySlug(slug: string, options?: { [key: string]: any }): Promise<T | null>;
-
-  /**
    * Creates a new document in collection
    * @param payload data object
    * @param options configuration options
