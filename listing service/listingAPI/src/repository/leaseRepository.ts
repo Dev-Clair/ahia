@@ -1,5 +1,6 @@
 import { ClientSession, ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
+import Idempotency from "../model/idempotencyModel";
 import ILeaseOffering from "../interface/ILeaseoffering";
 import Lease from "../model/leaseModel";
 import OfferingRepository from "./offeringRepository";
@@ -9,9 +10,14 @@ export default class LeaseRepository extends OfferingRepository {
   /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
-   * @returns Promise<ILeaseOffering[]>
+   * @param options configuration options
    */
-  async findAll(queryString?: Record<string, any>): Promise<ILeaseOffering[]> {
+  async findAll(
+    queryString: Record<string, any>,
+    options: { retry: boolean }
+  ): Promise<ILeaseOffering[]> {
+    const { retry } = options;
+
     const operation = async () => {
       const query = Lease.find();
 
@@ -33,15 +39,24 @@ export default class LeaseRepository extends OfferingRepository {
       return offerings;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const offerings = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offerings;
   }
 
   /** Retrieves an offering by id
    * @public
    * @param id offering id
-   * @returns Promise<ILeaseOffering | null>
+   * @param options configuration options
    */
-  async findById(id: string): Promise<ILeaseOffering | null> {
+  async findById(
+    id: string,
+    options: { retry: boolean }
+  ): Promise<ILeaseOffering | null> {
+    const { retry } = options;
+
     const operation = async () => {
       const offering = await Lease.findOne(
         { _id: id },
@@ -51,15 +66,24 @@ export default class LeaseRepository extends OfferingRepository {
       return offering;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const offering = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offering;
   }
 
-  /** Retrieves an offering its slug
+  /** Retrieves an offering by slug
    * @public
    * @param slug offering slug
-   * @returns Promise<ILeaseOffering | null>
+   * @param options configuration options
    */
-  async findBySlug(slug: string): Promise<ILeaseOffering | null> {
+  async findBySlug(
+    slug: string,
+    options: { retry: boolean }
+  ): Promise<ILeaseOffering | null> {
+    const { retry } = options;
+
     const operation = async () => {
       const offering = await Lease.findOne(
         { slug: slug },
@@ -69,33 +93,128 @@ export default class LeaseRepository extends OfferingRepository {
       return offering;
     };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+    const offering = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : operation();
+
+    return offering;
+  }
+
+  /** Retrieves an offering by id and populates listing subdocument
+   * @public
+   * @param id offering id
+   * @param options configuration options
+   */
+  async findByIdAndPopulate(
+    id: string,
+    options: {
+      retry: boolean;
+      type?: string;
+    }
+  ): Promise<ILeaseOffering | null> {
+    const { type, retry } = options;
+
+    const operation = async () => {
+      const offering = await Lease.findOne(
+        { _id: id },
+        LeaseRepository.OFFERING_PROJECTION
+      )
+        .populate({
+          path: "listing",
+          match: type ? new RegExp(type, "i") : undefined,
+          model: "Listing",
+          select: LeaseRepository.OFFERING_PROJECTION,
+          options: { sort: { createdAt: -1 } },
+        })
+        .exec();
+
+      return offering;
+    };
+
+    const offering = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
+
+    return await offering;
+  }
+
+  /** Retrieves a listing by slug and populates offering subdocument
+   * @public
+   * @param slug listing slug
+   * @param options configuration options
+   */
+  async findBySlugAndPopulate(
+    slug: string,
+    options: {
+      retry: boolean;
+      type?: string;
+    }
+  ): Promise<ILeaseOffering | null> {
+    const { type, retry = true } = options;
+
+    const operation = async () => {
+      const offering = await Lease.findOne(
+        { slug: slug },
+        LeaseRepository.OFFERING_PROJECTION
+      )
+        .populate({
+          path: "listing",
+          match: type ? new RegExp(type, "i") : undefined,
+          model: "Listing",
+          select: LeaseRepository.OFFERING_PROJECTION,
+          options: { sort: { createdAt: -1 } },
+        })
+        .exec();
+
+      return offering;
+    };
+
+    const offering = retry
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
+
+    return await offering;
   }
 
   /**
    * Creates a new offering in collection
    * @public
-   * @param payload data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param payload the data object
+   * @param options configuration options
    */
   async save(
     payload: Partial<ILeaseOffering>,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
     }
   ): Promise<ObjectId> {
+    const { session, idempotent, retry } = options;
+
     try {
-      const { session } = options;
+      const operation = await session.withTransaction(async () => {
+        const offerings = await Lease.create([payload], {
+          session: session,
+        });
 
-      const offerings = await Lease.create([payload], { session: session });
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      const offeringId = offerings[0]._id;
+        const offeringId = offerings[0]._id;
+
+        return offeringId;
+      });
+
+      const offeringId = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
 
       return offeringId;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -103,33 +222,46 @@ export default class LeaseRepository extends OfferingRepository {
    * Updates an offering by id
    * @public
    * @param id offering id
-   * @param payload data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param payload the data object
+   * @param options configuration options
    */
   async update(
     id: string,
     payload: Partial<ILeaseOffering | any>,
     options: {
       session: ClientSession;
-      key?: Record<string, any>;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
     }
   ): Promise<ObjectId> {
-    try {
-      const { session } = options;
+    const { session, idempotent, retry } = options;
 
-      const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
-        new: true,
-        session,
+    try {
+      const operation = await session.withTransaction(async () => {
+        const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
+          new: true,
+          session,
+        });
+
+        if (!!idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        if (!offering) throw new Error("offering not found");
+
+        const offeringId = offering._id;
+
+        return offeringId;
       });
 
-      if (!offering) throw new Error("offering not found");
-
-      const offeringId = offering._id;
+      const offeringId = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
 
       return offeringId;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -137,25 +269,34 @@ export default class LeaseRepository extends OfferingRepository {
    * Deletes an offering by id
    * @public
    * @param id offering id
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async delete(
     id: string,
-    options: { session: ClientSession }
+    options: { session: ClientSession; retry: boolean }
   ): Promise<ObjectId> {
+    const { session, retry } = options;
+
     try {
-      const { session } = options;
+      const operation = await session.withTransaction(async () => {
+        const offering = await Lease.findByIdAndDelete({ _id: id }, session);
 
-      const offering = await Lease.findByIdAndDelete({ _id: id }, session);
+        if (!offering) throw new Error("offering not found");
 
-      if (!offering) throw new Error("offering not found");
+        const offeringId = offering._id;
 
-      const offeringId = offering._id;
+        return offeringId;
+      });
+
+      const offeringId = retry
+        ? FailureRetry.ExponentialBackoff(() => operation)
+        : () => operation;
 
       return offeringId;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
