@@ -3,13 +3,13 @@ import ListingService from "../service/listingService";
 import PaymentRequiredError from "../error/paymentrequiredError";
 
 /**
- * Verifies a listing offering status
+ * Verifies an offering payment status
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  * @returns Promise<void>
  */
-const verifyListingOfferingStatus = async (
+const verifyOfferingPaymentStatus = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -35,4 +35,4 @@ const verifyListingOfferingStatus = async (
   }
 };
 
-export default { verifyListingOfferingStatus };
+export default { verifyOfferingPaymentStatus };

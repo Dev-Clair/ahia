@@ -29,10 +29,6 @@ const ListingSchema = z.object({
       required_error: "street is required",
       invalid_type_error: "street must be a string",
     }),
-    countyLGA: z.string({
-      required_error: "countyLGA is required",
-      invalid_type_error: "countyLGA must be a string",
-    }),
     city: z.string({
       required_error: "city is required",
       invalid_type_error: "city must be a string",
@@ -41,6 +37,12 @@ const ListingSchema = z.object({
       required_error: "state is required",
       invalid_type_error: "state must be a string",
     }),
+    zip: z
+      .string({
+        required_error: "zip is required",
+        invalid_type_error: "zipe must be a string",
+      })
+      .optional(),
   }),
   location: z.object({
     geoCoordinates: z.array(
@@ -84,15 +86,6 @@ const OfferingSchema = z.object({
       invalid_type_error: "features must be a string array",
     })
   ),
-  use: z.enum([
-    "residential",
-    "commercial",
-    "industrial",
-    "institutional",
-    "agricultural",
-    "special",
-    "mixed",
-  ]),
   promotion: z.enum(["none", "basic", "plus", "prime"]),
   lease: z
     .array(
