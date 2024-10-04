@@ -21,7 +21,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method save
  * @method update
  * @method delete
- * @method findListingsByOffering
+ * @method findListingsByOfferings
  * @method findListingsByOfferingSearch
  * @method findOfferings
  * @method findOfferingById

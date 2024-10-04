@@ -13,7 +13,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method save
  * @method update
  * @method delete
- * @method findListingsByOffering
+ * @method findListingsByOfferings
  * @method findListingsByOfferingSearch
  * @method findOfferings
  * @method findOfferingById
@@ -158,6 +158,14 @@ export default class ListingService {
     } catch (error: any) {
       throw error;
     }
+  }
+
+  /** Retrieves a collection of listings based on offerings
+   * @public
+   * @param offerings array of offering ids
+   */
+  async findListingsByOfferings(offerings: string[]): Promise<IListing[]> {
+    return await ListingRepository.Create().findListingsByOfferings(offerings);
   }
 
   /** Retrieves a collection of listings based on offerings
