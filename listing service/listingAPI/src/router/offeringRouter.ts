@@ -1,4 +1,5 @@
 import { Router } from "express";
+import DocumentMiddleware from "../middleware/documentMiddleware";
 import ListingController from "../controller/listingController";
 import OfferingController from "../controller/offeringController";
 
@@ -22,12 +23,22 @@ OfferingRouter.route(`/status`).get(
   OfferingController.retrieveOfferingsByStatus
 );
 
-OfferingRouter.route(`/:id(${IdParamRegex}`).get(
+OfferingRouter.route(`/:id(${IdParamRegex})`).get(
+  DocumentMiddleware("offering", "id"),
   OfferingController.retrieveOfferingById
 );
 
-OfferingRouter.route(`/:slug(${SlugParamRegex}`).get(
+OfferingRouter.route(`/:id(${IdParamRegex})/listing`).get(
+  OfferingController.retrieveOfferingByIdAndPopulate
+);
+
+OfferingRouter.route(`/:slug(${SlugParamRegex})`).get(
+  DocumentMiddleware("offering", "slug"),
   OfferingController.retrieveOfferingById
+);
+
+OfferingRouter.route(`/:slug(${SlugParamRegex})/listing`).get(
+  OfferingController.retrieveOfferingByIdAndPopulate
 );
 
 export default OfferingRouter;
