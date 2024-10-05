@@ -6,13 +6,14 @@ import OfferingRepository from "../repository/offeringRepository";
  * @method findAll
  * @method findById
  * @method findBySlug
+ * @method findByIdAndPopulate
+ * @method findBySlugAndPopulate
  */
 export default class OfferingService {
   /** Retrieves a collection of offerings
    * @public
    * @param type offering type
    * @param queryString query object
-   * @returns Promise<IOffering[]>
    */
   async findAll(queryString: Record<string, any>): Promise<IOffering[]> {
     const options = { retry: true };
@@ -25,7 +26,6 @@ export default class OfferingService {
   /** Retrieves an offering by id
    * @public
    * @param id offering id
-   * @returns Promise<IOffering | null>
    */
   async findById(id: string): Promise<IOffering | null> {
     const options = { retry: true };
@@ -37,7 +37,6 @@ export default class OfferingService {
    * @public
    * @param slug offering slug
    * @param type offering type
-   * @returns Promise<IOffering | null>
    */
   async findBySlug(slug: string): Promise<IOffering | null> {
     const options = { retry: true };
@@ -48,7 +47,6 @@ export default class OfferingService {
   /** Retrieves an offering by id and populate it's subdocument
    * @public
    * @param id offering id
-   * @returns Promise<IOffering | null>
    */
   async findByIdAndPopulate(id: string): Promise<IOffering | null> {
     const options = { retry: true };
@@ -60,7 +58,6 @@ export default class OfferingService {
    * @public
    * @param slug offering slug
    * @param type offering type
-   * @returns Promise<IOffering | null>
    */
   async findBySlugAndPopulate(slug: string): Promise<IOffering | null> {
     const options = { retry: true };
@@ -73,7 +70,6 @@ export default class OfferingService {
 
   /**
    * Creates and returns a new instance of the OfferingService class
-   * @returns OfferingService
    */
   static Create(): OfferingService {
     return new OfferingService();

@@ -9,7 +9,6 @@ import OfferingService from "../service/offeringService";
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveOfferings = async (
   req: Request,
@@ -28,11 +27,34 @@ const retrieveOfferings = async (
 };
 
 /**
+ * Retrieve offerings by category
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsByCategory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const category = req.query.category as string;
+
+    const queryString = { category: category };
+
+    const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
  * Retrieve offerings by space
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveOfferingsBySpace = async (
   req: Request,
@@ -59,7 +81,6 @@ const retrieveOfferingsBySpace = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveOfferingsByStatus = async (
   req: Request,
@@ -80,36 +101,10 @@ const retrieveOfferingsByStatus = async (
 };
 
 /**
- * Retrieve offerings by promotion
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const retrieveOfferingsByPromotion = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const promotion = req.query.promotion as string;
-
-    const queryString = { promotion: promotion };
-
-    const offerings = await OfferingService.Create().findAll(queryString);
-
-    return res.status(HttpCode.OK).json({ data: offerings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Retrieves an offering by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveOfferingById = async (
   req: Request,
@@ -130,7 +125,6 @@ const retrieveOfferingById = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveOfferingBySlug = async (
   req: Request,
@@ -147,11 +141,10 @@ const retrieveOfferingBySlug = async (
 };
 
 /**
- * Retrieves an offering by id and populate it's subdocument
+ * Retrieves an offering by id and populate its subdocument
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveOfferingByIdAndPopulate = async (
   req: Request,
@@ -173,11 +166,10 @@ const retrieveOfferingByIdAndPopulate = async (
 };
 
 /**
- * Retrieves an offering by slug and populate it's subdocument
+ * Retrieves an offering by slug and populate itss subdocument
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveOfferingBySlugAndPopulate = async (
   req: Request,
@@ -200,9 +192,9 @@ const retrieveOfferingBySlugAndPopulate = async (
 
 export default {
   retrieveOfferings,
+  retrieveOfferingsByCategory,
   retrieveOfferingsBySpace,
   retrieveOfferingsByStatus,
-  retrieveOfferingsByPromotion,
   retrieveOfferingById,
   retrieveOfferingBySlug,
   retrieveOfferingByIdAndPopulate,
