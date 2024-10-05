@@ -11,7 +11,6 @@ import NotFoundError from "../error/notfoundError";
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const createListing = async (
   req: Request,
@@ -41,7 +40,6 @@ const createListing = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListings = async (
   req: Request,
@@ -64,7 +62,6 @@ const retrieveListings = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingsSearch = async (
   req: Request,
@@ -91,7 +88,6 @@ const retrieveListingsSearch = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingsNearme = async (
   req: Request,
@@ -114,7 +110,6 @@ const retrieveListingsNearme = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingsByProvider = async (
   req: Request,
@@ -139,7 +134,6 @@ const retrieveListingsByProvider = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingsByType = async (
   req: Request,
@@ -164,7 +158,6 @@ const retrieveListingsByType = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingsByOfferings = async (
   req: Request,
@@ -189,7 +182,6 @@ const retrieveListingsByOfferings = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingsByOfferingSearch = async (
   req: Request,
@@ -224,7 +216,6 @@ const retrieveListingsByOfferingSearch = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingById = async (
   req: Request,
@@ -245,7 +236,6 @@ const retrieveListingById = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingBySlug = async (
   req: Request,
@@ -266,7 +256,6 @@ const retrieveListingBySlug = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingByIdAndPopulate = async (
   req: Request,
@@ -302,7 +291,6 @@ const retrieveListingByIdAndPopulate = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingBySlugAndPopulate = async (
   req: Request,
@@ -339,7 +327,6 @@ const retrieveListingBySlugAndPopulate = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const updateListingById = async (
   req: Request,
@@ -368,7 +355,6 @@ const updateListingById = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const deleteListingById = async (
   req: Request,
@@ -393,7 +379,6 @@ const deleteListingById = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const createListingOffering = async (
   req: Request,
@@ -431,7 +416,6 @@ const createListingOffering = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingOfferings = async (
   req: Request,
@@ -465,7 +449,6 @@ const retrieveListingOfferings = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingOfferingById = async (
   req: Request,
@@ -493,7 +476,6 @@ const retrieveListingOfferingById = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const retrieveListingOfferingBySlug = async (
   req: Request,
@@ -521,7 +503,6 @@ const retrieveListingOfferingBySlug = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const updateListingOfferingById = async (
   req: Request,
@@ -555,7 +536,6 @@ const updateListingOfferingById = async (
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
- * @returns Promise<Response | void>
  */
 const deleteListingOfferingById = async (
   req: Request,

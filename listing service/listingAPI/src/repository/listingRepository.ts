@@ -119,7 +119,6 @@ export default class ListingRepository implements IListingRepository {
    * @public
    * @param slug listing slug
    * @param options configuration options
-   * @returns Promise<IListing | null>
    */
   async findBySlug(
     slug: string,

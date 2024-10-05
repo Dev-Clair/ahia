@@ -26,7 +26,6 @@ export default class ListingService {
   /** Retrieves a collection of listings
    * @public
    * @param queryString query object
-   * @returns Promise<IListing[]>
    */
   async findAll(queryString: Record<string, any>): Promise<IListing[]> {
     return await ListingRepository.Create().findAll(queryString, {
@@ -37,7 +36,6 @@ export default class ListingService {
   /** Retrieves a listing by id
    * @public
    * @param id listing id
-   * @returns Promise<IListing | null>
    */
   async findById(id: string): Promise<IListing | null> {
     return ListingRepository.Create().findById(id, { retry: true });
@@ -46,7 +44,6 @@ export default class ListingService {
   /** Retrieves a listing by slug
    * @public
    * @param slug listing slug
-   * @returns Promise<IListing | null>
    */
   async findBySlug(slug: string): Promise<IListing | null> {
     return ListingRepository.Create().findBySlug(slug, { retry: true });
@@ -58,7 +55,6 @@ export default class ListingService {
    * @param type offering type
    * @param page the set to retrieve per query
    * @param limit the number of subdocument to retrieve per query
-   * @returns Promise<IListing | null>
    */
   async findByIdAndPopulate(
     id: string,
@@ -80,7 +76,6 @@ export default class ListingService {
    * @param type offering type
    * @param page the set to retrieve per query
    * @param limit the number of subdocument to retrieve per query
-   * @returns Promise<IListing | null>
    */
   async findBySlugAndPopulate(
     slug: string,
@@ -101,7 +96,6 @@ export default class ListingService {
    * @public
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<string>
    */
   async save(
     key: Record<string, any>,
@@ -124,7 +118,6 @@ export default class ListingService {
    * @param id the listing string
    * @param key operation idempotency key
    * @param payload the data object
-   * @returns Promise<string>
    */
   async update(
     id: string,
@@ -146,7 +139,6 @@ export default class ListingService {
    * Deletes a listing by id
    * @public
    * @param id the listing string
-   * @returns Promise<string>
    */
   async delete(id: string): Promise<string> {
     try {
@@ -172,7 +164,6 @@ export default class ListingService {
    * that match search filter/criteria
    * @public
    * @param searchFilter query filter object
-   * @returns Promise<IListing[]>
    */
   public async findListingsByOfferingSearch(searchFilter: {
     category: string;
@@ -191,7 +182,6 @@ export default class ListingService {
    * @public
    * @param type offering type
    * @param queryString query object
-   * @returns Promise<IOffering[]>
    */
   async findListingOfferings(
     type: string,
@@ -209,7 +199,6 @@ export default class ListingService {
    * @public
    * @param id offering id
    * @param type offering type
-   * @returns Promise<IOffering | null>
    */
   async findListingOfferingById(
     id: string,
@@ -222,7 +211,6 @@ export default class ListingService {
    * @public
    * @param slug offering slug
    * @param type offering type
-   * @returns Promise<IOffering | null>
    */
   async findListingOfferingBySlug(
     slug: string,
@@ -241,7 +229,6 @@ export default class ListingService {
    * @param key operation idempotency key
    * @param payload the data object
    * @param listingId listing id
-   * @returns Promise<string>
    */
   public async saveListingOffering(
     type: string,
@@ -272,7 +259,6 @@ export default class ListingService {
    * @param type offering type
    * @param key the operation idempotency key
    * @param payload the data object
-   * @returns Promise<string>
    */
   public async updateListingOffering(
     id: string,
@@ -302,7 +288,6 @@ export default class ListingService {
    * @param type offering type
    * @param offeringId offering id
    * @param listingId listing id
-   * @returns Promise<string>
    */
   public async deleteListingOffering(
     type: string,
@@ -327,7 +312,6 @@ export default class ListingService {
 
   /**
    * Starts and returns a transaction session object
-   * @returns Promise<ClientSession>
    */
   private async TransactionManagerFactory(): Promise<ClientSession> {
     return await mongoose.startSession();
@@ -335,7 +319,6 @@ export default class ListingService {
 
   /**
    * Creates and returns a new instance of the ListingService class
-   * @returns ListingService
    */
   static Create(): ListingService {
     return new ListingService();
