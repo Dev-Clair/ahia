@@ -31,8 +31,6 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteListingOffering
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTINGS_PROJECTION = { provider: { email: 0 } };
-
   static LISTING_PROJECTION = {
     provider: { email: 0 },
     createdAt: 0,
@@ -74,7 +72,7 @@ export default class ListingRepository implements IListingRepository {
           .GeoNear()
           .Filter()
           .Sort(ListingRepository.SORT_LISTINGS)
-          .Select(ListingRepository.LISTINGS_PROJECTION)
+          .Select(ListingRepository.LISTING_PROJECTION)
           .Paginate()
       ).Exec();
 

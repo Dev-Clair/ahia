@@ -32,7 +32,7 @@ export default class LeaseRepository extends OfferingRepository {
         await queryBuilder
           .Filter()
           .Sort(LeaseRepository.SORT_OFFERINGS)
-          .Select(LeaseRepository.OFFERINGS_PROJECTION)
+          .Select(LeaseRepository.OFFERING_PROJECTION)
           .Paginate()
       ).Exec();
 

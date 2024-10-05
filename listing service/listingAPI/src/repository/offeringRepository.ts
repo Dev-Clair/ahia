@@ -18,8 +18,6 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method delete
  */
 export default class OfferingRepository implements IOfferingRepository {
-  static OFFERINGS_PROJECTION = { verification: 0 };
-
   static OFFERING_PROJECTION = {
     createdAt: 0,
     updatedAt: 0,
@@ -63,7 +61,7 @@ export default class OfferingRepository implements IOfferingRepository {
         await queryBuilder
           .Filter()
           .Sort(OfferingRepository.SORT_OFFERINGS)
-          .Select(OfferingRepository.OFFERINGS_PROJECTION)
+          .Select(OfferingRepository.OFFERING_PROJECTION)
           .Paginate()
       ).Exec();
 

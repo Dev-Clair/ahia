@@ -32,7 +32,7 @@ export default class ReservationRepository extends OfferingRepository {
         await queryBuilder
           .Filter()
           .Sort(ReservationRepository.SORT_OFFERINGS)
-          .Select(ReservationRepository.OFFERINGS_PROJECTION)
+          .Select(ReservationRepository.OFFERING_PROJECTION)
           .Paginate()
       ).Exec();
 

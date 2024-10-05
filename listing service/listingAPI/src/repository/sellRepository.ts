@@ -32,7 +32,7 @@ export default class SellRepository extends OfferingRepository {
         await queryBuilder
           .Filter()
           .Sort(SellRepository.SORT_OFFERINGS)
-          .Select(SellRepository.OFFERINGS_PROJECTION)
+          .Select(SellRepository.OFFERING_PROJECTION)
           .Paginate()
       ).Exec();
 

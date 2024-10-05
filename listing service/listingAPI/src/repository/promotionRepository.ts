@@ -15,14 +15,14 @@ export default class PromotionRepository implements IPromotionRepository {
 
   static SORT_PROMOTIONS = { createdAt: -1 };
 
-  static LISTING_PROJECTION = {
-    provider: { email: 0 },
+  static OFFERING_PROJECTION = {
     createdAt: 0,
     updatedAt: 0,
     __v: 0,
+    verification: 0,
   };
 
-  static SORT_LISTING = {};
+  static SORT_OFFERING = {};
 
   /** Retrieves a collection of promotions
    * @public
@@ -104,9 +104,9 @@ export default class PromotionRepository implements IPromotionRepository {
         PromotionRepository.PROMOTION_PROJECTION
       )
         .populate({
-          path: "listing",
-          model: "Listing",
-          select: PromotionRepository.LISTING_PROJECTION,
+          path: "offering",
+          model: "Offering",
+          select: PromotionRepository.OFFERING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();
