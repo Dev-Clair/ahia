@@ -13,7 +13,6 @@ import NotFoundError from "../error/notfoundError";
  * @param resourceName - The name of the document to resolve to
  * @param paramName - The name of the route parameter (e.g., 'id' or 'slug')
  * @throws NotFoundError
- * @returns a promise that resolves to void
  */
 const DocumentMiddleware = (
   resourceName: "listing" | "offering" | "promotion",

@@ -5,7 +5,6 @@ import HttpStatus from "../enum/httpStatus";
 /**
  * Verifies request header content types
  * @param contentTypes List of allowed content types
- * @returns Response | void
  */
 const isContentType = (contentTypes: string[]) => {
   return (req: Request, res: Response, next: NextFunction): Response | void => {
@@ -29,10 +28,9 @@ const isContentType = (contentTypes: string[]) => {
 
 /**
  * Handles not allowed operations
- * @param req
- * @param res
- * @param next
- * @returns Response
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  */
 const isNotAllowed = (
   req: Request,
@@ -49,10 +47,9 @@ const isNotAllowed = (
 
 /**
  * Verifies request security
- * @param req
- * @param res
- * @param next
- * @returns Response | void
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  */
 const isSecure = (
   req: Request,
@@ -78,7 +75,6 @@ const isSecure = (
 /**
  * Verifies request body contains creatable fields
  * @param fields List of fields that cannot be inserted
- * @returns Response | void
  */
 const filterInsertion = (fields: string[]) => {
   return (req: Request, res: Response, next: NextFunction): Response | void => {
@@ -107,7 +103,6 @@ const filterInsertion = (fields: string[]) => {
 /**
  * Verifies request body contains updatable fields
  * @param fields List of fields that cannot be updated
- * @returns Response | void
  */
 const filterUpdate = (fields: string[]) => {
   return (req: Request, res: Response, next: NextFunction): Response | void => {

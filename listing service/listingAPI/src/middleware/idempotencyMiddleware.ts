@@ -5,10 +5,9 @@ import Idempotency from "../model/idempotencyModel";
 
 /**
  * Verifies operation idempotency
- * @param req
- * @param res
- * @param next
- * @returns Response | void
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
  */
 const isIdempotent = async (
   req: Request,
