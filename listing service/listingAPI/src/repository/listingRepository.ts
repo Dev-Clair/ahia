@@ -38,7 +38,7 @@ export default class ListingRepository implements IListingRepository {
     __v: 0,
   };
 
-  static SORT_LISTINGS = {};
+  static SORT_LISTINGS = { createdAt: -1 };
 
   static OFFERING_PROJECTION = {
     createdAt: 0,

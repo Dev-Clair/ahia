@@ -25,7 +25,7 @@ export default class OfferingRepository implements IOfferingRepository {
     verification: 0,
   };
 
-  static SORT_OFFERINGS = {};
+  static SORT_OFFERINGS = { createdAt: -1 };
 
   static LISTING_PROJECTION = {
     provider: { email: 0 },
