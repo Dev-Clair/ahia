@@ -13,7 +13,17 @@ export default interface IPromotionRepository extends IRepository<IPromotion> {
   ): Promise<IPromotion[]>;
 
   /**
-   * Retrieves a promotion by id and populate it's subdocument field
+   * Retrieves a promotion by id
+   * @param id promotion id
+   * @param options configuration options
+   */
+  findById(
+    id: string,
+    options?: { [key: string]: any }
+  ): Promise<IPromotion | null>;
+
+  /**
+   * Retrieves a promotion by id and populate its subdocument
    * @param id promotion id
    * @param options configuration options
    */
