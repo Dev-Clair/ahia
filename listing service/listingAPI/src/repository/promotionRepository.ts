@@ -13,20 +13,21 @@ export default class PromotionRepository implements IPromotionRepository {
     __v: 0,
   };
 
-  static LISTING_PROJECTION = {
-    verification: 0,
-    provider: { email: 0 },
+  static SORT_PROMOTIONS = { createdAt: -1 };
+
+  static OFFERING_PROJECTION = {
     createdAt: 0,
     updatedAt: 0,
     __v: 0,
+    verification: 0,
   };
 
-  static SORT_PROMOTIONS = { createdAt: -1 };
+  static SORT_OFFERING = {};
 
   /** Retrieves a collection of promotions
    * @public
    * @param queryString
-   * @returns Promise<IPromotion[]>
+   * @param options configuration options
    */
   async findAll(
     queryString: Record<string, any>,
@@ -62,7 +63,7 @@ export default class PromotionRepository implements IPromotionRepository {
   /** Retrieves a promotion by id
    * @public
    * @param id promotion slug
-   * @returns Promise<IPromotion | null>
+   * @param options configuration options
    */
   async findById(
     id: string,
@@ -103,9 +104,9 @@ export default class PromotionRepository implements IPromotionRepository {
         PromotionRepository.PROMOTION_PROJECTION
       )
         .populate({
-          path: "listing",
-          model: "Listing",
-          select: PromotionRepository.LISTING_PROJECTION,
+          path: "offering",
+          model: "Offering",
+          select: PromotionRepository.OFFERING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();
@@ -124,8 +125,7 @@ export default class PromotionRepository implements IPromotionRepository {
    * Creates a new promotion in collection
    * @public
    * @param payload the data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async save(
     payload: Partial<IPromotion>,
@@ -220,8 +220,7 @@ export default class PromotionRepository implements IPromotionRepository {
    * Deletes a promotion by id
    * @public
    * @param id promotion id
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async delete(
     id: string,
@@ -257,7 +256,6 @@ export default class PromotionRepository implements IPromotionRepository {
 
   /**
    * Creates and returns a new instance of the PromotionRepository class
-   * @returns PromotionRepository
    */
   static Create(): PromotionRepository {
     return new PromotionRepository();

@@ -5,6 +5,13 @@ const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/promotions`;
 
 const PromotionSchema: Schema<IPromotion> = new Schema(
   {
+    offerings: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Offering",
+        required: false,
+      },
+    ],
     title: {
       type: String,
       required: true,
@@ -44,13 +51,6 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
         required: false,
       },
     },
-    listings: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Listing",
-        required: false,
-      },
-    ],
   },
   { timestamps: true }
 );
@@ -70,16 +70,16 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
     const session = await mongoose.startSession();
 
     session.withTransaction(async () => {
-      // Unlink all listings referenced to promotion
-      const listingUpdates = promotion.listings.map((listingId) => ({
+      // Unlink all offerings referenced to promotion
+      const offeringUpdates = promotion.offerings.map((offeringId) => ({
         updateOne: {
-          filter: { _id: listingId, promotion: promotion._id },
+          filter: { _id: offeringId, promotion: promotion._id },
           update: { $unset: { promotion: "" } },
         },
       }));
 
       // Update listings collection
-      await mongoose.model("Listing").bulkWrite(listingUpdates, { session });
+      await mongoose.model("Offering").bulkWrite(offeringUpdates, { session });
     });
 
     next();

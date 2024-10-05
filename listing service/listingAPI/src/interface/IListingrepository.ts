@@ -13,6 +13,16 @@ export default interface IListingRepository extends IRepository<IListing> {
   ): Promise<IListing[]>;
 
   /**
+   * Retrieves a listing by id
+   * @param id listing id
+   * @param options configuration options
+   */
+  findById(
+    id: string,
+    options?: { [key: string]: any }
+  ): Promise<IListing | null>;
+
+  /**
    * Retrieves a listing by slug
    * @param slug listing slug
    * @param options configuration options
@@ -23,7 +33,7 @@ export default interface IListingRepository extends IRepository<IListing> {
   ): Promise<IListing | null>;
 
   /**
-   * Retrieves a listing by id and populate it's subdocument field
+   * Retrieves a listing by id and populate its subdocument
    * @param id listing id
    * @param options configuration options
    */
@@ -33,7 +43,7 @@ export default interface IListingRepository extends IRepository<IListing> {
   ): Promise<IListing | null>;
 
   /**
-   * Retrieves a listing by slug and populate it's subdocument field
+   * Retrieves a listing by slug and populate its subdocument
    * @param slug listing slug
    * @param options configuration options
    */

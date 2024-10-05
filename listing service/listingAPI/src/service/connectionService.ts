@@ -35,7 +35,6 @@ class ConnectionService {
 
   /**
    * Establishes connection to the database
-   * @returns Promise<void>
    */
   private async connect(): Promise<void> {
     if (mongoose.connection.readyState === 0) {
@@ -51,7 +50,6 @@ class ConnectionService {
   /**
    * Creates and returns a new instance of the ConnectionService class
    * @param connectionUri
-   * @returns ConnectionService
    */
   public static Create(connectionUri: string): ConnectionService {
     return new ConnectionService(connectionUri);

@@ -11,18 +11,18 @@ const OfferingRouter = Router();
 
 OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
 
-OfferingRouter.route("/search").get(
-  ListingController.retrieveListingsByOfferingSearch
-);
-
-OfferingRouter.route(`/promotion`).get(
-  OfferingController.retrieveOfferingsByPromotion
+OfferingRouter.route(`/category`).get(
+  OfferingController.retrieveOfferingsByCategory
 );
 
 OfferingRouter.route(`/space`).get(OfferingController.retrieveOfferingsBySpace);
 
 OfferingRouter.route(`/status`).get(
   OfferingController.retrieveOfferingsByStatus
+);
+
+OfferingRouter.route("/search").get(
+  ListingController.retrieveListingsByOfferingSearch
 );
 
 OfferingRouter.route(`/:id(${IdParamRegex})`).get(

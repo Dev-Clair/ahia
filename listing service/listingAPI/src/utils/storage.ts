@@ -30,7 +30,6 @@ class Storage {
    * Uploads an object to the s3 storage bucket
    * @param id
    * @param body
-   * @returns Promise<string | void>
    */
   public async upload(id: string, body: any): Promise<string | void> {
     try {
@@ -60,7 +59,6 @@ class Storage {
    * @param key
    * @param start
    * @param end
-   * @returns
    */
   public async download(key: string, start: string = "0", end: string = "9") {
     try {
@@ -84,7 +82,6 @@ class Storage {
   /**
    * Removes an object from the bucket
    * @param key
-   * @returns Promise<boolean | undefined>
    */
   public async remove(key: string): Promise<boolean | undefined> {
     try {
@@ -106,7 +103,6 @@ class Storage {
   /**
    * Retrieves a collection of object names from the storage bucket
    * @param prefix
-   * @returns AsyncGenerator
    */
   public async *retrieveCollection(
     prefix: string
@@ -129,7 +125,6 @@ class Storage {
 
   /**
    * Creates and returns a new instance of the Storage class
-   * @returns StorageService
    */
   public static Create(): Storage {
     const configuration: S3ClientConfig = {

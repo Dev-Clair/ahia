@@ -6,7 +6,6 @@ import VerifyRole from "../controller/authController";
 /**
  * Ensures role based access to resource
  * @param role
- * @returns Promise<Response|void>
  */
 const IsGranted =
   (roles: string[]) =>

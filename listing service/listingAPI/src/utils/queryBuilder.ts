@@ -23,7 +23,6 @@ export class QueryBuilder<T> {
 
   /**
    * Executes the query
-   * @returns Promise of type any
    */
   public Exec(): Promise<T[]> {
     return this.query.exec();
@@ -31,7 +30,6 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query filtering
-   * @returns this
    */
   public Filter(): this {
     const queryObject = { ...this.queryString };
@@ -56,7 +54,6 @@ export class QueryBuilder<T> {
 
   /**
    * Handles geospatial queries: Near Query
-   * @returns this
    */
   public GeoNear(): this {
     if (this.queryString.lnglat) {
@@ -87,7 +84,6 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query pagination
-   * @returns Promise<this>
    */
   public async Paginate(): Promise<this> {
     const page = parseInt(this.queryString.page || "1", 10);
@@ -104,16 +100,9 @@ export class QueryBuilder<T> {
   /**
    * Handles query projection
    * @param selectFields A key-value pair of fields to select
-   * @returns this
    */
   public Select(selectFields: Record<string, any>): this {
-    const defaultSelectFields = { __v: 0, createdAt: 0, updatedAt: 0 };
-
-    const fields = [
-      this.queryString.fields,
-      selectFields,
-      defaultSelectFields,
-    ].join();
+    const fields = [this.queryString.fields, selectFields].join();
 
     this.query = this.query.select(fields);
 
@@ -123,12 +112,9 @@ export class QueryBuilder<T> {
   /**
    * Handles query sorting
    * @param sortFields A key-value pair of fields to sort
-   * @returns this
    */
   public Sort(sortFields: Record<string, any>): this {
-    const defaultSortField = { createdAt: -1 };
-
-    const sortBy = [this.queryString.sort, sortFields, defaultSortField].join();
+    const sortBy = [this.queryString.sort, sortFields].join();
 
     this.query = this.query.sort(sortBy);
 
@@ -138,8 +124,7 @@ export class QueryBuilder<T> {
   /**
    * Creates and returns a new instance of the QueryBuilder class
    * @param query mongoose query
-   * @param queryString query string object
-   * @returns QueryBuilder
+   * @param queryString query object
    */
   static Create<T>(
     query: Query<T[], T>,

@@ -23,25 +23,22 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method delete
  * @method findListingsByOfferings
  * @method findListingsByOfferingSearch
- * @method findOfferings
- * @method findOfferingById
- * @method findOfferingBySlug
- * @method saveOffering
- * @method updateOffering
- * @method deleteOffering
+ * @method findListingOfferings
+ * @method findListingOfferingById
+ * @method findListingOfferingBySlug
+ * @method saveListingOffering
+ * @method updateListingOffering
+ * @method deleteListingOffering
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTINGS_PROJECTION = { provider: { email: 0 } };
-
   static LISTING_PROJECTION = {
-    verification: 0,
     provider: { email: 0 },
     createdAt: 0,
     updatedAt: 0,
     __v: 0,
   };
 
-  static SORT_LISTINGS = {};
+  static SORT_LISTINGS = { createdAt: -1 };
 
   static OFFERING_PROJECTION = {
     createdAt: 0,
@@ -75,7 +72,7 @@ export default class ListingRepository implements IListingRepository {
           .GeoNear()
           .Filter()
           .Sort(ListingRepository.SORT_LISTINGS)
-          .Select(ListingRepository.LISTINGS_PROJECTION)
+          .Select(ListingRepository.LISTING_PROJECTION)
           .Paginate()
       ).Exec();
 
@@ -120,7 +117,6 @@ export default class ListingRepository implements IListingRepository {
    * @public
    * @param slug listing slug
    * @param options configuration options
-   * @returns Promise<IListing | null>
    */
   async findBySlug(
     slug: string,
@@ -144,7 +140,7 @@ export default class ListingRepository implements IListingRepository {
     return listing as Promise<IListing | null>;
   }
 
-  /** Retrieves a listing by id and populates offering subdocument
+  /** Retrieves a listing by id and populates its subdocument(s)
    * @public
    * @param id listing id
    * @param options configuration options
@@ -188,7 +184,7 @@ export default class ListingRepository implements IListingRepository {
     return listing as Promise<IListing | null>;
   }
 
-  /** Retrieves a listing by slug and populates offering subdocument
+  /** Retrieves a listing by slug and populates its subdocument(s)
    * @public
    * @param slug listing slug
    * @param options configuration options
@@ -366,9 +362,11 @@ export default class ListingRepository implements IListingRepository {
     }
 
     // Find listings that contain these offering IDs
+    const options = { retry: true };
+
     const listings = await this.findAll(
       { offerings: { in: offerings } },
-      { retry: true }
+      options
     );
 
     return listings;
@@ -439,48 +437,58 @@ export default class ListingRepository implements IListingRepository {
     return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
-  /** Retrieves a collection of offerings
+  /** Retrieves a listing's collection of offerings
    * @public
    * @param type offering type
    * @param queryString query object
    */
-  async findOfferings(
+  async findListingOfferings(
     type: string,
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
+    const options = { retry: true };
+
     const offerings = this.OfferingRepositoryFactory(type).findAll(
       queryString,
-      { retry: true }
+      options
     );
 
     return offerings;
   }
 
-  /** Retrieves a listing offering by id
+  /** Retrieves a listing's offering by id
    * @public
    * @param id offering id
    * @param type offering type
    */
-  async findOfferingById(id: string, type: string): Promise<IOffering | null> {
-    const offering = await this.OfferingRepositoryFactory(type).findById(id, {
-      retry: true,
-    });
+  async findListingOfferingById(
+    id: string,
+    type: string
+  ): Promise<IOffering | null> {
+    const options = { retry: true };
+
+    const offering = await this.OfferingRepositoryFactory(type).findById(
+      id,
+      options
+    );
 
     return offering;
   }
 
-  /** Retrieves a listing offering by slug
+  /** Retrieves a listing's offering by slug
    * @public
    * @param slug offering slug
    * @param type offering type
    */
-  async findOfferingBySlug(
+  async findListingOfferingBySlug(
     slug: string,
     type: string
   ): Promise<IOffering | null> {
+    const options = { retry: true };
+
     const offering = await this.OfferingRepositoryFactory(type).findBySlug(
       slug,
-      { retry: true }
+      options
     );
 
     return offering;
@@ -494,7 +502,7 @@ export default class ListingRepository implements IListingRepository {
    * @param listingId listing id
    * @param options configuration options
    */
-  async saveOffering(
+  async saveListingOffering(
     type: string,
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any,
@@ -542,14 +550,14 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing offering
+   * Updates a listing's offering
    * @public
    * @param id offering id
    * @param type offering type
    * @param payload data object
    * @param options configuration options
    */
-  async updateOffering(
+  async updateListingOffering(
     id: string,
     type: string,
     payload: Partial<IOffering | any>,
@@ -592,14 +600,14 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Deletes a listing offering
+   * Deletes a listing's offering
    * @public
    * @param type offering type
    * @param offeringId offering id
    * @param listingId listing id
    * @param options configuration options
    */
-  async deleteOffering(
+  async deleteListingOffering(
     type: string,
     offeringId: string,
     listingId: string,

@@ -105,7 +105,6 @@ class CloudWatchLogsTransport extends TransportStream {
 
   /**
    * Creates and returns a new instance of the CloudWatchLogsTransport class
-   * @returns CloudWatchLogsTransport
    */
   public static Create(): CloudWatchLogsTransport {
     const clientConfiguration: CloudWatchLogsClientConfig = {

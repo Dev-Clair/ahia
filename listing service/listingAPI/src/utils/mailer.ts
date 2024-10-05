@@ -27,7 +27,6 @@ class Mailer {
    * @param html - The HTML content of the email (optional).
    * @param cc - An array of CC email addresses (optional).
    * @param bcc - An array of BCC email addresses (optional).
-   * @returns Promise<SendEmailCommandOutput>
    */
   public async SendMail(
     sender: string,

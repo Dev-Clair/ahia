@@ -18,8 +18,6 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method delete
  */
 export default class OfferingRepository implements IOfferingRepository {
-  static OFFERINGS_PROJECTION = {};
-
   static OFFERING_PROJECTION = {
     createdAt: 0,
     updatedAt: 0,
@@ -27,7 +25,16 @@ export default class OfferingRepository implements IOfferingRepository {
     verification: 0,
   };
 
-  static SORT_OFFERINGS = {};
+  static SORT_OFFERINGS = { createdAt: -1 };
+
+  static LISTING_PROJECTION = {
+    provider: { email: 0 },
+    createdAt: 0,
+    updatedAt: 0,
+    __v: 0,
+  };
+
+  static SORT_LISTINGS = {};
 
   /** Retrieves a collection of offerings
    * @public
@@ -54,7 +61,7 @@ export default class OfferingRepository implements IOfferingRepository {
         await queryBuilder
           .Filter()
           .Sort(OfferingRepository.SORT_OFFERINGS)
-          .Select(OfferingRepository.OFFERINGS_PROJECTION)
+          .Select(OfferingRepository.OFFERING_PROJECTION)
           .Paginate()
       ).Exec();
 
@@ -122,7 +129,7 @@ export default class OfferingRepository implements IOfferingRepository {
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves an offering by id and populates listing subdocument
+  /** Retrieves an offering by id and populates its subdocument
    * @public
    * @param id offering id
    * @param options configuration options
@@ -145,7 +152,7 @@ export default class OfferingRepository implements IOfferingRepository {
           path: "listing",
           match: type ? new RegExp(type, "i") : undefined,
           model: "Listing",
-          select: OfferingRepository.OFFERING_PROJECTION,
+          select: OfferingRepository.LISTING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();
@@ -160,7 +167,7 @@ export default class OfferingRepository implements IOfferingRepository {
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves a listing by slug and populates offering subdocument
+  /** Retrieves an offering by slug and populates its subdocument
    * @public
    * @param slug listing slug
    * @param options configuration options
@@ -183,7 +190,7 @@ export default class OfferingRepository implements IOfferingRepository {
           path: "listing",
           match: type ? new RegExp(type, "i") : undefined,
           model: "Listing",
-          select: OfferingRepository.OFFERING_PROJECTION,
+          select: OfferingRepository.LISTING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();

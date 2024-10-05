@@ -25,5 +25,4 @@ export default interface IListing extends Document {
     image: string;
     video: string;
   };
-  promotion?: Schema.Types.ObjectId;
 }
