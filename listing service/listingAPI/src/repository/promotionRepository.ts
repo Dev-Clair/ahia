@@ -27,7 +27,7 @@ export default class PromotionRepository implements IPromotionRepository {
   /** Retrieves a collection of promotions
    * @public
    * @param queryString
-   * @returns Promise<IPromotion[]>
+   * @param options configuration options
    */
   async findAll(
     queryString: Record<string, any>,
@@ -63,7 +63,7 @@ export default class PromotionRepository implements IPromotionRepository {
   /** Retrieves a promotion by id
    * @public
    * @param id promotion slug
-   * @returns Promise<IPromotion | null>
+   * @param options configuration options
    */
   async findById(
     id: string,
@@ -125,8 +125,7 @@ export default class PromotionRepository implements IPromotionRepository {
    * Creates a new promotion in collection
    * @public
    * @param payload the data object
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async save(
     payload: Partial<IPromotion>,
@@ -221,8 +220,7 @@ export default class PromotionRepository implements IPromotionRepository {
    * Deletes a promotion by id
    * @public
    * @param id promotion id
-   * @param options operation metadata
-   * @returns Promise<ObjectId>
+   * @param options configuration options
    */
   async delete(
     id: string,
@@ -258,7 +256,6 @@ export default class PromotionRepository implements IPromotionRepository {
 
   /**
    * Creates and returns a new instance of the PromotionRepository class
-   * @returns PromotionRepository
    */
   static Create(): PromotionRepository {
     return new PromotionRepository();

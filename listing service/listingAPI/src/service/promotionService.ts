@@ -1,4 +1,4 @@
-import mongoose, { ClientSession, ObjectId } from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import IPromotion from "../interface/IPromotion";
 import PromotionRepository from "../repository/promotionRepository";
 
@@ -6,7 +6,6 @@ export default class PromotionService {
   /** Retrieves a collection of promotions
    * @public
    * @param queryString
-   * @returns Promise<IPromotion[]>
    */
   async findAll(queryString: Record<string, any>): Promise<IPromotion[]> {
     const options = { retry: true };
@@ -17,7 +16,6 @@ export default class PromotionService {
   /** Retrieves a promotion by id
    * @public
    * @param id promotion slug
-   * @returns Promise<IPromotion | null>
    */
   async findById(id: string): Promise<IPromotion | null> {
     const options = { retry: true };
@@ -28,7 +26,6 @@ export default class PromotionService {
   // /** Retrieves a promotion by slug
   //  * @public
   //  * @param slug promotion slug
-  //  * @returns Promise<IPromotion | null>
   //  */
   // async findBySlug(slug: string): Promise<IPromotion | null> {
   //   const options = { retry: true };
@@ -95,7 +92,6 @@ export default class PromotionService {
 
   /**
    * Creates and returns a new instance of the PromotionService class
-   * @returns PromotionService
    */
   static Create(): PromotionService {
     return new PromotionService();
