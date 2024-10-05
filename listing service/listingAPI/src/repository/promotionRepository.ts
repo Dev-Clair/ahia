@@ -13,6 +13,8 @@ export default class PromotionRepository implements IPromotionRepository {
     __v: 0,
   };
 
+  static SORT_PROMOTIONS = { createdAt: -1 };
+
   static LISTING_PROJECTION = {
     verification: 0,
     provider: { email: 0 },
@@ -20,8 +22,6 @@ export default class PromotionRepository implements IPromotionRepository {
     updatedAt: 0,
     __v: 0,
   };
-
-  static SORT_PROMOTIONS = { createdAt: -1 };
 
   /** Retrieves a collection of promotions
    * @public

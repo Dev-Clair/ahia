@@ -29,6 +29,14 @@ export default class OfferingRepository implements IOfferingRepository {
 
   static SORT_OFFERINGS = {};
 
+  static LISTING_PROJECTION = {
+    verification: 0,
+    provider: { email: 0 },
+    createdAt: 0,
+    updatedAt: 0,
+    __v: 0,
+  };
+
   /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
@@ -122,7 +130,7 @@ export default class OfferingRepository implements IOfferingRepository {
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves an offering by id and populates listing subdocument
+  /** Retrieves an offering by id and populates its subdocument
    * @public
    * @param id offering id
    * @param options configuration options
@@ -145,7 +153,7 @@ export default class OfferingRepository implements IOfferingRepository {
           path: "listing",
           match: type ? new RegExp(type, "i") : undefined,
           model: "Listing",
-          select: OfferingRepository.OFFERING_PROJECTION,
+          select: OfferingRepository.LISTING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();
@@ -160,7 +168,7 @@ export default class OfferingRepository implements IOfferingRepository {
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves a listing by slug and populates offering subdocument
+  /** Retrieves an offering by slug and populates its subdocument
    * @public
    * @param slug listing slug
    * @param options configuration options
@@ -183,7 +191,7 @@ export default class OfferingRepository implements IOfferingRepository {
           path: "listing",
           match: type ? new RegExp(type, "i") : undefined,
           model: "Listing",
-          select: OfferingRepository.OFFERING_PROJECTION,
+          select: OfferingRepository.LISTING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();

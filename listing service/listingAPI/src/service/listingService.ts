@@ -15,12 +15,12 @@ import ListingRepository from "../repository/listingRepository";
  * @method delete
  * @method findListingsByOfferings
  * @method findListingsByOfferingSearch
- * @method findOfferings
- * @method findOfferingById
- * @method findOfferingBySlug
- * @method saveOffering
- * @method updateOffering
- * @method deleteOffering
+ * @method findListingOfferings
+ * @method findListingOfferingById
+ * @method findListingOfferingBySlug
+ * @method saveListingOffering
+ * @method updateListingOffering
+ * @method deleteListingOffering
  */
 export default class ListingService {
   /** Retrieves a collection of listings
@@ -187,17 +187,17 @@ export default class ListingService {
     );
   }
 
-  /** Retrieves a collection of offerings
+  /** Retrieves a listing's collection of offerings
    * @public
    * @param type offering type
    * @param queryString query object
    * @returns Promise<IOffering[]>
    */
-  async findOfferings(
+  async findListingOfferings(
     type: string,
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = ListingRepository.Create().findOfferings(
+    const offerings = ListingRepository.Create().findListingOfferings(
       type,
       queryString
     );
@@ -205,27 +205,33 @@ export default class ListingService {
     return offerings;
   }
 
-  /** Retrieves a listing offering by id
+  /** Retrieves a listing's offering by id
    * @public
    * @param id offering id
    * @param type offering type
    * @returns Promise<IOffering | null>
    */
-  async findOfferingById(id: string, type: string): Promise<IOffering | null> {
-    return await ListingRepository.Create().findOfferingById(id, type);
+  async findListingOfferingById(
+    id: string,
+    type: string
+  ): Promise<IOffering | null> {
+    return await ListingRepository.Create().findListingOfferingById(id, type);
   }
 
-  /** Retrieves a listing offering by slug
+  /** Retrieves a listing's offering by slug
    * @public
    * @param slug offering slug
    * @param type offering type
    * @returns Promise<IOffering | null>
    */
-  async findOfferingBySlug(
+  async findListingOfferingBySlug(
     slug: string,
     type: string
   ): Promise<IOffering | null> {
-    return await ListingRepository.Create().findOfferingBySlug(slug, type);
+    return await ListingRepository.Create().findListingOfferingBySlug(
+      slug,
+      type
+    );
   }
 
   /**
@@ -237,7 +243,7 @@ export default class ListingService {
    * @param listingId listing id
    * @returns Promise<string>
    */
-  public async saveOffering(
+  public async saveListingOffering(
     type: string,
     key: Record<string, any>,
     payload: Partial<IOffering>,
@@ -248,7 +254,7 @@ export default class ListingService {
 
       const options = { session: session, idempotent: key, retry: true };
 
-      return await ListingRepository.Create().saveOffering(
+      return await ListingRepository.Create().saveListingOffering(
         type,
         payload,
         listingId,
@@ -260,7 +266,7 @@ export default class ListingService {
   }
 
   /**
-   * Updates a listing offering by id
+   * Updates a listing's offering by id
    * @public
    * @param id offering id
    * @param type offering type
@@ -268,7 +274,7 @@ export default class ListingService {
    * @param payload the data object
    * @returns Promise<string>
    */
-  public async updateOffering(
+  public async updateListingOffering(
     id: string,
     type: string,
     key: Record<string, any>,
@@ -279,7 +285,7 @@ export default class ListingService {
 
       const options = { session: session, idempotent: key, retry: true };
 
-      return ListingRepository.Create().updateOffering(
+      return ListingRepository.Create().updateListingOffering(
         id,
         type,
         payload,
@@ -291,14 +297,14 @@ export default class ListingService {
   }
 
   /**
-   * Deletes a listing offering by id
+   * Deletes a listing's offering by id
    * @public
    * @param type offering type
    * @param offeringId offering id
    * @param listingId listing id
    * @returns Promise<string>
    */
-  public async deleteOffering(
+  public async deleteListingOffering(
     type: string,
     offeringId: string,
     listingId: string
@@ -308,7 +314,7 @@ export default class ListingService {
 
       const options = { session: session, retry: true };
 
-      return ListingRepository.Create().deleteOffering(
+      return ListingRepository.Create().deleteListingOffering(
         type,
         offeringId,
         listingId,

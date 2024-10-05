@@ -100,7 +100,7 @@ export default class SellRepository extends OfferingRepository {
     return offering as Promise<ISellOffering | null>;
   }
 
-  /** Retrieves an offering by id and populates listing subdocument
+  /** Retrieves an offering by id and populates its subdocument(s)
    * @public
    * @param id offering id
    * @param options configuration options
@@ -119,7 +119,7 @@ export default class SellRepository extends OfferingRepository {
         .populate({
           path: "listing",
           model: "Listing",
-          select: SellRepository.OFFERING_PROJECTION,
+          select: SellRepository.LISTING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();
@@ -134,7 +134,7 @@ export default class SellRepository extends OfferingRepository {
     return offering as Promise<ISellOffering | null>;
   }
 
-  /** Retrieves a listing by slug and populates offering subdocument
+  /** Retrieves an offering by slug and populates its subdocument(s)
    * @public
    * @param slug listing slug
    * @param options configuration options
@@ -153,7 +153,7 @@ export default class SellRepository extends OfferingRepository {
         .populate({
           path: "listing",
           model: "Listing",
-          select: SellRepository.OFFERING_PROJECTION,
+          select: SellRepository.LISTING_PROJECTION,
           options: { sort: { createdAt: -1 } },
         })
         .exec();
