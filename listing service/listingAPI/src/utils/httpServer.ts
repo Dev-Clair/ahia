@@ -25,7 +25,6 @@ class HttpServer {
   /**
    * Start http(s) server listening for connections
    * @param PORT
-   * @returns Promise<unknown>
    */
   public Init(PORT: string | number): Promise<http.Server | https.Server> {
     return new Promise((resolve, reject) => {
@@ -73,7 +72,6 @@ class HttpServer {
    * Creates and returns a new instance of the HttpServer class
    * @param App
    * @param SSL_Options
-   * @returns HttpServer
    */
   static Create(App: Express, SSL_Options: object | null = null): HttpServer {
     return new HttpServer(App, SSL_Options);

@@ -8,7 +8,6 @@ class SecretManager {
    * Creates a cryptographically secure hash of a value with sha256 algorithm and a (user-defined) secret key
    * @param value
    * @param key
-   * @returns Promise<string>
    */
   static async HashSecret(value: string, key: string): Promise<string> {
     return new Promise((resolve) => {
@@ -21,7 +20,6 @@ class SecretManager {
    * @param secret
    * @param value
    * @param key
-   * @returns Promise<string>
    */
   static async VerifySecret(
     secret: string,

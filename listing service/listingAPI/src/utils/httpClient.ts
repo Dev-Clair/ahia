@@ -32,7 +32,6 @@ class HttpClient {
   /**
    * Generates random string values to ensure idempotency of some http methods
    * @private
-   * @returns Promise<string>
    */
   private generateIdempotencyKey(): Promise<string> {
     return new Promise((resolve) => resolve(randomUUID()));
@@ -43,7 +42,6 @@ class HttpClient {
    * @private
    * @param options
    * @param payload
-   * @returns Promise<IHttpResponse>
    */
   private async call(
     options: IHttpRequestOptions,
@@ -95,7 +93,6 @@ class HttpClient {
    * @private
    * @param method
    * @param payload
-   * @returns Promise<IHttpResponse>
    */
   private async request(method: string, payload?: any): Promise<IHttpResponse> {
     const headers = { ...this.httpHeaders };
@@ -118,7 +115,7 @@ class HttpClient {
 
   /**
    * Carries out a get request
-   * @returns Promise<IHttpResponse>
+   * @public
    */
   public Get(): Promise<IHttpResponse> {
     return this.request("GET");
@@ -126,8 +123,8 @@ class HttpClient {
 
   /**
    * Carries out a post request
+   * @public
    * @param payload
-   * @returns Promise<IHttpResponse>
    */
   public Post(payload: any): Promise<IHttpResponse> {
     return this.request("POST", payload);
@@ -135,8 +132,8 @@ class HttpClient {
 
   /**
    * Carries out a put request
+   * @public
    * @param payload
-   * @returns Promise<IHttpResponse>
    */
   public Put(payload: any): Promise<IHttpResponse> {
     return this.request("PUT", payload);
@@ -144,8 +141,8 @@ class HttpClient {
 
   /**
    * Carries out a patch request
+   * @public
    * @param payload
-   * @returns Promise<IHttpResponse>
    */
   public Patch(payload: any): Promise<IHttpResponse> {
     return this.request("PATCH", payload);
@@ -153,7 +150,7 @@ class HttpClient {
 
   /**
    * Carries out a delete request
-   * @returns Promise<IHttpResponse>
+   * @public
    */
   public Delete(): Promise<IHttpResponse> {
     return this.request("DELETE");
@@ -163,7 +160,6 @@ class HttpClient {
    * Returns a new instance of the HttpClient class
    * @param url
    * @param httpHeaders
-   * @returns HttpClient
    */
   static Create(url: string, httpHeaders: Record<string, string>): HttpClient {
     return new HttpClient(url, httpHeaders);
