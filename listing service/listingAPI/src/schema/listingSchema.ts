@@ -88,11 +88,6 @@ const ListingSchema: Schema<IListing> = new Schema(
         required: false,
       },
     },
-    promotion: {
-      type: Schema.Types.ObjectId,
-      ref: "Promotion",
-      required: false,
-    },
   },
   { timestamps: true }
 );
@@ -138,15 +133,6 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
         ],
         { session }
       );
-
-      // Drop all promotion references to listing
-      await mongoose
-        .model("Promotion")
-        .updateOne(
-          { id: listing.promotion },
-          { $pull: { listings: listing._id } },
-          { new: false, session }
-        );
     });
 
     next();

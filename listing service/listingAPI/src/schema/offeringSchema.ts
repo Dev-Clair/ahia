@@ -12,9 +12,14 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       ref: "Listing",
       required: true,
     },
+    promotion: {
+      type: Schema.Types.ObjectId,
+      ref: "Promotion",
+      required: false,
+    },
     name: {
       type: String,
-      required: false,
+      required: true,
     },
     slug: {
       type: String,
@@ -28,7 +33,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
     category: {
       type: String,
       enum: ["economy", "premium", "luxury"],
-      set: (value: string) => value.toLowerCase(),
+      default: "economy",
       required: true,
     },
     space: {
@@ -73,11 +78,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         default: undefined,
         required: false,
       },
-    },
-    promotion: {
-      type: String,
-      enum: ["none", "basic", "plus", "prime"],
-      default: "none",
     },
     verification: {
       status: {
@@ -133,6 +133,15 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
         .model("Listing")
         .updateOne(
           { id: offering.listing },
+          { $pull: { offerings: offering._id } },
+          { session: session }
+        );
+
+      // Unlink promotion reference to offering
+      await mongoose
+        .model("Promotion")
+        .updateOne(
+          { id: offering.promotion },
           { $pull: { offerings: offering._id } },
           { session: session }
         );
