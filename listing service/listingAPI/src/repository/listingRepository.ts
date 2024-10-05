@@ -34,7 +34,6 @@ export default class ListingRepository implements IListingRepository {
   static LISTINGS_PROJECTION = { provider: { email: 0 } };
 
   static LISTING_PROJECTION = {
-    verification: 0,
     provider: { email: 0 },
     createdAt: 0,
     updatedAt: 0,

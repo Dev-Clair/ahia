@@ -18,7 +18,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method delete
  */
 export default class OfferingRepository implements IOfferingRepository {
-  static OFFERINGS_PROJECTION = {};
+  static OFFERINGS_PROJECTION = { verification: 0 };
 
   static OFFERING_PROJECTION = {
     createdAt: 0,
@@ -30,12 +30,13 @@ export default class OfferingRepository implements IOfferingRepository {
   static SORT_OFFERINGS = {};
 
   static LISTING_PROJECTION = {
-    verification: 0,
     provider: { email: 0 },
     createdAt: 0,
     updatedAt: 0,
     __v: 0,
   };
+
+  static SORT_LISTINGS = {};
 
   /** Retrieves a collection of offerings
    * @public
