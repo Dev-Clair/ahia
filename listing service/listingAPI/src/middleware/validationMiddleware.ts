@@ -86,7 +86,6 @@ const OfferingSchema = z.object({
       invalid_type_error: "features must be a string array",
     })
   ),
-  promotion: z.enum(["none", "basic", "plus", "prime"]),
   lease: z
     .array(
       z.object({
