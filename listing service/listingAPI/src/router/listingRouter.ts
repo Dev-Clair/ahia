@@ -67,7 +67,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
     ValidationMiddleware.validateType,
     ValidationMiddleware.validateOffering,
     DocumentMiddleware("listing", "id"),
-    PaymentverificationMiddleware.verifyOfferingPaymentStatus,
+    // PaymentverificationMiddleware.verifyOfferingPaymentStatus,
     ListingController.createListingOffering
   );
 
@@ -85,7 +85,7 @@ ListingRouter.route(
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    PaymentverificationMiddleware.verifyOfferingPaymentStatus,
+    // PaymentverificationMiddleware.verifyOfferingPaymentStatus,
     ListingController.updateListingOfferingById
   )
   .delete(
@@ -93,7 +93,7 @@ ListingRouter.route(
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    PaymentverificationMiddleware.verifyOfferingPaymentStatus,
+    // PaymentverificationMiddleware.verifyOfferingPaymentStatus,
     ListingController.deleteListingOfferingById
   );
 
