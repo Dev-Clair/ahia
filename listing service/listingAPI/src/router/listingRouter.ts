@@ -106,19 +106,9 @@ ListingRouter.route(
   ListingController.retrieveListingOfferingById
 );
 
-ListingRouter.route(`/:id(${IdParamRegex})/type/:type`).get(
+ListingRouter.route(`/:id(${IdParamRegex})/offering/:type`).get(
   ValidationMiddleware.validateType,
   ListingController.retrieveListingByIdAndPopulate
-);
-
-ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
-  DocumentMiddleware("listing", "slug"),
-  ListingController.retrieveListingBySlug
-);
-
-ListingRouter.route(`/:slug(${SlugParamRegex})/type/:type`).get(
-  ValidationMiddleware.validateType,
-  ListingController.retrieveListingBySlugAndPopulate
 );
 
 ListingRouter.route(
@@ -127,6 +117,16 @@ ListingRouter.route(
   ValidationMiddleware.validateType,
   DocumentMiddleware("listing", "slug"),
   ListingController.retrieveListingOfferingBySlug
+);
+
+ListingRouter.route(`/:slug(${SlugParamRegex})/offering/:type`).get(
+  ValidationMiddleware.validateType,
+  ListingController.retrieveListingBySlugAndPopulate
+);
+
+ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
+  DocumentMiddleware("listing", "slug"),
+  ListingController.retrieveListingBySlug
 );
 
 export default ListingRouter;

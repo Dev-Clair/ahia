@@ -36,11 +36,11 @@ OfferingRouter.route(`/:id(${IdParamRegex})/listing`).get(
 
 OfferingRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("offering", "slug"),
-  OfferingController.retrieveOfferingById
+  OfferingController.retrieveOfferingBySlug
 );
 
 OfferingRouter.route(`/:slug(${SlugParamRegex})/listing`).get(
-  OfferingController.retrieveOfferingByIdAndPopulate
+  OfferingController.retrieveOfferingBySlugAndPopulate
 );
 
 export default OfferingRouter;
