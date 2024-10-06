@@ -116,12 +116,20 @@ export default class ReservationRepository extends OfferingRepository {
         { _id: id },
         ReservationRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: ReservationRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: ReservationRepository.LISTING_PROJECTION,
+            options: { sort: ReservationRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: ReservationRepository.PROMOTION_PROJECTION,
+            options: { sort: ReservationRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
@@ -150,12 +158,20 @@ export default class ReservationRepository extends OfferingRepository {
         { slug: slug },
         ReservationRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: ReservationRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: ReservationRepository.LISTING_PROJECTION,
+            options: { sort: ReservationRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: ReservationRepository.PROMOTION_PROJECTION,
+            options: { sort: ReservationRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;

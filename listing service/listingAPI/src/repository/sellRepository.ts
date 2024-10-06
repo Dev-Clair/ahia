@@ -116,12 +116,20 @@ export default class SellRepository extends OfferingRepository {
         { _id: id },
         SellRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: SellRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: SellRepository.LISTING_PROJECTION,
+            options: { sort: SellRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: SellRepository.PROMOTION_PROJECTION,
+            options: { sort: SellRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
@@ -150,12 +158,20 @@ export default class SellRepository extends OfferingRepository {
         { slug: slug },
         SellRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: SellRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: SellRepository.LISTING_PROJECTION,
+            options: { sort: SellRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: SellRepository.PROMOTION_PROJECTION,
+            options: { sort: SellRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;

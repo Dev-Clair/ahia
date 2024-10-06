@@ -47,7 +47,7 @@ export default class ListingRepository implements IListingRepository {
     verification: 0,
   };
 
-  static SORT_OFFERINGS = {};
+  static SORT_OFFERINGS = { createdAt: -1 };
 
   /** Retrieves a collection of listings
    * @publics
@@ -169,7 +169,7 @@ export default class ListingRepository implements IListingRepository {
           options: {
             skip: (page ?? 1 - 1) * limit ?? 10,
             limit: limit ?? 10,
-            sort: { createdAt: -1 },
+            sort: ListingRepository.SORT_OFFERINGS,
           },
         })
         .exec();
@@ -213,7 +213,7 @@ export default class ListingRepository implements IListingRepository {
           options: {
             skip: (page ?? 1 - 1) * limit ?? 10,
             limit: limit ?? 10,
-            sort: { createdAt: -1 },
+            sort: ListingRepository.SORT_OFFERINGS,
           },
         })
         .exec();

@@ -22,7 +22,7 @@ export default class PromotionRepository implements IPromotionRepository {
     verification: 0,
   };
 
-  static SORT_OFFERING = {};
+  static SORT_OFFERINGS = { createdAt: -1 };
 
   /** Retrieves a collection of promotions
    * @public
@@ -107,7 +107,7 @@ export default class PromotionRepository implements IPromotionRepository {
           path: "offering",
           model: "Offering",
           select: PromotionRepository.OFFERING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
+          options: { sort: PromotionRepository.SORT_OFFERINGS },
         })
         .exec();
 

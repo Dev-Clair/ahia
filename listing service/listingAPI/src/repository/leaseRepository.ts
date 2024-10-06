@@ -116,12 +116,20 @@ export default class LeaseRepository extends OfferingRepository {
         { _id: id },
         LeaseRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: LeaseRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: LeaseRepository.LISTING_PROJECTION,
+            options: { sort: LeaseRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: LeaseRepository.PROMOTION_PROJECTION,
+            options: { sort: LeaseRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
@@ -150,12 +158,20 @@ export default class LeaseRepository extends OfferingRepository {
         { slug: slug },
         LeaseRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: LeaseRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: LeaseRepository.LISTING_PROJECTION,
+            options: { sort: LeaseRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: LeaseRepository.PROMOTION_PROJECTION,
+            options: { sort: LeaseRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
