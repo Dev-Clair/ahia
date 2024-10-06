@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ahia Listing Service API is a robust backend service designed to manage real estate listings on the ahia marketplace. It provides endpoints for creating, retrieving, updating, and deleting listings and offerings, as well as specialized endpoints for carrying out various operations on listing offerings. This API ensures idempotency, handles listing approval and payment checkout, and supports features like pagination and geospatial queries.
+The ahia Listing Service API is a robust backend service designed to manage real estate listings on the ahia marketplace. It provides endpoints for creating, retrieving, updating, and deleting listings and associated offerings, as well as specialized endpoints for carrying out various operations on listing and offerings. This API ensures idempotency, handles listing approval and payment checkout, and supports features like pagination and geospatial queries.
 This API ensures idempotency, uses transactions, and supports features like pagination and geospatial queries.
 Authorization and authentication is enabled by an identity server which manages user account and permissions.
 
