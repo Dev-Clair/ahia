@@ -1,4 +1,4 @@
-const SpaceTypes = {
+const ProductTypes = {
   agricultural: ["farm", "orchard", "ranch"],
   commercial: ["office", "restaurant", "retail", "showroom", "storefront"],
   hospitality: [
@@ -6,17 +6,17 @@ const SpaceTypes = {
     "event-space",
     "hostel",
     "hotel",
+    "lounge",
     "motel",
     "resort",
     "shortlets",
     "timeshare",
   ],
   industrial: ["factory", "warehouse"],
-  land: ["agricultural", "commercial", "residential", "mixed"],
+  land: ["agricultural", "commercial", "mixed", "residential"],
   mixed: [
-    "hotel-residential-complex",
+    "hospitality-residential-complex",
     "lifestyle",
-    "office-retail-complex",
     "residential-commercial-complex",
   ],
   recreational: [
@@ -34,9 +34,9 @@ const SpaceTypes = {
   ],
   residential: [
     "apartment",
+    "bungalow",
     "condominium",
     "cottage",
-    "bungalow",
     "detached",
     "duplex",
     "flat",
@@ -50,8 +50,8 @@ const SpaceTypes = {
   special: [
     "consulate",
     "data-center",
-    "embassy",
     "educational",
+    "embassy",
     "government",
     "hospital",
     "laboratory",
@@ -60,4 +60,4 @@ const SpaceTypes = {
   ],
 };
 
-export default SpaceTypes;
+export default ProductTypes;

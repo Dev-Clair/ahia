@@ -379,13 +379,13 @@ export default class ListingRepository implements IListingRepository {
    */
   async findListingsByOfferingSearch(searchFilter: {
     category: string;
-    space: { name: string; type: string };
+    product: { name: string; type: string };
     status: string;
     type: string;
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    const { category, minArea, maxArea, space, status, type } = searchFilter;
+    const { category, minArea, maxArea, product, status, type } = searchFilter;
 
     //Build the query for offerings
     const query: Record<string, any> = {};
@@ -402,11 +402,11 @@ export default class ListingRepository implements IListingRepository {
       if (maxArea !== undefined) query["area.size"] = { lte: maxArea };
     }
 
-    // Filtering by space (name and type) using a case-insensitive regex
-    if (space)
-      query.space = {
-        name: new RegExp(space.name.toLowerCase()),
-        type: new RegExp(space.type.toLowerCase()),
+    // Filtering by produt (name and type) using a case-insensitive regex
+    if (product)
+      query.product = {
+        name: new RegExp(product.name.toLowerCase()),
+        type: new RegExp(product.type.toLowerCase()),
       };
 
     // Filtering by status using a case-insensitive regex

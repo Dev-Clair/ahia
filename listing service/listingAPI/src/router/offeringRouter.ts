@@ -15,7 +15,9 @@ OfferingRouter.route(`/category`).get(
   OfferingController.retrieveOfferingsByCategory
 );
 
-OfferingRouter.route(`/space`).get(OfferingController.retrieveOfferingsBySpace);
+OfferingRouter.route(`/product`).get(
+  OfferingController.retrieveOfferingsByProduct
+);
 
 OfferingRouter.route(`/status`).get(
   OfferingController.retrieveOfferingsByStatus

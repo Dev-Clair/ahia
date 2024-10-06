@@ -51,22 +51,22 @@ const retrieveOfferingsByCategory = async (
 };
 
 /**
- * Retrieve offerings by space
+ * Retrieve offerings by product
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsBySpace = async (
+const retrieveOfferingsByProduct = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const spaceName = req.query.name as string;
+    const productName = req.query.name as string;
 
-    const spaceType = req.query.type as string;
+    const productType = req.query.type as string;
 
-    const queryString = { space: { name: spaceName, type: spaceType } };
+    const queryString = { product: { name: productName, type: productType } };
 
     const offerings = await OfferingService.Create().findAll(queryString);
 
@@ -193,7 +193,7 @@ const retrieveOfferingBySlugAndPopulate = async (
 export default {
   retrieveOfferings,
   retrieveOfferingsByCategory,
-  retrieveOfferingsBySpace,
+  retrieveOfferingsByProduct,
   retrieveOfferingsByStatus,
   retrieveOfferingById,
   retrieveOfferingBySlug,
