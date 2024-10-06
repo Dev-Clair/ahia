@@ -8,7 +8,6 @@ export default interface IOffering extends Document {
   name: string;
   slug?: string;
   description: string;
-  category: "economy" | "premium" | "luxury";
   product: IProduct;
   type: "lease" | "reservation" | "sell";
   features: string[];

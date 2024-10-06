@@ -11,10 +11,6 @@ const OfferingRouter = Router();
 
 OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
 
-OfferingRouter.route(`/category`).get(
-  OfferingController.retrieveOfferingsByCategory
-);
-
 OfferingRouter.route(`/product`).get(
   OfferingController.retrieveOfferingsByProduct
 );

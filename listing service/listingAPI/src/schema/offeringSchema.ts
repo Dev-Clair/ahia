@@ -30,11 +30,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: true,
     },
-    category: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      default: "economy",
-    },
     product: {
       type: ProductSchema,
       required: true,
@@ -50,7 +45,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
     },
     quantity: {
       type: Number,
-      required: true,
+      default: 1,
     },
     area: {
       size: {
@@ -98,9 +93,9 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 // Offering Schema Search Query Index
 OfferingSchema.index({
   name: "text",
-  category: "text",
   "area.size": 1,
   "product.name": "text",
+  "product.category": "text",
   "product.type": "text",
 });
 

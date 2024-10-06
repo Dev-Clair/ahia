@@ -378,20 +378,16 @@ export default class ListingRepository implements IListingRepository {
    * @param searchFilter query filter object
    */
   async findListingsByOfferingSearch(searchFilter: {
-    category: string;
-    product: { name: string; type: string };
+    product: { name: string; category: string; type: string };
     status: string;
     type: string;
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    const { category, minArea, maxArea, product, status, type } = searchFilter;
+    const { minArea, maxArea, product, status, type } = searchFilter;
 
     //Build the query for offerings
     const query: Record<string, any> = {};
-
-    // Filtering by category using a case-insensitive regex
-    if (category) query.category = { $regex: category, $options: "i" };
 
     // Filtering by area size
     if (minArea !== undefined || maxArea !== undefined) {
@@ -402,10 +398,11 @@ export default class ListingRepository implements IListingRepository {
       if (maxArea !== undefined) query["area.size"] = { lte: maxArea };
     }
 
-    // Filtering by produt (name and type) using a case-insensitive regex
+    // Filtering by produt (name, category and type) using a case-insensitive regex
     if (product)
       query.product = {
         name: new RegExp(product.name.toLowerCase()),
+        category: new RegExp(product.category.toLowerCase()),
         type: new RegExp(product.type.toLowerCase()),
       };
 

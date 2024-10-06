@@ -5,7 +5,7 @@ export default interface IListing extends Document {
   name: string;
   slug?: string;
   description: string;
-  type: "property" | "land";
+  type: "land" | "property";
   offerings?: Schema.Types.ObjectId[];
   address: {
     street: string;

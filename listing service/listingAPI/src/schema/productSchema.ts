@@ -9,6 +9,11 @@ const ProductSchema: Schema<IProduct> = new Schema(
       enum: Object.keys(ProductTypes).flat(),
       required: true,
     },
+    category: {
+      type: String,
+      enum: ["economy", "premium", "luxury"],
+      required: true,
+    },
     type: {
       type: String,
       enum: Object.values(ProductTypes).flat(),
@@ -19,7 +24,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
 );
 
 // Product Schema Search Query Index
-ProductSchema.index({ name: "text", type: "text" });
+ProductSchema.index({ name: "text", category: "text", type: "text" });
 
 // Product Schema Middleware
 ProductSchema.pre("validate", function (next) {
