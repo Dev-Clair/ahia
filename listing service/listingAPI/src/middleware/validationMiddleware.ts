@@ -65,11 +65,12 @@ const OfferingSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  category: z.enum(["economy", "premium", "luxury"]),
-  quantity: z.number({
-    required_error: "quantity is required",
-    invalid_type_error: "quantity must be a number",
-  }),
+  quantity: z
+    .number({
+      required_error: "quantity is required",
+      invalid_type_error: "quantity must be a number",
+    })
+    .optional(),
   area: z.object({
     size: z.number({
       required_error: "size is required",
