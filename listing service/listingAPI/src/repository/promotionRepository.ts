@@ -54,8 +54,8 @@ export default class PromotionRepository implements IPromotionRepository {
     };
 
     const promotions = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return promotions as Promise<IPromotion[]>;
   }
@@ -81,8 +81,8 @@ export default class PromotionRepository implements IPromotionRepository {
     };
 
     const promotion = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return promotion as Promise<IPromotion | null>;
   }
@@ -115,8 +115,8 @@ export default class PromotionRepository implements IPromotionRepository {
     };
 
     const promotion = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return promotion as Promise<IPromotion | null>;
   }
@@ -154,8 +154,8 @@ export default class PromotionRepository implements IPromotionRepository {
       };
 
       const promotion = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return promotion as Promise<string>;
     } catch (error: any) {
@@ -203,8 +203,8 @@ export default class PromotionRepository implements IPromotionRepository {
       };
 
       const promotion = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return promotion as Promise<string>;
     } catch (error: any) {
@@ -239,8 +239,8 @@ export default class PromotionRepository implements IPromotionRepository {
       };
 
       const promotion = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return promotion as Promise<string>;
     } catch (error: any) {

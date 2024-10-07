@@ -80,8 +80,8 @@ export default class ListingRepository implements IListingRepository {
     };
 
     const listings = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return listings as Promise<IListing[]>;
   }
@@ -107,8 +107,8 @@ export default class ListingRepository implements IListingRepository {
     };
 
     const listing = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return listing as Promise<IListing | null>;
   }
@@ -135,7 +135,7 @@ export default class ListingRepository implements IListingRepository {
 
     const listing = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      : await operation();
 
     return listing as Promise<IListing | null>;
   }
@@ -178,7 +178,7 @@ export default class ListingRepository implements IListingRepository {
     };
 
     const listing = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      ? await FailureRetry.LinearJitterBackoff(() => operation)
       : operation();
 
     return listing as Promise<IListing | null>;
@@ -223,7 +223,7 @@ export default class ListingRepository implements IListingRepository {
 
     const listing = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      : await operation();
 
     return listing as Promise<IListing | null>;
   }
@@ -259,8 +259,8 @@ export default class ListingRepository implements IListingRepository {
       };
 
       const listingId = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return listingId as Promise<string>;
     } catch (error: any) {
@@ -304,8 +304,8 @@ export default class ListingRepository implements IListingRepository {
       };
 
       const listingId = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return listingId as Promise<string>;
     } catch (error: any) {
@@ -337,8 +337,8 @@ export default class ListingRepository implements IListingRepository {
       };
 
       const listingId = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return listingId as Promise<string>;
     } catch (error: any) {
@@ -529,8 +529,8 @@ export default class ListingRepository implements IListingRepository {
       };
 
       const offering = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offering as Promise<string>;
     } catch (error: any) {
@@ -577,8 +577,8 @@ export default class ListingRepository implements IListingRepository {
       };
 
       const offering = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offering as Promise<string>;
     } catch (error: any) {
@@ -619,8 +619,8 @@ export default class ListingRepository implements IListingRepository {
       };
 
       const offering = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offering as Promise<string>;
     } catch (error: any) {

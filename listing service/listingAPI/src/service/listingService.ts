@@ -1,4 +1,4 @@
-import mongoose, { ClientSession } from "mongoose";
+import mongoose from "mongoose";
 import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
 import ListingRepository from "../repository/listingRepository";
@@ -101,7 +101,7 @@ export default class ListingService {
     key: Record<string, any>,
     payload: Partial<IListing>
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const listing = await session.withTransaction(async () => {
@@ -132,7 +132,7 @@ export default class ListingService {
     key: Record<string, any>,
     payload: Partial<IListing | any>
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const listing = await session.withTransaction(async () => {
@@ -161,7 +161,7 @@ export default class ListingService {
    * @param id the listing string
    */
   async delete(id: string): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const listing = await session.withTransaction(async () => {
@@ -263,7 +263,7 @@ export default class ListingService {
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const offering = await session.withTransaction(async () => {
@@ -301,7 +301,7 @@ export default class ListingService {
     key: Record<string, any>,
     payload: Partial<IOffering | any>
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const offering = await session.withTransaction(async () => {
@@ -337,7 +337,7 @@ export default class ListingService {
     offeringId: string,
     listingId: string
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const offering = await session.withTransaction(async () => {
@@ -359,15 +359,6 @@ export default class ListingService {
     } finally {
       await session.endSession();
     }
-  }
-
-  /**
-   * Starts and returns a transaction session object
-   */
-  private async TransactionManagerFactory(): Promise<ClientSession> {
-    const session = await mongoose.startSession();
-
-    return session;
   }
 
   /**

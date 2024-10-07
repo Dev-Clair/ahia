@@ -40,8 +40,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offerings = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offerings as Promise<ILeaseOffering[]>;
   }
@@ -67,8 +67,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -94,8 +94,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -136,8 +136,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -178,8 +178,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -215,10 +215,10 @@ export default class LeaseRepository extends OfferingRepository {
       };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
-      return offeringId as Promise<string>;
+      return (await offeringId) as Promise<string>;
     } catch (error: any) {
       throw error;
     }
@@ -260,8 +260,8 @@ export default class LeaseRepository extends OfferingRepository {
       };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
@@ -293,8 +293,8 @@ export default class LeaseRepository extends OfferingRepository {
       };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {

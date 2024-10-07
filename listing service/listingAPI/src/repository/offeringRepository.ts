@@ -77,8 +77,8 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offerings = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offerings as Promise<IOffering[]>;
   }
@@ -104,8 +104,8 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
@@ -131,8 +131,8 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
@@ -177,8 +177,8 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
@@ -195,7 +195,7 @@ export default class OfferingRepository implements IOfferingRepository {
       type?: string;
     }
   ): Promise<IOffering | null> {
-    const { type, retry = true } = options;
+    const { type, retry } = options;
 
     const operation = async () => {
       const offering = await Offering.findOne(
@@ -223,8 +223,8 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
@@ -260,8 +260,8 @@ export default class OfferingRepository implements IOfferingRepository {
       };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
@@ -309,8 +309,8 @@ export default class OfferingRepository implements IOfferingRepository {
       };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
@@ -342,8 +342,8 @@ export default class OfferingRepository implements IOfferingRepository {
       };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {

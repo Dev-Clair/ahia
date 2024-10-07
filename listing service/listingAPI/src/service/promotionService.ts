@@ -1,4 +1,4 @@
-import mongoose, { ClientSession } from "mongoose";
+import mongoose from "mongoose";
 import IPromotion from "../interface/IPromotion";
 import PromotionRepository from "../repository/promotionRepository";
 
@@ -43,7 +43,7 @@ export default class PromotionService {
     key: Record<string, any>,
     payload: Partial<IPromotion>
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const promotion = await session.withTransaction(async () => {
@@ -77,7 +77,7 @@ export default class PromotionService {
     key: Record<string, any>,
     payload: Partial<IPromotion>
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const promotion = await session.withTransaction(async () => {
@@ -106,7 +106,7 @@ export default class PromotionService {
    * @param id promotion id
    */
   async delete(id: string): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
     try {
       const promotion = await session.withTransaction(async () => {
@@ -126,15 +126,6 @@ export default class PromotionService {
     } finally {
       await session.endSession();
     }
-  }
-
-  /**
-   * Starts and returns a transaction session object
-   */
-  private async TransactionManagerFactory(): Promise<ClientSession> {
-    const session = await mongoose.startSession();
-
-    return session;
   }
 
   /**
