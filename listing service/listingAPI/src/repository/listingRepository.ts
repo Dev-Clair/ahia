@@ -245,18 +245,18 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const listings = await Listing.create([payload], {
           session: session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         const listingId = listings[0]._id;
 
         return listingId.toString();
-      });
+      };
 
       const listingId = retry
         ? FailureRetry.LinearJitterBackoff(() => operation)
@@ -265,8 +265,6 @@ export default class ListingRepository implements IListingRepository {
       return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -289,13 +287,13 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
           new: true,
           session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         if (!listing) throw new Error("listing not found");
@@ -303,7 +301,7 @@ export default class ListingRepository implements IListingRepository {
         const listingId = listing._id;
 
         return listingId.toString();
-      });
+      };
 
       const listingId = retry
         ? FailureRetry.LinearJitterBackoff(() => operation)
@@ -312,8 +310,6 @@ export default class ListingRepository implements IListingRepository {
       return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -330,7 +326,7 @@ export default class ListingRepository implements IListingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const listing = await Listing.findByIdAndDelete({ _id: id }, session);
 
         if (!listing) throw new Error("listing not found");
@@ -338,7 +334,7 @@ export default class ListingRepository implements IListingRepository {
         const listingId = listing._id;
 
         return listingId.toString();
-      });
+      };
 
       const listingId = retry
         ? FailureRetry.LinearJitterBackoff(() => operation)
@@ -347,8 +343,6 @@ export default class ListingRepository implements IListingRepository {
       return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -512,13 +506,13 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await this.OfferingRepositoryFactory(type).save(
           payload,
           { session: session, idempotent: null, retry: false }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         await Listing.updateOne(
@@ -532,7 +526,7 @@ export default class ListingRepository implements IListingRepository {
         );
 
         return offering;
-      });
+      };
 
       const offering = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -541,8 +535,6 @@ export default class ListingRepository implements IListingRepository {
       return offering as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -567,7 +559,7 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await this.OfferingRepositoryFactory(type).update(
           id,
           payload,
@@ -578,11 +570,11 @@ export default class ListingRepository implements IListingRepository {
           }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         return offering;
-      });
+      };
 
       const offering = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -591,8 +583,6 @@ export default class ListingRepository implements IListingRepository {
       return offering as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -613,7 +603,7 @@ export default class ListingRepository implements IListingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await this.OfferingRepositoryFactory(type).delete(
           offeringId,
           { session: session, retry: false }
@@ -626,7 +616,7 @@ export default class ListingRepository implements IListingRepository {
         );
 
         return offering;
-      });
+      };
 
       const offering = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -635,8 +625,6 @@ export default class ListingRepository implements IListingRepository {
       return offering as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 

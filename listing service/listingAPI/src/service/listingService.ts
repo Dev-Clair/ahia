@@ -38,7 +38,7 @@ export default class ListingService {
    * @param id listing id
    */
   async findById(id: string): Promise<IListing | null> {
-    return ListingRepository.Create().findById(id, { retry: true });
+    return await ListingRepository.Create().findById(id, { retry: true });
   }
 
   /** Retrieves a listing by slug
@@ -46,7 +46,7 @@ export default class ListingService {
    * @param slug listing slug
    */
   async findBySlug(slug: string): Promise<IListing | null> {
-    return ListingRepository.Create().findBySlug(slug, { retry: true });
+    return await ListingRepository.Create().findBySlug(slug, { retry: true });
   }
 
   /** Retrieves a listing by id and populates offering subdocument
@@ -64,7 +64,7 @@ export default class ListingService {
       limit: number;
     }
   ): Promise<IListing | null> {
-    return ListingRepository.Create().findByIdAndPopulate(id, {
+    return await ListingRepository.Create().findByIdAndPopulate(id, {
       ...options,
       retry: true,
     });
@@ -85,7 +85,7 @@ export default class ListingService {
       limit: number;
     }
   ): Promise<IListing | null> {
-    return ListingRepository.Create().findBySlugAndPopulate(slug, {
+    return await ListingRepository.Create().findBySlugAndPopulate(slug, {
       ...options,
       retry: true,
     });
@@ -101,14 +101,22 @@ export default class ListingService {
     key: Record<string, any>,
     payload: Partial<IListing>
   ): Promise<string> {
+    const session = await this.TransactionManagerFactory();
+
     try {
-      const session = await this.TransactionManagerFactory();
+      const listing = await session.withTransaction(async () => {
+        const options = { session: session, idempotent: key, retry: true };
 
-      const options = { session: session, idempotent: key, retry: true };
+        const listing = await ListingRepository.Create().save(payload, options);
 
-      return await ListingRepository.Create().save(payload, options);
+        return listing;
+      });
+
+      return listing;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -124,14 +132,26 @@ export default class ListingService {
     key: Record<string, any>,
     payload: Partial<IListing | any>
   ): Promise<string> {
+    const session = await this.TransactionManagerFactory();
+
     try {
-      const session = await this.TransactionManagerFactory();
+      const listing = await session.withTransaction(async () => {
+        const options = { session: session, idempotent: key, retry: true };
 
-      const options = { session: session, idempotent: key, retry: true };
+        const listing = await ListingRepository.Create().update(
+          id,
+          payload,
+          options
+        );
 
-      return await ListingRepository.Create().update(id, payload, options);
+        return listing;
+      });
+
+      return listing;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -141,14 +161,22 @@ export default class ListingService {
    * @param id the listing string
    */
   async delete(id: string): Promise<string> {
+    const session = await this.TransactionManagerFactory();
+
     try {
-      const session = await this.TransactionManagerFactory();
+      const listing = await session.withTransaction(async () => {
+        const options = { session: session, retry: true };
 
-      const options = { session: session, retry: true };
+        const listing = await ListingRepository.Create().delete(id, options);
 
-      return await ListingRepository.Create().delete(id, options);
+        return listing;
+      });
+
+      return listing;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -172,7 +200,7 @@ export default class ListingService {
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    return ListingRepository.Create().findListingsByOfferingSearch(
+    return await ListingRepository.Create().findListingsByOfferingSearch(
       searchFilter
     );
   }
@@ -186,7 +214,7 @@ export default class ListingService {
     type: string,
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = ListingRepository.Create().findListingOfferings(
+    const offerings = await ListingRepository.Create().findListingOfferings(
       type,
       queryString
     );
@@ -235,19 +263,27 @@ export default class ListingService {
     payload: Partial<IOffering>,
     listingId: Partial<IListing> | any
   ): Promise<string> {
+    const session = await this.TransactionManagerFactory();
+
     try {
-      const session = await this.TransactionManagerFactory();
+      const offering = await session.withTransaction(async () => {
+        const options = { session: session, idempotent: key, retry: true };
 
-      const options = { session: session, idempotent: key, retry: true };
+        const offering = await ListingRepository.Create().saveListingOffering(
+          type,
+          payload,
+          listingId,
+          options
+        );
 
-      return await ListingRepository.Create().saveListingOffering(
-        type,
-        payload,
-        listingId,
-        options
-      );
+        return offering;
+      });
+
+      return offering;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -265,19 +301,27 @@ export default class ListingService {
     key: Record<string, any>,
     payload: Partial<IOffering | any>
   ): Promise<string> {
+    const session = await this.TransactionManagerFactory();
+
     try {
-      const session = await this.TransactionManagerFactory();
+      const offering = await session.withTransaction(async () => {
+        const options = { session: session, idempotent: key, retry: true };
 
-      const options = { session: session, idempotent: key, retry: true };
+        const offering = await ListingRepository.Create().updateListingOffering(
+          id,
+          type,
+          payload,
+          options
+        );
 
-      return ListingRepository.Create().updateListingOffering(
-        id,
-        type,
-        payload,
-        options
-      );
+        return offering;
+      });
+
+      return offering;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -293,19 +337,27 @@ export default class ListingService {
     offeringId: string,
     listingId: string
   ): Promise<string> {
+    const session = await this.TransactionManagerFactory();
+
     try {
-      const session = await this.TransactionManagerFactory();
+      const offering = await session.withTransaction(async () => {
+        const options = { session: session, retry: true };
 
-      const options = { session: session, retry: true };
+        const offering = await ListingRepository.Create().deleteListingOffering(
+          type,
+          offeringId,
+          listingId,
+          options
+        );
 
-      return ListingRepository.Create().deleteListingOffering(
-        type,
-        offeringId,
-        listingId,
-        options
-      );
+        return offering;
+      });
+
+      return offering;
     } catch (error: any) {
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -314,8 +366,6 @@ export default class ListingService {
    */
   private async TransactionManagerFactory(): Promise<ClientSession> {
     const session = await mongoose.startSession();
-
-    if (!session.inTransaction()) session.startTransaction({});
 
     return session;
   }

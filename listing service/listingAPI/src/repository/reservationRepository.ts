@@ -206,7 +206,7 @@ export default class ReservationRepository extends OfferingRepository {
           session: session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         const offeringId = offerings[0]._id;
@@ -253,7 +253,7 @@ export default class ReservationRepository extends OfferingRepository {
           }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         if (!offering) throw new Error("offering not found");
