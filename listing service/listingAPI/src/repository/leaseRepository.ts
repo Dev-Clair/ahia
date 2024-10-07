@@ -201,7 +201,7 @@ export default class LeaseRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offerings = await Lease.create([payload], {
           session: session,
         });
@@ -212,7 +212,7 @@ export default class LeaseRepository extends OfferingRepository {
         const offeringId = offerings[0]._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -221,8 +221,6 @@ export default class LeaseRepository extends OfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -245,7 +243,7 @@ export default class LeaseRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
           new: true,
           session,
@@ -259,7 +257,7 @@ export default class LeaseRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -268,8 +266,6 @@ export default class LeaseRepository extends OfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -286,7 +282,7 @@ export default class LeaseRepository extends OfferingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Lease.findByIdAndDelete({ _id: id }, session);
 
         if (!offering) throw new Error("offering not found");
@@ -294,7 +290,7 @@ export default class LeaseRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -303,14 +299,11 @@ export default class LeaseRepository extends OfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
   /**
    * Creates and returns a new instance of the LeaseRepository class
-   * @returns LeaseRepository
    */
   static Create(): LeaseRepository {
     return new LeaseRepository();

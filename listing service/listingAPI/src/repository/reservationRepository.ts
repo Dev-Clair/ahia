@@ -201,7 +201,7 @@ export default class ReservationRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offerings = await Reservation.create([payload], {
           session: session,
         });
@@ -212,7 +212,7 @@ export default class ReservationRepository extends OfferingRepository {
         const offeringId = offerings[0]._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -221,8 +221,6 @@ export default class ReservationRepository extends OfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -245,7 +243,7 @@ export default class ReservationRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Reservation.findByIdAndUpdate(
           { _id: id },
           payload,
@@ -263,7 +261,7 @@ export default class ReservationRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -272,8 +270,6 @@ export default class ReservationRepository extends OfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -290,7 +286,7 @@ export default class ReservationRepository extends OfferingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Reservation.findByIdAndDelete(
           { _id: id },
           session
@@ -301,7 +297,7 @@ export default class ReservationRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -310,14 +306,11 @@ export default class ReservationRepository extends OfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
   /**
    * Creates and returns a new instance of the ReservationRepository class
-   * @returns ReservationRepository
    */
   static Create(): ReservationRepository {
     return new ReservationRepository();

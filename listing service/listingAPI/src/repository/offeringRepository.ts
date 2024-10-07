@@ -246,7 +246,7 @@ export default class OfferingRepository implements IOfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offerings = await Offering.create([payload], {
           session: session,
         });
@@ -257,7 +257,7 @@ export default class OfferingRepository implements IOfferingRepository {
         const offeringId = offerings[0]._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -266,8 +266,6 @@ export default class OfferingRepository implements IOfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -290,7 +288,7 @@ export default class OfferingRepository implements IOfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Offering.findByIdAndUpdate(
           { _id: id },
           payload,
@@ -308,7 +306,7 @@ export default class OfferingRepository implements IOfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -317,8 +315,6 @@ export default class OfferingRepository implements IOfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -335,7 +331,7 @@ export default class OfferingRepository implements IOfferingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Offering.findByIdAndDelete({ _id: id }, session);
 
         if (!offering) throw new Error("offering not found");
@@ -343,7 +339,7 @@ export default class OfferingRepository implements IOfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
         ? FailureRetry.ExponentialBackoff(() => operation)
@@ -352,14 +348,11 @@ export default class OfferingRepository implements IOfferingRepository {
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
   /**
-   * Creates and returns a new instance
-   * of the OfferingRepository class
+   * Creates and returns a new instance of the OfferingRepository class
    */
   static Create(): OfferingRepository {
     return new OfferingRepository();

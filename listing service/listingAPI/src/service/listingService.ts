@@ -313,7 +313,11 @@ export default class ListingService {
    * Starts and returns a transaction session object
    */
   private async TransactionManagerFactory(): Promise<ClientSession> {
-    return await mongoose.startSession();
+    const session = await mongoose.startSession();
+
+    if (!session.inTransaction()) session.startTransaction({});
+
+    return session;
   }
 
   /**
