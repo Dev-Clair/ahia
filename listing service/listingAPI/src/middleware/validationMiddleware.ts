@@ -105,7 +105,7 @@ const OfferingSchema = z.object({
             invalid_type_error: "currency must be a string",
           }),
         }),
-        termsAndCondtions: z
+        termsAndConditions: z
           .array(
             z.string({
               invalid_type_error:
@@ -131,7 +131,7 @@ const OfferingSchema = z.object({
             invalid_type_error: "currency must be a string",
           }),
         }),
-        termsAndCondtions: z
+        termsAndConditions: z
           .array(
             z.string({
               invalid_type_error:
@@ -198,7 +198,7 @@ const OfferingSchema = z.object({
                 invalid_type_error: "currency must be a string",
               }),
             }),
-            termsAndCondtions: z.array(
+            termsAndConditions: z.array(
               z.string({
                 invalid_type_error:
                   "terms and conditions can only contain string elements",
