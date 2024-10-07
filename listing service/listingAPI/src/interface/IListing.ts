@@ -3,7 +3,7 @@ import { Document, Schema } from "mongoose";
 export default interface IListing extends Document {
   _id: Schema.Types.ObjectId;
   name: string;
-  slug?: string;
+  slug: string;
   description: string;
   type: "land" | "property";
   offerings?: Schema.Types.ObjectId[];

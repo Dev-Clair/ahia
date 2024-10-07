@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
@@ -8,7 +9,7 @@ const ListingSchema: Schema<IListing> = new Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     slug: {
       type: String,
@@ -103,6 +104,8 @@ ListingSchema.index({
 
 // Listing Schema Middleware
 ListingSchema.pre("save", function (next) {
+  if (this.isNew) this.name = this.type + randomUUID();
+
   if (this.isModified("name")) {
     this.slug = slugify(this.name, {
       replacement: "-",
