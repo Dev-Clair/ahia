@@ -11,11 +11,9 @@ const OfferingRouter = Router();
 
 OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
 
-OfferingRouter.route(`/category`).get(
-  OfferingController.retrieveOfferingsByCategory
+OfferingRouter.route(`/product`).get(
+  OfferingController.retrieveOfferingsByProduct
 );
-
-OfferingRouter.route(`/space`).get(OfferingController.retrieveOfferingsBySpace);
 
 OfferingRouter.route(`/status`).get(
   OfferingController.retrieveOfferingsByStatus
@@ -36,11 +34,11 @@ OfferingRouter.route(`/:id(${IdParamRegex})/listing`).get(
 
 OfferingRouter.route(`/:slug(${SlugParamRegex})`).get(
   DocumentMiddleware("offering", "slug"),
-  OfferingController.retrieveOfferingById
+  OfferingController.retrieveOfferingBySlug
 );
 
 OfferingRouter.route(`/:slug(${SlugParamRegex})/listing`).get(
-  OfferingController.retrieveOfferingByIdAndPopulate
+  OfferingController.retrieveOfferingBySlugAndPopulate
 );
 
 export default OfferingRouter;

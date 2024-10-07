@@ -34,7 +34,15 @@ export default class OfferingRepository implements IOfferingRepository {
     __v: 0,
   };
 
-  static SORT_LISTINGS = {};
+  static SORT_LISTINGS = { createdAt: -1 };
+
+  static PROMOTION_PROJECTION = {
+    createdAt: 0,
+    updatedAt: 0,
+    __v: 0,
+  };
+
+  static SORT_PROMOTIONS = { createdAt: -1 };
 
   /** Retrieves a collection of offerings
    * @public
@@ -69,8 +77,8 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offerings = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offerings as Promise<IOffering[]>;
   }
@@ -96,8 +104,8 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
@@ -123,13 +131,13 @@ export default class OfferingRepository implements IOfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves an offering by id and populates its subdocument
+  /** Retrieves an offering by id and populates its subdocument(s)
    * @public
    * @param id offering id
    * @param options configuration options
@@ -148,26 +156,34 @@ export default class OfferingRepository implements IOfferingRepository {
         { _id: id },
         OfferingRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          match: type ? new RegExp(type, "i") : undefined,
-          model: "Listing",
-          select: OfferingRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            match: type ? new RegExp(type, "i") : undefined,
+            model: "Listing",
+            select: OfferingRepository.LISTING_PROJECTION,
+            options: { sort: OfferingRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: OfferingRepository.PROMOTION_PROJECTION,
+            options: { sort: OfferingRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves an offering by slug and populates its subdocument
+  /** Retrieves an offering by slug and populates its subdocument(s)
    * @public
    * @param slug listing slug
    * @param options configuration options
@@ -179,28 +195,36 @@ export default class OfferingRepository implements IOfferingRepository {
       type?: string;
     }
   ): Promise<IOffering | null> {
-    const { type, retry = true } = options;
+    const { type, retry } = options;
 
     const operation = async () => {
       const offering = await Offering.findOne(
         { slug: slug },
         OfferingRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          match: type ? new RegExp(type, "i") : undefined,
-          model: "Listing",
-          select: OfferingRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            match: type ? new RegExp(type, "i") : undefined,
+            model: "Listing",
+            select: OfferingRepository.LISTING_PROJECTION,
+            options: { sort: OfferingRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: OfferingRepository.PROMOTION_PROJECTION,
+            options: { sort: OfferingRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IOffering | null>;
   }
@@ -222,28 +246,26 @@ export default class OfferingRepository implements IOfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offerings = await Offering.create([payload], {
           session: session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         const offeringId = offerings[0]._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -266,7 +288,7 @@ export default class OfferingRepository implements IOfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Offering.findByIdAndUpdate(
           { _id: id },
           payload,
@@ -276,7 +298,7 @@ export default class OfferingRepository implements IOfferingRepository {
           }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         if (!offering) throw new Error("offering not found");
@@ -284,17 +306,15 @@ export default class OfferingRepository implements IOfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -311,7 +331,7 @@ export default class OfferingRepository implements IOfferingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Offering.findByIdAndDelete({ _id: id }, session);
 
         if (!offering) throw new Error("offering not found");
@@ -319,23 +339,20 @@ export default class OfferingRepository implements IOfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
   /**
-   * Creates and returns a new instance
-   * of the OfferingRepository class
+   * Creates and returns a new instance of the OfferingRepository class
    */
   static Create(): OfferingRepository {
     return new OfferingRepository();

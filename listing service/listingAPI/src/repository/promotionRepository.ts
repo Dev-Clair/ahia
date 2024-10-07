@@ -22,7 +22,7 @@ export default class PromotionRepository implements IPromotionRepository {
     verification: 0,
   };
 
-  static SORT_OFFERING = {};
+  static SORT_OFFERINGS = { createdAt: -1 };
 
   /** Retrieves a collection of promotions
    * @public
@@ -54,8 +54,8 @@ export default class PromotionRepository implements IPromotionRepository {
     };
 
     const promotions = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return promotions as Promise<IPromotion[]>;
   }
@@ -81,8 +81,8 @@ export default class PromotionRepository implements IPromotionRepository {
     };
 
     const promotion = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return promotion as Promise<IPromotion | null>;
   }
@@ -107,7 +107,7 @@ export default class PromotionRepository implements IPromotionRepository {
           path: "offering",
           model: "Offering",
           select: PromotionRepository.OFFERING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
+          options: { sort: PromotionRepository.SORT_OFFERINGS },
         })
         .exec();
 
@@ -115,8 +115,8 @@ export default class PromotionRepository implements IPromotionRepository {
     };
 
     const promotion = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return promotion as Promise<IPromotion | null>;
   }
@@ -138,12 +138,12 @@ export default class PromotionRepository implements IPromotionRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = session.withTransaction(async () => {
+      const operation = async () => {
         const promotions = await Promotion.create([payload], {
           session: session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         const promotion = promotions[0];
@@ -151,17 +151,15 @@ export default class PromotionRepository implements IPromotionRepository {
         const promotionId = promotion._id;
 
         return promotionId.toString();
-      });
+      };
 
       const promotion = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return promotion as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -184,7 +182,7 @@ export default class PromotionRepository implements IPromotionRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = session.withTransaction(async () => {
+      const operation = async () => {
         const promotion = await Promotion.findByIdAndUpdate(
           { _id: id },
           payload,
@@ -194,7 +192,7 @@ export default class PromotionRepository implements IPromotionRepository {
           }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         if (!promotion) throw new Error("promotion not found");
@@ -202,17 +200,15 @@ export default class PromotionRepository implements IPromotionRepository {
         const promotionId = promotion._id;
 
         return promotionId.toString();
-      });
+      };
 
       const promotion = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return promotion as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -229,7 +225,7 @@ export default class PromotionRepository implements IPromotionRepository {
     const { session, retry } = options;
 
     try {
-      const operation = session.withTransaction(async () => {
+      const operation = async () => {
         const promotion = await Promotion.findByIdAndDelete(
           { _id: id },
           session
@@ -240,17 +236,15 @@ export default class PromotionRepository implements IPromotionRepository {
         const promotionId = promotion._id;
 
         return promotionId.toString();
-      });
+      };
 
       const promotion = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return promotion as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 

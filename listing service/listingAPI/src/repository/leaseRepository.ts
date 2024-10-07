@@ -40,8 +40,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offerings = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offerings as Promise<ILeaseOffering[]>;
   }
@@ -67,8 +67,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -94,8 +94,8 @@ export default class LeaseRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -116,20 +116,28 @@ export default class LeaseRepository extends OfferingRepository {
         { _id: id },
         LeaseRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: LeaseRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: LeaseRepository.LISTING_PROJECTION,
+            options: { sort: LeaseRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: LeaseRepository.PROMOTION_PROJECTION,
+            options: { sort: LeaseRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -150,20 +158,28 @@ export default class LeaseRepository extends OfferingRepository {
         { slug: slug },
         LeaseRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: LeaseRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: LeaseRepository.LISTING_PROJECTION,
+            options: { sort: LeaseRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: LeaseRepository.PROMOTION_PROJECTION,
+            options: { sort: LeaseRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<ILeaseOffering | null>;
   }
@@ -185,28 +201,26 @@ export default class LeaseRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offerings = await Lease.create([payload], {
           session: session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         const offeringId = offerings[0]._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
-      return offeringId as Promise<string>;
+      return (await offeringId) as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -229,13 +243,13 @@ export default class LeaseRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
           new: true,
           session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         if (!offering) throw new Error("offering not found");
@@ -243,17 +257,15 @@ export default class LeaseRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -270,7 +282,7 @@ export default class LeaseRepository extends OfferingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Lease.findByIdAndDelete({ _id: id }, session);
 
         if (!offering) throw new Error("offering not found");
@@ -278,23 +290,20 @@ export default class LeaseRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
   /**
    * Creates and returns a new instance of the LeaseRepository class
-   * @returns LeaseRepository
    */
   static Create(): LeaseRepository {
     return new LeaseRepository();

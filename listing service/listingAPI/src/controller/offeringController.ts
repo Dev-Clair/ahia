@@ -27,46 +27,26 @@ const retrieveOfferings = async (
 };
 
 /**
- * Retrieve offerings by category
+ * Retrieve offerings by product (filter: name, category, type)
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsByCategory = async (
+const retrieveOfferingsByProduct = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
+    const name = req.query.name as string;
+
     const category = req.query.category as string;
 
-    const queryString = { category: category };
+    const type = req.query.type as string;
 
-    const offerings = await OfferingService.Create().findAll(queryString);
-
-    return res.status(HttpCode.OK).json({ data: offerings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve offerings by space
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveOfferingsBySpace = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const spaceName = req.query.name as string;
-
-    const spaceType = req.query.type as string;
-
-    const queryString = { space: { name: spaceName, type: spaceType } };
+    const queryString = {
+      product: { name: name, category: category, type: type },
+    };
 
     const offerings = await OfferingService.Create().findAll(queryString);
 
@@ -192,8 +172,7 @@ const retrieveOfferingBySlugAndPopulate = async (
 
 export default {
   retrieveOfferings,
-  retrieveOfferingsByCategory,
-  retrieveOfferingsBySpace,
+  retrieveOfferingsByProduct,
   retrieveOfferingsByStatus,
   retrieveOfferingById,
   retrieveOfferingBySlug,

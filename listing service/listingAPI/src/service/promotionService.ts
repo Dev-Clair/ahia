@@ -1,4 +1,4 @@
-import mongoose, { ClientSession } from "mongoose";
+import mongoose from "mongoose";
 import IPromotion from "../interface/IPromotion";
 import PromotionRepository from "../repository/promotionRepository";
 
@@ -10,7 +10,7 @@ export default class PromotionService {
   async findAll(queryString: Record<string, any>): Promise<IPromotion[]> {
     const options = { retry: true };
 
-    return PromotionRepository.Create().findAll(queryString, options);
+    return await PromotionRepository.Create().findAll(queryString, options);
   }
 
   /** Retrieves a promotion by id
@@ -20,7 +20,7 @@ export default class PromotionService {
   async findById(id: string): Promise<IPromotion | null> {
     const options = { retry: true };
 
-    return PromotionRepository.Create().findById(id, options);
+    return await PromotionRepository.Create().findById(id, options);
   }
 
   // /** Retrieves a promotion by slug
@@ -30,7 +30,7 @@ export default class PromotionService {
   // async findBySlug(slug: string): Promise<IPromotion | null> {
   //   const options = { retry: true };
 
-  //   return PromotionRepository.Create().findBySlug(slug, options);
+  //   return await PromotionRepository.Create().findBySlug(slug, options);
   // }
 
   /**
@@ -43,11 +43,26 @@ export default class PromotionService {
     key: Record<string, any>,
     payload: Partial<IPromotion>
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
-    const options = { session: session, idempotent: key, retry: true };
+    try {
+      const promotion = await session.withTransaction(async () => {
+        const options = { session: session, idempotent: key, retry: true };
 
-    return PromotionRepository.Create().save(payload, options);
+        const promotion = await PromotionRepository.Create().save(
+          payload,
+          options
+        );
+
+        return promotion;
+      });
+
+      return promotion;
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
@@ -62,11 +77,27 @@ export default class PromotionService {
     key: Record<string, any>,
     payload: Partial<IPromotion>
   ): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
-    const options = { session: session, idempotent: key, retry: true };
+    try {
+      const promotion = await session.withTransaction(async () => {
+        const options = { session: session, idempotent: key, retry: true };
 
-    return PromotionRepository.Create().update(id, payload, options);
+        const promotion = await PromotionRepository.Create().update(
+          id,
+          payload,
+          options
+        );
+
+        return promotion;
+      });
+
+      return promotion;
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**
@@ -75,19 +106,26 @@ export default class PromotionService {
    * @param id promotion id
    */
   async delete(id: string): Promise<string> {
-    const session = await this.TransactionManagerFactory();
+    const session = await mongoose.startSession();
 
-    const options = { session: session, retry: true };
+    try {
+      const promotion = await session.withTransaction(async () => {
+        const options = { session: session, retry: true };
 
-    return PromotionRepository.Create().delete(id, options);
-  }
+        const promotion = await PromotionRepository.Create().delete(
+          id,
+          options
+        );
 
-  /**
-   * Starts and returns a transaction session object
-   * @returns Promise<ClientSession>
-   */
-  private async TransactionManagerFactory(): Promise<ClientSession> {
-    return await mongoose.startSession();
+        return promotion;
+      });
+
+      return promotion;
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /**

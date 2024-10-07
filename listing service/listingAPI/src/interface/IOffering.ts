@@ -1,5 +1,5 @@
 import { Document, Schema } from "mongoose";
-import ISpace from "./ISpace";
+import IProduct from "./IProduct";
 
 export default interface IOffering extends Document {
   _id: Schema.Types.ObjectId;
@@ -8,8 +8,7 @@ export default interface IOffering extends Document {
   name: string;
   slug?: string;
   description: string;
-  category: "economy" | "premium" | "luxury";
-  space: ISpace;
+  product: IProduct;
   type: "lease" | "reservation" | "sell";
   features: string[];
   quantity: number;

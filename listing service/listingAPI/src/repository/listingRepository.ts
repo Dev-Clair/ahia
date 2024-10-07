@@ -47,7 +47,7 @@ export default class ListingRepository implements IListingRepository {
     verification: 0,
   };
 
-  static SORT_OFFERINGS = {};
+  static SORT_OFFERINGS = { createdAt: -1 };
 
   /** Retrieves a collection of listings
    * @publics
@@ -80,8 +80,8 @@ export default class ListingRepository implements IListingRepository {
     };
 
     const listings = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return listings as Promise<IListing[]>;
   }
@@ -107,8 +107,8 @@ export default class ListingRepository implements IListingRepository {
     };
 
     const listing = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return listing as Promise<IListing | null>;
   }
@@ -135,7 +135,7 @@ export default class ListingRepository implements IListingRepository {
 
     const listing = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      : await operation();
 
     return listing as Promise<IListing | null>;
   }
@@ -169,7 +169,7 @@ export default class ListingRepository implements IListingRepository {
           options: {
             skip: (page ?? 1 - 1) * limit ?? 10,
             limit: limit ?? 10,
-            sort: { createdAt: -1 },
+            sort: ListingRepository.SORT_OFFERINGS,
           },
         })
         .exec();
@@ -178,7 +178,7 @@ export default class ListingRepository implements IListingRepository {
     };
 
     const listing = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      ? await FailureRetry.LinearJitterBackoff(() => operation)
       : operation();
 
     return listing as Promise<IListing | null>;
@@ -213,7 +213,7 @@ export default class ListingRepository implements IListingRepository {
           options: {
             skip: (page ?? 1 - 1) * limit ?? 10,
             limit: limit ?? 10,
-            sort: { createdAt: -1 },
+            sort: ListingRepository.SORT_OFFERINGS,
           },
         })
         .exec();
@@ -223,7 +223,7 @@ export default class ListingRepository implements IListingRepository {
 
     const listing = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      : await operation();
 
     return listing as Promise<IListing | null>;
   }
@@ -245,28 +245,26 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const listings = await Listing.create([payload], {
           session: session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         const listingId = listings[0]._id;
 
         return listingId.toString();
-      });
+      };
 
       const listingId = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -289,13 +287,13 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
           new: true,
           session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         if (!listing) throw new Error("listing not found");
@@ -303,17 +301,15 @@ export default class ListingRepository implements IListingRepository {
         const listingId = listing._id;
 
         return listingId.toString();
-      });
+      };
 
       const listingId = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -330,7 +326,7 @@ export default class ListingRepository implements IListingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const listing = await Listing.findByIdAndDelete({ _id: id }, session);
 
         if (!listing) throw new Error("listing not found");
@@ -338,17 +334,15 @@ export default class ListingRepository implements IListingRepository {
         const listingId = listing._id;
 
         return listingId.toString();
-      });
+      };
 
       const listingId = retry
-        ? FailureRetry.LinearJitterBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
       return listingId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -378,20 +372,16 @@ export default class ListingRepository implements IListingRepository {
    * @param searchFilter query filter object
    */
   async findListingsByOfferingSearch(searchFilter: {
-    category: string;
-    space: { name: string; type: string };
+    product: { name: string; category: string; type: string };
     status: string;
     type: string;
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    const { category, minArea, maxArea, space, status, type } = searchFilter;
+    const { minArea, maxArea, product, status, type } = searchFilter;
 
     //Build the query for offerings
     const query: Record<string, any> = {};
-
-    // Filtering by category using a case-insensitive regex
-    if (category) query.category = { $regex: category, $options: "i" };
 
     // Filtering by area size
     if (minArea !== undefined || maxArea !== undefined) {
@@ -402,11 +392,12 @@ export default class ListingRepository implements IListingRepository {
       if (maxArea !== undefined) query["area.size"] = { lte: maxArea };
     }
 
-    // Filtering by space (name and type) using a case-insensitive regex
-    if (space)
-      query.space = {
-        name: new RegExp(space.name.toLowerCase()),
-        type: new RegExp(space.type.toLowerCase()),
+    // Filtering by produt (name, category and type) using a case-insensitive regex
+    if (product)
+      query.product = {
+        name: new RegExp(product.name.toLowerCase()),
+        category: new RegExp(product.category.toLowerCase()),
+        type: new RegExp(product.type.toLowerCase()),
       };
 
     // Filtering by status using a case-insensitive regex
@@ -515,13 +506,13 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await this.OfferingRepositoryFactory(type).save(
           payload,
           { session: session, idempotent: null, retry: false }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         await Listing.updateOne(
@@ -535,17 +526,15 @@ export default class ListingRepository implements IListingRepository {
         );
 
         return offering;
-      });
+      };
 
       const offering = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offering as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -570,7 +559,7 @@ export default class ListingRepository implements IListingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await this.OfferingRepositoryFactory(type).update(
           id,
           payload,
@@ -581,21 +570,19 @@ export default class ListingRepository implements IListingRepository {
           }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         return offering;
-      });
+      };
 
       const offering = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offering as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -616,7 +603,7 @@ export default class ListingRepository implements IListingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await this.OfferingRepositoryFactory(type).delete(
           offeringId,
           { session: session, retry: false }
@@ -629,17 +616,15 @@ export default class ListingRepository implements IListingRepository {
         );
 
         return offering;
-      });
+      };
 
       const offering = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offering as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 

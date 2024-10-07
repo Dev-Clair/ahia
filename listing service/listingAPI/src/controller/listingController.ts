@@ -190,10 +190,10 @@ const retrieveListingsByOfferingSearch = async (
 ): Promise<Response | void> => {
   try {
     const queryString = {
-      category: req.query.category as string,
-      space: {
-        name: req.query.spaceName as string,
-        type: req.query.spaceType as string,
+      product: {
+        name: req.query.productName as string,
+        category: req.query.category as string,
+        type: req.query.productType as string,
       },
       status: req.query.status as string,
       type: req.query.type as string,

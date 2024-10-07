@@ -65,11 +65,12 @@ const OfferingSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  category: z.enum(["economy", "premium", "luxury"]),
-  quantity: z.number({
-    required_error: "quantity is required",
-    invalid_type_error: "quantity must be a number",
-  }),
+  quantity: z
+    .number({
+      required_error: "quantity is required",
+      invalid_type_error: "quantity must be a number",
+    })
+    .optional(),
   area: z.object({
     size: z.number({
       required_error: "size is required",
@@ -104,7 +105,7 @@ const OfferingSchema = z.object({
             invalid_type_error: "currency must be a string",
           }),
         }),
-        termsAndCondtions: z
+        termsAndConditions: z
           .array(
             z.string({
               invalid_type_error:
@@ -130,7 +131,7 @@ const OfferingSchema = z.object({
             invalid_type_error: "currency must be a string",
           }),
         }),
-        termsAndCondtions: z
+        termsAndConditions: z
           .array(
             z.string({
               invalid_type_error:
@@ -197,7 +198,7 @@ const OfferingSchema = z.object({
                 invalid_type_error: "currency must be a string",
               }),
             }),
-            termsAndCondtions: z.array(
+            termsAndConditions: z.array(
               z.string({
                 invalid_type_error:
                   "terms and conditions can only contain string elements",

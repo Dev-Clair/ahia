@@ -40,8 +40,8 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offerings = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offerings as Promise<IReservationOffering[]>;
   }
@@ -67,8 +67,8 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IReservationOffering | null>;
   }
@@ -94,8 +94,8 @@ export default class ReservationRepository extends OfferingRepository {
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IReservationOffering | null>;
   }
@@ -116,20 +116,28 @@ export default class ReservationRepository extends OfferingRepository {
         { _id: id },
         ReservationRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: ReservationRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: ReservationRepository.LISTING_PROJECTION,
+            options: { sort: ReservationRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: ReservationRepository.PROMOTION_PROJECTION,
+            options: { sort: ReservationRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IReservationOffering | null>;
   }
@@ -150,20 +158,28 @@ export default class ReservationRepository extends OfferingRepository {
         { slug: slug },
         ReservationRepository.OFFERING_PROJECTION
       )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: ReservationRepository.LISTING_PROJECTION,
-          options: { sort: { createdAt: -1 } },
-        })
+        .populate([
+          {
+            path: "listing",
+            model: "Listing",
+            select: ReservationRepository.LISTING_PROJECTION,
+            options: { sort: ReservationRepository.SORT_LISTINGS },
+          },
+          {
+            path: "promotion",
+            model: "Promotion",
+            select: ReservationRepository.PROMOTION_PROJECTION,
+            options: { sort: ReservationRepository.SORT_PROMOTIONS },
+          },
+        ])
         .exec();
 
       return offering;
     };
 
     const offering = retry
-      ? FailureRetry.LinearJitterBackoff(() => operation())
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return offering as Promise<IReservationOffering | null>;
   }
@@ -185,28 +201,26 @@ export default class ReservationRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offerings = await Reservation.create([payload], {
           session: session,
         });
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         const offeringId = offerings[0]._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -229,7 +243,7 @@ export default class ReservationRepository extends OfferingRepository {
     const { session, idempotent, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Reservation.findByIdAndUpdate(
           { _id: id },
           payload,
@@ -239,7 +253,7 @@ export default class ReservationRepository extends OfferingRepository {
           }
         );
 
-        if (!!idempotent)
+        if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
         if (!offering) throw new Error("offering not found");
@@ -247,17 +261,15 @@ export default class ReservationRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
@@ -274,7 +286,7 @@ export default class ReservationRepository extends OfferingRepository {
     const { session, retry } = options;
 
     try {
-      const operation = await session.withTransaction(async () => {
+      const operation = async () => {
         const offering = await Reservation.findByIdAndDelete(
           { _id: id },
           session
@@ -285,23 +297,20 @@ export default class ReservationRepository extends OfferingRepository {
         const offeringId = offering._id;
 
         return offeringId.toString();
-      });
+      };
 
       const offeringId = retry
-        ? FailureRetry.ExponentialBackoff(() => operation)
-        : () => operation;
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
 
       return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
 
   /**
    * Creates and returns a new instance of the ReservationRepository class
-   * @returns ReservationRepository
    */
   static Create(): ReservationRepository {
     return new ReservationRepository();

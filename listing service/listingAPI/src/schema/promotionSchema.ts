@@ -78,7 +78,6 @@ PromotionSchema.pre("findOneAndDelete", async function (next) {
         },
       }));
 
-      // Update listings collection
       await mongoose.model("Offering").bulkWrite(offeringUpdates, { session });
     });
 

@@ -18,7 +18,10 @@ export default class OfferingService {
   async findAll(queryString: Record<string, any>): Promise<IOffering[]> {
     const options = { retry: true };
 
-    const offerings = OfferingRepository.Create().findAll(queryString, options);
+    const offerings = await OfferingRepository.Create().findAll(
+      queryString,
+      options
+    );
 
     return offerings;
   }
@@ -30,7 +33,9 @@ export default class OfferingService {
   async findById(id: string): Promise<IOffering | null> {
     const options = { retry: true };
 
-    return await OfferingRepository.Create().findById(id, options);
+    const offering = await OfferingRepository.Create().findById(id, options);
+
+    return offering;
   }
 
   /** Retrieves an offering by slug
@@ -41,20 +46,30 @@ export default class OfferingService {
   async findBySlug(slug: string): Promise<IOffering | null> {
     const options = { retry: true };
 
-    return await OfferingRepository.Create().findBySlug(slug, options);
+    const offering = await OfferingRepository.Create().findBySlug(
+      slug,
+      options
+    );
+
+    return offering;
   }
 
-  /** Retrieves an offering by id and populate it's subdocument
+  /** Retrieves an offering by id and populate its subdocument(s)
    * @public
    * @param id offering id
    */
   async findByIdAndPopulate(id: string): Promise<IOffering | null> {
     const options = { retry: true };
 
-    return await OfferingRepository.Create().findByIdAndPopulate(id, options);
+    const offering = await OfferingRepository.Create().findByIdAndPopulate(
+      id,
+      options
+    );
+
+    return offering;
   }
 
-  /** Retrieves an offering by slug and populate it's subdocument
+  /** Retrieves an offering by slug and populate its subdocument(s)
    * @public
    * @param slug offering slug
    * @param type offering type
@@ -62,10 +77,12 @@ export default class OfferingService {
   async findBySlugAndPopulate(slug: string): Promise<IOffering | null> {
     const options = { retry: true };
 
-    return await OfferingRepository.Create().findBySlugAndPopulate(
+    const offering = await OfferingRepository.Create().findBySlugAndPopulate(
       slug,
       options
     );
+
+    return offering;
   }
 
   /**

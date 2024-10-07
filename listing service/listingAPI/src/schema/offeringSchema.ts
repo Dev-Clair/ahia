@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IOffering from "../interface/IOffering";
-import SpaceSchema from "./spaceSchema";
+import ProductSchema from "./productSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
 
@@ -30,14 +30,8 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: true,
     },
-    category: {
-      type: String,
-      enum: ["economy", "premium", "luxury"],
-      default: "economy",
-      required: true,
-    },
-    space: {
-      type: SpaceSchema,
+    product: {
+      type: ProductSchema,
       required: true,
     },
     type: {
@@ -51,7 +45,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
     },
     quantity: {
       type: Number,
-      required: true,
+      default: 1,
     },
     area: {
       size: {
@@ -99,10 +93,10 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 // Offering Schema Search Query Index
 OfferingSchema.index({
   name: "text",
-  category: "text",
   "area.size": 1,
-  "space.name": "text",
-  "space.type": "text",
+  "product.name": "text",
+  "product.category": "text",
+  "product.type": "text",
 });
 
 // Offering Schema Middleware
