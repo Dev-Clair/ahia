@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IListing from "../interface/IListing";
+import OfferingSchema from "./offeringSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -128,7 +129,7 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
 
     session.withTransaction(async () => {
       // Delete all offering document records referenced to listing
-      await mongoose.model("Offering").bulkWrite(
+      await mongoose.model("Offering", OfferingSchema).bulkWrite(
         [
           {
             deleteMany: { filter: { listing: listing._id } },
