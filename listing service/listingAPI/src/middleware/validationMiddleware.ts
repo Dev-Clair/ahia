@@ -221,18 +221,18 @@ const OfferingSchema = z.object({
     .optional(),
 });
 
-const PromotionSchema = z.object({
-  name: z.enum(["platinum", "gold", "ruby", "silver"]),
-  status: z.enum(["active", "inactive", "expired"]),
-  start: z.date({
-    required_error: "start date is required",
-    invalid_type_error: "start date must be a date",
-  }),
-  end: z.date({
-    required_error: "end date is required",
-    invalid_type_error: "end date must be a date",
-  }),
-});
+// const PromotionSchema = z.object({
+//   name: z.enum(["platinum", "gold", "ruby", "silver"]),
+//   status: z.enum(["active", "inactive", "expired"]),
+//   start: z.date({
+//     required_error: "start date is required",
+//     invalid_type_error: "start date must be a date",
+//   }),
+//   end: z.date({
+//     required_error: "end date is required",
+//     invalid_type_error: "end date must be a date",
+//   }),
+// });
 
 const validateID =
   (schema: z.ZodSchema<any>) =>
@@ -308,5 +308,5 @@ export default {
   validateType: validateType(TypeSchema),
   validateListing: validateBody(ListingSchema),
   validateOffering: validateBody(OfferingSchema),
-  validatePromotion: validateBody(PromotionSchema),
+  // validatePromotion: validateBody(PromotionSchema),
 };
