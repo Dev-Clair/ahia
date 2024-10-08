@@ -23,16 +23,6 @@ export default class PromotionService {
     return await PromotionRepository.Create().findById(id, options);
   }
 
-  // /** Retrieves a promotion by slug
-  //  * @public
-  //  * @param slug promotion slug
-  //  */
-  // async findBySlug(slug: string): Promise<IPromotion | null> {
-  //   const options = { retry: true };
-
-  //   return await PromotionRepository.Create().findBySlug(slug, options);
-  // }
-
   /**
    * Creates a new promotion in collection
    * @public

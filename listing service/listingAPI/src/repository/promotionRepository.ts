@@ -38,7 +38,7 @@ export default class PromotionRepository implements IPromotionRepository {
     const operation = async () => {
       const query = Promotion.find();
 
-      const filter = { ...queryString };
+      const filter = { ...queryString, status: "active" };
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 

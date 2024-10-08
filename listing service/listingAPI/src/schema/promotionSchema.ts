@@ -1,8 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import IPromotion from "../interface/IPromotion";
 
-const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/promotions`;
-
 const PromotionSchema: Schema<IPromotion> = new Schema(
   {
     offerings: [
@@ -12,14 +10,6 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
         required: false,
       },
     ],
-    title: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
     type: {
       type: String,
       enum: ["offer", "discount"],
@@ -37,26 +27,9 @@ const PromotionSchema: Schema<IPromotion> = new Schema(
       type: Date,
       required: true,
     },
-    media: {
-      images: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        required: false,
-      },
-      videos: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        required: false,
-      },
-    },
   },
   { timestamps: true }
 );
-
-// Promotion Schema Search Query Index
-PromotionSchema.index({ title: "text", rate: 1, startDate: 1, endDate: 1 });
 
 // Promotion Schema Middleware
 PromotionSchema.pre("findOneAndDelete", async function (next) {
