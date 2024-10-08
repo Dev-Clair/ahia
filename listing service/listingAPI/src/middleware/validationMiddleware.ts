@@ -222,26 +222,15 @@ const OfferingSchema = z.object({
 });
 
 const PromotionSchema = z.object({
-  title: z.string({
-    required_error: "title is required",
-    invalid_type_error: "title must be a string",
+  name: z.enum(["platinum", "gold", "ruby", "silver"]),
+  status: z.enum(["active", "inactive", "expired"]),
+  start: z.date({
+    required_error: "start date is required",
+    invalid_type_error: "start date must be a date",
   }),
-  description: z.string({
-    required_error: "description is required",
-    invalid_type_error: "description must be a number",
-  }),
-  type: z.enum(["offer", "discount"]),
-  rate: z.number({
-    required_error: "rate is required",
-    invalid_type_error: "rate must be a number",
-  }),
-  startDate: z.date({
-    required_error: "startDate is required",
-    invalid_type_error: "startDate must be a date",
-  }),
-  endDate: z.date({
-    required_error: "endDate is required",
-    invalid_type_error: "endDate must be a date",
+  end: z.date({
+    required_error: "end date is required",
+    invalid_type_error: "end date must be a date",
   }),
 });
 
