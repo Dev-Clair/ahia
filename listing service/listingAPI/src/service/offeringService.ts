@@ -26,6 +26,20 @@ export default class OfferingService {
     return offerings;
   }
 
+  /** Retrieves a collection of offerings near user
+   * @public
+   * @param queryString query object
+   */
+  async findOfferingsNearUser(
+    queryString: Record<string, any>
+  ): Promise<IOffering[]> {
+    const offerings = await OfferingRepository.Create().findOfferingsNearUser(
+      queryString
+    );
+
+    return offerings;
+  }
+
   /** Retrieves an offering by id
    * @public
    * @param id offering id
@@ -57,9 +71,13 @@ export default class OfferingService {
   /** Retrieves an offering by id and populate its subdocument(s)
    * @public
    * @param id offering id
+   * @param type offering type
    */
-  async findByIdAndPopulate(id: string): Promise<IOffering | null> {
-    const options = { retry: true };
+  async findByIdAndPopulate(
+    id: string,
+    type?: string
+  ): Promise<IOffering | null> {
+    const options = { retry: true, type: type };
 
     const offering = await OfferingRepository.Create().findByIdAndPopulate(
       id,
@@ -74,8 +92,11 @@ export default class OfferingService {
    * @param slug offering slug
    * @param type offering type
    */
-  async findBySlugAndPopulate(slug: string): Promise<IOffering | null> {
-    const options = { retry: true };
+  async findBySlugAndPopulate(
+    slug: string,
+    type?: string
+  ): Promise<IOffering | null> {
+    const options = { retry: true, type: type };
 
     const offering = await OfferingRepository.Create().findBySlugAndPopulate(
       slug,

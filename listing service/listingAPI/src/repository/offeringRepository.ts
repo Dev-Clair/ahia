@@ -3,6 +3,7 @@ import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import IOffering from "../interface/IOffering";
 import IOfferingRepository from "../interface/IOfferingrepository";
+import ListingRepository from "./listingRepository";
 import Offering from "../model/offeringModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
@@ -13,6 +14,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findBySlug
  * @method findByIdAndPopulate
  * @method findBySlugAndPopulate
+ * @method findOfferingsNearMe
  * @method save
  * @method update
  * @method delete
@@ -28,6 +30,8 @@ export default class OfferingRepository implements IOfferingRepository {
   static SORT_OFFERINGS = { createdAt: -1 };
 
   static LISTING_PROJECTION = {
+    address: { street: 0, city: 0, state: 0, zip: 0 },
+    location: { point: 0, geoCoordinates: 0 },
     provider: { email: 0 },
     createdAt: 0,
     updatedAt: 0,
@@ -203,6 +207,43 @@ export default class OfferingRepository implements IOfferingRepository {
       : await operation();
 
     return offering as Promise<IOffering | null>;
+  }
+
+  /** Retrieves a collection of offerings near user
+   * @public
+   * @param query query object
+   */
+  async findOfferingsNearUser(
+    query: Record<string, any>
+  ): Promise<IOffering[]> {
+    const queryString = { ...query, fields: { id: 1 } };
+
+    const operation = async () => {
+      // Find listings based on user geo-location
+      const listings = await ListingRepository.Create().findAll(queryString, {
+        retry: false,
+      });
+
+      console.log(listings);
+
+      const listingIds = listings.map((listing) => listing._id);
+
+      console.log(listingIds);
+
+      if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+
+      // Find offerings that contain these listing IDs
+      const offerings = await this.findAll(
+        { listing: { in: listingIds } },
+        { retry: false }
+      );
+
+      console.log(offerings);
+
+      return offerings;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /**
