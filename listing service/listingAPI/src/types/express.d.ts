@@ -7,6 +7,7 @@ declare global {
     export interface Request {
       listing?: IListing;
       offering?: IOffering;
+      location?: Record<string, any>;
     }
   }
 }
