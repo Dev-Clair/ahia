@@ -89,7 +89,7 @@ const retrieveListingsSearch = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingsNearme = async (
+const retrieveListingsNearUser = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -192,7 +192,7 @@ const retrieveListingsByOfferingSearch = async (
     const queryString = {
       product: {
         name: req.query.productName as string,
-        category: req.query.category as string,
+        category: req.query.productCategory as string,
         type: req.query.productType as string,
       },
       status: req.query.status as string,
@@ -567,7 +567,7 @@ export default {
   createListing,
   retrieveListings,
   retrieveListingsSearch,
-  retrieveListingsNearme,
+  retrieveListingsNearUser,
   retrieveListingsByProvider,
   retrieveListingsByType,
   retrieveListingsByOfferings,

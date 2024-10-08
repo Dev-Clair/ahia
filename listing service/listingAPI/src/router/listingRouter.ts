@@ -1,6 +1,7 @@
 import { Router } from "express";
 import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
+import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
 import ListingMiddleware from "../middleware/listingMiddleware";
 import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
@@ -18,6 +19,7 @@ ListingRouter.route("/")
     AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ListingMiddleware.filterInsertion(["media"]),
+    IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateListing,
     ListingController.createListing
   );
@@ -32,7 +34,7 @@ ListingRouter.route("/type/:type").get(
 
 ListingRouter.route("/search").get(ListingController.retrieveListingsSearch);
 
-ListingRouter.route("/near-me").get(ListingController.retrieveListingsNearme);
+ListingRouter.route("/near-me").get(ListingController.retrieveListingsNearUser);
 
 ListingRouter.route(`/:id(${IdParamRegex})`)
   .get(
@@ -43,6 +45,7 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
   .patch(
     AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.filterUpdate(["address", "location", "type"]),
+    IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ListingController.updateListingById
   )
@@ -63,6 +66,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
     AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ListingMiddleware.filterInsertion(["media", "verification"]),
+    IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     ValidationMiddleware.validateOffering,
@@ -81,6 +85,7 @@ ListingRouter.route(
     AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ListingMiddleware.filterUpdate(["category", "type", "verification"]),
+    IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),

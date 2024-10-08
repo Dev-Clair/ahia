@@ -11,12 +11,28 @@ const OfferingRouter = Router();
 
 OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
 
-OfferingRouter.route(`/product`).get(
-  OfferingController.retrieveOfferingsByProduct
+OfferingRouter.route(`/location`).get(
+  OfferingController.retrieveOfferingsByLocation
 );
 
-OfferingRouter.route(`/status`).get(
-  OfferingController.retrieveOfferingsByStatus
+OfferingRouter.route(`/near-me`).get(
+  OfferingController.retrieveOfferingsNearUser
+);
+
+OfferingRouter.route(`/now-booking`).get(
+  OfferingController.retrieveOfferingsAvailableForBooking
+);
+
+OfferingRouter.route(`/now-letting`).get(
+  OfferingController.retrieveOfferingsAvailableForLetting
+);
+
+OfferingRouter.route(`/now-selling`).get(
+  OfferingController.retrieveOfferingsAvailableForSelling
+);
+
+OfferingRouter.route(`/product`).get(
+  OfferingController.retrieveOfferingsByProduct
 );
 
 OfferingRouter.route("/search").get(
@@ -28,7 +44,7 @@ OfferingRouter.route(`/:id(${IdParamRegex})`).get(
   OfferingController.retrieveOfferingById
 );
 
-OfferingRouter.route(`/:id(${IdParamRegex})/listing`).get(
+OfferingRouter.route(`/:id(${IdParamRegex})/:type/listing`).get(
   OfferingController.retrieveOfferingByIdAndPopulate
 );
 
@@ -37,7 +53,7 @@ OfferingRouter.route(`/:slug(${SlugParamRegex})`).get(
   OfferingController.retrieveOfferingBySlug
 );
 
-OfferingRouter.route(`/:slug(${SlugParamRegex})/listing`).get(
+OfferingRouter.route(`/:slug(${SlugParamRegex})/:type/listing`).get(
   OfferingController.retrieveOfferingBySlugAndPopulate
 );
 

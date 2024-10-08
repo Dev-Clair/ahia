@@ -27,6 +27,120 @@ const retrieveOfferings = async (
 };
 
 /**
+ * Retrieve offerings by location
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsByLocation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query.location as Record<string, any>;
+
+    const offerings = await OfferingService.Create().findOfferingsNearUser(
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings near user's location
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsNearUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query.location as Record<string, any>;
+
+    const offerings = await OfferingService.Create().findOfferingsNearUser(
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings by status: now-booking
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsAvailableForBooking = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = { type: "Reservation", status: "now-booking" };
+
+    const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings by status: now-letting
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsAvailableForLetting = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = { type: "Lease", status: "now-letting" };
+
+    const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings by status: now-selling
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsAvailableForSelling = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = { type: "Sell", status: "now-selling" };
+
+    const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
  * Retrieve offerings by product (filter: name, category, type)
  * @param req Express Request Object
  * @param res Express Response Object
@@ -47,30 +161,6 @@ const retrieveOfferingsByProduct = async (
     const queryString = {
       product: { name: name, category: category, type: type },
     };
-
-    const offerings = await OfferingService.Create().findAll(queryString);
-
-    return res.status(HttpCode.OK).json({ data: offerings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve offerings by status
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveOfferingsByStatus = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const status = req.query.status as string;
-
-    const queryString = { status: status };
 
     const offerings = await OfferingService.Create().findAll(queryString);
 
@@ -134,7 +224,12 @@ const retrieveOfferingByIdAndPopulate = async (
   try {
     const id = req.params.id as string;
 
-    const offering = await OfferingService.Create().findByIdAndPopulate(id);
+    const type = req.query.type as string;
+
+    const offering = await OfferingService.Create().findByIdAndPopulate(
+      id,
+      type
+    );
 
     if (!offering)
       throw new NotFoundError(`No record found for offering: ${id}`);
@@ -146,7 +241,7 @@ const retrieveOfferingByIdAndPopulate = async (
 };
 
 /**
- * Retrieves an offering by slug and populate itss subdocument
+ * Retrieves an offering by slug and populate its subdocument
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -159,7 +254,12 @@ const retrieveOfferingBySlugAndPopulate = async (
   try {
     const slug = req.params.slug as string;
 
-    const offering = await OfferingService.Create().findBySlugAndPopulate(slug);
+    const type = req.query.type as string;
+
+    const offering = await OfferingService.Create().findBySlugAndPopulate(
+      slug,
+      type
+    );
 
     if (!offering)
       throw new NotFoundError(`No record found for offering: ${slug}`);
@@ -172,8 +272,12 @@ const retrieveOfferingBySlugAndPopulate = async (
 
 export default {
   retrieveOfferings,
+  retrieveOfferingsByLocation,
+  retrieveOfferingsNearUser,
   retrieveOfferingsByProduct,
-  retrieveOfferingsByStatus,
+  retrieveOfferingsAvailableForBooking,
+  retrieveOfferingsAvailableForLetting,
+  retrieveOfferingsAvailableForSelling,
   retrieveOfferingById,
   retrieveOfferingBySlug,
   retrieveOfferingByIdAndPopulate,
