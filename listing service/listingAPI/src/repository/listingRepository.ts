@@ -167,8 +167,8 @@ export default class ListingRepository implements IListingRepository {
           model: "Offering",
           select: ListingRepository.OFFERING_PROJECTION,
           options: {
-            skip: (page ?? 1 - 1) * limit ?? 10,
-            limit: limit ?? 10,
+            skip: (page - 1) * limit,
+            limit: limit,
             sort: ListingRepository.SORT_OFFERINGS,
           },
         })
@@ -178,8 +178,8 @@ export default class ListingRepository implements IListingRepository {
     };
 
     const listing = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation)
-      : operation();
+      ? await FailureRetry.LinearJitterBackoff(() => operation())
+      : await operation();
 
     return listing as Promise<IListing | null>;
   }
@@ -211,8 +211,8 @@ export default class ListingRepository implements IListingRepository {
           model: "Offering",
           select: ListingRepository.OFFERING_PROJECTION,
           options: {
-            skip: (page ?? 1 - 1) * limit ?? 10,
-            limit: limit ?? 10,
+            skip: (page - 1) * limit,
+            limit: limit,
             sort: ListingRepository.SORT_OFFERINGS,
           },
         })

@@ -151,7 +151,7 @@ export default class SellRepository extends OfferingRepository {
     slug: string,
     options: { retry: boolean }
   ): Promise<ISellOffering | null> {
-    const { retry = true } = options;
+    const { retry } = options;
 
     const operation = async () => {
       const offering = await Sell.findOne(

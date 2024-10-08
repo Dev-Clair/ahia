@@ -151,7 +151,7 @@ export default class LeaseRepository extends OfferingRepository {
     slug: string,
     options: { retry: boolean }
   ): Promise<ILeaseOffering | null> {
-    const { retry = true } = options;
+    const { retry } = options;
 
     const operation = async () => {
       const offering = await Lease.findOne(

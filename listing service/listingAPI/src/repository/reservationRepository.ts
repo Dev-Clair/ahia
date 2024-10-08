@@ -151,7 +151,7 @@ export default class ReservationRepository extends OfferingRepository {
     slug: string,
     options: { retry: boolean }
   ): Promise<IReservationOffering | null> {
-    const { retry = true } = options;
+    const { retry } = options;
 
     const operation = async () => {
       const offering = await Reservation.findOne(
