@@ -28,9 +28,9 @@ export default class ListingService {
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<IListing[]> {
-    return await ListingRepository.Create().findAll(queryString, {
-      retry: true,
-    });
+    const options = { retry: true };
+
+    return await ListingRepository.Create().findAll(queryString, options);
   }
 
   /** Retrieves a listing by id
@@ -38,7 +38,9 @@ export default class ListingService {
    * @param id listing id
    */
   async findById(id: string): Promise<IListing | null> {
-    return await ListingRepository.Create().findById(id, { retry: true });
+    const options = { retry: true };
+
+    return await ListingRepository.Create().findById(id, options);
   }
 
   /** Retrieves a listing by slug
@@ -46,7 +48,9 @@ export default class ListingService {
    * @param slug listing slug
    */
   async findBySlug(slug: string): Promise<IListing | null> {
-    return await ListingRepository.Create().findBySlug(slug, { retry: true });
+    const options = { retry: true };
+
+    return await ListingRepository.Create().findBySlug(slug, options);
   }
 
   /** Retrieves a listing by id and populates offering subdocument

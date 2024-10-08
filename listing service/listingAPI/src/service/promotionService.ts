@@ -15,7 +15,7 @@ export default class PromotionService {
 
   /** Retrieves a promotion by id
    * @public
-   * @param id promotion slug
+   * @param id promotion id
    */
   async findById(id: string): Promise<IPromotion | null> {
     const options = { retry: true };
