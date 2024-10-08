@@ -12,11 +12,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       ref: "Listing",
       required: true,
     },
-    promotion: {
-      type: Schema.Types.ObjectId,
-      ref: "Promotion",
-      required: false,
-    },
     name: {
       type: String,
       required: true,
@@ -73,6 +68,11 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         required: false,
       },
     },
+    promotion: {
+      type: String,
+      enum: ["platinum", "gold", "ruby", "silver"],
+      default: "silver",
+    },
     verification: {
       status: {
         type: Boolean,
@@ -81,9 +81,8 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       },
       expiry: {
         type: Date,
-        default: function () {
-          return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
-        },
+        default: () =>
+          new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString(),
       },
     },
   },

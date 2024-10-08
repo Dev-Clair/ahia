@@ -4,7 +4,6 @@ import IProduct from "./IProduct";
 export default interface IOffering extends Document {
   _id: Schema.Types.ObjectId;
   listing: Schema.Types.ObjectId;
-  promotion?: Schema.Types.ObjectId;
   name: string;
   slug?: string;
   description: string;
@@ -20,6 +19,7 @@ export default interface IOffering extends Document {
     images: string[];
     videos?: string[];
   };
+  promotion: "platinum" | "gold" | "ruby" | "silver";
   verification: {
     status: boolean;
     expiry: Date;
