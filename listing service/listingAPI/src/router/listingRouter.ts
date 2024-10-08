@@ -15,7 +15,7 @@ const ListingRouter = Router();
 ListingRouter.route("/")
   .get(ListingController.retrieveListings)
   .post(
-    AuthMiddleware.IsGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ListingMiddleware.filterInsertion(["media"]),
     ValidationMiddleware.validateListing,
@@ -41,13 +41,13 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
     ListingController.retrieveListingById
   )
   .patch(
-    AuthMiddleware.IsGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.filterUpdate(["address", "location", "type"]),
     ValidationMiddleware.validateID,
     ListingController.updateListingById
   )
   .delete(
-    AuthMiddleware.IsGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Provider"]),
     ValidationMiddleware.validateID,
     ListingController.deleteListingById
   );
@@ -60,7 +60,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
     ListingController.retrieveListingOfferings
   )
   .post(
-    AuthMiddleware.IsGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ListingMiddleware.filterInsertion(["media", "verification"]),
     ValidationMiddleware.validateID,
@@ -78,7 +78,7 @@ ListingRouter.route(
     ListingController.retrieveListingOfferingById
   )
   .patch(
-    AuthMiddleware.IsGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Provider"]),
     ListingMiddleware.isContentType(["application/json"]),
     ListingMiddleware.filterUpdate(["category", "type", "verification"]),
     ValidationMiddleware.validateID,
@@ -88,7 +88,7 @@ ListingRouter.route(
     ListingController.updateListingOfferingById
   )
   .delete(
-    AuthMiddleware.IsGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Provider"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
