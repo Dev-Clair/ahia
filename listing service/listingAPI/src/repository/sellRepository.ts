@@ -116,20 +116,12 @@ export default class SellRepository extends OfferingRepository {
         { _id: id },
         SellRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            model: "Listing",
-            select: SellRepository.LISTING_PROJECTION,
-            options: { sort: SellRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: SellRepository.PROMOTION_PROJECTION,
-            options: { sort: SellRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: SellRepository.LISTING_PROJECTION,
+          options: { sort: SellRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;
@@ -151,27 +143,19 @@ export default class SellRepository extends OfferingRepository {
     slug: string,
     options: { retry: boolean }
   ): Promise<ISellOffering | null> {
-    const { retry = true } = options;
+    const { retry } = options;
 
     const operation = async () => {
       const offering = await Sell.findOne(
         { slug: slug },
         SellRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            model: "Listing",
-            select: SellRepository.LISTING_PROJECTION,
-            options: { sort: SellRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: SellRepository.PROMOTION_PROJECTION,
-            options: { sort: SellRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: SellRepository.LISTING_PROJECTION,
+          options: { sort: SellRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;

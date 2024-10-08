@@ -1,9 +1,7 @@
 import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
-import IPromotion from "../interface/IPromotion";
 import ListingService from "../service/listingService";
 import OfferingService from "../service/offeringService";
-import PromotionService from "../service/promotionService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 
@@ -12,10 +10,9 @@ import NotFoundError from "../error/notfoundError";
  * attaches the resolved document to the request object
  * @param resourceName - The name of the document to resolve to
  * @param paramName - The name of the route parameter (e.g., 'id' or 'slug')
- * @throws NotFoundError
  */
 const DocumentMiddleware = (
-  resourceName: "listing" | "offering" | "promotion",
+  resourceName: "listing" | "offering",
   paramName: string
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -50,24 +47,10 @@ const DocumentMiddleware = (
 
         if (!offering)
           throw new NotFoundError(
-            `No document found for listing: ${paramValue}`
+            `No document found for offering: ${paramValue}`
           );
 
         (req as any).offering = offering as IOffering;
-      }
-
-      // Promotion document resolver
-      if (resourceName === "promotion") {
-        service = PromotionService.Create();
-
-        const promotion = await service.findById(paramValue);
-
-        if (!promotion)
-          throw new NotFoundError(
-            `No document found for promotion: ${paramValue}`
-          );
-
-        (req as any).promotion = promotion as IPromotion;
       }
 
       next();

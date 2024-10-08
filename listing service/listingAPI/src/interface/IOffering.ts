@@ -4,14 +4,13 @@ import IProduct from "./IProduct";
 export default interface IOffering extends Document {
   _id: Schema.Types.ObjectId;
   listing: Schema.Types.ObjectId;
-  promotion?: Schema.Types.ObjectId;
   name: string;
   slug?: string;
   description: string;
   product: IProduct;
+  quantity: number;
   type: "lease" | "reservation" | "sell";
   features: string[];
-  quantity: number;
   area: {
     size: number;
     unit: "sqm" | "sqft";
@@ -20,6 +19,7 @@ export default interface IOffering extends Document {
     images: string[];
     videos?: string[];
   };
+  promotion: "platinum" | "gold" | "ruby" | "silver";
   verification: {
     status: boolean;
     expiry: Date;

@@ -116,20 +116,12 @@ export default class LeaseRepository extends OfferingRepository {
         { _id: id },
         LeaseRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            model: "Listing",
-            select: LeaseRepository.LISTING_PROJECTION,
-            options: { sort: LeaseRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: LeaseRepository.PROMOTION_PROJECTION,
-            options: { sort: LeaseRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: LeaseRepository.LISTING_PROJECTION,
+          options: { sort: LeaseRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;
@@ -151,27 +143,19 @@ export default class LeaseRepository extends OfferingRepository {
     slug: string,
     options: { retry: boolean }
   ): Promise<ILeaseOffering | null> {
-    const { retry = true } = options;
+    const { retry } = options;
 
     const operation = async () => {
       const offering = await Lease.findOne(
         { slug: slug },
         LeaseRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            model: "Listing",
-            select: LeaseRepository.LISTING_PROJECTION,
-            options: { sort: LeaseRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: LeaseRepository.PROMOTION_PROJECTION,
-            options: { sort: LeaseRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: LeaseRepository.LISTING_PROJECTION,
+          options: { sort: LeaseRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;

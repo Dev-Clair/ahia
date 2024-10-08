@@ -36,14 +36,6 @@ export default class OfferingRepository implements IOfferingRepository {
 
   static SORT_LISTINGS = { createdAt: -1 };
 
-  static PROMOTION_PROJECTION = {
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-  };
-
-  static SORT_PROMOTIONS = { createdAt: -1 };
-
   /** Retrieves a collection of offerings
    * @public
    * @param queryString query object
@@ -156,21 +148,13 @@ export default class OfferingRepository implements IOfferingRepository {
         { _id: id },
         OfferingRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            match: type ? new RegExp(type, "i") : undefined,
-            model: "Listing",
-            select: OfferingRepository.LISTING_PROJECTION,
-            options: { sort: OfferingRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: OfferingRepository.PROMOTION_PROJECTION,
-            options: { sort: OfferingRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          match: type ? new RegExp(type, "i") : undefined,
+          model: "Listing",
+          select: OfferingRepository.LISTING_PROJECTION,
+          options: { sort: OfferingRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;
@@ -202,21 +186,13 @@ export default class OfferingRepository implements IOfferingRepository {
         { slug: slug },
         OfferingRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            match: type ? new RegExp(type, "i") : undefined,
-            model: "Listing",
-            select: OfferingRepository.LISTING_PROJECTION,
-            options: { sort: OfferingRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: OfferingRepository.PROMOTION_PROJECTION,
-            options: { sort: OfferingRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          match: type ? new RegExp(type, "i") : undefined,
+          model: "Listing",
+          select: OfferingRepository.LISTING_PROJECTION,
+          options: { sort: OfferingRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;

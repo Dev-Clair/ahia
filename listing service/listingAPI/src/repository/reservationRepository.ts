@@ -116,20 +116,12 @@ export default class ReservationRepository extends OfferingRepository {
         { _id: id },
         ReservationRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            model: "Listing",
-            select: ReservationRepository.LISTING_PROJECTION,
-            options: { sort: ReservationRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: ReservationRepository.PROMOTION_PROJECTION,
-            options: { sort: ReservationRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: ReservationRepository.LISTING_PROJECTION,
+          options: { sort: ReservationRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;
@@ -151,27 +143,19 @@ export default class ReservationRepository extends OfferingRepository {
     slug: string,
     options: { retry: boolean }
   ): Promise<IReservationOffering | null> {
-    const { retry = true } = options;
+    const { retry } = options;
 
     const operation = async () => {
       const offering = await Reservation.findOne(
         { slug: slug },
         ReservationRepository.OFFERING_PROJECTION
       )
-        .populate([
-          {
-            path: "listing",
-            model: "Listing",
-            select: ReservationRepository.LISTING_PROJECTION,
-            options: { sort: ReservationRepository.SORT_LISTINGS },
-          },
-          {
-            path: "promotion",
-            model: "Promotion",
-            select: ReservationRepository.PROMOTION_PROJECTION,
-            options: { sort: ReservationRepository.SORT_PROMOTIONS },
-          },
-        ])
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: ReservationRepository.LISTING_PROJECTION,
+          options: { sort: ReservationRepository.SORT_LISTINGS },
+        })
         .exec();
 
       return offering;

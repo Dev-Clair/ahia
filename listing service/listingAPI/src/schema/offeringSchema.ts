@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
 import IOffering from "../interface/IOffering";
+import ListingSchema from "./listingSchema";
 import ProductSchema from "./productSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/offerings`;
@@ -11,11 +12,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Listing",
       required: true,
-    },
-    promotion: {
-      type: Schema.Types.ObjectId,
-      ref: "Promotion",
-      required: false,
     },
     name: {
       type: String,
@@ -30,23 +26,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: true,
     },
-    product: {
-      type: ProductSchema,
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: ["lease", "reservation", "sell"],
-      required: true,
-    },
-    features: {
-      type: [String],
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      default: 1,
-    },
     area: {
       size: {
         type: Number,
@@ -57,6 +36,23 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         enum: ["sqm", "sqft"],
         required: true,
       },
+    },
+    features: {
+      type: [String],
+      required: true,
+    },
+    product: {
+      type: ProductSchema,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      default: 1,
+    },
+    type: {
+      type: String,
+      enum: ["lease", "reservation", "sell"],
+      required: true,
     },
     media: {
       images: {
@@ -73,6 +69,11 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         required: false,
       },
     },
+    promotion: {
+      type: String,
+      enum: ["platinum", "gold", "ruby", "silver"],
+      default: "silver",
+    },
     verification: {
       status: {
         type: Boolean,
@@ -81,9 +82,8 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       },
       expiry: {
         type: Date,
-        default: function () {
-          return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString();
-        },
+        default: () =>
+          new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString(),
       },
     },
   },
@@ -124,7 +124,7 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
     session.withTransaction(async () => {
       // Unlink listing reference to offering
       await mongoose
-        .model("Listing")
+        .model("Listing", ListingSchema)
         .updateOne(
           { id: offering.listing },
           { $pull: { offerings: offering._id } },
@@ -132,13 +132,13 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
         );
 
       // Unlink promotion reference to offering
-      await mongoose
-        .model("Promotion")
-        .updateOne(
-          { id: offering.promotion },
-          { $pull: { offerings: offering._id } },
-          { session: session }
-        );
+      // await mongoose
+      //   .model("Promotion", PromotionSchema)
+      //   .updateOne(
+      //     { id: offering.promotion },
+      //     { $pull: { offerings: offering._id } },
+      //     { session: session }
+      //   );
     });
 
     next();

@@ -13,22 +13,24 @@ const SaleSchema: Schema<ISale> = new Schema(
       required: true,
     },
     outright: {
-      price: {
-        amount: {
-          type: Number,
-          required: function () {
-            return this.sale === "outright";
-          },
+      amount: {
+        type: Number,
+        required: function () {
+          return this.sale === "outright";
         },
-        currency: {
-          type: String,
-          required: function () {
-            return this.sale === "outright";
-          },
+      },
+      currency: {
+        type: String,
+        required: function () {
+          return this.sale === "outright";
         },
       },
       discount: {
         type: Number,
+        required: false,
+      },
+      termsAndConditions: {
+        type: [String],
         required: false,
       },
     },
