@@ -3,8 +3,6 @@ import IListing from "../interface/IListing";
 import IOffering from "../interface/IOffering";
 import IPromotion from "../interface/IPromotion";
 
-export {};
-
 declare global {
   namespace Express {
     export interface Request {
