@@ -9,9 +9,9 @@ export default interface IOffering extends Document {
   slug?: string;
   description: string;
   product: IProduct;
+  quantity: number;
   type: "lease" | "reservation" | "sell";
   features: string[];
-  quantity: number;
   area: {
     size: number;
     unit: "sqm" | "sqft";

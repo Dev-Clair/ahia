@@ -104,7 +104,7 @@ ListingSchema.index({
 
 // Listing Schema Middleware
 ListingSchema.pre("save", function (next) {
-  if (this.isNew) this.name = this.type + randomUUID();
+  if (!this.isModified("name")) this.name = this.type + randomUUID();
 
   if (this.isModified("name")) {
     this.slug = slugify(this.name, {

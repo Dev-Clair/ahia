@@ -7,6 +7,7 @@ export default interface ISale {
       currency: string;
     };
     discount?: number;
+    termsAndConditions?: string[];
   };
   instalment: {
     plan: "short" | "medium" | "long";

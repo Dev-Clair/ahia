@@ -30,23 +30,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: true,
     },
-    product: {
-      type: ProductSchema,
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: ["lease", "reservation", "sell"],
-      required: true,
-    },
-    features: {
-      type: [String],
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      default: 1,
-    },
     area: {
       size: {
         type: Number,
@@ -57,6 +40,23 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         enum: ["sqm", "sqft"],
         required: true,
       },
+    },
+    features: {
+      type: [String],
+      required: true,
+    },
+    product: {
+      type: ProductSchema,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      default: 1,
+    },
+    type: {
+      type: String,
+      enum: ["lease", "reservation", "sell"],
+      required: true,
     },
     media: {
       images: {
