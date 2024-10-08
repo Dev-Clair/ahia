@@ -7,7 +7,7 @@ import VerifyRole from "../controller/authController";
  * Ensures role based access to resource
  * @param role
  */
-const IsGranted =
+const isGranted =
   (roles: string[]) =>
   async (
     req: Request,
@@ -33,4 +33,4 @@ const IsGranted =
     });
   };
 
-export default { IsGranted };
+export default { isGranted };

@@ -10,7 +10,7 @@ const IdSchema = z.object({
   }),
 });
 
-const OfferingTypeSchema = z.object({
+const TypeSchema = z.object({
   type: z.enum(["lease", "reservation", "sell"]),
 });
 
@@ -108,9 +108,9 @@ const OfferingSchema = z.object({
         termsAndConditions: z
           .array(
             z.string({
+              required_error: "terms and conditions is required",
               invalid_type_error:
                 "terms and conditions can only contain string elements",
-              required_error: "terms and conditions is required",
             })
           )
           .optional(),
@@ -134,9 +134,9 @@ const OfferingSchema = z.object({
         termsAndConditions: z
           .array(
             z.string({
+              required_error: "terms and conditions is required",
               invalid_type_error:
                 "terms and conditions can only contain string elements",
-              required_error: "terms and conditions is required",
             })
           )
           .optional(),
@@ -153,21 +153,28 @@ const OfferingSchema = z.object({
         sale: z.enum(["outright", "instalment"]),
         outright: z
           .object({
-            price: z.object({
-              amount: z.number({
-                required_error: "amount is required",
-                invalid_type_error: "amount must be a number",
-              }),
-              currency: z.string({
-                required_error: "currency is required",
-                invalid_type_error: "currency must be a string",
-              }),
+            amount: z.number({
+              required_error: "amount is required",
+              invalid_type_error: "amount must be a number",
+            }),
+            currency: z.string({
+              required_error: "currency is required",
+              invalid_type_error: "currency must be a string",
             }),
             discount: z
               .number({
                 required_error: "discount is required",
                 invalid_type_error: "discount must be a number",
               })
+              .optional(),
+            termsAndConditions: z
+              .array(
+                z.string({
+                  required_error: "terms and conditions is required",
+                  invalid_type_error:
+                    "terms and conditions can only contain string elements",
+                })
+              )
               .optional(),
           })
           .optional(),
@@ -198,13 +205,15 @@ const OfferingSchema = z.object({
                 invalid_type_error: "currency must be a string",
               }),
             }),
-            termsAndConditions: z.array(
-              z.string({
-                invalid_type_error:
-                  "terms and conditions can only contain string elements",
-                required_error: "terms and conditions is required",
-              })
-            ),
+            termsAndConditions: z
+              .array(
+                z.string({
+                  required_error: "terms and conditions is required",
+                  invalid_type_error:
+                    "terms and conditions can only contain string elements",
+                })
+              )
+              .optional(),
           })
           .optional(),
       })
@@ -307,7 +316,7 @@ const validateBody =
 
 export default {
   validateID: validateID(IdSchema),
-  validateType: validateType(OfferingTypeSchema),
+  validateType: validateType(TypeSchema),
   validateListing: validateBody(ListingSchema),
   validateOffering: validateBody(OfferingSchema),
   validatePromotion: validateBody(PromotionSchema),

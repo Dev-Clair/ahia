@@ -12,7 +12,6 @@ import NotFoundError from "../error/notfoundError";
  * attaches the resolved document to the request object
  * @param resourceName - The name of the document to resolve to
  * @param paramName - The name of the route parameter (e.g., 'id' or 'slug')
- * @throws NotFoundError
  */
 const DocumentMiddleware = (
   resourceName: "listing" | "offering" | "promotion",
@@ -50,7 +49,7 @@ const DocumentMiddleware = (
 
         if (!offering)
           throw new NotFoundError(
-            `No document found for listing: ${paramValue}`
+            `No document found for offering: ${paramValue}`
           );
 
         (req as any).offering = offering as IOffering;
