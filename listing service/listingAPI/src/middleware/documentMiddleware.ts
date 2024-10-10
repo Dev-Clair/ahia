@@ -34,7 +34,7 @@ const DocumentMiddleware = (
             `No document found for listing: ${paramValue}`
           );
 
-        (req as any).listing = listing as IListing;
+        (req as Request).listing = listing as IListing;
       }
 
       // Offering document resolver
@@ -50,7 +50,7 @@ const DocumentMiddleware = (
             `No document found for offering: ${paramValue}`
           );
 
-        (req as any).offering = offering as IOffering;
+        (req as Request).offering = offering as IOffering;
       }
 
       next();

@@ -45,12 +45,12 @@ const ListingSchema = z.object({
       .optional(),
   }),
   location: z.object({
-    geoCoordinates: z.array(
+    coordinates: z.array(
       z.number({
-        invalid_type_error: "location geoCoordinates must be a number array",
-        required_error: "geoCoordinates are required",
-        message: "location geoCoordinates must be of Point type",
-        description: `"geoCoordinates": [lng|long, lat]`,
+        invalid_type_error: "location coordinates must be a number array",
+        required_error: "coordinates are required",
+        message: "location coordinates must be of point type",
+        description: "location coordinates: [lng, lat]",
       })
     ),
   }),
