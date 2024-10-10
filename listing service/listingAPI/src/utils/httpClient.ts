@@ -58,7 +58,7 @@ class HttpClient {
         res.on("end", () => {
           try {
             const parsedData =
-              res.headers["content-type"] === "application/json"
+              res.headers["Content-Type"] === "application/json"
                 ? JSON.parse(data)
                 : data;
 
@@ -95,22 +95,23 @@ class HttpClient {
    * @param payload
    */
   private async request(method: string, payload?: any): Promise<IHttpResponse> {
-    const headers = { ...this.httpHeaders };
+    try {
+      const headers = { ...this.httpHeaders };
 
-    if (
-      !headers["content-type"] ||
-      headers["content-type"] !== "application/json"
-    )
-      Object.assign(headers, { "content-type": "application/json" });
+      if (!headers["Content-Type"])
+        headers["Content-Type"] = "application/json";
 
-    if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH")
-      Object.assign(headers, {
-        "idempotency-key": await this.generateIdempotencyKey(),
-      });
+      if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH")
+        headers["Idempotency-Key"] = await this.generateIdempotencyKey();
 
-    const options = { ...this.httpOptions, method, headers };
+      const options = { ...this.httpOptions, method, headers };
 
-    return FailureRetry.ExponentialBackoff(() => this.call(options, payload));
+      return await FailureRetry.ExponentialBackoff(() =>
+        this.call(options, payload)
+      );
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
