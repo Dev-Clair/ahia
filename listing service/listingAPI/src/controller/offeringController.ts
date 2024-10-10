@@ -27,7 +27,7 @@ const retrieveOfferings = async (
 };
 
 /**
- * Retrieve offerings by location
+ * Retrieves offerings by location(geo-coordinates)
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -38,9 +38,9 @@ const retrieveOfferingsByLocation = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query.location as Record<string, any>;
+    const queryString = req.query as Record<string, any>;
 
-    const offerings = await OfferingService.Create().findOfferingsNearUser(
+    const offerings = await OfferingService.Create().findOfferingsByLocation(
       queryString
     );
 
@@ -62,9 +62,9 @@ const retrieveOfferingsNearUser = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query.location as Record<string, any>;
+    const queryString = req.query as Record<string, any>;
 
-    const offerings = await OfferingService.Create().findOfferingsNearUser(
+    const offerings = await OfferingService.Create().findOfferingsByLocation(
       queryString
     );
 
@@ -86,7 +86,13 @@ const retrieveOfferingsAvailableForBooking = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = { type: "Reservation", status: "now-booking" };
+    const query = req.query as Record<string, any>;
+
+    const queryString = {
+      ...query,
+      type: "Reservation",
+      status: "now-booking",
+    };
 
     const offerings = await OfferingService.Create().findAll(queryString);
 
@@ -108,7 +114,9 @@ const retrieveOfferingsAvailableForLetting = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = { type: "Lease", status: "now-letting" };
+    const query = req.query as Record<string, any>;
+
+    const queryString = { ...query, type: "Lease", status: "now-letting" };
 
     const offerings = await OfferingService.Create().findAll(queryString);
 
@@ -130,7 +138,9 @@ const retrieveOfferingsAvailableForSelling = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = { type: "Sell", status: "now-selling" };
+    const query = req.query as Record<string, any>;
+
+    const queryString = { ...query, type: "Sell", status: "now-selling" };
 
     const offerings = await OfferingService.Create().findAll(queryString);
 
@@ -197,6 +207,26 @@ const retrieveOfferingById = async (
  * @param next Express NextFunction Object
  */
 const retrieveOfferingBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const offering = req.offering as IOffering;
+
+    return res.status(HttpCode.OK).json({ data: offering });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Updates an offering by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const updateOfferingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -280,6 +310,7 @@ export default {
   retrieveOfferingsAvailableForSelling,
   retrieveOfferingById,
   retrieveOfferingBySlug,
+  updateOfferingById,
   retrieveOfferingByIdAndPopulate,
   retrieveOfferingBySlugAndPopulate,
 };

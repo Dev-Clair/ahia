@@ -1,5 +1,9 @@
 import { Router } from "express";
+import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
+import GeolocationMiddleware from "../middleware/geolocationMiddleware";
+import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
+import ListingMiddleware from "../middleware/listingMiddleware";
 import ListingController from "../controller/listingController";
 import OfferingController from "../controller/offeringController";
 
@@ -16,6 +20,7 @@ OfferingRouter.route(`/location`).get(
 );
 
 OfferingRouter.route(`/near-me`).get(
+  GeolocationMiddleware.parseUserGeoCoordinates,
   OfferingController.retrieveOfferingsNearUser
 );
 
@@ -39,10 +44,17 @@ OfferingRouter.route("/search").get(
   ListingController.retrieveListingsByOfferingSearch
 );
 
-OfferingRouter.route(`/:id(${IdParamRegex})`).get(
-  DocumentMiddleware("offering", "id"),
-  OfferingController.retrieveOfferingById
-);
+OfferingRouter.route(`/:id(${IdParamRegex})`)
+  .get(
+    DocumentMiddleware("offering", "id"),
+    OfferingController.retrieveOfferingById
+  )
+  .patch(
+    AuthMiddleware.isGranted(["Provider"]),
+    IdempotencyMiddleware.isIdempotent,
+    ListingMiddleware.isContentType(["application/json"]),
+    OfferingController.updateOfferingById
+  );
 
 OfferingRouter.route(`/:id(${IdParamRegex})/:type/listing`).get(
   OfferingController.retrieveOfferingByIdAndPopulate

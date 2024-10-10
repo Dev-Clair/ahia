@@ -26,14 +26,14 @@ export default class OfferingService {
     return offerings;
   }
 
-  /** Retrieves a collection of offerings near user
+  /** Retrieves a collection of offerings by location(geo-coordinates)
    * @public
    * @param queryString query object
    */
-  async findOfferingsNearUser(
+  async findOfferingsByLocation(
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = await OfferingRepository.Create().findOfferingsNearUser(
+    const offerings = await OfferingRepository.Create().findOfferingsByLocation(
       queryString
     );
 
@@ -55,7 +55,6 @@ export default class OfferingService {
   /** Retrieves an offering by slug
    * @public
    * @param slug offering slug
-   * @param type offering type
    */
   async findBySlug(slug: string): Promise<IOffering | null> {
     const options = { retry: true };

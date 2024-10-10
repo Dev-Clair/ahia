@@ -14,7 +14,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findBySlug
  * @method findByIdAndPopulate
  * @method findBySlugAndPopulate
- * @method findOfferingsNearMe
+ * @method findOfferingsByLocation
  * @method save
  * @method update
  * @method delete
@@ -31,7 +31,7 @@ export default class OfferingRepository implements IOfferingRepository {
 
   static LISTING_PROJECTION = {
     address: { street: 0, city: 0, state: 0, zip: 0 },
-    location: { point: 0, geoCoordinates: 0 },
+    location: { type: 0, geoCoordinates: 0 },
     provider: { email: 0 },
     createdAt: 0,
     updatedAt: 0,
@@ -209,26 +209,22 @@ export default class OfferingRepository implements IOfferingRepository {
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves a collection of offerings near user
+  /** Retrieves a collection of offerings by location(geo-coordinates)
    * @public
    * @param query query object
    */
-  async findOfferingsNearUser(
+  async findOfferingsByLocation(
     query: Record<string, any>
   ): Promise<IOffering[]> {
     const queryString = { ...query, fields: { id: 1 } };
 
     const operation = async () => {
-      // Find listings based on user geo-location
+      // Find listings by geo-coordinates
       const listings = await ListingRepository.Create().findAll(queryString, {
         retry: false,
       });
 
-      console.log(listings);
-
       const listingIds = listings.map((listing) => listing._id);
-
-      console.log(listingIds);
 
       if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
@@ -237,8 +233,6 @@ export default class OfferingRepository implements IOfferingRepository {
         { listing: { in: listingIds } },
         { retry: false }
       );
-
-      console.log(offerings);
 
       return offerings;
     };
