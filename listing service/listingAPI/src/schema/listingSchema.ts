@@ -57,13 +57,13 @@ const ListingSchema: Schema<IListing> = new Schema(
         enum: ["Point"],
         default: "Point",
       },
-      geoCoordinates: {
+      coordinates: {
         type: [Number],
         validate: {
-          validator: function (value: number[]) {
+          validator: function (value: [number, number]) {
             return Array.isArray(value) && value.length === 2;
           },
-          message: "geoCoordinates must be an array of two numbers",
+          message: "coordinates must be an array of two numbers",
         },
         required: false,
       },
@@ -99,7 +99,6 @@ ListingSchema.index({
   name: "text",
   description: "text",
   type: "text",
-  offerings: 1,
   location: "2dsphere",
 });
 

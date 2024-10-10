@@ -130,15 +130,6 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
           { $pull: { offerings: offering._id } },
           { session: session }
         );
-
-      // Unlink promotion reference to offering
-      // await mongoose
-      //   .model("Promotion", PromotionSchema)
-      //   .updateOne(
-      //     { id: offering.promotion },
-      //     { $pull: { offerings: offering._id } },
-      //     { session: session }
-      //   );
     });
 
     next();
