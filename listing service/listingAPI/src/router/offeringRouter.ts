@@ -1,7 +1,7 @@
 import { Router } from "express";
 import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
-import GeolocationMiddleware from "../middleware/geolocationMiddleware";
+import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
 import ListingMiddleware from "../middleware/listingMiddleware";
 import ListingController from "../controller/listingController";
@@ -20,7 +20,7 @@ OfferingRouter.route(`/location`).get(
 );
 
 OfferingRouter.route(`/near-me`).get(
-  GeolocationMiddleware.parseUserGeoCoordinates,
+  GeocodeMiddleware.parseUserGeoCoordinates,
   OfferingController.retrieveOfferingsNearUser
 );
 
