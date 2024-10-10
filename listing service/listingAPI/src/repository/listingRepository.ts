@@ -33,7 +33,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
 export default class ListingRepository implements IListingRepository {
   static LISTING_PROJECTION = {
     address: { street: 0, city: 0, state: 0, zip: 0 },
-    location: { point: 0, geoCoordinates: 0 },
+    location: { type: 0, geoCoordinates: 0 },
     provider: { email: 0 },
     createdAt: 0,
     updatedAt: 0,
@@ -71,7 +71,7 @@ export default class ListingRepository implements IListingRepository {
 
       const listings = (
         await queryBuilder
-          .GeoNear()
+          .GeoSpatial()
           .Filter()
           .Sort(ListingRepository.SORT_LISTINGS)
           .Select(ListingRepository.LISTING_PROJECTION)
