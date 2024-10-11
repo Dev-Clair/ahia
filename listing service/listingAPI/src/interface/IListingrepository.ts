@@ -3,7 +3,7 @@ import IRepository from "./IRepository";
 
 export default interface IListingRepository extends IRepository<IListing> {
   /**
-   * Retrieves a collection of documents
+   * Retrieves a collection of listings
    * @param queryString query object
    * @param options configuration options
    */
