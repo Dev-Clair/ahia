@@ -13,7 +13,10 @@ const SlugParamRegex = "[a-zA-Z0-9]+";
 
 const OfferingRouter = Router();
 
-OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
+OfferingRouter.route("/").get(
+  GeocodeMiddleware.getLocationGeoCoordinates,
+  OfferingController.retrieveOfferings
+);
 
 OfferingRouter.route(`/location`).get(
   OfferingController.retrieveOfferingsByLocation
