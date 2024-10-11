@@ -4,7 +4,6 @@ import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
 import ListingMiddleware from "../middleware/listingMiddleware";
-import ListingController from "../controller/listingController";
 import OfferingController from "../controller/offeringController";
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
@@ -13,12 +12,10 @@ const SlugParamRegex = "[a-zA-Z0-9]+";
 
 const OfferingRouter = Router();
 
-OfferingRouter.route("/").get(
-  GeocodeMiddleware.getLocationGeoCoordinates,
-  OfferingController.retrieveOfferings
-);
+OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
 
 OfferingRouter.route(`/location`).get(
+  GeocodeMiddleware.getLocationGeoCoordinates,
   OfferingController.retrieveOfferingsByLocation
 );
 
@@ -28,24 +25,26 @@ OfferingRouter.route(`/near-me`).get(
 );
 
 OfferingRouter.route(`/now-booking`).get(
+  GeocodeMiddleware.parseUserGeoCoordinates,
   OfferingController.retrieveOfferingsAvailableForBooking
 );
 
 OfferingRouter.route(`/now-letting`).get(
+  GeocodeMiddleware.parseUserGeoCoordinates,
   OfferingController.retrieveOfferingsAvailableForLetting
 );
 
 OfferingRouter.route(`/now-selling`).get(
+  GeocodeMiddleware.parseUserGeoCoordinates,
   OfferingController.retrieveOfferingsAvailableForSelling
 );
 
 OfferingRouter.route(`/product`).get(
+  GeocodeMiddleware.parseUserGeoCoordinates,
   OfferingController.retrieveOfferingsByProduct
 );
 
-OfferingRouter.route("/search").get(
-  ListingController.retrieveListingsByOfferingSearch
-);
+OfferingRouter.route("/search").get(OfferingController.retrieveOfferingsSearch);
 
 OfferingRouter.route(`/:id(${IdParamRegex})`)
   .get(

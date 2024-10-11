@@ -1,4 +1,5 @@
 import HttpCode from "../enum/httpCode";
+import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import IOffering from "../interface/IOffering";
@@ -19,6 +20,32 @@ const retrieveOfferings = async (
     const queryString = req.query as Record<string, any>;
 
     const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieves collection of offerings based on search query
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsSearch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const search = req.query.search as string;
+
+    if (!search) throw new BadRequestError(`Kindly enter a text to search`);
+
+    const searchQuery = { $text: { $search: search } };
+
+    const offerings = await OfferingService.Create().findAll(searchQuery);
 
     return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
@@ -302,6 +329,7 @@ const retrieveOfferingBySlugAndPopulate = async (
 
 export default {
   retrieveOfferings,
+  retrieveOfferingsSearch,
   retrieveOfferingsByLocation,
   retrieveOfferingsNearUser,
   retrieveOfferingsByProduct,
