@@ -130,7 +130,7 @@ const getLocationGeoCoordinates = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const getGeoCoordinateAddress = async (
+const getLocationAddress = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -178,6 +178,8 @@ const parseUserGeoCoordinates = async (
 ) => {
   const { lat, lng } = req.query as Record<string, any>;
 
+  if (!lat || !lng) next();
+
   const parsedLat = parseInt(lat, 10);
 
   const parsedLng = parseInt(lng, 10);
@@ -201,6 +203,6 @@ const parseUserGeoCoordinates = async (
 
 export default {
   getLocationGeoCoordinates,
-  getGeoCoordinateAddress,
+  getLocationAddress,
   parseUserGeoCoordinates,
 };
