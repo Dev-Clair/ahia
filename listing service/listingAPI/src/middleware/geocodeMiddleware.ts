@@ -1,58 +1,124 @@
 import * as Sentry from "@sentry/node";
+import { randomUUID } from "node:crypto";
+import Cache from "../utils/cache";
 import Geocode from "../utils/geocode";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 import { NextFunction, Request, Response } from "express";
+import LocationService from "../service/locationService";
 
 /**
- * Retrieves an address' coordinates using google map geocode API
+ * Retrieves a location's coordinates using google map geocode API
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const getAddressGeoCoordinates = async (
+const getLocationGeoCoordinates = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { street, city, state, zip } = req.body.address || {};
+    const place = (req.query.location as string) ?? "";
 
-    if (!street || !city || !state)
+    if (!place.trim()) {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: "Incomplete address information provided",
+          message: "Location is required",
         },
       });
+    }
 
-    const address = `${street}, ${city}, ${state}, ${zip}`;
+    // Search and retrieve location coordinates from cache
+    const cacheKey = place.trim().toLowerCase();
 
-    const response = await Geocode.getGeoCoordinates(address);
+    const cache = Cache.LruCache;
 
-    const { statusCode, body } = response;
+    let location = cache.get(cacheKey);
 
-    if (statusCode !== HttpCode.OK) {
-      Sentry.captureException({ response });
+    if (location) {
+      // Attach cached geocoordinates to the req object
+      req.geoCoordinates = {
+        lat: location.coordinates.lat,
+        lng: location.coordinates.lng,
+        radius: parseInt(req.query.radius as string, 10),
+      };
+
+      delete req.query.location;
+
+      return next();
+    }
+
+    // Search and retrieve location coordinates from the database
+    location = await LocationService.Create().findByName(place.trim());
+
+    if (location) {
+      // Attach retrieved geocoordinates to the req object
+      req.geoCoordinates = {
+        lat: location.coordinates.lat,
+        lng: location.coordinates.lng,
+      };
+
+      // Set coordinates in cache for future requests
+      cache.set(cacheKey, req.geoCoordinates);
+
+      req.geoCoordinates.radius = parseInt(req.query.radius as string, 10);
+
+      delete req.query.location;
+
+      return next();
+    }
+
+    // Retrieve coordinates from google map API geocode service
+    const geocodeAPIResponse = await Geocode.getGeoCoordinates(place.trim());
+
+    const { statusCode, body } = geocodeAPIResponse;
+
+    if (statusCode !== HttpCode.OK || !body.data.results.length) {
+      Sentry.captureException({
+        message: "Failed to fetch geocoordinates from the Geocode API Service",
+        response: geocodeAPIResponse,
+      });
 
       return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
         error: {
           name: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Geo coordinates retrieval for address ${address} failed`,
+          message: `Geo coordinates retrieval for location ${place.trim()} failed`,
         },
       });
     }
 
     const coordinates = body.data.results[0].geometry.location;
 
-    (req as Request).geoCoordinates = {
-      lng: coordinates.lng,
+    // Save the new location to the database
+    await LocationService.Create().save(
+      { key: randomUUID() },
+      {
+        name: place.trim(),
+        coordinates: {
+          lat: coordinates.lat,
+          lng: coordinates.lng,
+        },
+      }
+    );
+
+    // Attach geocoordinates to the req object
+    req.geoCoordinates = {
       lat: coordinates.lat,
+      lng: coordinates.lng,
     };
+
+    // Set coordinates in cache for future requests
+    cache.set(cacheKey, req.geoCoordinates);
+
+    req.geoCoordinates.radius = parseInt(req.query.radius as string, 10);
+
+    delete req.query.location;
 
     next();
   } catch (error: any) {
-    Sentry.captureException({ error });
+    Sentry.captureException(error);
 
     next(error);
   }
@@ -134,7 +200,7 @@ const parseUserGeoCoordinates = async (
 };
 
 export default {
-  getAddressGeoCoordinates,
+  getLocationGeoCoordinates,
   getGeoCoordinateAddress,
   parseUserGeoCoordinates,
 };

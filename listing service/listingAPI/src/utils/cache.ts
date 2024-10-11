@@ -1,3 +1,5 @@
+import { LRUCache } from "lru-cache";
+
 class MapCache {
   private map: Map<any, { value: any; expiry: number }>;
 
@@ -66,4 +68,36 @@ class MapCache {
   }
 }
 
-export default MapCache;
+class LruCache {
+  private cache: LRUCache<string, any>;
+
+  constructor(maxSize: number = 500, ttl: number = 10800000) {
+    this.cache = new LRUCache({ max: maxSize, ttl, allowStale: false });
+  }
+
+  set(key: string, value: any): void {
+    this.cache.set(key, value);
+  }
+
+  get(key: string): any | undefined {
+    return this.cache.get(key);
+  }
+
+  has(key: string): boolean {
+    return this.cache.has(key);
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  static Create(): LruCache {
+    return new LruCache();
+  }
+}
+
+export default { MapCache: MapCache.Create(), LruCache: LruCache.Create() };
