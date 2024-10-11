@@ -38,7 +38,7 @@ const getLocationGeoCoordinates = async (
     let location = cache.get(cacheKey);
 
     if (location) {
-      // Attach cached geocoordinates to the req object
+      // Attach cached coordinates to the req object
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -54,7 +54,7 @@ const getLocationGeoCoordinates = async (
     location = await LocationService.Create().findByName(place.trim());
 
     if (location) {
-      // Attach retrieved geocoordinates to the req object
+      // Attach retrieved coordinates to the req object
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -103,7 +103,7 @@ const getLocationGeoCoordinates = async (
       }
     );
 
-    // Attach geocoordinates to the req object
+    // Attach coordinates to the req object
     req.geoCoordinates = {
       lat: coordinates.lat,
       lng: coordinates.lng,
