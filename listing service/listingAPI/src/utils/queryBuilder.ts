@@ -5,10 +5,10 @@ import IQueryString from "../interface/IQuerystring";
  * QueryBuilder
  * @method Exec - query execution
  * @method Filter - query filtering
- * @method GeoNear - geospatial (near queries)
+ * @method GeoSpatial - geospatial (near or within queries)
  * @method Paginate - query pagination
  * @method Select - query projection
- * @method Sort - sorting
+ * @method Sort - query sorting
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
@@ -32,51 +32,69 @@ export class QueryBuilder<T> {
    * Handles query filtering
    */
   public Filter(): this {
-    const queryObject = { ...this.queryString };
+    const { page, sort, limit, fields, ...filters } = this.queryString;
 
-    const excludedFields = ["page", "sort", "limit", "fields"];
-
-    excludedFields.forEach((el) => delete queryObject[el]);
-
-    let queryString = JSON.stringify(queryObject);
+    let queryString = JSON.stringify(filters);
 
     queryString = queryString.replace(
       /\b(eq|ne|gte|gt|lte|lt|in|nin)\b/g,
       (match) => `$${match}`
     );
 
-    const parsedQueryString = JSON.parse(queryString);
+    const parsedQuery = JSON.parse(queryString);
 
-    this.query = this.query.find(parsedQueryString);
+    this.query = this.query.find(parsedQuery);
 
     return this;
   }
 
   /**
-   * Handles geospatial queries: Near Query
+   * Handles geospatial queries: Near | Within
    */
-  public GeoNear(): this {
-    if (this.queryString.lnglat) {
-      const lng = parseFloat(
-        (this.queryString.lng as string) ?? (this.queryString.long as string)
-      );
+  public GeoSpatial(): this {
+    if (this.queryString.lng && this.queryString.lat) {
+      const parsedLng = parseFloat(this.queryString.lng as string);
 
-      const lat = parseFloat(this.queryString.lat as string);
+      const parsedLat = parseFloat(this.queryString.lat as string);
 
-      const distance =
-        parseFloat(this.queryString.distance as string) ?? 2000.0;
+      if (isNaN(parsedLng) || isNaN(parsedLat))
+        throw new Error("Invalid coordinates provided for geospatial query.");
 
-      this.query = this.query.find({
-        location: {
-          $geoNear: {
+      const parsedDistance = this.queryString?.distance
+        ? parseFloat(this.queryString.distance as string)
+        : undefined;
+
+      const parsedRadius = this.queryString?.radius
+        ? parseFloat(this.queryString.radius as string)
+        : undefined;
+
+      let locationFilter;
+
+      if (parsedDistance !== undefined) {
+        const nearQueryFilter = {
+          $near: {
             $geometry: {
               type: "Point",
-              geoCoordinates: [lng, lat],
+              coordinates: [parsedLng, parsedLat],
             },
+            $maxDistance: parsedDistance,
           },
-          $maxDistance: distance,
-        },
-      });
+        };
+
+        locationFilter = nearQueryFilter;
+      }
+
+      if (parsedRadius !== undefined) {
+        const withinQueryFilter = {
+          $geoWithin: {
+            $centerSphere: [[parsedLng, parsedLat], parsedRadius / 6378.1],
+          },
+        };
+
+        locationFilter = withinQueryFilter;
+      }
+
+      this.query = this.query.find({ location: locationFilter });
     }
 
     return this;
@@ -86,9 +104,9 @@ export class QueryBuilder<T> {
    * Handles query pagination
    */
   public async Paginate(): Promise<this> {
-    const page = parseInt(this.queryString.page || "1", 10);
+    const page = parseInt((this.queryString.page as string) || "1", 10);
 
-    const limit = parseInt(this.queryString.limit || "10", 10);
+    const limit = parseInt((this.queryString.limit as string) || "10", 10);
 
     const skip = (page - 1) * limit;
 
@@ -97,12 +115,33 @@ export class QueryBuilder<T> {
     return this;
   }
 
+  // public Select(selectFields: Record<string, any>): this {
+  //   const fields = [this.queryString.fields, selectFields].join();
+
+  //   this.query = this.query.select(fields);
+
+  //   return this;
+  // }
+
+  // public Sort(sortFields: Record<string, any>): this {
+  //   const sortBy = [this.queryString.sort, sortFields].join();
+
+  //   this.query = this.query.sort(sortBy);
+
+  //   return this;
+  // }
+
   /**
    * Handles query projection
    * @param selectFields A key-value pair of fields to select
    */
-  public Select(selectFields: Record<string, any>): this {
-    const fields = [this.queryString.fields, selectFields].join();
+  public Select(selectFields: Record<string, any> = {}): this {
+    const fields = [
+      this.queryString.fields,
+      Object.keys(selectFields).join(" "),
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     this.query = this.query.select(fields);
 
@@ -113,8 +152,10 @@ export class QueryBuilder<T> {
    * Handles query sorting
    * @param sortFields A key-value pair of fields to sort
    */
-  public Sort(sortFields: Record<string, any>): this {
-    const sortBy = [this.queryString.sort, sortFields].join();
+  public Sort(sortFields: Record<string, any> = {}): this {
+    const sortBy = [this.queryString.sort, Object.keys(sortFields).join(" ")]
+      .filter(Boolean)
+      .join(" ");
 
     this.query = this.query.sort(sortBy);
 
