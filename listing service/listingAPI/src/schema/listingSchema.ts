@@ -96,7 +96,7 @@ const ListingSchema: Schema<IListing> = new Schema(
 
 // Listing Schema Search Query Index
 ListingSchema.index({
-  name: "text",
+  slug: "text",
   description: "text",
   type: "text",
   location: "2dsphere",

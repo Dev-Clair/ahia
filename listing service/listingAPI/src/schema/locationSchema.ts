@@ -29,6 +29,6 @@ const LocationSchema: Schema<ILocation> = new Schema(
   }
 );
 
-LocationSchema.index({ coordinates: "2dsphere" });
+LocationSchema.index({ name: "text", coordinates: "2dsphere" });
 
 export default LocationSchema;
