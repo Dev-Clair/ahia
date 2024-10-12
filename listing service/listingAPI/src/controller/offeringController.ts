@@ -54,7 +54,7 @@ const retrieveOfferingsSearch = async (
 };
 
 /**
- * Retrieves offerings by location(geo-coordinates)
+ * Retrieves offerings by location (geo-coordinates)
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -66,6 +66,12 @@ const retrieveOfferingsByLocation = async (
 ): Promise<Response | void> => {
   try {
     const queryString = req.query as Record<string, any>;
+
+    queryString.lat = req.geoCoordinates?.lat;
+
+    queryString.lng = req.geoCoordinates?.lng;
+
+    queryString.radius = req.geoCoordinates?.radius;
 
     const offerings = await OfferingService.Create().findOfferingsByLocation(
       queryString
@@ -208,6 +214,30 @@ const retrieveOfferingsByProduct = async (
 };
 
 /**
+ * Retrieves offerings by provider
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsByProvider = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query as Record<string, any>;
+
+    const offerings = await OfferingService.Create().findOfferingsByProvider(
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
  * Retrieves an offering by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -333,6 +363,7 @@ export default {
   retrieveOfferingsByLocation,
   retrieveOfferingsNearUser,
   retrieveOfferingsByProduct,
+  retrieveOfferingsByProvider,
   retrieveOfferingsAvailableForBooking,
   retrieveOfferingsAvailableForLetting,
   retrieveOfferingsAvailableForSelling,

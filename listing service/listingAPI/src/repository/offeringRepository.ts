@@ -209,17 +209,44 @@ export default class OfferingRepository implements IOfferingRepository {
     return offering as Promise<IOffering | null>;
   }
 
-  /** Retrieves a collection of offerings by location(geo-coordinates)
+  /** Retrieves a collection of offerings by location (geo-coordinates)
    * @public
-   * @param query query object
+   * @param queryString query object
    */
   async findOfferingsByLocation(
-    query: Record<string, any>
+    queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const queryString = { ...query, fields: { id: 1 } };
-
     const operation = async () => {
       // Find listings by geo-coordinates
+      const listings = await ListingRepository.Create().findAll(queryString, {
+        retry: false,
+      });
+
+      const listingIds = listings.map((listing) => listing._id);
+
+      if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+
+      // Find offerings that contain these listing IDs
+      const offerings = await this.findAll(
+        { listing: { in: listingIds } },
+        { retry: false }
+      );
+
+      return offerings;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
+  /** Retrieves a collection of offerings by provider
+   * @public
+   * @param queryString query object
+   */
+  async findOfferingsByProvider(
+    queryString: Record<string, any>
+  ): Promise<IOffering[]> {
+    const operation = async () => {
+      // Find listings by provider
       const listings = await ListingRepository.Create().findAll(queryString, {
         retry: false,
       });

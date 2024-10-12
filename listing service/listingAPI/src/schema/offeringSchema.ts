@@ -87,7 +87,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       },
     },
   },
-  { discriminatorKey: "type" }
+  { discriminatorKey: "type", timestamps: true }
 );
 
 // Offering Schema Search Query Index

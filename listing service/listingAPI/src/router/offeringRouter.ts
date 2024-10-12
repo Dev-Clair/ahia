@@ -44,6 +44,10 @@ OfferingRouter.route(`/product`).get(
   OfferingController.retrieveOfferingsByProduct
 );
 
+OfferingRouter.route(`/provider`).get(
+  OfferingController.retrieveOfferingsByProvider
+);
+
 OfferingRouter.route("/search").get(OfferingController.retrieveOfferingsSearch);
 
 OfferingRouter.route(`/:id(${IdParamRegex})`)

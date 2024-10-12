@@ -26,7 +26,7 @@ export default class OfferingService {
     return offerings;
   }
 
-  /** Retrieves a collection of offerings by location(geo-coordinates)
+  /** Retrieves a collection of offerings by location (geo-coordinates)
    * @public
    * @param queryString query object
    */
@@ -34,6 +34,20 @@ export default class OfferingService {
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
     const offerings = await OfferingRepository.Create().findOfferingsByLocation(
+      queryString
+    );
+
+    return offerings;
+  }
+
+  /** Retrieves a collection of offerings by provider
+   * @public
+   * @param queryString query object
+   */
+  async findOfferingsByProvider(
+    queryString: Record<string, any>
+  ): Promise<IOffering[]> {
+    const offerings = await OfferingRepository.Create().findOfferingsByProvider(
       queryString
     );
 
