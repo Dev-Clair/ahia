@@ -158,7 +158,7 @@ class HttpClient {
   }
 
   /**
-   * Returns a new instance of the HttpClient class
+   * Creates and returns a new instance of the HttpClient class
    * @param url
    * @param httpHeaders
    */
