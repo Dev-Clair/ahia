@@ -28,7 +28,7 @@ const verifyOfferingPaymentStatus = async (
       return res.status(HttpCode.REDIRECT).json({
         data: {
           message: `${offering?.name.toUpperCase()} has not been verified for listing. Kindly pay the listing fee to verify your product.`,
-          redirect: Config.PAYMENT_SERVICE_URL,
+          redirect: encodeURI(Config.PAYMENT_SERVICE_URL),
         },
       });
 
