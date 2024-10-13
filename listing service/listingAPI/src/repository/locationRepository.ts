@@ -16,13 +16,9 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method delete
  */
 export default class LocationRepository implements ILocationRepository {
-  static LOCATION_PROJECTION = {
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-  };
+  static LOCATION_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
 
-  static SORT_LOCATIONS = { createdAt: -1 };
+  static SORT_LOCATIONS = ["-createdAt"];
 
   /** Retrieves a collection of locations
    * @publics

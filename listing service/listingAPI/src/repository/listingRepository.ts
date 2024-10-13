@@ -31,25 +31,25 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteListingOffering
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTING_PROJECTION = {
-    address: 0,
-    location: 0,
-    provider: { email: 0 },
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-  };
+  static LISTING_PROJECTION = [
+    "-address",
+    "-location",
+    "-provider.email",
+    "-createdAt",
+    "-updatedAt",
+    "-__v",
+  ];
 
-  static SORT_LISTINGS = { createdAt: -1 };
+  static SORT_LISTINGS = ["-createdAt"];
 
-  static OFFERING_PROJECTION = {
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-    verification: 0,
-  };
+  static OFFERING_PROJECTION = [
+    "-createdAt",
+    "-updatedAt",
+    "-__v",
+    "-verification",
+  ];
 
-  static SORT_OFFERINGS = { createdAt: -1 };
+  static SORT_OFFERINGS = ["-createdAt"];
 
   /** Retrieves a collection of listings
    * @publics
