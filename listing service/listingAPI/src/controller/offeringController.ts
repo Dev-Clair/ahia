@@ -4,7 +4,6 @@ import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import IOffering from "../interface/IOffering";
 import OfferingService from "../service/offeringService";
-import Config from "../../config";
 
 /**
  * Retrieve offerings
