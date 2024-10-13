@@ -6,6 +6,7 @@ import LocationRepository from "../repository/locationRepository";
  * Location Service
  * @method findAll
  * @method findById
+ * @method findByName
  * @method save
  * @method update
  * @method delete

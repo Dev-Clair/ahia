@@ -10,6 +10,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * Location Repository
  * @method findAll
  * @method findById
+ * @method findByName
  * @method save
  * @method update
  * @method delete
