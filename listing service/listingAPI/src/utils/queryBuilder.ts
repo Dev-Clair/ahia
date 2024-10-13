@@ -115,33 +115,14 @@ export class QueryBuilder<T> {
     return this;
   }
 
-  // public Select(selectFields: Record<string, any>): this {
-  //   const fields = [this.queryString.fields, selectFields].join();
-
-  //   this.query = this.query.select(fields);
-
-  //   return this;
-  // }
-
-  // public Sort(sortFields: Record<string, any>): this {
-  //   const sortBy = [this.queryString.sort, sortFields].join();
-
-  //   this.query = this.query.sort(sortBy);
-
-  //   return this;
-  // }
-
   /**
    * Handles query projection
    * @param selectFields A key-value pair of fields to select
    */
-  public Select(selectFields: Record<string, any> = {}): this {
-    const fields = [
-      this.queryString.fields,
-      Object.keys(selectFields).join(" "),
-    ]
-      .filter(Boolean)
-      .join(" ");
+  public Select(selectFields: string[]): this {
+    const fields = Array.from(
+      new Set([this.queryString.fields, selectFields])
+    ).join();
 
     this.query = this.query.select(fields);
 
@@ -152,10 +133,10 @@ export class QueryBuilder<T> {
    * Handles query sorting
    * @param sortFields A key-value pair of fields to sort
    */
-  public Sort(sortFields: Record<string, any> = {}): this {
-    const sortBy = [this.queryString.sort, Object.keys(sortFields).join(" ")]
-      .filter(Boolean)
-      .join(" ");
+  public Sort(sortFields: string[]): this {
+    const sortBy = Array.from(
+      new Set([this.queryString.sort, sortFields])
+    ).join();
 
     this.query = this.query.sort(sortBy);
 
