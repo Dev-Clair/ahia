@@ -8,6 +8,4 @@ AppRouter.use("/listings", ListingRouter);
 
 AppRouter.use("/offerings", OfferingRouter);
 
-// AppRouter.use("/promotions", PromotionRouter);
-
 export default AppRouter;
