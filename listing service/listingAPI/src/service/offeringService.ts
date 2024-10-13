@@ -4,6 +4,8 @@ import OfferingRepository from "../repository/offeringRepository";
 /**
  * Offering Service
  * @method findAll
+ * @method findByLocation
+ * @method findByProvider
  * @method findById
  * @method findBySlug
  * @method findByIdAndPopulate
@@ -26,6 +28,34 @@ export default class OfferingService {
     return offerings;
   }
 
+  /** Retrieves a collection of offerings by location (geo-coordinates)
+   * @public
+   * @param queryString query object
+   */
+  async findOfferingsByLocation(
+    queryString: Record<string, any>
+  ): Promise<IOffering[]> {
+    const offerings = await OfferingRepository.Create().findOfferingsByLocation(
+      queryString
+    );
+
+    return offerings;
+  }
+
+  /** Retrieves a collection of offerings by provider
+   * @public
+   * @param queryString query object
+   */
+  async findOfferingsByProvider(
+    queryString: Record<string, any>
+  ): Promise<IOffering[]> {
+    const offerings = await OfferingRepository.Create().findOfferingsByProvider(
+      queryString
+    );
+
+    return offerings;
+  }
+
   /** Retrieves an offering by id
    * @public
    * @param id offering id
@@ -41,7 +71,6 @@ export default class OfferingService {
   /** Retrieves an offering by slug
    * @public
    * @param slug offering slug
-   * @param type offering type
    */
   async findBySlug(slug: string): Promise<IOffering | null> {
     const options = { retry: true };
@@ -57,9 +86,13 @@ export default class OfferingService {
   /** Retrieves an offering by id and populate its subdocument(s)
    * @public
    * @param id offering id
+   * @param type offering type
    */
-  async findByIdAndPopulate(id: string): Promise<IOffering | null> {
-    const options = { retry: true };
+  async findByIdAndPopulate(
+    id: string,
+    type?: string
+  ): Promise<IOffering | null> {
+    const options = { retry: true, type: type };
 
     const offering = await OfferingRepository.Create().findByIdAndPopulate(
       id,
@@ -74,8 +107,11 @@ export default class OfferingService {
    * @param slug offering slug
    * @param type offering type
    */
-  async findBySlugAndPopulate(slug: string): Promise<IOffering | null> {
-    const options = { retry: true };
+  async findBySlugAndPopulate(
+    slug: string,
+    type?: string
+  ): Promise<IOffering | null> {
+    const options = { retry: true, type: type };
 
     const offering = await OfferingRepository.Create().findBySlugAndPopulate(
       slug,

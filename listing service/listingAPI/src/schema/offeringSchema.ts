@@ -87,12 +87,12 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       },
     },
   },
-  { discriminatorKey: "type" }
+  { discriminatorKey: "type", timestamps: true }
 );
 
 // Offering Schema Search Query Index
 OfferingSchema.index({
-  name: "text",
+  slug: "text",
   "area.size": 1,
   "product.name": "text",
   "product.category": "text",
@@ -130,15 +130,6 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
           { $pull: { offerings: offering._id } },
           { session: session }
         );
-
-      // Unlink promotion reference to offering
-      // await mongoose
-      //   .model("Promotion", PromotionSchema)
-      //   .updateOne(
-      //     { id: offering.promotion },
-      //     { $pull: { offerings: offering._id } },
-      //     { session: session }
-      //   );
     });
 
     next();

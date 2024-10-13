@@ -36,4 +36,4 @@ const isIdempotent = async (
   next();
 };
 
-export default isIdempotent;
+export default { isIdempotent };

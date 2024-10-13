@@ -1,7 +1,11 @@
 import IOffering from "./IOffering";
-import ISale from "./ISale";
+import IInstalment from "./IInstalment";
+import IOutright from "./IOutright";
 
 export default interface ISellOffering extends IOffering {
   status: "now-selling" | "sold";
-  sell: [ISale];
+  sell: {
+    outright: IOutright;
+    instalment?: [IInstalment];
+  };
 }

@@ -1,5 +1,6 @@
 import { Schema } from "mongoose";
-import SaleSchema from "./saleSchema";
+import InstalmentSchema from "./instalmentSchema";
+import OutrightSchema from "./instalmentSchema";
 import ISellOffering from "../interface/ISelloffering";
 
 const SellOfferingSchema: Schema<ISellOffering> = new Schema({
@@ -9,8 +10,14 @@ const SellOfferingSchema: Schema<ISellOffering> = new Schema({
     default: "now-selling",
   },
   sell: {
-    type: [SaleSchema],
-    required: true,
+    outright: {
+      type: OutrightSchema,
+      required: true,
+    },
+    instalment: {
+      type: [InstalmentSchema],
+      required: false,
+    },
   },
 });
 

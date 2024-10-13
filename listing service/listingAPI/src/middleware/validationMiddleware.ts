@@ -45,12 +45,12 @@ const ListingSchema = z.object({
       .optional(),
   }),
   location: z.object({
-    geoCoordinates: z.array(
+    coordinates: z.array(
       z.number({
-        invalid_type_error: "location geoCoordinates must be a number array",
-        required_error: "geoCoordinates are required",
-        message: "location geoCoordinates must be of Point type",
-        description: `"geoCoordinates": [lng|long, lat]`,
+        invalid_type_error: "location coordinates must be a number array",
+        required_error: "location coordinates are required",
+        message: "location coordinates must be of point type",
+        description: "location coordinates: [lng, lat]",
       })
     ),
   }),
@@ -143,16 +143,49 @@ const OfferingSchema = z.object({
       })
     )
     .optional(),
-  sell: z
-    .array(
-      z.object({
-        isNegotiable: z.boolean({
-          invalid_type_error: "isNegotiable must be a boolean type",
-          required_error: "isNegotiable is required",
-        }),
-        sale: z.enum(["outright", "instalment"]),
-        outright: z
-          .object({
+  sell: z.object({
+    outright: z.object({
+      isNegotiable: z.boolean({
+        invalid_type_error: "isNegotiable must be a boolean type",
+        required_error: "isNegotiable is required",
+      }),
+      amount: z.number({
+        required_error: "amount is required",
+        invalid_type_error: "amount must be a number",
+      }),
+      currency: z.string({
+        required_error: "currency is required",
+        invalid_type_error: "currency must be a string",
+      }),
+      discount: z
+        .number({
+          required_error: "discount is required",
+          invalid_type_error: "discount must be a number",
+        })
+        .optional(),
+      termsAndConditions: z
+        .array(
+          z.string({
+            required_error: "terms and conditions is required",
+            invalid_type_error:
+              "terms and conditions can only contain string elements",
+          })
+        )
+        .optional(),
+    }),
+    instalment: z.array(
+      z
+        .object({
+          isNegotiable: z.boolean({
+            invalid_type_error: "isNegotiable must be a boolean type",
+            required_error: "isNegotiable is required",
+          }),
+          plan: z.enum(["short", "medium", "long"]),
+          duration: z.number({
+            required_error: "duration is required",
+            invalid_type_error: "duration must be a number",
+          }),
+          downPayment: z.object({
             amount: z.number({
               required_error: "amount is required",
               invalid_type_error: "amount must be a number",
@@ -161,78 +194,31 @@ const OfferingSchema = z.object({
               required_error: "currency is required",
               invalid_type_error: "currency must be a string",
             }),
-            discount: z
-              .number({
-                required_error: "discount is required",
-                invalid_type_error: "discount must be a number",
+          }),
+          instalmentPayment: z.object({
+            amount: z.number({
+              required_error: "amount is required",
+              invalid_type_error: "amount must be a number",
+            }),
+            currency: z.string({
+              required_error: "currency is required",
+              invalid_type_error: "currency must be a string",
+            }),
+          }),
+          termsAndConditions: z
+            .array(
+              z.string({
+                required_error: "terms and conditions is required",
+                invalid_type_error:
+                  "terms and conditions can only contain string elements",
               })
-              .optional(),
-            termsAndConditions: z
-              .array(
-                z.string({
-                  required_error: "terms and conditions is required",
-                  invalid_type_error:
-                    "terms and conditions can only contain string elements",
-                })
-              )
-              .optional(),
-          })
-          .optional(),
-        instalment: z
-          .object({
-            plan: z.enum(["short", "medium", "long"]),
-            duration: z.number({
-              required_error: "duration is required",
-              invalid_type_error: "duration must be a number",
-            }),
-            downPayment: z.object({
-              amount: z.number({
-                required_error: "amount is required",
-                invalid_type_error: "amount must be a number",
-              }),
-              currency: z.string({
-                required_error: "currency is required",
-                invalid_type_error: "currency must be a string",
-              }),
-            }),
-            instalmentPayment: z.object({
-              amount: z.number({
-                required_error: "amount is required",
-                invalid_type_error: "amount must be a number",
-              }),
-              currency: z.string({
-                required_error: "currency is required",
-                invalid_type_error: "currency must be a string",
-              }),
-            }),
-            termsAndConditions: z
-              .array(
-                z.string({
-                  required_error: "terms and conditions is required",
-                  invalid_type_error:
-                    "terms and conditions can only contain string elements",
-                })
-              )
-              .optional(),
-          })
-          .optional(),
-      })
-    )
-    .optional(),
+            )
+            .optional(),
+        })
+        .optional()
+    ),
+  }),
 });
-
-// const PromotionSchema = z.object({
-//   name: z.enum(["platinum", "gold", "ruby", "silver"]),
-//   status: z.enum(["active", "inactive", "expired"]),
-//   start: z.date({
-//     required_error: "start date is required",
-//     invalid_type_error: "start date must be a date",
-//   }),
-//   end: z.date({
-//     required_error: "end date is required",
-//     invalid_type_error: "end date must be a date",
-//   }),
-// });
 
 const validateID =
   (schema: z.ZodSchema<any>) =>
@@ -308,5 +294,4 @@ export default {
   validateType: validateType(TypeSchema),
   validateListing: validateBody(ListingSchema),
   validateOffering: validateBody(OfferingSchema),
-  // validatePromotion: validateBody(PromotionSchema),
 };

@@ -1,4 +1,5 @@
 import HttpCode from "../enum/httpCode";
+import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import IOffering from "../interface/IOffering";
@@ -17,6 +18,162 @@ const retrieveOfferings = async (
 ): Promise<Response | void> => {
   try {
     const queryString = req.query as Record<string, any>;
+
+    const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieves collection of offerings based on search query
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsSearch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const search = req.query.search as string;
+
+    if (!search) throw new BadRequestError(`Kindly enter a text to search`);
+
+    const searchQuery = { $text: { $search: search } };
+
+    const offerings = await OfferingService.Create().findAll(searchQuery);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieves offerings by location (geo-coordinates)
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsByLocation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query as Record<string, any>;
+
+    queryString.lat = req.geoCoordinates?.lat;
+
+    queryString.lng = req.geoCoordinates?.lng;
+
+    queryString.radius = req.geoCoordinates?.radius;
+
+    const offerings = await OfferingService.Create().findOfferingsByLocation(
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings near user's location
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsNearUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const queryString = req.query as Record<string, any>;
+
+    const offerings = await OfferingService.Create().findOfferingsByLocation(
+      queryString
+    );
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings by status: now-booking
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsAvailableForBooking = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const query = req.query as Record<string, any>;
+
+    const queryString = {
+      ...query,
+      type: "Reservation",
+      status: "now-booking",
+    };
+
+    const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings by status: now-letting
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsAvailableForLetting = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const query = req.query as Record<string, any>;
+
+    const queryString = { ...query, type: "Lease", status: "now-letting" };
+
+    const offerings = await OfferingService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: offerings });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve offerings by status: now-selling
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveOfferingsAvailableForSelling = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const query = req.query as Record<string, any>;
+
+    const queryString = { ...query, type: "Sell", status: "now-selling" };
 
     const offerings = await OfferingService.Create().findAll(queryString);
 
@@ -57,22 +214,24 @@ const retrieveOfferingsByProduct = async (
 };
 
 /**
- * Retrieve offerings by status
+ * Retrieves offerings by provider
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsByStatus = async (
+const retrieveOfferingsByProvider = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const status = req.query.status as string;
+    const providerId = req.query.id as string;
 
-    const queryString = { status: status };
+    const queryString = { provider: { id: providerId } };
 
-    const offerings = await OfferingService.Create().findAll(queryString);
+    const offerings = await OfferingService.Create().findOfferingsByProvider(
+      queryString
+    );
 
     return res.status(HttpCode.OK).json({ data: offerings });
   } catch (err: any) {
@@ -134,7 +293,12 @@ const retrieveOfferingByIdAndPopulate = async (
   try {
     const id = req.params.id as string;
 
-    const offering = await OfferingService.Create().findByIdAndPopulate(id);
+    const type = req.query.type as string;
+
+    const offering = await OfferingService.Create().findByIdAndPopulate(
+      id,
+      type
+    );
 
     if (!offering)
       throw new NotFoundError(`No record found for offering: ${id}`);
@@ -146,7 +310,7 @@ const retrieveOfferingByIdAndPopulate = async (
 };
 
 /**
- * Retrieves an offering by slug and populate itss subdocument
+ * Retrieves an offering by slug and populate its subdocument
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -159,7 +323,12 @@ const retrieveOfferingBySlugAndPopulate = async (
   try {
     const slug = req.params.slug as string;
 
-    const offering = await OfferingService.Create().findBySlugAndPopulate(slug);
+    const type = req.query.type as string;
+
+    const offering = await OfferingService.Create().findBySlugAndPopulate(
+      slug,
+      type
+    );
 
     if (!offering)
       throw new NotFoundError(`No record found for offering: ${slug}`);
@@ -172,8 +341,14 @@ const retrieveOfferingBySlugAndPopulate = async (
 
 export default {
   retrieveOfferings,
+  retrieveOfferingsSearch,
+  retrieveOfferingsByLocation,
+  retrieveOfferingsNearUser,
   retrieveOfferingsByProduct,
-  retrieveOfferingsByStatus,
+  retrieveOfferingsByProvider,
+  retrieveOfferingsAvailableForBooking,
+  retrieveOfferingsAvailableForLetting,
+  retrieveOfferingsAvailableForSelling,
   retrieveOfferingById,
   retrieveOfferingBySlug,
   retrieveOfferingByIdAndPopulate,

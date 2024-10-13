@@ -108,15 +108,13 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const listing = await session.withTransaction(async () => {
+      return await session.withTransaction(async () => {
         const options = { session: session, idempotent: key, retry: true };
 
         const listing = await ListingRepository.Create().save(payload, options);
 
         return listing;
       });
-
-      return listing;
     } catch (error: any) {
       throw error;
     } finally {
@@ -139,7 +137,7 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const listing = await session.withTransaction(async () => {
+      return await session.withTransaction(async () => {
         const options = { session: session, idempotent: key, retry: true };
 
         const listing = await ListingRepository.Create().update(
@@ -150,8 +148,6 @@ export default class ListingService {
 
         return listing;
       });
-
-      return listing;
     } catch (error: any) {
       throw error;
     } finally {
@@ -168,15 +164,13 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const listing = await session.withTransaction(async () => {
+      return await session.withTransaction(async () => {
         const options = { session: session, retry: true };
 
         const listing = await ListingRepository.Create().delete(id, options);
 
         return listing;
       });
-
-      return listing;
     } catch (error: any) {
       throw error;
     } finally {
@@ -270,7 +264,7 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const offering = await session.withTransaction(async () => {
+      return await session.withTransaction(async () => {
         const options = { session: session, idempotent: key, retry: true };
 
         const offering = await ListingRepository.Create().saveListingOffering(
@@ -282,8 +276,6 @@ export default class ListingService {
 
         return offering;
       });
-
-      return offering;
     } catch (error: any) {
       throw error;
     } finally {
@@ -308,7 +300,7 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const offering = await session.withTransaction(async () => {
+      return await session.withTransaction(async () => {
         const options = { session: session, idempotent: key, retry: true };
 
         const offering = await ListingRepository.Create().updateListingOffering(
@@ -320,8 +312,6 @@ export default class ListingService {
 
         return offering;
       });
-
-      return offering;
     } catch (error: any) {
       throw error;
     } finally {
@@ -344,7 +334,7 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const offering = await session.withTransaction(async () => {
+      return await session.withTransaction(async () => {
         const options = { session: session, retry: true };
 
         const offering = await ListingRepository.Create().deleteListingOffering(
@@ -356,8 +346,6 @@ export default class ListingService {
 
         return offering;
       });
-
-      return offering;
     } catch (error: any) {
       throw error;
     } finally {

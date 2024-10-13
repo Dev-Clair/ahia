@@ -3,6 +3,7 @@ import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import IOffering from "../interface/IOffering";
 import IOfferingRepository from "../interface/IOfferingrepository";
+import ListingRepository from "./listingRepository";
 import Offering from "../model/offeringModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
@@ -13,28 +14,32 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findBySlug
  * @method findByIdAndPopulate
  * @method findBySlugAndPopulate
+ * @method findOfferingsByLocation
+ * @method findOfferingsByProvider
  * @method save
  * @method update
  * @method delete
  */
 export default class OfferingRepository implements IOfferingRepository {
-  static OFFERING_PROJECTION = {
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-    verification: 0,
-  };
+  static OFFERING_PROJECTION = [
+    "-createdAt",
+    "-updatedAt",
+    "-__v",
+    "-verification",
+  ];
 
-  static SORT_OFFERINGS = { createdAt: -1 };
+  static SORT_OFFERINGS = ["-createdAt"];
 
-  static LISTING_PROJECTION = {
-    provider: { email: 0 },
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-  };
+  static LISTING_PROJECTION = [
+    "-address",
+    "-location",
+    "-provider.email",
+    "-createdAt",
+    "-updatedAt",
+    "-__v",
+  ];
 
-  static SORT_LISTINGS = { createdAt: -1 };
+  static SORT_LISTINGS = ["-createdAt"];
 
   /** Retrieves a collection of offerings
    * @public
@@ -203,6 +208,64 @@ export default class OfferingRepository implements IOfferingRepository {
       : await operation();
 
     return offering as Promise<IOffering | null>;
+  }
+
+  /** Retrieves a collection of offerings by location (geo-coordinates)
+   * @public
+   * @param queryString query object
+   */
+  async findOfferingsByLocation(
+    queryString: Record<string, any>
+  ): Promise<IOffering[]> {
+    const operation = async () => {
+      // Find listings by geo-coordinates
+      const listings = await ListingRepository.Create().findAll(queryString, {
+        retry: false,
+      });
+
+      const listingIds = listings.map((listing) => listing._id);
+
+      if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+
+      // Find offerings that contain these listing IDs
+      const offerings = await this.findAll(
+        { listing: { in: listingIds } },
+        { retry: false }
+      );
+
+      return offerings;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
+  }
+
+  /** Retrieves a collection of offerings by provider
+   * @public
+   * @param queryString query object
+   */
+  async findOfferingsByProvider(
+    queryString: Record<string, any>
+  ): Promise<IOffering[]> {
+    const operation = async () => {
+      // Find listings by provider
+      const listings = await ListingRepository.Create().findAll(queryString, {
+        retry: false,
+      });
+
+      const listingIds = listings.map((listing) => listing._id);
+
+      if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+
+      // Find offerings that contain these listing IDs
+      const offerings = await this.findAll(
+        { listing: { in: listingIds } },
+        { retry: false }
+      );
+
+      return offerings;
+    };
+
+    return await FailureRetry.LinearJitterBackoff(() => operation());
   }
 
   /**
