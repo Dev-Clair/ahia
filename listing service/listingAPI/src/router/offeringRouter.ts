@@ -1,9 +1,6 @@
 import { Router } from "express";
-import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
-import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
-import ListingMiddleware from "../middleware/listingMiddleware";
 import OfferingController from "../controller/offeringController";
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
@@ -50,17 +47,10 @@ OfferingRouter.route(`/provider`).get(
 
 OfferingRouter.route("/search").get(OfferingController.retrieveOfferingsSearch);
 
-OfferingRouter.route(`/:id(${IdParamRegex})`)
-  .get(
-    DocumentMiddleware("offering", "id"),
-    OfferingController.retrieveOfferingById
-  )
-  .patch(
-    AuthMiddleware.isGranted(["Provider"]),
-    IdempotencyMiddleware.isIdempotent,
-    ListingMiddleware.isContentType(["application/json"]),
-    OfferingController.updateOfferingById
-  );
+OfferingRouter.route(`/:id(${IdParamRegex})`).get(
+  DocumentMiddleware("offering", "id"),
+  OfferingController.retrieveOfferingById
+);
 
 OfferingRouter.route(`/:id(${IdParamRegex})/:type/listing`).get(
   OfferingController.retrieveOfferingByIdAndPopulate

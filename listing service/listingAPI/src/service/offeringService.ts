@@ -4,6 +4,8 @@ import OfferingRepository from "../repository/offeringRepository";
 /**
  * Offering Service
  * @method findAll
+ * @method findByLocation
+ * @method findByProvider
  * @method findById
  * @method findBySlug
  * @method findByIdAndPopulate

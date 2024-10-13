@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import IOffering from "../interface/IOffering";
 import OfferingService from "../service/offeringService";
+import Config from "../../config";
 
 /**
  * Retrieve offerings
@@ -225,7 +226,9 @@ const retrieveOfferingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query as Record<string, any>;
+    const providerId = req.query.id as string;
+
+    const queryString = { provider: { id: providerId } };
 
     const offerings = await OfferingService.Create().findOfferingsByProvider(
       queryString
@@ -264,26 +267,6 @@ const retrieveOfferingById = async (
  * @param next Express NextFunction Object
  */
 const retrieveOfferingBySlug = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const offering = req.offering as IOffering;
-
-    return res.status(HttpCode.OK).json({ data: offering });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Updates an offering by id
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const updateOfferingById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -369,7 +352,6 @@ export default {
   retrieveOfferingsAvailableForSelling,
   retrieveOfferingById,
   retrieveOfferingBySlug,
-  updateOfferingById,
   retrieveOfferingByIdAndPopulate,
   retrieveOfferingBySlugAndPopulate,
 };

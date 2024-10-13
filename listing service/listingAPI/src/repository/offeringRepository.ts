@@ -15,6 +15,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findByIdAndPopulate
  * @method findBySlugAndPopulate
  * @method findOfferingsByLocation
+ * @method findOfferingsByProvider
  * @method save
  * @method update
  * @method delete
@@ -30,8 +31,8 @@ export default class OfferingRepository implements IOfferingRepository {
   static SORT_OFFERINGS = { createdAt: -1 };
 
   static LISTING_PROJECTION = {
-    address: { street: 0, city: 0, state: 0, zip: 0 },
-    location: { type: 0, geoCoordinates: 0 },
+    address: 0,
+    location: 0,
     provider: { email: 0 },
     createdAt: 0,
     updatedAt: 0,
