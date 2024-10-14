@@ -1,20 +1,18 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotency";
-import ITour from "../interface/ITour";
-import ITourRepository from "../interface/ITourrepository";
-import RealtorRepository from "./realtorRepository";
-import ScheduleRepository from "./scheduleRepository";
-import Tour from "../model/tour";
+import IRealtor from "../interface/IRealtor";
+import IRealtorRepository from "../interface/IRealtorrepository";
+import Realtor from "../model/realtor";
 import { QueryBuilder } from "../utils/queryBuilder";
 
-export default class TourRepository implements ITourRepository {
-  static TOUR_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
+export default class RealtorRepository implements IRealtorRepository {
+  static REALTOR_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
 
-  static SORT_TOURS = ["-createdAt"];
+  static SORT_REALTORS = ["-createdAt"];
 
   /**
-   * Retrieves a collection of tours from collection
+   * Retrieves a collection of realtors from collection
    * @public
    * @param queryString query object
    * @param options configuration options
@@ -22,11 +20,11 @@ export default class TourRepository implements ITourRepository {
   async findAll(
     queryString: Record<string, any>,
     options: { retry: boolean }
-  ): Promise<ITour[]> {
+  ): Promise<IRealtor[]> {
     const { retry } = options;
 
     const operation = async () => {
-      const query = Tour.find();
+      const query = Realtor.find();
 
       const filter = { ...queryString };
 
@@ -35,42 +33,42 @@ export default class TourRepository implements ITourRepository {
       return await queryBuilder.Filter().Sort().Select().Paginate().Exec();
     };
 
-    const tours = retry
+    const realtors = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tours;
+    return realtors;
   }
 
   /**
-   * Retrieves a tour by id
+   * Retrieves a realtor by id
    * @public
-   * @param id tour id
+   * @param id realtor id
    * @param options configuration options
    */
   async findById(
     id: string,
     options: { retry: boolean }
-  ): Promise<ITour | null> {
+  ): Promise<IRealtor | null> {
     const { retry } = options;
 
     const operation = async () =>
-      await Tour.findById(id, TourRepository.TOUR_PROJECTION).exec();
+      await Realtor.findById(id, RealtorRepository.REALTOR_PROJECTION).exec();
 
-    const tour = retry
+    const realtor = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour;
+    return realtor;
   }
 
   /**
-   * Creates a new tour in collection
+   * Creates a new realtor in collection
    * @param payload data object
    * @param options configurations object
    */
   async save(
-    payload: Partial<ITour>,
+    payload: Partial<IRealtor>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -80,34 +78,34 @@ export default class TourRepository implements ITourRepository {
     const { session, idempotent, retry } = options;
 
     const operation = async () => {
-      const tours = await Tour.create([payload], { session: session });
+      const realtors = await Realtor.create([payload], { session: session });
 
       if (idempotent)
         await Idempotency.create([idempotent], { session: session });
 
-      const tour = tours[0];
+      const realtor = realtors[0];
 
-      const tourId = tour._id.toString();
+      const realtorId = realtor._id.toString();
 
-      return tourId;
+      return realtorId;
     };
 
-    const tour = retry
+    const realtor = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour as Promise<string>;
+    return realtor as Promise<string>;
   }
 
   /**
-   * Updates a tour by id
-   * @param id tour id
+   * Updates a realtor by id
+   * @param id realtor id
    * @param payload data object
    * @param options configurations object
    */
   async update(
     id: string,
-    payload: Partial<ITour | any>,
+    payload: Partial<IRealtor | any>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -117,30 +115,30 @@ export default class TourRepository implements ITourRepository {
     const { session, idempotent, retry } = options;
 
     const operation = async () => {
-      const tour = await Tour.findByIdAndUpdate({ _id: id }, [payload], {
+      const realtor = await Realtor.findByIdAndUpdate({ _id: id }, [payload], {
         session: session,
       });
 
       if (idempotent)
         await Idempotency.create([idempotent], { session: session });
 
-      if (!tour) throw new Error("tour not found");
+      if (!realtor) throw new Error("realtor not found");
 
-      const tourId = tour._id.toString();
+      const realtorId = realtor._id.toString();
 
-      return tourId;
+      return realtorId;
     };
 
-    const tour = retry
+    const realtor = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour as Promise<string>;
+    return realtor as Promise<string>;
   }
 
   /**
-   * Deletes a tour by id
-   * @param id tour id
+   * Deletes a realtor by id
+   * @param id realtor id
    * @param options configurations object
    */
   async delete(
@@ -153,31 +151,31 @@ export default class TourRepository implements ITourRepository {
     const { session, retry } = options;
 
     const operation = async () => {
-      const tour = await Tour.findByIdAndDelete(
+      const realtor = await Realtor.findByIdAndDelete(
         { _id: id },
         {
           session: session,
         }
       );
 
-      if (!tour) throw new Error("tour not found");
+      if (!realtor) throw new Error("realtor not found");
 
-      const tourId = tour._id.toString();
+      const realtorId = realtor._id.toString();
 
-      return tourId;
+      return realtorId;
     };
 
-    const tour = retry
+    const realtor = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour as Promise<string>;
+    return realtor as Promise<string>;
   }
 
   /**
-   * Creates and return a new instance of the tour repository class
+   * Creates and return a new instance of the realtor repository class
    */
-  static Create(): TourRepository {
-    return new TourRepository();
+  static Create(): RealtorRepository {
+    return new RealtorRepository();
   }
 }

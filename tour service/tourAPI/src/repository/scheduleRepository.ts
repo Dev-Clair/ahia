@@ -1,20 +1,18 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotency";
-import ITour from "../interface/ITour";
-import ITourRepository from "../interface/ITourrepository";
-import RealtorRepository from "./realtorRepository";
-import ScheduleRepository from "./scheduleRepository";
-import Tour from "../model/tour";
+import ISchedule from "../interface/ISchedule";
+import IScheduleRepository from "../interface/ISchedulerepository";
+import Schedule from "../model/schedule";
 import { QueryBuilder } from "../utils/queryBuilder";
 
-export default class TourRepository implements ITourRepository {
-  static TOUR_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
+export default class ScheduleRepository implements IScheduleRepository {
+  static SCHEDULE_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
 
-  static SORT_TOURS = ["-createdAt"];
+  static SORT_SCHEDULES = ["-createdAt"];
 
   /**
-   * Retrieves a collection of tours from collection
+   * Retrieves a collection of schedules from collection
    * @public
    * @param queryString query object
    * @param options configuration options
@@ -22,11 +20,11 @@ export default class TourRepository implements ITourRepository {
   async findAll(
     queryString: Record<string, any>,
     options: { retry: boolean }
-  ): Promise<ITour[]> {
+  ): Promise<ISchedule[]> {
     const { retry } = options;
 
     const operation = async () => {
-      const query = Tour.find();
+      const query = Schedule.find();
 
       const filter = { ...queryString };
 
@@ -35,42 +33,45 @@ export default class TourRepository implements ITourRepository {
       return await queryBuilder.Filter().Sort().Select().Paginate().Exec();
     };
 
-    const tours = retry
+    const schedules = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tours;
+    return schedules;
   }
 
   /**
-   * Retrieves a tour by id
+   * Retrieves a schedule by id
    * @public
-   * @param id tour id
+   * @param id schedule id
    * @param options configuration options
    */
   async findById(
     id: string,
     options: { retry: boolean }
-  ): Promise<ITour | null> {
+  ): Promise<ISchedule | null> {
     const { retry } = options;
 
     const operation = async () =>
-      await Tour.findById(id, TourRepository.TOUR_PROJECTION).exec();
+      await Schedule.findById(
+        id,
+        ScheduleRepository.SCHEDULE_PROJECTION
+      ).exec();
 
-    const tour = retry
+    const schedule = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour;
+    return schedule;
   }
 
   /**
-   * Creates a new tour in collection
+   * Creates a new schedule in collection
    * @param payload data object
    * @param options configurations object
    */
   async save(
-    payload: Partial<ITour>,
+    payload: Partial<ISchedule>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -80,34 +81,34 @@ export default class TourRepository implements ITourRepository {
     const { session, idempotent, retry } = options;
 
     const operation = async () => {
-      const tours = await Tour.create([payload], { session: session });
+      const schedules = await Schedule.create([payload], { session: session });
 
       if (idempotent)
         await Idempotency.create([idempotent], { session: session });
 
-      const tour = tours[0];
+      const schedule = schedules[0];
 
-      const tourId = tour._id.toString();
+      const scheduleId = schedule._id.toString();
 
-      return tourId;
+      return scheduleId;
     };
 
-    const tour = retry
+    const schedule = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour as Promise<string>;
+    return schedule as Promise<string>;
   }
 
   /**
-   * Updates a tour by id
-   * @param id tour id
+   * Updates a schedule by id
+   * @param id schedule id
    * @param payload data object
    * @param options configurations object
    */
   async update(
     id: string,
-    payload: Partial<ITour | any>,
+    payload: Partial<ISchedule | any>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -117,30 +118,34 @@ export default class TourRepository implements ITourRepository {
     const { session, idempotent, retry } = options;
 
     const operation = async () => {
-      const tour = await Tour.findByIdAndUpdate({ _id: id }, [payload], {
-        session: session,
-      });
+      const schedule = await Schedule.findByIdAndUpdate(
+        { _id: id },
+        [payload],
+        {
+          session: session,
+        }
+      );
 
       if (idempotent)
         await Idempotency.create([idempotent], { session: session });
 
-      if (!tour) throw new Error("tour not found");
+      if (!schedule) throw new Error("schedule not found");
 
-      const tourId = tour._id.toString();
+      const scheduleId = schedule._id.toString();
 
-      return tourId;
+      return scheduleId;
     };
 
-    const tour = retry
+    const schedule = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour as Promise<string>;
+    return schedule as Promise<string>;
   }
 
   /**
-   * Deletes a tour by id
-   * @param id tour id
+   * Deletes a schedule by id
+   * @param id schedule id
    * @param options configurations object
    */
   async delete(
@@ -153,31 +158,31 @@ export default class TourRepository implements ITourRepository {
     const { session, retry } = options;
 
     const operation = async () => {
-      const tour = await Tour.findByIdAndDelete(
+      const schedule = await Schedule.findByIdAndDelete(
         { _id: id },
         {
           session: session,
         }
       );
 
-      if (!tour) throw new Error("tour not found");
+      if (!schedule) throw new Error("schedule not found");
 
-      const tourId = tour._id.toString();
+      const scheduleId = schedule._id.toString();
 
-      return tourId;
+      return scheduleId;
     };
 
-    const tour = retry
+    const schedule = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return tour as Promise<string>;
+    return schedule as Promise<string>;
   }
 
   /**
-   * Creates and return a new instance of the tour repository class
+   * Creates and return a new instance of the schedule repository class
    */
-  static Create(): TourRepository {
-    return new TourRepository();
+  static Create(): ScheduleRepository {
+    return new ScheduleRepository();
   }
 }
