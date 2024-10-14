@@ -1,7 +1,7 @@
 import { Router } from "express";
 import AuthMiddleware from "../middleware/authMiddleware";
 import TourController from "../controller/tourController";
-import TourMiddleware from "../middleware/tourMiddleware";
+import TourMiddleware from "../middleware/tobiroppo";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 
 const TourRouter = Router();
