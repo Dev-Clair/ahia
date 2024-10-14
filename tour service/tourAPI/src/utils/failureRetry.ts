@@ -1,6 +1,4 @@
 import AsyncRetry from "async-retry";
-import Logger from "../service/loggerService";
-
 class FailureRetry {
   static async ExponentialBackoff(
     operation: any,
@@ -15,7 +13,7 @@ class FailureRetry {
         factor: options.factor,
         minTimeout: options.minTimeout,
         onRetry: (error, attempt) => {
-          Logger.error(
+          console.error(
             `Exponential retry attempt no. ${attempt} failed.\nThere are ${
               options.retries - attempt
             } retries left.\nError: ${error.message}`
@@ -65,7 +63,7 @@ class FailureRetry {
         retries: options.retries,
         minTimeout: options.minTimeout,
         onRetry: (error, attempt) => {
-          Logger.error(
+          console.error(
             `Linear retry attempt no. ${attempt} failed.\nError: ${error.message}.\nNext retry in ${options.minTimeout}ms`
           );
           return options.minTimeout;
@@ -88,7 +86,7 @@ class FailureRetry {
         onRetry: (error, attempt) => {
           const jitter = Math.random() * options.jitterFactor;
 
-          Logger.error(
+          console.error(
             `Linear jitter retry attempt no. ${attempt} failed.\nError: ${
               error.message
             }.\nNext retry in ${options.minTimeout + jitter}ms`
