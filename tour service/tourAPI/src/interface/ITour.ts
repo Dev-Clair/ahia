@@ -12,5 +12,4 @@ export default interface ITour extends Document {
   };
   status: "pending" | "ongoing" | "completed" | "cancelled";
   isClosed: boolean;
-  createdAt: Date;
 }

@@ -17,7 +17,7 @@ const TourSchema: Schema<ITour> = new Schema(
     },
     offerings: [
       {
-        type: [String],
+        type: String,
         required: true,
       },
     ],
