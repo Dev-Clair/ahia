@@ -24,7 +24,10 @@ export default interface ITourRepository extends IRepository<ITour> {
    * @param payload the data object
    * @param options  configuration options
    */
-  save(payload: ITour, options?: { [key: string]: any }): Promise<string>;
+  save(
+    payload: Partial<ITour>,
+    options?: { [key: string]: any }
+  ): Promise<string>;
 
   /**
    * Updates a tour by id
@@ -34,7 +37,7 @@ export default interface ITourRepository extends IRepository<ITour> {
    */
   update(
     id: string,
-    payload: ITour | any,
+    payload: Partial<ITour | any>,
     options?: { [key: string]: any }
   ): Promise<string>;
 

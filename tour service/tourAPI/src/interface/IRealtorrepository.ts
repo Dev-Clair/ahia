@@ -1,42 +1,51 @@
-export default interface IRepository<T> {
+import IRepository from "./IRepository";
+import IRealtor from "./IRealtor";
+
+export default interface IRealtorRepository extends IRepository<IRealtor> {
   /**
-   * Retrieves a collection of documents
+   * Retrieves a collection of realtors
    * @param queryString query object
    * @param options configuration options
    */
   findAll(
     queryString: Record<string, any>,
     options?: { [key: string]: any }
-  ): Promise<T[]>;
+  ): Promise<IRealtor[]>;
 
   /**
-   * Retrieves a document by id
-   * @param id document id
+   * Retrieves a realtor by id
+   * @param id realtor id
    * @param options configuration options
    */
-  findById(id: string, options?: { [key: string]: any }): Promise<T | null>;
+  findById(
+    id: string,
+    options?: { [key: string]: any }
+  ): Promise<IRealtor | null>;
 
   /**
-   * Creates a new document in collection
+   * Creates a new realtor in collection
    * @param payload the data object
    * @param options  configuration options
    */
-  save(payload: Partial<T>, options?: { [key: string]: any }): Promise<string>;
+  save(
+    payload: Partial<IRealtor>,
+    options?: { [key: string]: any }
+  ): Promise<string>;
 
   /**
-   * Updates a document by id
+   * Updates a realtor by id
    * @param id document id
    * @param payload the data object
    * @param options  configuration options
    */
   update(
     id: string,
-    payload: Partial<T | any>,
+    payload: Partial<IRealtor | any>,
     options?: { [key: string]: any }
   ): Promise<string>;
 
   /**
-   * Deletes a document by id
+   * Deletes a realtor by id
    * @param id document id
    * @param options configuration options
    */
