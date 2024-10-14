@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
-import IdempotencyInterface from "../interface/idempotency";
+import IIdempotency from "../interface/IIdempotency";
 
-const IdempotencySchema: Schema<IdempotencyInterface> = new Schema({
+const IdempotencySchema: Schema<IIdempotency> = new Schema({
   key: {
     type: String,
     required: true,
@@ -11,6 +11,7 @@ const IdempotencySchema: Schema<IdempotencyInterface> = new Schema({
     type: Date,
     default: Date.now,
     expires: "24h",
+    index: true,
   },
 });
 
