@@ -44,8 +44,6 @@ const TourSchema: Schema<ITour> = new Schema(
   { timestamps: true }
 );
 
-TourSchema.index({ name: "text", status: "text" });
-
 TourSchema.pre("save", function (next) {
   if (!this.isModified("name")) {
     this.name = `Tour_${this.customer}`;
