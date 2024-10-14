@@ -1,7 +1,7 @@
 import { Router } from "express";
 import AuthMiddleware from "../middleware/authMiddleware";
 import TourController from "../controller/tourController";
-import TourMiddleWare from "../middleware/tourMiddleWare";
+import TourMiddleware from "../middleware/tourMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 
 const TourRouter = Router();
@@ -11,8 +11,8 @@ TourRouter.route("/")
   .post(
     AuthMiddleware.IsGranted(["Admin"]),
     ValidationMiddleware.validateCustomer,
-    TourMiddleWare.isAllowedContentType,
-    TourMiddleWare.isIdempotent,
+    TourMiddleware.isAllowedContentType,
+    TourMiddleware.isIdempotent,
     TourController.createTours
   );
 
@@ -37,13 +37,13 @@ TourRouter.route("/:id")
     ValidationMiddleware.validateSingleParamId,
     TourController.retrieveTourItem
   )
-  .put(TourMiddleWare.isNotAllowed)
+  .put(TourMiddleware.isNotAllowed)
   .patch(
     AuthMiddleware.IsGranted(["Customer"]),
     ValidationMiddleware.validateSingleParamId,
-    TourMiddleWare.isAllowedContentType,
-    TourMiddleWare.isIdempotent,
-    TourMiddleWare.isUpdatable,
+    TourMiddleware.isAllowedContentType,
+    TourMiddleware.isIdempotent,
+    TourMiddleware.isUpdatable,
     TourController.updateTourItem
   )
   .delete(
@@ -104,8 +104,8 @@ TourRouter.route("/:id/schedule").patch(
   AuthMiddleware.IsGranted(["Customer"]),
   ValidationMiddleware.validateSingleParamId,
   ValidationMiddleware.validateSchedule,
-  TourMiddleWare.isAllowedContentType,
-  TourMiddleWare.isIdempotent,
+  TourMiddleware.isAllowedContentType,
+  TourMiddleware.isIdempotent,
   TourController.scheduleTourItem
 );
 
@@ -113,8 +113,8 @@ TourRouter.route("/:id/reschedule").post(
   AuthMiddleware.IsGranted(["Customer", "Realtor"]),
   ValidationMiddleware.validateSingleParamId,
   ValidationMiddleware.validateSchedule,
-  TourMiddleWare.isAllowedContentType,
-  TourMiddleWare.isIdempotent,
+  TourMiddleware.isAllowedContentType,
+  TourMiddleware.isIdempotent,
   TourController.rescheduleTourItem
 );
 

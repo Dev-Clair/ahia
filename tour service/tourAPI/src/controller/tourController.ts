@@ -11,8 +11,8 @@ import InternalServerError from "../error/internalserverError";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import { QueryBuilder } from "../utils/queryBuilder";
-import RealtorCache from "../model/realtorCache";
-import ScheduleCache from "../model/scheduleCache";
+import RealtorCache from "../model/realtor";
+import ScheduleCache from "../model/schedule";
 import SecretManager from "../utils/secretManager";
 import Tour from "../model/tour";
 
