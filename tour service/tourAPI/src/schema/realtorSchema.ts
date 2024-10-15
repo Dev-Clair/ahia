@@ -10,7 +10,7 @@ const RealtorSchema: Schema<IRealtor> = new Schema(
     },
     realtor: {
       type: String,
-      required: false,
+      required: true,
     },
   },
   { timestamps: true }
