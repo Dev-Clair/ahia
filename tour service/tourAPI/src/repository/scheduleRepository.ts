@@ -30,7 +30,13 @@ export default class ScheduleRepository implements IScheduleRepository {
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      return await queryBuilder.Filter().Sort().Select().Paginate().Exec();
+      return (
+        await queryBuilder
+          .Filter()
+          .Sort(ScheduleRepository.SORT_SCHEDULES)
+          .Select(ScheduleRepository.SCHEDULE_PROJECTION)
+          .Paginate()
+      ).Exec();
     };
 
     const schedules = retry

@@ -30,7 +30,13 @@ export default class RealtorRepository implements IRealtorRepository {
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      return await queryBuilder.Filter().Sort().Select().Paginate().Exec();
+      return (
+        await queryBuilder
+          .Filter()
+          .Sort(RealtorRepository.SORT_REALTORS)
+          .Select(RealtorRepository.REALTOR_PROJECTION)
+          .Paginate()
+      ).Exec();
     };
 
     const realtors = retry

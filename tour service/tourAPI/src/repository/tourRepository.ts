@@ -3,8 +3,6 @@ import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotency";
 import ITour from "../interface/ITour";
 import ITourRepository from "../interface/ITourrepository";
-import RealtorRepository from "./realtorRepository";
-import ScheduleRepository from "./scheduleRepository";
 import Tour from "../model/tour";
 import { QueryBuilder } from "../utils/queryBuilder";
 
@@ -32,7 +30,13 @@ export default class TourRepository implements ITourRepository {
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      return await queryBuilder.Filter().Sort().Select().Paginate().Exec();
+      return (
+        await queryBuilder
+          .Filter()
+          .Sort(TourRepository.SORT_TOURS)
+          .Select(TourRepository.TOUR_PROJECTION)
+          .Paginate()
+      ).Exec();
     };
 
     const tours = retry
