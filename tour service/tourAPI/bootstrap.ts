@@ -2,11 +2,11 @@ import * as Sentry from "@sentry/node";
 import process from "node:process";
 import mongoose from "mongoose";
 import Config from "./config";
-import DatabaseService from "./src/service/databaseService";
-import DatabaseServiceError from "./src/error/databaseserviceError";
+import ConnectionService from "./src/service/connectionService";
+import ConnectionServiceError from "./src/error/connectionserviceError";
 import HttpServer from "./src/utils/httpServer";
 import HttpServerError from "./src/error/httpserverError";
-import Logger from "./src/service/loggerService";
+import Logger from "./src/utils/logger";
 
 /**
  * Bootstraps the entire application
@@ -22,11 +22,12 @@ export async function Boot(Server: HttpServer): Promise<void> {
       });
 
     // Create and initialize database with connection string
-    await DatabaseService.Create(Config.MONGO_URI).getConnection();
+    await ConnectionService.Create(Config.MONGO_URI).getConnection();
   } catch (err: any) {
     if (err instanceof HttpServerError) ServerErrorHandler(err, Server);
 
-    if (err instanceof DatabaseServiceError) DatabaseErrorHandler(err, Server);
+    if (err instanceof ConnectionServiceError)
+      DatabaseErrorHandler(err, Server);
   }
 }
 
@@ -37,10 +38,7 @@ export async function Boot(Server: HttpServer): Promise<void> {
 export function GlobalProcessEventsListener(): void {
   process
     .on("unhandledRejection", UnhandledRejectionsHandler)
-    .on("uncaughtException", UnCaughtExceptionsHandler)
-    .on("SIGINT", ShutdownHandler)
-    .on("SIGHUP", ShutdownHandler)
-    .on("SIGTERM", ShutdownHandler);
+    .on("uncaughtException", UnCaughtExceptionsHandler);
 }
 
 /**
@@ -95,7 +93,7 @@ export function ServerErrorHandler(
  * @returns void
  */
 export function DatabaseErrorHandler(
-  err: DatabaseServiceError,
+  err: ConnectionServiceError,
   Server: HttpServer
 ): void {
   const error = {
@@ -105,7 +103,7 @@ export function DatabaseErrorHandler(
     stack: err.stack,
   };
 
-  if (err instanceof DatabaseServiceError)
+  if (err instanceof ConnectionServiceError)
     Sentry.withScope((scope) => {
       scope.setTag("Database Connection Error", "Critical");
 
@@ -156,7 +154,9 @@ export function UnCaughtExceptionsHandler(error: any): void {
  * @param server
  * @returns void
  */
-export async function ShutdownHandler(Server?: HttpServer): Promise<void> {
+export async function ShutdownHandler(
+  Server: HttpServer | null
+): Promise<void> {
   Logger.info("Shutting down gracefully...");
 
   await mongoose.connection.close(true);

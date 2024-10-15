@@ -26,7 +26,11 @@ const Config = {
     KEY_FILE_PATH: process.env.SSL_KEY_FILE_PATH || "",
     CERT_FILE_PATH: process.env.SSL_CERT_FILE_PATH || "",
   },
-  TOUR_SENTRY_DSN: process.env.TOUR_SERVICE_SENTRY_DSN || "",
+  TOUR_SERVICE: {
+    NAME: process.env.TOUR_SERVICE_NAME,
+    SECRET: process.env.TOUR_SERVICE_SECRET,
+    SENTRY_DSN: process.env.TOUR_SERVICE_SENTRY_DSN || "",
+  },
 };
 
 export default Config;
