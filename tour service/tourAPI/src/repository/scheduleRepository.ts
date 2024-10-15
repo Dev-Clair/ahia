@@ -21,29 +21,33 @@ export default class ScheduleRepository implements IScheduleRepository {
     queryString: Record<string, any>,
     options: { retry: boolean }
   ): Promise<ISchedule[]> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const query = Schedule.find();
+      const operation = async () => {
+        const query = Schedule.find();
 
-      const filter = { ...queryString };
+        const filter = { ...queryString };
 
-      const queryBuilder = QueryBuilder.Create(query, filter);
+        const queryBuilder = QueryBuilder.Create(query, filter);
 
-      return (
-        await queryBuilder
-          .Filter()
-          .Sort(ScheduleRepository.SORT_SCHEDULES)
-          .Select(ScheduleRepository.SCHEDULE_PROJECTION)
-          .Paginate()
-      ).Exec();
-    };
+        return (
+          await queryBuilder
+            .Filter()
+            .Sort(ScheduleRepository.SORT_SCHEDULES)
+            .Select(ScheduleRepository.SCHEDULE_PROJECTION)
+            .Paginate()
+        ).Exec();
+      };
 
-    const schedules = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const schedules = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return schedules;
+      return schedules as Promise<ISchedule[]>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -56,19 +60,23 @@ export default class ScheduleRepository implements IScheduleRepository {
     id: string,
     options: { retry: boolean }
   ): Promise<ISchedule | null> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () =>
-      await Schedule.findById(
-        id,
-        ScheduleRepository.SCHEDULE_PROJECTION
-      ).exec();
+      const operation = async () =>
+        await Schedule.findById(
+          id,
+          ScheduleRepository.SCHEDULE_PROJECTION
+        ).exec();
 
-    const schedule = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const schedule = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return schedule;
+      return schedule as Promise<ISchedule | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -84,26 +92,32 @@ export default class ScheduleRepository implements IScheduleRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    try {
+      const { session, idempotent, retry } = options;
 
-    const operation = async () => {
-      const schedules = await Schedule.create([payload], { session: session });
+      const operation = async () => {
+        const schedules = await Schedule.create([payload], {
+          session: session,
+        });
 
-      if (idempotent)
-        await Idempotency.create([idempotent], { session: session });
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      const schedule = schedules[0];
+        const schedule = schedules[0];
 
-      const scheduleId = schedule._id.toString();
+        const scheduleId = schedule._id.toString();
 
-      return scheduleId;
-    };
+        return scheduleId;
+      };
 
-    const schedule = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const schedule = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return schedule as Promise<string>;
+      return schedule as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -121,32 +135,36 @@ export default class ScheduleRepository implements IScheduleRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    try {
+      const { session, idempotent, retry } = options;
 
-    const operation = async () => {
-      const schedule = await Schedule.findByIdAndUpdate(
-        { _id: id },
-        [payload],
-        {
-          session: session,
-        }
-      );
+      const operation = async () => {
+        const schedule = await Schedule.findByIdAndUpdate(
+          { _id: id },
+          payload,
+          {
+            session: session,
+          }
+        );
 
-      if (idempotent)
-        await Idempotency.create([idempotent], { session: session });
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      if (!schedule) throw new Error("schedule not found");
+        if (!schedule) throw new Error("schedule not found");
 
-      const scheduleId = schedule._id.toString();
+        const scheduleId = schedule._id.toString();
 
-      return scheduleId;
-    };
+        return scheduleId;
+      };
 
-    const schedule = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const schedule = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return schedule as Promise<string>;
+      return schedule as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -161,28 +179,32 @@ export default class ScheduleRepository implements IScheduleRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, retry } = options;
+    try {
+      const { session, retry } = options;
 
-    const operation = async () => {
-      const schedule = await Schedule.findByIdAndDelete(
-        { _id: id },
-        {
-          session: session,
-        }
-      );
+      const operation = async () => {
+        const schedule = await Schedule.findByIdAndDelete(
+          { _id: id },
+          {
+            session: session,
+          }
+        );
 
-      if (!schedule) throw new Error("schedule not found");
+        if (!schedule) throw new Error("schedule not found");
 
-      const scheduleId = schedule._id.toString();
+        const scheduleId = schedule._id.toString();
 
-      return scheduleId;
-    };
+        return scheduleId;
+      };
 
-    const schedule = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const schedule = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return schedule as Promise<string>;
+      return schedule as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**

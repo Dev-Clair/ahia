@@ -9,10 +9,15 @@ export default class ScheduleService {
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<ISchedule[]> {
-    try {
-      const options = { retry: true };
+    const options = { retry: true };
 
-      return await ScheduleRepository.Create().findAll(queryString, options);
+    try {
+      const schedules = await ScheduleRepository.Create().findAll(
+        queryString,
+        options
+      );
+
+      return schedules;
     } catch (error: any) {
       throw error;
     }
@@ -24,10 +29,12 @@ export default class ScheduleService {
    * @param id schedule id
    */
   async findById(id: string): Promise<ISchedule | null> {
-    try {
-      const options = { retry: true };
+    const options = { retry: true };
 
-      return await ScheduleRepository.Create().findById(id, options);
+    try {
+      const schedule = await ScheduleRepository.Create().findById(id, options);
+
+      return schedule;
     } catch (error: any) {
       throw error;
     }
@@ -44,12 +51,14 @@ export default class ScheduleService {
   ): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, idempotent: key, retry: true };
+    const options = { session: session, idempotent: key, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const schedule = await session.withTransaction(
         async () => await ScheduleRepository.Create().save(payload, options)
       );
+
+      return schedule;
     } catch (error: any) {
       throw error;
     } finally {
@@ -70,13 +79,15 @@ export default class ScheduleService {
   ): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, idempotent: key, retry: true };
+    const options = { session: session, idempotent: key, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const schedule = await session.withTransaction(
         async () =>
           await ScheduleRepository.Create().update(id, payload, options)
       );
+
+      return schedule;
     } catch (error: any) {
       throw error;
     } finally {
@@ -91,12 +102,14 @@ export default class ScheduleService {
   async delete(id: string): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, retry: true };
+    const options = { session: session, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const schedule = await session.withTransaction(
         async () => await ScheduleRepository.Create().delete(id, options)
       );
+
+      return schedule;
     } catch (error: any) {
       throw error;
     } finally {

@@ -9,10 +9,15 @@ export default class RealtorService {
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<IRealtor[]> {
-    try {
-      const options = { retry: true };
+    const options = { retry: true };
 
-      return await RealtorRepository.Create().findAll(queryString, options);
+    try {
+      const realtors = await RealtorRepository.Create().findAll(
+        queryString,
+        options
+      );
+
+      return realtors;
     } catch (error: any) {
       throw error;
     }
@@ -24,10 +29,12 @@ export default class RealtorService {
    * @param id realtor id
    */
   async findById(id: string): Promise<IRealtor | null> {
-    try {
-      const options = { retry: true };
+    const options = { retry: true };
 
-      return await RealtorRepository.Create().findById(id, options);
+    try {
+      const realtor = await RealtorRepository.Create().findById(id, options);
+
+      return realtor;
     } catch (error: any) {
       throw error;
     }
@@ -44,12 +51,14 @@ export default class RealtorService {
   ): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, idempotent: key, retry: true };
+    const options = { session: session, idempotent: key, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const realtor = await session.withTransaction(
         async () => await RealtorRepository.Create().save(payload, options)
       );
+
+      return realtor;
     } catch (error: any) {
       throw error;
     } finally {
@@ -70,13 +79,15 @@ export default class RealtorService {
   ): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, idempotent: key, retry: true };
+    const options = { session: session, idempotent: key, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const realtor = await session.withTransaction(
         async () =>
           await RealtorRepository.Create().update(id, payload, options)
       );
+
+      return realtor;
     } catch (error: any) {
       throw error;
     } finally {
@@ -91,12 +102,14 @@ export default class RealtorService {
   async delete(id: string): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, retry: true };
+    const options = { session: session, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const realtor = await session.withTransaction(
         async () => await RealtorRepository.Create().delete(id, options)
       );
+
+      return realtor;
     } catch (error: any) {
       throw error;
     } finally {

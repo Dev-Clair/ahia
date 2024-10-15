@@ -1,5 +1,7 @@
-import { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import ITour from "../interface/ITour";
+import RealtorSchema from "./realtorSchema";
+import ScheduleSchema from "./scheduleSchema";
 
 const TourSchema: Schema<ITour> = new Schema(
   {
@@ -58,6 +60,38 @@ TourSchema.pre("save", function (next) {
   }
 
   next();
+});
+
+TourSchema.pre("findOneAndDelete", async function (next) {
+  const session = await mongoose.startSession();
+
+  try {
+    const tour = (await this.model.findOne(this.getFilter())) as ITour;
+
+    if (!tour) next();
+
+    await session.withTransaction(async () => {
+      // Delete all realtors referenced to tour
+      await mongoose
+        .model("Realtor", RealtorSchema)
+        .bulkWrite([{ deleteMany: { filter: { tour: tour._id } } }], {
+          session,
+        });
+
+      // Delete all schedules referenced to tour
+      await mongoose
+        .model("Schedule", ScheduleSchema)
+        .bulkWrite([{ deleteMany: { filter: { tour: tour._id } } }], {
+          session,
+        });
+    });
+
+    next();
+  } catch (err: any) {
+    next(err);
+  } finally {
+    await session.endSession();
+  }
 });
 
 export default TourSchema;

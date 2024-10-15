@@ -21,29 +21,33 @@ export default class TourRepository implements ITourRepository {
     queryString: Record<string, any>,
     options: { retry: boolean }
   ): Promise<ITour[]> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const query = Tour.find();
+      const operation = async () => {
+        const query = Tour.find();
 
-      const filter = { ...queryString };
+        const filter = { ...queryString };
 
-      const queryBuilder = QueryBuilder.Create(query, filter);
+        const queryBuilder = QueryBuilder.Create(query, filter);
 
-      return (
-        await queryBuilder
-          .Filter()
-          .Sort(TourRepository.SORT_TOURS)
-          .Select(TourRepository.TOUR_PROJECTION)
-          .Paginate()
-      ).Exec();
-    };
+        return (
+          await queryBuilder
+            .Filter()
+            .Sort(TourRepository.SORT_TOURS)
+            .Select(TourRepository.TOUR_PROJECTION)
+            .Paginate()
+        ).Exec();
+      };
 
-    const tours = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const tours = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return tours;
+      return tours as Promise<ITour[]>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -56,16 +60,20 @@ export default class TourRepository implements ITourRepository {
     id: string,
     options: { retry: boolean }
   ): Promise<ITour | null> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () =>
-      await Tour.findById(id, TourRepository.TOUR_PROJECTION).exec();
+      const operation = async () =>
+        await Tour.findById(id, TourRepository.TOUR_PROJECTION).exec();
 
-    const tour = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const tour = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return tour;
+      return tour as Promise<ITour | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -81,26 +89,30 @@ export default class TourRepository implements ITourRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    try {
+      const { session, idempotent, retry } = options;
 
-    const operation = async () => {
-      const tours = await Tour.create([payload], { session: session });
+      const operation = async () => {
+        const tours = await Tour.create([payload], { session: session });
 
-      if (idempotent)
-        await Idempotency.create([idempotent], { session: session });
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      const tour = tours[0];
+        const tour = tours[0];
 
-      const tourId = tour._id.toString();
+        const tourId = tour._id.toString();
 
-      return tourId;
-    };
+        return tourId;
+      };
 
-    const tour = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const tour = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return tour as Promise<string>;
+      return tour as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -118,28 +130,32 @@ export default class TourRepository implements ITourRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    try {
+      const { session, idempotent, retry } = options;
 
-    const operation = async () => {
-      const tour = await Tour.findByIdAndUpdate({ _id: id }, [payload], {
-        session: session,
-      });
+      const operation = async () => {
+        const tour = await Tour.findByIdAndUpdate({ _id: id }, payload, {
+          session: session,
+        });
 
-      if (idempotent)
-        await Idempotency.create([idempotent], { session: session });
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      if (!tour) throw new Error("tour not found");
+        if (!tour) throw new Error("tour not found");
 
-      const tourId = tour._id.toString();
+        const tourId = tour._id.toString();
 
-      return tourId;
-    };
+        return tourId;
+      };
 
-    const tour = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const tour = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return tour as Promise<string>;
+      return tour as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -154,28 +170,32 @@ export default class TourRepository implements ITourRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, retry } = options;
+    try {
+      const { session, retry } = options;
 
-    const operation = async () => {
-      const tour = await Tour.findByIdAndDelete(
-        { _id: id },
-        {
-          session: session,
-        }
-      );
+      const operation = async () => {
+        const tour = await Tour.findByIdAndDelete(
+          { _id: id },
+          {
+            session: session,
+          }
+        );
 
-      if (!tour) throw new Error("tour not found");
+        if (!tour) throw new Error("tour not found");
 
-      const tourId = tour._id.toString();
+        const tourId = tour._id.toString();
 
-      return tourId;
-    };
+        return tourId;
+      };
 
-    const tour = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const tour = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return tour as Promise<string>;
+      return tour as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**

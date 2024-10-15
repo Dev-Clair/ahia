@@ -13,10 +13,12 @@ export default class TourService {
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<ITour[]> {
-    try {
-      const options = { retry: true };
+    const options = { retry: true };
 
-      return await TourRepository.Create().findAll(queryString, options);
+    try {
+      const tours = await TourRepository.Create().findAll(queryString, options);
+
+      return tours;
     } catch (error: any) {
       throw error;
     }
@@ -28,10 +30,12 @@ export default class TourService {
    * @param id tour id
    */
   async findById(id: string): Promise<ITour | null> {
-    try {
-      const options = { retry: true };
+    const options = { retry: true };
 
-      return await TourRepository.Create().findById(id, options);
+    try {
+      const tour = await TourRepository.Create().findById(id, options);
+
+      return tour;
     } catch (error: any) {
       throw error;
     }
@@ -48,12 +52,14 @@ export default class TourService {
   ): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, idempotent: key, retry: true };
+    const options = { session: session, idempotent: key, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const tour = await session.withTransaction(
         async () => await TourRepository.Create().save(payload, options)
       );
+
+      return tour;
     } catch (error: any) {
       throw error;
     } finally {
@@ -74,12 +80,14 @@ export default class TourService {
   ): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, idempotent: key, retry: true };
+    const options = { session: session, idempotent: key, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const tour = await session.withTransaction(
         async () => await TourRepository.Create().update(id, payload, options)
       );
+
+      return tour;
     } catch (error: any) {
       throw error;
     } finally {
@@ -94,12 +102,14 @@ export default class TourService {
   async delete(id: string): Promise<string> {
     const session = await mongoose.startSession();
 
-    try {
-      const options = { session: session, retry: true };
+    const options = { session: session, retry: true };
 
-      return await session.withTransaction(
+    try {
+      const tour = await session.withTransaction(
         async () => await TourRepository.Create().delete(id, options)
       );
+
+      return tour;
     } catch (error: any) {
       throw error;
     } finally {

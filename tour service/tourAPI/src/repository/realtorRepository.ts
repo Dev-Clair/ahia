@@ -21,29 +21,33 @@ export default class RealtorRepository implements IRealtorRepository {
     queryString: Record<string, any>,
     options: { retry: boolean }
   ): Promise<IRealtor[]> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const query = Realtor.find();
+      const operation = async () => {
+        const query = Realtor.find();
 
-      const filter = { ...queryString };
+        const filter = { ...queryString };
 
-      const queryBuilder = QueryBuilder.Create(query, filter);
+        const queryBuilder = QueryBuilder.Create(query, filter);
 
-      return (
-        await queryBuilder
-          .Filter()
-          .Sort(RealtorRepository.SORT_REALTORS)
-          .Select(RealtorRepository.REALTOR_PROJECTION)
-          .Paginate()
-      ).Exec();
-    };
+        return (
+          await queryBuilder
+            .Filter()
+            .Sort(RealtorRepository.SORT_REALTORS)
+            .Select(RealtorRepository.REALTOR_PROJECTION)
+            .Paginate()
+        ).Exec();
+      };
 
-    const realtors = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const realtors = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return realtors;
+      return realtors as Promise<IRealtor[]>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -56,16 +60,20 @@ export default class RealtorRepository implements IRealtorRepository {
     id: string,
     options: { retry: boolean }
   ): Promise<IRealtor | null> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () =>
-      await Realtor.findById(id, RealtorRepository.REALTOR_PROJECTION).exec();
+      const operation = async () =>
+        await Realtor.findById(id, RealtorRepository.REALTOR_PROJECTION).exec();
 
-    const realtor = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const realtor = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return realtor;
+      return realtor as Promise<IRealtor | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -81,26 +89,30 @@ export default class RealtorRepository implements IRealtorRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    try {
+      const { session, idempotent, retry } = options;
 
-    const operation = async () => {
-      const realtors = await Realtor.create([payload], { session: session });
+      const operation = async () => {
+        const realtors = await Realtor.create([payload], { session: session });
 
-      if (idempotent)
-        await Idempotency.create([idempotent], { session: session });
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      const realtor = realtors[0];
+        const realtor = realtors[0];
 
-      const realtorId = realtor._id.toString();
+        const realtorId = realtor._id.toString();
 
-      return realtorId;
-    };
+        return realtorId;
+      };
 
-    const realtor = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const realtor = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return realtor as Promise<string>;
+      return realtor as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -118,28 +130,32 @@ export default class RealtorRepository implements IRealtorRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    try {
+      const { session, idempotent, retry } = options;
 
-    const operation = async () => {
-      const realtor = await Realtor.findByIdAndUpdate({ _id: id }, [payload], {
-        session: session,
-      });
+      const operation = async () => {
+        const realtor = await Realtor.findByIdAndUpdate({ _id: id }, payload, {
+          session: session,
+        });
 
-      if (idempotent)
-        await Idempotency.create([idempotent], { session: session });
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
 
-      if (!realtor) throw new Error("realtor not found");
+        if (!realtor) throw new Error("realtor not found");
 
-      const realtorId = realtor._id.toString();
+        const realtorId = realtor._id.toString();
 
-      return realtorId;
-    };
+        return realtorId;
+      };
 
-    const realtor = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const realtor = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return realtor as Promise<string>;
+      return realtor as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -154,28 +170,32 @@ export default class RealtorRepository implements IRealtorRepository {
       retry: boolean;
     }
   ): Promise<string> {
-    const { session, retry } = options;
+    try {
+      const { session, retry } = options;
 
-    const operation = async () => {
-      const realtor = await Realtor.findByIdAndDelete(
-        { _id: id },
-        {
-          session: session,
-        }
-      );
+      const operation = async () => {
+        const realtor = await Realtor.findByIdAndDelete(
+          { _id: id },
+          {
+            session: session,
+          }
+        );
 
-      if (!realtor) throw new Error("realtor not found");
+        if (!realtor) throw new Error("realtor not found");
 
-      const realtorId = realtor._id.toString();
+        const realtorId = realtor._id.toString();
 
-      return realtorId;
-    };
+        return realtorId;
+      };
 
-    const realtor = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const realtor = retry
+        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
+        : await operation();
 
-    return realtor as Promise<string>;
+      return realtor as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
