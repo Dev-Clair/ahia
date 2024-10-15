@@ -1,4 +1,4 @@
-class DatabaseServiceError extends Error {
+class ConnectionServiceError extends Error {
   public readonly name;
 
   public readonly description;
@@ -6,7 +6,7 @@ class DatabaseServiceError extends Error {
   constructor(message: string, description: string = "") {
     super(message);
 
-    this.name = "DATABASE SERVICE: CONNECTION ERROR";
+    this.name = "CONNECTION SERVICE ERROR";
 
     this.description = description;
 
@@ -14,4 +14,4 @@ class DatabaseServiceError extends Error {
   }
 }
 
-export default DatabaseServiceError;
+export default ConnectionServiceError;
