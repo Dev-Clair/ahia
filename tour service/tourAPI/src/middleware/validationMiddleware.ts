@@ -3,52 +3,28 @@ import { z } from "zod";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 
-const singleParamIdSchema = z.object({
+const IdParamSchema = z.object({
   id: z.string({
     required_error: "ID is required",
     invalid_type_error: "ID must be a string",
   }),
-  // .uuid({ message: "Invalid ID format" }),
 });
 
-const doubleParamIdSchema = singleParamIdSchema.extend({
-  rescheduleId: z.string({
-    invalid_type_error: "Reschedule ID must be a string",
-  }),
-  // .uuid({ message: "Invalid Reschedule ID format" }),
-});
-
-const identitySchema = z.object({
-  id: z.string({
+const tourSchema = z.object({
+  customer: z.string({
     required_error: "ID is required",
     invalid_type_error: "ID must be a string",
   }),
-  // .uuid({ message: "Invalid ID format" }),
-  email: z
-    .string({
-      required_error: "Email is required",
-      invalid_type_error: "Email must be a string",
-    })
-    .email({ message: "Invalid email format" }),
-});
-
-const customerSchema = z.object({
-  customer: identitySchema,
-  listings: z
+  offerings: z
     .array(
       z.object({
         id: z.string({
-          required_error: "Listing ID is required",
-          invalid_type_error: "Listing ID must be a string",
+          required_error: "Offering ID is required",
+          invalid_type_error: "Offering ID must be a string",
         }),
-        // .uuid({ message: "Invalid ID format" }),
-        // location: z.string({
-        //   required_error: "Listing location is required",
-        //   invalid_type_error: "Listing location must be a string",
-        // }),
       })
     )
-    .nonempty("A new tour must have a collection of listings id and location"),
+    .nonempty("A new tour must have a collection of offerings"),
 });
 
 const scheduleSchema = z.object({
@@ -72,7 +48,7 @@ const validateParams =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.params);
+      schema.parse({ id: req.params.id });
 
       next();
     } catch (err) {
@@ -110,17 +86,14 @@ const validateBody =
     }
   };
 
-export const validateSingleParamId = validateParams(singleParamIdSchema);
+export const validateID = validateParams(IdParamSchema);
 
-export const validateDoubleParamId = validateParams(doubleParamIdSchema);
-
-export const validateCustomer = validateBody(customerSchema);
+export const validateTour = validateBody(tourSchema);
 
 export const validateSchedule = validateBody(scheduleSchema);
 
 export default {
-  validateSingleParamId,
-  validateDoubleParamId,
-  validateCustomer,
+  validateID,
+  validateTour,
   validateSchedule,
 };
