@@ -37,7 +37,7 @@ export default interface ITourRepository extends IRepository<ITour> {
    */
   update(
     id: string,
-    payload: Partial<ITour | any>,
+    payload: Partial<ITour> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 

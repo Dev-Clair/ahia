@@ -40,7 +40,7 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
    */
   update(
     id: string,
-    payload: Partial<ISchedule | any>,
+    payload: Partial<ISchedule> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 

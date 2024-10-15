@@ -66,7 +66,7 @@ export default class ScheduleService {
   async update(
     id: string,
     key: Record<string, any>,
-    payload: Partial<ISchedule | any>
+    payload: Partial<ISchedule> | any
   ): Promise<string> {
     const session = await mongoose.startSession();
 

@@ -66,7 +66,7 @@ export default class RealtorService {
   async update(
     id: string,
     key: Record<string, any>,
-    payload: Partial<IRealtor | any>
+    payload: Partial<IRealtor> | any
   ): Promise<string> {
     const session = await mongoose.startSession();
 

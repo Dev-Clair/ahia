@@ -40,7 +40,7 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
    */
   update(
     id: string,
-    payload: Partial<IRealtor | any>,
+    payload: Partial<IRealtor> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 

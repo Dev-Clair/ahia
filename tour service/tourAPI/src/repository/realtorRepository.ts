@@ -111,7 +111,7 @@ export default class RealtorRepository implements IRealtorRepository {
    */
   async update(
     id: string,
-    payload: Partial<IRealtor | any>,
+    payload: Partial<IRealtor> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;

@@ -114,7 +114,7 @@ export default class ScheduleRepository implements IScheduleRepository {
    */
   async update(
     id: string,
-    payload: Partial<ISchedule | any>,
+    payload: Partial<ISchedule> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;

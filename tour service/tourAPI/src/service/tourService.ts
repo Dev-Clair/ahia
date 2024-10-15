@@ -70,7 +70,7 @@ export default class TourService {
   async update(
     id: string,
     key: Record<string, any>,
-    payload: Partial<ITour | any>
+    payload: Partial<ITour> | any
   ): Promise<string> {
     const session = await mongoose.startSession();
 
