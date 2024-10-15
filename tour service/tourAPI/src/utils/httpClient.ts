@@ -2,30 +2,19 @@ import { randomUUID } from "node:crypto";
 import https from "node:https";
 import FailureRetry from "./failureRetry";
 import HttpCode from "../enum/httpCode";
-
-interface HttpRequestOptionsInterface {
-  hostname: string;
-  path: string;
-  method?: string;
-  headers?: Record<string, string>;
-}
-
-interface HttpResponseInterface {
-  statusCode: number | undefined;
-  body: any;
-}
+import IHttpRequestOptions from "../interface/IHttprequestoptions";
+import IHttpResponse from "../interface/IHttpresponse";
 
 /**
  * Http Client
- * @method GET
- * @method POST
- * @method PUT
- * @method PATCH
- * @method DELETE
- * @method Create
+ * @method Get
+ * @method Post
+ * @method Put
+ * @method Patch
+ * @method Delete
  */
 class HttpClient {
-  private httpOptions: HttpRequestOptionsInterface;
+  private httpOptions: IHttpRequestOptions;
 
   private httpHeaders: Record<string, string>;
 
@@ -43,7 +32,6 @@ class HttpClient {
   /**
    * Generates random string values to ensure idempotency of some http methods
    * @private
-   * @returns Promise<string>
    */
   private generateIdempotencyKey(): Promise<string> {
     return new Promise((resolve) => resolve(randomUUID()));
@@ -54,12 +42,11 @@ class HttpClient {
    * @private
    * @param options
    * @param payload
-   * @returns Promise<HttpResponseInterface>
    */
   private async call(
-    options: HttpRequestOptionsInterface,
+    options: IHttpRequestOptions,
     payload?: any
-  ): Promise<HttpResponseInterface> {
+  ): Promise<IHttpResponse> {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
         let data = "";
@@ -71,7 +58,7 @@ class HttpClient {
         res.on("end", () => {
           try {
             const parsedData =
-              res.headers["content-type"] === "application/json"
+              res.headers["Content-Type"] === "application/json"
                 ? JSON.parse(data)
                 : data;
 
@@ -106,78 +93,74 @@ class HttpClient {
    * @private
    * @param method
    * @param payload
-   * @returns Promise<HttpResponseInterface>
    */
-  private async request(
-    method: string,
-    payload?: any
-  ): Promise<HttpResponseInterface> {
-    const headers = { ...this.httpHeaders };
+  private async request(method: string, payload?: any): Promise<IHttpResponse> {
+    try {
+      const headers = { ...this.httpHeaders };
 
-    if (
-      !headers["content-type"] ||
-      headers["content-type"] === "application/json"
-    )
-      Object.assign(headers, { "content-type": "application/json" });
+      if (!headers["Content-Type"])
+        headers["Content-Type"] = "application/json";
 
-    if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH")
-      Object.assign(headers, {
-        "idempotency-key": await this.generateIdempotencyKey(),
-      });
+      if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH")
+        headers["Idempotency-Key"] = await this.generateIdempotencyKey();
 
-    const options = { ...this.httpOptions, method, headers };
+      const options = { ...this.httpOptions, method, headers };
 
-    return FailureRetry.ExponentialBackoff(() => this.call(options, payload));
+      return await FailureRetry.ExponentialBackoff(() =>
+        this.call(options, payload)
+      );
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
    * Carries out a get request
-   * @returns Promise<HttpResponseInterface>
+   * @public
    */
-  public Get(): Promise<HttpResponseInterface> {
+  public Get(): Promise<IHttpResponse> {
     return this.request("GET");
   }
 
   /**
    * Carries out a post request
+   * @public
    * @param payload
-   * @returns Promise<HttpResponseInterface>
    */
-  public Post(payload: any): Promise<HttpResponseInterface> {
+  public Post(payload: any): Promise<IHttpResponse> {
     return this.request("POST", payload);
   }
 
   /**
    * Carries out a put request
+   * @public
    * @param payload
-   * @returns Promise<HttpResponseInterface>
    */
-  public Put(payload: any): Promise<HttpResponseInterface> {
+  public Put(payload: any): Promise<IHttpResponse> {
     return this.request("PUT", payload);
   }
 
   /**
    * Carries out a patch request
+   * @public
    * @param payload
-   * @returns Promise<HttpResponseInterface>
    */
-  public Patch(payload: any): Promise<HttpResponseInterface> {
+  public Patch(payload: any): Promise<IHttpResponse> {
     return this.request("PATCH", payload);
   }
 
   /**
    * Carries out a delete request
-   * @returns Promise<HttpResponseInterface>
+   * @public
    */
-  public Delete(): Promise<HttpResponseInterface> {
+  public Delete(): Promise<IHttpResponse> {
     return this.request("DELETE");
   }
 
   /**
-   * Returns a new instance of the HttpClient class
+   * Creates and returns a new instance of the HttpClient class
    * @param url
    * @param httpHeaders
-   * @returns HttpClient
    */
   static Create(url: string, httpHeaders: Record<string, string>): HttpClient {
     return new HttpClient(url, httpHeaders);

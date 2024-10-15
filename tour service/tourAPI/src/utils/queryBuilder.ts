@@ -1,50 +1,21 @@
 import { Query } from "mongoose";
-
-interface QueryString {
-  page?: string;
-  sort?: string;
-  limit?: string;
-  fields?: string;
-  [key: string]: any;
-}
-
-interface PaginationParams {
-  protocol: string;
-  host?: string;
-  baseUrl: string;
-  path: string;
-}
-
-interface PaginationResult<T> {
-  data: T[];
-  metaData: {
-    totalItems: number;
-    totalPages: number;
-    currentPage: number;
-    links: {
-      next: string | null;
-      prev: string | null;
-    };
-  };
-}
+import IQueryString from "../interface/IQuerystring";
 
 /**
- * @class QueryBuilder
- * Improves query performance
- * @method Exec - executes
- * @method Filter - filtering
- * @method GeoNear - geospatial (near queries)
- * @method Paginate - pagination
- * @method Select - projection
- * @method Sort - sorting
- * @method Create - factory
+ * QueryBuilder
+ * @method Exec - query execution
+ * @method Filter - query filtering
+ * @method GeoSpatial - geospatial (near or within queries)
+ * @method Paginate - query pagination
+ * @method Select - query projection
+ * @method Sort - query sorting
  */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
 
-  private queryString: QueryString;
+  private queryString: IQueryString;
 
-  constructor(query: Query<T[], T>, queryString?: QueryString) {
+  constructor(query: Query<T[], T>, queryString?: IQueryString) {
     this.query = query;
 
     this.queryString = queryString ?? {};
@@ -52,7 +23,6 @@ export class QueryBuilder<T> {
 
   /**
    * Executes the query
-   * @returns Promise of type any
    */
   public Exec(): Promise<T[]> {
     return this.query.exec();
@@ -60,53 +30,71 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query filtering
-   * @returns this
    */
   public Filter(): this {
-    const queryObject = { ...this.queryString };
+    const { page, sort, limit, fields, ...filters } = this.queryString;
 
-    const excludedFields = ["page", "sort", "limit", "fields"];
-
-    excludedFields.forEach((el) => delete queryObject[el]);
-
-    let queryString = JSON.stringify(queryObject);
+    let queryString = JSON.stringify(filters);
 
     queryString = queryString.replace(
       /\b(eq|ne|gte|gt|lte|lt|in|nin)\b/g,
       (match) => `$${match}`
     );
 
-    const parsedQueryString = JSON.parse(queryString);
+    const parsedQuery = JSON.parse(queryString);
 
-    this.query = this.query.find(parsedQueryString);
+    this.query = this.query.find(parsedQuery);
 
     return this;
   }
 
   /**
-   * Handles geospatial queries: Near Query
-   * @returns this
+   * Handles geospatial queries: Near | Within
    */
-  public GeoNear(): this {
-    if (this.queryString.lnglat) {
-      const lng = parseFloat(this.queryString.lng as string);
+  public GeoSpatial(): this {
+    if (this.queryString.lng && this.queryString.lat) {
+      const parsedLng = parseFloat(this.queryString.lng as string);
 
-      const lat = parseFloat(this.queryString.lat as string);
+      const parsedLat = parseFloat(this.queryString.lat as string);
 
-      const distance =
-        parseFloat(this.queryString.distance as string) ?? 2000.0;
+      if (isNaN(parsedLng) || isNaN(parsedLat))
+        throw new Error("Invalid coordinates provided for geospatial query.");
 
-      this.query = this.query.find({
-        location: {
-          $geoNear: {
+      const parsedDistance = this.queryString?.distance
+        ? parseFloat(this.queryString.distance as string)
+        : undefined;
+
+      const parsedRadius = this.queryString?.radius
+        ? parseFloat(this.queryString.radius as string)
+        : undefined;
+
+      let locationFilter;
+
+      if (parsedDistance !== undefined) {
+        const nearQueryFilter = {
+          $near: {
             $geometry: {
               type: "Point",
-              coordinates: [lng, lat],
+              coordinates: [parsedLng, parsedLat],
             },
+            $maxDistance: parsedDistance,
           },
-          $maxDistance: distance,
-        },
-      });
+        };
+
+        locationFilter = nearQueryFilter;
+      }
+
+      if (parsedRadius !== undefined) {
+        const withinQueryFilter = {
+          $geoWithin: {
+            $centerSphere: [[parsedLng, parsedLat], parsedRadius / 6378.1],
+          },
+        };
+
+        locationFilter = withinQueryFilter;
+      }
+
+      this.query = this.query.find({ location: locationFilter });
     }
 
     return this;
@@ -114,67 +102,27 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query pagination
-   * @param PaginationParams
-   * @returns Promise of type data and pagination metadata
    */
-  public async Paginate(
-    params: PaginationParams
-  ): Promise<PaginationResult<T>> {
-    const page = parseInt(this.queryString.page || "1", 10);
+  public async Paginate(): Promise<this> {
+    const page = parseInt((this.queryString.page as string) || "1", 10);
 
-    const limit = parseInt(this.queryString.limit || "2", 10);
+    const limit = parseInt((this.queryString.limit as string) || "10", 10);
 
     const skip = (page - 1) * limit;
 
-    const queryCount = this.query.model.find(this.query.getQuery());
-
     this.query = this.query.skip(skip).limit(limit);
 
-    const [data, totalItems] = await Promise.all([
-      this.query,
-      queryCount.countDocuments(),
-    ]);
-
-    const totalPages = Math.ceil(totalItems / limit);
-
-    const currentPage = page;
-
-    const nextPage = page < totalPages ? currentPage + 1 : null;
-
-    const previousPage = page > 1 ? currentPage - 1 : null;
-
-    const { protocol, host, baseUrl, path } = params;
-
-    const url = `${protocol}://${host}${baseUrl}${path}`;
-
-    const links = {
-      next: nextPage ? `${url}?page=${nextPage}&limit=${limit}` : null,
-      prev: previousPage ? `${url}?page=${previousPage}&limit=${limit}` : null,
-    };
-
-    return {
-      data,
-      metaData: {
-        totalItems,
-        totalPages,
-        currentPage,
-        links,
-      },
-    };
+    return this;
   }
 
   /**
    * Handles query projection
-   * @returns this
+   * @param selectFields A key-value pair of fields to select
    */
-  public Select(specifiedFields: string[] = []): this {
-    const defaultFields = ["-__v", "-createdAt", "-updatedAt"];
-
-    const fields = [
-      this.queryString.fields,
-      ...specifiedFields,
-      defaultFields,
-    ].join(" ");
+  public Select(selectFields: string[]): this {
+    const fields = Array.from(
+      new Set([this.queryString.fields, selectFields])
+    ).join();
 
     this.query = this.query.select(fields);
 
@@ -183,12 +131,12 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query sorting
-   * @returns this
+   * @param sortFields A key-value pair of fields to sort
    */
-  public Sort(defaultSortField = "-createdAt"): this {
-    const sortBy = this.queryString.sort
-      ? this.queryString.sort.split(",").join(" ")
-      : defaultSortField;
+  public Sort(sortFields: string[]): this {
+    const sortBy = Array.from(
+      new Set([this.queryString.sort, sortFields])
+    ).join();
 
     this.query = this.query.sort(sortBy);
 
@@ -197,13 +145,12 @@ export class QueryBuilder<T> {
 
   /**
    * Creates and returns a new instance of the QueryBuilder class
-   * @param query
-   * @param queryString
-   * @returns QueryBuilder
+   * @param query mongoose query
+   * @param queryString query object
    */
   static Create<T>(
     query: Query<T[], T>,
-    queryString?: QueryString
+    queryString?: IQueryString
   ): QueryBuilder<T> {
     return new QueryBuilder(query, queryString);
   }
