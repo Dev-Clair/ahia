@@ -41,9 +41,29 @@ export default class RealtorService {
   }
 
   /**
+   * Retrieves a realtor by tour
+   * @param tour realtor tour
+   * @param options configuration options
+   */
+  async findByTour(tour: string): Promise<IRealtor | null> {
+    const options = { retry: true };
+
+    try {
+      const realtor = await RealtorRepository.Create().findByTour(
+        tour,
+        options
+      );
+
+      return realtor;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
    * Creates a new realtor in collection
    * @param key operation idempotency key
-   * @param payload data object
+   * @param payload the data object
    */
   async save(
     key: Record<string, any>,
@@ -70,7 +90,7 @@ export default class RealtorService {
    * Updates a realtor by id
    * @param id realtor id
    * @param key operation idempotency key
-   * @param payload data object
+   * @param payload the data object
    */
   async update(
     id: string,

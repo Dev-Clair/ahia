@@ -44,7 +44,7 @@ export default class TourService {
   /**
    * Creates a new tour in collection
    * @param key operation idempotency key
-   * @param payload data object
+   * @param payload the data object
    */
   async save(
     key: Record<string, any>,
@@ -71,7 +71,7 @@ export default class TourService {
    * Updates a tour by id
    * @param id tour id
    * @param key operation idempotency key
-   * @param payload data object
+   * @param payload the data object
    */
   async update(
     id: string,
@@ -116,6 +116,30 @@ export default class TourService {
       await session.endSession();
     }
   }
+
+  /**
+   * Writes a realtor to a tour
+   * @param id realtor id
+   * @param key operation idempotency key
+   * @param payload the data object
+   */
+  async acceptRealtor(
+    id: string,
+    key: Record<string, any>,
+    payload: Partial<ITour> | any
+  ) {}
+
+  /**
+   * Writes a schedule to a tour
+   * @param id schedule id
+   * @param key operation idempotency key
+   * @param payload the data object
+   */
+  async acceptReschedule(
+    id: string,
+    key: Record<string, any>,
+    payload: Partial<ITour> | any
+  ) {}
 
   /**
    * Creates and return a new instance of the tour service class

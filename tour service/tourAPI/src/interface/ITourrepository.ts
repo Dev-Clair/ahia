@@ -31,7 +31,7 @@ export default interface ITourRepository extends IRepository<ITour> {
 
   /**
    * Updates a tour by id
-   * @param id document id
+   * @param id tour id
    * @param payload the data object
    * @param options  configuration options
    */
@@ -43,7 +43,7 @@ export default interface ITourRepository extends IRepository<ITour> {
 
   /**
    * Deletes a tour by id
-   * @param id document id
+   * @param id tour id
    * @param options configuration options
    */
   delete(id: string, options?: { [key: string]: any }): Promise<string>;

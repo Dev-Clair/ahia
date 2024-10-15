@@ -78,7 +78,8 @@ export default class TourRepository implements ITourRepository {
 
   /**
    * Creates a new tour in collection
-   * @param payload data object
+   * @public
+   * @param payload the data object
    * @param options configurations object
    */
   async save(
@@ -117,8 +118,9 @@ export default class TourRepository implements ITourRepository {
 
   /**
    * Updates a tour by id
+   * @public
    * @param id tour id
-   * @param payload data object
+   * @param payload the data object
    * @param options configurations object
    */
   async update(
@@ -160,6 +162,7 @@ export default class TourRepository implements ITourRepository {
 
   /**
    * Deletes a tour by id
+   * @public
    * @param id tour id
    * @param options configurations object
    */

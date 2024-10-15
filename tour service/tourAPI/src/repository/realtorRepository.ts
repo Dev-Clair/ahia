@@ -77,8 +77,38 @@ export default class RealtorRepository implements IRealtorRepository {
   }
 
   /**
+   * Retrieves a realtor by tour
+   * @public
+   * @param tour realtor tour
+   * @param options configuration options
+   */
+  async findByTour(
+    tour: string,
+    options: { retry: boolean }
+  ): Promise<IRealtor | null> {
+    try {
+      const { retry } = options;
+
+      const operation = async () =>
+        await Realtor.findOne(
+          { tour: tour },
+          RealtorRepository.REALTOR_PROJECTION
+        ).exec();
+
+      const realtor = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      return realtor as Promise<IRealtor | null>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
    * Creates a new realtor in collection
-   * @param payload data object
+   * @public
+   * @param payload the data object
    * @param options configurations object
    */
   async save(
@@ -117,8 +147,9 @@ export default class RealtorRepository implements IRealtorRepository {
 
   /**
    * Updates a realtor by id
+   * @public
    * @param id realtor id
-   * @param payload data object
+   * @param payload the data object
    * @param options configurations object
    */
   async update(
@@ -160,6 +191,7 @@ export default class RealtorRepository implements IRealtorRepository {
 
   /**
    * Deletes a realtor by id
+   * @public
    * @param id realtor id
    * @param options configurations object
    */

@@ -80,8 +80,38 @@ export default class ScheduleRepository implements IScheduleRepository {
   }
 
   /**
+   * Retrieves a realtor by tour
+   * @public
+   * @param tour realtor tour
+   * @param options configuration options
+   */
+  async findByTour(
+    tour: string,
+    options: { retry: boolean }
+  ): Promise<ISchedule | null> {
+    try {
+      const { retry } = options;
+
+      const operation = async () =>
+        await Schedule.findOne(
+          { tour: tour },
+          ScheduleRepository.SCHEDULE_PROJECTION
+        ).exec();
+
+      const schedule = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      return schedule as Promise<ISchedule | null>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
    * Creates a new schedule in collection
-   * @param payload data object
+   * @public
+   * @param payload the data object
    * @param options configurations object
    */
   async save(
@@ -122,8 +152,9 @@ export default class ScheduleRepository implements IScheduleRepository {
 
   /**
    * Updates a schedule by id
+   * @public
    * @param id schedule id
-   * @param payload data object
+   * @param payload the data object
    * @param options configurations object
    */
   async update(
@@ -169,6 +200,7 @@ export default class ScheduleRepository implements IScheduleRepository {
 
   /**
    * Deletes a schedule by id
+   * @public
    * @param id schedule id
    * @param options configurations object
    */

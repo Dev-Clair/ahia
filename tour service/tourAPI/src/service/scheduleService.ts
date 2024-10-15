@@ -41,9 +41,29 @@ export default class ScheduleService {
   }
 
   /**
+   * Retrieves a schedule by tour
+   * @param tour schedule tour
+   * @param options configuration options
+   */
+  async findByTour(tour: string): Promise<ISchedule | null> {
+    const options = { retry: true };
+
+    try {
+      const schedule = await ScheduleRepository.Create().findByTour(
+        tour,
+        options
+      );
+
+      return schedule;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
    * Creates a new schedule in collection
    * @param key operation idempotency key
-   * @param payload data object
+   * @param payload the data object
    */
   async save(
     key: Record<string, any>,
@@ -70,7 +90,7 @@ export default class ScheduleService {
    * Updates a schedule by id
    * @param id schedule id
    * @param key operation idempotency key
-   * @param payload data object
+   * @param payload the data object
    */
   async update(
     id: string,

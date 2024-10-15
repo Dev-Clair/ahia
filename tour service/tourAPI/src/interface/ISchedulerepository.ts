@@ -23,6 +23,16 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
   ): Promise<ISchedule | null>;
 
   /**
+   * Retrieves a schedule by tour
+   * @param tour schedule tour
+   * @param options configuration options
+   */
+  findByTour(
+    tour: string,
+    options?: { [key: string]: any }
+  ): Promise<ISchedule | null>;
+
+  /**
    * Creates a new schedule in collection
    * @param payload the data object
    * @param options  configuration options
@@ -34,7 +44,7 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
 
   /**
    * Updates a schedule by id
-   * @param id document id
+   * @param id schedule id
    * @param payload the data object
    * @param options  configuration options
    */
@@ -46,7 +56,7 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
 
   /**
    * Deletes a schedule by id
-   * @param id document id
+   * @param id schedule id
    * @param options configuration options
    */
   delete(id: string, options?: { [key: string]: any }): Promise<string>;

@@ -23,6 +23,16 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
   ): Promise<IRealtor | null>;
 
   /**
+   * Retrieves a realtor by tour
+   * @param tour realtor tour
+   * @param options configuration options
+   */
+  findByTour(
+    tour: string,
+    options?: { [key: string]: any }
+  ): Promise<IRealtor | null>;
+
+  /**
    * Creates a new realtor in collection
    * @param payload the data object
    * @param options  configuration options
@@ -34,7 +44,7 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
 
   /**
    * Updates a realtor by id
-   * @param id document id
+   * @param id realtor id
    * @param payload the data object
    * @param options  configuration options
    */
@@ -46,7 +56,7 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
 
   /**
    * Deletes a realtor by id
-   * @param id document id
+   * @param id realtor id
    * @param options configuration options
    */
   delete(id: string, options?: { [key: string]: any }): Promise<string>;
