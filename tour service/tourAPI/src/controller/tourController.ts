@@ -1,4 +1,3 @@
-import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IRealtor from "../interface/IRealtor";
 import ISchedule from "../interface/ISchedule";
