@@ -119,7 +119,7 @@ export default class TourService {
 
   /**
    * Writes a realtor to a tour
-   * @param id realtor id
+   * @param id tour id
    * @param key operation idempotency key
    * @param payload the data object
    */
@@ -127,7 +127,55 @@ export default class TourService {
     id: string,
     key: Record<string, any>,
     payload: Partial<ITour> | any
-  ) {}
+  ) {
+    const session = await mongoose.startSession();
+
+    const options = { session: session, idempotent: key, retry: true };
+
+    try {
+      const realtor = (await RealtorRepository.Create().findByTour(id, {
+        retry: false,
+      })) as IRealtor;
+
+      payload.realtor = realtor.realtor;
+
+      const tour = await session.withTransaction(async () => {
+        const tour = await TourRepository.Create().update(id, payload, options);
+
+        await realtor.deleteOne({ session });
+
+        return tour;
+      });
+
+      return tour;
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Unwrites a realtor for a tour
+   * @param id tour id
+   */
+  async rejectRealtor(id: string): Promise<void> {
+    const session = await mongoose.startSession();
+
+    try {
+      const realtor = (await RealtorRepository.Create().findByTour(id, {
+        retry: false,
+      })) as IRealtor;
+
+      await session.withTransaction(
+        async () => await realtor.deleteOne({ session })
+      );
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
 
   /**
    * Writes a schedule to a tour
@@ -139,7 +187,55 @@ export default class TourService {
     id: string,
     key: Record<string, any>,
     payload: Partial<ITour> | any
-  ) {}
+  ) {
+    const session = await mongoose.startSession();
+
+    const options = { session: session, idempotent: key, retry: true };
+
+    try {
+      const schedule = (await ScheduleRepository.Create().findByTour(id, {
+        retry: false,
+      })) as ISchedule;
+
+      payload.schedule = schedule.schedule;
+
+      const tour = await session.withTransaction(async () => {
+        const tour = await TourRepository.Create().update(id, payload, options);
+
+        await schedule.deleteOne({ session });
+
+        return tour;
+      });
+
+      return tour;
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Unwrites a schedule for a tour
+   * @param id tour id
+   */
+  async rejectReschedule(id: string): Promise<void> {
+    const session = await mongoose.startSession();
+
+    try {
+      const schedule = (await ScheduleRepository.Create().findByTour(id, {
+        retry: false,
+      })) as ISchedule;
+
+      await session.withTransaction(
+        async () => await schedule.deleteOne({ session })
+      );
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
 
   /**
    * Creates and return a new instance of the tour service class

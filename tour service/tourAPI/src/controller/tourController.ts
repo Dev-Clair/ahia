@@ -58,33 +58,6 @@ const retrieveTours = async (
 };
 
 /**
- * Retrieves a collection of tours based on search query
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- * @returns Promise<Response | void>
- */
-const retrieveToursSearch = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const search = req.query.search as string;
-
-    if (!search) throw new BadRequestError("Kindly enter a text to search");
-
-    const searchQuery = { $text: { $search: search } };
-
-    const tours = await TourService.Create().findAll(searchQuery);
-
-    return res.status(HttpCode.OK).json({ data: tours });
-  } catch (error: any) {
-    next(error);
-  }
-};
-
-/**
  * Retrieves customer's tour history
  * @param req Express Request Object
  * @param res Express Response Object
@@ -257,15 +230,24 @@ const acceptTourRealtorRequest = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
+    const tour = req.tour as ITour;
+
+    const tourId = tour._id.toString();
 
     const key = { key: req.headers["Idempotency-Key"] as string };
 
-    const tour = await TourService.Create().update(id, key, payload);
+    const payload = {} as Partial<ITour> | any;
 
-    if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
+    const realtor = await TourService.Create().acceptRealtor(
+      tourId,
+      key,
+      payload
+    );
 
-    return res.status(HttpCode.MODIFIED).json({ data: null });
+    if (!realtor)
+      throw new NotFoundError(`No record found for realtor: ${realtor}`);
+
+    return res.status(HttpCode.MODIFIED).json({ data: realtor });
   } catch (error: any) {
     next(error);
   }
@@ -284,14 +266,13 @@ const rejectTourRealtorRequest = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const realtorId = req.params.realtorId as string;
+    const tour = req.tour as ITour;
 
-    const realtor = await RealtorService.Create().delete(realtorId);
+    const tourId = tour._id.toString();
 
-    if (!realtor)
-      throw new NotFoundError(`No realtor was found for tour: ${realtorId}`);
+    await TourService.Create().rejectRealtor(tourId);
 
-    return res.status(HttpCode.MODIFIED).json({ data: realtor });
+    return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (error: any) {
     next(error);
   }
@@ -369,39 +350,28 @@ const acceptTourReschedule = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const id = req.params.id as string;
+  try {
+    const tour = req.tour as ITour;
 
-  const rescheduleId = req.params.rescheduleId as string;
+    const tourId = tour._id.toString();
 
-  const scheduleCache = await ScheduleCache.findById({ _id: rescheduleId });
+    const key = { key: req.headers["Idempotency-Key"] as string };
 
-  if (!scheduleCache)
-    throw new NotFoundError(
-      "schedule not found or has already been processed."
+    const payload = {} as Partial<ITour> | any;
+
+    const schedule = await TourService.Create().acceptReschedule(
+      tourId,
+      key,
+      payload
     );
 
-  const session = await mongoose.startSession();
+    if (!schedule)
+      throw new NotFoundError(`No record found for schedule: ${schedule}`);
 
-  await session.withTransaction(async () => {
-    const tour = await Tour.findByIdAndUpdate(
-      { _id: id },
-      {
-        $set: {
-          schedule: {
-            date: scheduleCache.schedule.date,
-            time: scheduleCache.schedule.time,
-          },
-        },
-      },
-      { new: true, session }
-    );
-
-    if (!tour) throw new NotFoundError(`No tour found for id: ${id}`);
-
-    await scheduleCache.deleteOne({ session });
-  });
-
-  return res.status(HttpCode.MODIFIED).json({ data: null });
+    return res.status(HttpCode.MODIFIED).json({ data: schedule });
+  } catch (error: any) {
+    next(error);
+  }
 };
 
 /**
@@ -417,14 +387,13 @@ const rejectTourReschedule = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const scheduleId = req.params.scheduleId as string;
+    const tour = req.tour as ITour;
 
-    const schedule = await ScheduleService.Create().delete(scheduleId);
+    const tourId = tour._id.toString();
 
-    if (!schedule)
-      throw new NotFoundError(`No schedule was found for tour: ${scheduleId}`);
+    await TourService.Create().rejectReschedule(tourId);
 
-    return res.status(HttpCode.MODIFIED).json({ data: scheduleId });
+    return res.status(HttpCode.MODIFIED).json({ data: null });
   } catch (error: any) {
     next(error);
   }
@@ -433,7 +402,6 @@ const rejectTourReschedule = async (
 export default {
   createTour,
   retrieveTours,
-  retrieveToursSearch,
   retrieveToursByCustomer,
   retrieveToursByRealtor,
   retrieveTourById,
