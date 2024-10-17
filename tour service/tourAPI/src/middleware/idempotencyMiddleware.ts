@@ -1,3 +1,5 @@
+import Config from "../../config";
+import { randomUUID } from "node:crypto";
 import { NextFunction, Request, Response } from "express";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
@@ -14,7 +16,10 @@ const isIdempotent = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  const key = req.headers["idempotency-key"] as string;
+  const isProduction =
+    Config.NODE_ENV !== "production" ? randomUUID() : undefined;
+
+  const key = (req.headers["Idempotency-Key"] as string) ?? isProduction;
 
   if (!key) {
     return res.status(HttpCode.BAD_REQUEST).json({
@@ -32,6 +37,8 @@ const isIdempotent = async (
         message: "Duplicate request detected",
       },
     });
+
+  (req as Request).idempotent = { key: key };
 
   next();
 };

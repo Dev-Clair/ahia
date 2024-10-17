@@ -21,7 +21,7 @@ const createTour = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<ITour>;
 
@@ -140,7 +140,7 @@ const updateTourById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const id = req.params.id as string;
 
@@ -196,11 +196,11 @@ const addTourRealtor = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour._id;
-
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IRealtor>;
+
+    const tourId = tour._id;
 
     payload.tour = tourId;
 
@@ -227,9 +227,9 @@ const acceptTourRealtorRequest = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour._id.toString();
+    const key = req.idempotent as Record<string, any>;
 
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const tourId = tour.id();
 
     const payload = {} as Partial<ITour> | any;
 
@@ -263,7 +263,7 @@ const rejectTourRealtorRequest = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour._id.toString();
+    const tourId = tour.id();
 
     await TourService.Create().rejectRealtor(tourId);
 
@@ -288,9 +288,9 @@ const removeTourRealtor = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour._id.toString();
-
     const key = { key: req.headers["Idempotency-Key"] as string };
+
+    const tourId = tour.id();
 
     const payload = tour.$set("realtor", "");
 
@@ -317,11 +317,11 @@ const rescheduleTour = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour._id;
-
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<ISchedule>;
+
+    const tourId = tour._id;
 
     payload.tour = tourId;
 
@@ -348,9 +348,9 @@ const acceptTourReschedule = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour._id.toString();
+    const key = req.idempotent as Record<string, any>;
 
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const tourId = tour.id();
 
     const payload = {} as Partial<ITour> | any;
 
@@ -384,7 +384,7 @@ const rejectTourReschedule = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour._id.toString();
+    const tourId = tour.id();
 
     await TourService.Create().rejectReschedule(tourId);
 
