@@ -8,7 +8,7 @@ import TourRepository from "../repository/tourRepository";
 
 export default class TourService {
   /**
-   * Retrieves a collection of tours from collection
+   * Retrieves a collection of tours
    * @public
    * @param queryString query object
    */
@@ -132,15 +132,19 @@ export default class TourService {
 
     const options = { session: session, idempotent: key, retry: true };
 
+    const realtorRepository = RealtorRepository.Create();
+
+    const tourRepository = TourRepository.Create();
+
     try {
-      const realtor = (await RealtorRepository.Create().findByTour(id, {
+      const realtor = (await realtorRepository.findByTour(id, {
         retry: false,
       })) as IRealtor;
 
       payload.realtor = realtor.realtor;
 
       const tour = await session.withTransaction(async () => {
-        const tour = await TourRepository.Create().update(id, payload, options);
+        const tour = await tourRepository.update(id, payload, options);
 
         await realtor.deleteOne({ session });
 
@@ -162,8 +166,10 @@ export default class TourService {
   async rejectRealtor(id: string): Promise<void> {
     const session = await mongoose.startSession();
 
+    const realtorRepository = RealtorRepository.Create();
+
     try {
-      const realtor = (await RealtorRepository.Create().findByTour(id, {
+      const realtor = (await realtorRepository.findByTour(id, {
         retry: false,
       })) as IRealtor;
 
@@ -192,15 +198,19 @@ export default class TourService {
 
     const options = { session: session, idempotent: key, retry: true };
 
+    const scheduleRepository = ScheduleRepository.Create();
+
+    const tourRepository = TourRepository.Create();
+
     try {
-      const schedule = (await ScheduleRepository.Create().findByTour(id, {
+      const schedule = (await scheduleRepository.findByTour(id, {
         retry: false,
       })) as ISchedule;
 
       payload.schedule = schedule.schedule;
 
       const tour = await session.withTransaction(async () => {
-        const tour = await TourRepository.Create().update(id, payload, options);
+        const tour = await tourRepository.update(id, payload, options);
 
         await schedule.deleteOne({ session });
 
@@ -222,8 +232,10 @@ export default class TourService {
   async rejectReschedule(id: string): Promise<void> {
     const session = await mongoose.startSession();
 
+    const scheduleRepository = ScheduleRepository.Create();
+
     try {
-      const schedule = (await ScheduleRepository.Create().findByTour(id, {
+      const schedule = (await scheduleRepository.findByTour(id, {
         retry: false,
       })) as ISchedule;
 

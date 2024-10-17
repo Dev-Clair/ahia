@@ -119,11 +119,7 @@ const retrieveTourById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
-
-    const tour = await TourService.Create().findById(id);
-
-    if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
+    const tour = req.tour as ITour;
 
     return res.status(HttpCode.OK).json({ data: tour });
   } catch (error: any) {
@@ -186,7 +182,7 @@ const deleteTourById = async (
 };
 
 /**
- * Adds a realtor to a tour
+ * Writes a realtor for a tour
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -217,7 +213,7 @@ const addTourRealtor = async (
 };
 
 /**
- * Accept tour realtor request
+ * Writes a realtor to a tour
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -253,7 +249,7 @@ const acceptTourRealtorRequest = async (
 };
 
 /**
- * Reject tour realtor request
+ * Unwrites a realtor for a tour
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -278,7 +274,7 @@ const rejectTourRealtorRequest = async (
 };
 
 /**
- * Removes realtor from a tour
+ * Unwrites a realtor to a tour
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -290,17 +286,17 @@ const removeTourRealtor = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
+    const tour = req.tour as ITour;
 
-    const tours = req.tour as ITour;
+    const tourId = tour._id.toString();
 
     const key = { key: req.headers["Idempotency-Key"] as string };
 
-    const payload = tours.$set("realtor", undefined);
+    const payload = tour.$set("realtor", "");
 
-    const tour = await TourService.Create().update(id, key, payload);
+    const realtor = await TourService.Create().update(tourId, key, payload);
 
-    return res.status(HttpCode.MODIFIED).json({ data: tour });
+    return res.status(HttpCode.MODIFIED).json({ data: realtor });
   } catch (error: any) {
     next(error);
   }

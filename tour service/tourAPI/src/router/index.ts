@@ -31,9 +31,9 @@ TourRouter.route("/:id")
   .get(
     AuthMiddleware.IsGranted(["Customer", "Realtor"]),
     ValidationMiddleware.validateID,
+    DocumentMiddleware("tour", "id"),
     TourController.retrieveTourById
   )
-  .put(TourMiddleware.isNotAllowed)
   .patch(
     AuthMiddleware.IsGranted(["Customer"]),
     ValidationMiddleware.validateID,
@@ -57,6 +57,15 @@ TourRouter.route("/:id/realtors").post(
   TourController.addTourRealtor
 );
 
+TourRouter.route("/:id/schedules").post(
+  AuthMiddleware.IsGranted(["Customer", "Realtor"]),
+  ValidationMiddleware.validateID,
+  ValidationMiddleware.validateSchedule,
+  TourMiddleware.isContentType(["application/json"]),
+  IdempotencyMiddleware.isIdempotent,
+  TourController.rescheduleTour
+);
+
 TourRouter.route("/:id/realtor/accept").patch(
   AuthMiddleware.IsGranted(["Realtor"]),
   ValidationMiddleware.validateID,
@@ -75,16 +84,8 @@ TourRouter.route("/:id/realtor/reject").delete(
 TourRouter.route("/:id/realtor/remove").patch(
   AuthMiddleware.IsGranted(["Customer", "Realtor"]),
   ValidationMiddleware.validateID,
+  DocumentMiddleware("tour", "id"),
   TourController.removeTourRealtor
-);
-
-TourRouter.route("/:id/schedules").post(
-  AuthMiddleware.IsGranted(["Customer", "Realtor"]),
-  ValidationMiddleware.validateID,
-  ValidationMiddleware.validateSchedule,
-  TourMiddleware.isContentType(["application/json"]),
-  IdempotencyMiddleware.isIdempotent,
-  TourController.rescheduleTour
 );
 
 TourRouter.route("/:id/schedule/accept").patch(
