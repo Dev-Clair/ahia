@@ -3,14 +3,14 @@ import { z } from "zod";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 
-const IdParamSchema = z.object({
+const IDSchema = z.object({
   id: z.string({
     required_error: "ID is required",
     invalid_type_error: "ID must be a string",
   }),
 });
 
-const tourSchema = z.object({
+const TourSchema = z.object({
   customer: z.string({
     required_error: "ID is required",
     invalid_type_error: "ID must be a string",
@@ -27,21 +27,15 @@ const tourSchema = z.object({
     .nonempty("A new tour must have a collection of offerings"),
 });
 
-const scheduleSchema = z.object({
-  date: z
-    .string({
-      required_error: "Date is required",
-      invalid_type_error: "Date must be a string",
-    })
-    .refine((date) => !isNaN(Date.parse(date)), {
-      message: "Invalid date string",
-    }),
-  time: z
-    .string({
-      required_error: "Time is required",
-      invalid_type_error: "Time must be a string",
-    })
-    .regex(/^\d{2}:\d{2}$/, { message: "Invalid time string" }),
+const ScheduleSchema = z.object({
+  date: z.string({
+    required_error: "Date is required",
+    invalid_type_error: "Date must be a string",
+  }),
+  time: z.string({
+    required_error: "Time is required",
+    invalid_type_error: "Time must be a string",
+  }),
 });
 
 const validateParams =
@@ -86,11 +80,11 @@ const validateBody =
     }
   };
 
-export const validateID = validateParams(IdParamSchema);
+export const validateID = validateParams(IDSchema);
 
-export const validateTour = validateBody(tourSchema);
+export const validateTour = validateBody(TourSchema);
 
-export const validateSchedule = validateBody(scheduleSchema);
+export const validateSchedule = validateBody(ScheduleSchema);
 
 export default {
   validateID,
