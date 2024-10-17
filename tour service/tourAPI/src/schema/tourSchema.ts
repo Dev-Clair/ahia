@@ -33,12 +33,20 @@ const TourSchema: Schema<ITour> = new Schema(
     ],
     schedule: {
       date: {
-        type: Date,
+        type: String,
         required: false,
+        validate: {
+          validator: (value: string) => !isNaN(Date.parse(value)),
+          message: "Invalid date string",
+        },
       },
       time: {
         type: String,
         required: false,
+        validate: {
+          validator: (value: string) => /^\d{2}:\d{2}$/.test(value),
+          message: "Invalid time string",
+        },
       },
     },
     status: {

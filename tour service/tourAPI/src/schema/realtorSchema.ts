@@ -11,6 +11,10 @@ const RealtorSchema: Schema<IRealtor> = new Schema(
     realtor: {
       type: String,
       required: true,
+      validate: {
+        validator: (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
+        message: "Invalid ID Format",
+      },
     },
   },
   { timestamps: true }

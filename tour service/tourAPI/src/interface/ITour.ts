@@ -7,7 +7,7 @@ export default interface ITour extends Document {
   realtor: string;
   offerings: string[];
   schedule: {
-    date: Date;
+    date: string;
     time: string;
   };
   status: "pending" | "ongoing" | "completed" | "cancelled";
