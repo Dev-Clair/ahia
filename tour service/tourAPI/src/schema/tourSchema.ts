@@ -14,7 +14,7 @@ const TourSchema: Schema<ITour> = new Schema(
       required: true,
       validate: {
         validator: (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
-        message: "Invalid ID Format",
+        message: "Invalid ID",
       },
     },
     realtor: {
@@ -22,7 +22,7 @@ const TourSchema: Schema<ITour> = new Schema(
       required: false,
       validate: {
         validator: (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
-        message: "Invalid ID Format",
+        message: "Invalid ID",
       },
     },
     offerings: [
