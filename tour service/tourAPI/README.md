@@ -2,8 +2,7 @@
 
 ## Overview
 
-The ahia Tour Service API is a robust backend service designed to manage real estate tour bookings and appointments on the ahia marketplace platform. It provides endpoints for creating, retrieving, updating, and deleting tours, as well as specialized endpoints for booking realtors and rescheduling tours.
-This API ensures idempotency, uses transactions, and supports features like pagination and geospatial queries.
+The ahia Tour Service API is a robust backend service designed to manage real estate tour bookings and realtor appointments on the ahia marketplace platform. As a standalone service, it facilitates tours on listings with lease or sell type product offerings. It provides endpoints for creating, retrieving, updating, and deleting tours. The tour API ensures idempotency, uses transactions, and supports features like filtering, sorting, field selection and pagination.
 Authorization and authentication is enabled by an identity server which manages user account and permissions.
 
 ## Table of Contents
@@ -30,13 +29,9 @@ Authorization and authentication is enabled by an identity server which manages 
 
 - **Transactions**: Uses database transactions to ensure operations are ACID.
 
-- **Geospatial Queries**: Supports 2dsphere indexing for location-based queries.
-
-- **Pagination**: Provides pagination for listing collections.
+- **Pagination**: Provides pagination for collection operations.
 
 - **CRUD Endpoints**: Read, Create, Update and Delete.
-
-- **Specialized Endpoints**: Complete, cancel and reopen tours, search and select realtors, schedule, reschedule, accept and reject tour appointments.
 
 ## Installation
 
@@ -55,7 +50,7 @@ Authorization and authentication is enabled by an identity server which manages 
     1.1 Create a Tour
 
     ```
-    POST /api/v1/tourss
+    POST /api/v1/tours
     ```
 
     1.2 Retrieve All Tours
@@ -93,79 +88,55 @@ Authorization and authentication is enabled by an identity server which manages 
     2.1 Select all tour bookings for a customer
 
     ```
-    GET /api/v1/tours/customer/:customerId
+    GET /api/v1/tours/customer/:id
     ```
 
     2.2 Select all tour assignments for a realtor
 
     ```
-    GET /api/v1/tours/realtor/:realtorId
+    GET /api/v1/tours/realtor/:id
     ```
 
-    2.3 Mark a Tour as complete
-
-    ```
-    PATCH /api/v1/tours/:id/status/complete
-    ```
-
-    2.4 Mark a Tour as cancelled
-
-    ```
-    PATCH /api/v1/tours/:id/status/cancel
-    ```
-
-    2.5 Mark a Tour as reopened
-
-    ```
-    PATCH /api/v1/tours/:id/status/reopen
-    ```
-
-    2.6 Search available realtors based on tour location
-
-    ```
-    GET /api/v1/tours/:id/realtors
-    ```
-
-    2.7 Select/Request a realtor
+    2.7 Add a realtor to a tour
 
     ```
     POST /api/v1/tours/:id/realtors
     ```
 
-    2.8 Accept realtor request
+    2.8 Accept tour realtor request
 
     ```
-    PUT /api/v1/tours/:id/realtors/accept
+    PUT /api/v1/tours/:id/realtor/accept
     ```
 
-    2.9 Reject realtor request
+    2.9 Reject tour realtor request
 
     ```
-    PUT /api/v1/tours/:id/realtors/reject
+    PUT /api/v1/tours/:id/realtor/reject
     ```
 
-    2.10 Schedule tour date and time
+    2.9 Remove realtor from a tour
 
     ```
-    PUT /api/v1/tours/:id/schedule
+    PUT /api/v1/tours/:id/realtor/remove
     ```
 
     2.11 Reschedule tour date and time
 
     ```
-    POST /api/v1/tours/:id/reschedule
+    POST /api/v1/tours/:id/schedule
     ```
 
     2.12 Accept proposed tour reschedule
 
     ```
-    PUT /api/v1/tours/:id/reschedule/:rescheduleId/accept
+    PUT /api/v1/tours/:id/schedule/accept
     ```
 
     2.13 Reject proposed tour reschedule
 
     ```
-    PUT /api/v1/tours/:id/reschedule/:rescheduleId/reject
+    PUT /api/v1/tours/:id/schedule/reject
     ```
 
 ## Error Handling
@@ -182,19 +153,7 @@ Errors are handled by an in-app custom error middleware and sentry express error
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:
-
-```
-    Fork the repository.
-
-    Create a new branch: git checkout -b feature-branch.
-
-    Make your changes and commit them: git commit -m 'Add new feature'.
-
-    Push to the branch: git push origin feature-branch.
-
-    Open a pull request.
-```
+This is a closed source project. Therefore contributions are not welcome. Thanks
 
 ## License
 
