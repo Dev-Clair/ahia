@@ -2,7 +2,7 @@ import { Router } from "express";
 import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
-import ListingMiddleware from "../middleware/listingMiddleware";
+import AppMiddleware from "../middleware/appMiddleWare";
 import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import ListingController from "../controller/listingController";
@@ -17,8 +17,8 @@ ListingRouter.route("/")
   .get(AuthMiddleware.isGranted([""]), ListingController.retrieveListings)
   .post(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterInsertion(["media"]),
+    AppMiddleware.isContentType(["application/json"]),
+    AppMiddleware.filterInsertion(["media"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateListing,
     ListingController.createListing
@@ -58,7 +58,7 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
   )
   .patch(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.filterUpdate(["address", "location", "type"]),
+    AppMiddleware.filterUpdate(["address", "location", "type"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ListingController.updateListingById
@@ -79,8 +79,8 @@ ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
   )
   .post(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterInsertion(["media", "verification"]),
+    AppMiddleware.isContentType(["application/json"]),
+    AppMiddleware.filterInsertion(["media", "verification"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
@@ -99,8 +99,8 @@ ListingRouter.route(
   )
   .patch(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterUpdate(["category", "type", "verification"]),
+    AppMiddleware.isContentType(["application/json"]),
+    AppMiddleware.filterUpdate(["category", "type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,

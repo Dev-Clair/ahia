@@ -16,13 +16,11 @@ const isGranted =
   ): Promise<Response | void> => {
     const userRole = req.headers["role"] as string;
 
-    for (let role of roles) {
-      const status = await VerifyRole(userRole, role);
+    const status = await Promise.all(
+      roles.map((role) => VerifyRole(userRole, role))
+    );
 
-      if (status) {
-        return next();
-      }
-    }
+    if (status.some((status) => status)) return next();
 
     return res.status(HttpCode.FORBIDDEN).json({
       error: {
