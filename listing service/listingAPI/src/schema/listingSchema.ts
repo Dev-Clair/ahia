@@ -1,6 +1,4 @@
-import { randomUUID } from "node:crypto";
 import mongoose, { Schema } from "mongoose";
-import slugify from "slugify";
 import IListing from "../interface/IListing";
 import OfferingSchema from "./offeringSchema";
 
@@ -10,11 +8,6 @@ const ListingSchema: Schema<IListing> = new Schema(
   {
     name: {
       type: String,
-      required: false,
-    },
-    slug: {
-      type: String,
-      unique: true,
       required: false,
     },
     description: {
@@ -48,7 +41,7 @@ const ListingSchema: Schema<IListing> = new Schema(
       },
       zip: {
         type: String,
-        required: true,
+        required: false,
       },
     },
     location: {
@@ -73,7 +66,7 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: String,
         required: true,
       },
-      email: {
+      slug: {
         type: String,
         required: true,
       },
@@ -96,26 +89,8 @@ const ListingSchema: Schema<IListing> = new Schema(
 
 // Listing Schema Search Query Index
 ListingSchema.index({
-  slug: "text",
-  description: "text",
   type: "text",
   location: "2dsphere",
-});
-
-// Listing Schema Middleware
-ListingSchema.pre("save", function (next) {
-  if (!this.isModified("name")) this.name = this.type + randomUUID();
-
-  if (this.isModified("name")) {
-    this.slug = slugify(this.name, {
-      replacement: "-",
-      lower: true,
-      strict: true,
-      trim: true,
-    });
-  }
-
-  next();
 });
 
 ListingSchema.pre("findOneAndDelete", async function (next) {

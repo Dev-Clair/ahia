@@ -28,9 +28,13 @@ export default class ListingService {
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<IListing[]> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    return await ListingRepository.Create().findAll(queryString, options);
+      return await ListingRepository.Create().findAll(queryString, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a listing by id
@@ -38,9 +42,13 @@ export default class ListingService {
    * @param id listing id
    */
   async findById(id: string): Promise<IListing | null> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    return await ListingRepository.Create().findById(id, options);
+      return await ListingRepository.Create().findById(id, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a listing by slug
@@ -48,9 +56,13 @@ export default class ListingService {
    * @param slug listing slug
    */
   async findBySlug(slug: string): Promise<IListing | null> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    return await ListingRepository.Create().findBySlug(slug, options);
+      return await ListingRepository.Create().findBySlug(slug, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a listing by id and populates offering subdocument
@@ -68,10 +80,14 @@ export default class ListingService {
       limit: number;
     }
   ): Promise<IListing | null> {
-    return await ListingRepository.Create().findByIdAndPopulate(id, {
-      ...options,
-      retry: true,
-    });
+    try {
+      return await ListingRepository.Create().findByIdAndPopulate(id, {
+        ...options,
+        retry: true,
+      });
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a listing by slug and populates offering subdocument
@@ -89,10 +105,14 @@ export default class ListingService {
       limit: number;
     }
   ): Promise<IListing | null> {
-    return await ListingRepository.Create().findBySlugAndPopulate(slug, {
-      ...options,
-      retry: true,
-    });
+    try {
+      return await ListingRepository.Create().findBySlugAndPopulate(slug, {
+        ...options,
+        retry: true,
+      });
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
@@ -183,7 +203,13 @@ export default class ListingService {
    * @param offerings array of offering ids
    */
   async findListingsByOfferings(offerings: string[]): Promise<IListing[]> {
-    return await ListingRepository.Create().findListingsByOfferings(offerings);
+    try {
+      return await ListingRepository.Create().findListingsByOfferings(
+        offerings
+      );
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a collection of listings based on offerings
@@ -198,9 +224,13 @@ export default class ListingService {
     minArea?: number;
     maxArea?: number;
   }): Promise<IListing[]> {
-    return await ListingRepository.Create().findListingsByOfferingSearch(
-      searchFilter
-    );
+    try {
+      return await ListingRepository.Create().findListingsByOfferingSearch(
+        searchFilter
+      );
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a listing's collection of offerings
@@ -212,12 +242,16 @@ export default class ListingService {
     type: string,
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = await ListingRepository.Create().findListingOfferings(
-      type,
-      queryString
-    );
+    try {
+      const offerings = await ListingRepository.Create().findListingOfferings(
+        type,
+        queryString
+      );
 
-    return offerings;
+      return offerings;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a listing's offering by id
@@ -229,7 +263,11 @@ export default class ListingService {
     id: string,
     type: string
   ): Promise<IOffering | null> {
-    return await ListingRepository.Create().findListingOfferingById(id, type);
+    try {
+      return await ListingRepository.Create().findListingOfferingById(id, type);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a listing's offering by slug
@@ -241,10 +279,14 @@ export default class ListingService {
     slug: string,
     type: string
   ): Promise<IOffering | null> {
-    return await ListingRepository.Create().findListingOfferingBySlug(
-      slug,
-      type
-    );
+    try {
+      return await ListingRepository.Create().findListingOfferingBySlug(
+        slug,
+        type
+      );
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**

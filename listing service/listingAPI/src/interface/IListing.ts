@@ -19,7 +19,7 @@ export default interface IListing extends Document {
   };
   provider: {
     id: string;
-    email: string;
+    slug: string;
   };
   media: {
     image: string;
