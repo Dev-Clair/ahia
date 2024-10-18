@@ -34,7 +34,6 @@ export default class ListingRepository implements IListingRepository {
   static LISTING_PROJECTION = [
     "-address",
     "-location",
-    "-provider.email",
     "-createdAt",
     "-updatedAt",
     "-__v",
@@ -52,7 +51,7 @@ export default class ListingRepository implements IListingRepository {
   static SORT_OFFERINGS = ["-createdAt"];
 
   /** Retrieves a collection of listings
-   * @publics
+   * @public
    * @param queryString query object
    * @param options configuration options
    */
