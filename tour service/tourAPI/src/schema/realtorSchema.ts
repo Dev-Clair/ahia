@@ -13,7 +13,7 @@ const RealtorSchema: Schema<IRealtor> = new Schema(
       required: true,
       validate: {
         validator: (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
-        message: "Invalid ID Format",
+        message: "Invalid ID",
       },
     },
   },
