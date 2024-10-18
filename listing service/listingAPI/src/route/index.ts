@@ -1,6 +1,6 @@
 import { Router } from "express";
-import ListingRouter from "./listingRouter";
-import OfferingRouter from "./offeringRouter";
+import ListingRouter from "./listingRoute";
+import OfferingRouter from "./offeringRoute";
 
 const AppRouter = Router();
 
