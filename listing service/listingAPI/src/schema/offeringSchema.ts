@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import slugify from "slugify";
 import IOffering from "../interface/IOffering";
 import ListingSchema from "./listingSchema";
 import ProductSchema from "./productSchema";
@@ -16,11 +15,6 @@ const OfferingSchema: Schema<IOffering> = new Schema(
     name: {
       type: String,
       required: true,
-    },
-    slug: {
-      type: String,
-      unique: true,
-      required: false,
     },
     description: {
       type: String,
@@ -92,25 +86,10 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 
 // Offering Schema Search Query Index
 OfferingSchema.index({
-  slug: "text",
   "area.size": 1,
   "product.name": "text",
   "product.category": "text",
   "product.type": "text",
-});
-
-// Offering Schema Middleware
-OfferingSchema.pre("save", function (next) {
-  if (this.isModified("name")) {
-    this.slug = slugify(this.name, {
-      replacement: "-",
-      lower: true,
-      strict: true,
-      trim: true,
-    });
-  }
-
-  next();
 });
 
 OfferingSchema.pre("findOneAndDelete", async function (next) {

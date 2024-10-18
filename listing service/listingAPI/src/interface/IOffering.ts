@@ -6,7 +6,6 @@ export default interface IOffering extends Document {
   id: () => string;
   listing: Schema.Types.ObjectId;
   name: string;
-  slug?: string;
   description: string;
   product: IProduct;
   quantity: number;
