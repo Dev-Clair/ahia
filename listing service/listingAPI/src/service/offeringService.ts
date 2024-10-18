@@ -7,9 +7,7 @@ import OfferingRepository from "../repository/offeringRepository";
  * @method findByLocation
  * @method findByProvider
  * @method findById
- * @method findBySlug
  * @method findByIdAndPopulate
- * @method findBySlugAndPopulate
  */
 export default class OfferingService {
   /** Retrieves a collection of offerings
@@ -82,25 +80,6 @@ export default class OfferingService {
     }
   }
 
-  /** Retrieves an offering by slug
-   * @public
-   * @param slug offering slug
-   */
-  async findBySlug(slug: string): Promise<IOffering | null> {
-    try {
-      const options = { retry: true };
-
-      const offering = await OfferingRepository.Create().findBySlug(
-        slug,
-        options
-      );
-
-      return offering;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   /** Retrieves an offering by id and populate its subdocument(s)
    * @public
    * @param id offering id
@@ -115,29 +94,6 @@ export default class OfferingService {
 
       const offering = await OfferingRepository.Create().findByIdAndPopulate(
         id,
-        options
-      );
-
-      return offering;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves an offering by slug and populate its subdocument(s)
-   * @public
-   * @param slug offering slug
-   * @param type offering type
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    type?: string
-  ): Promise<IOffering | null> {
-    try {
-      const options = { retry: true, type: type };
-
-      const offering = await OfferingRepository.Create().findBySlugAndPopulate(
-        slug,
         options
       );
 

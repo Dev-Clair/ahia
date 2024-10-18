@@ -18,13 +18,13 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IListing>;
 
     payload.provider = {
-      id: req.headers["provider-id"] as string,
-      email: req.headers["provider-email"] as string,
+      id: req.headers["Provider-Id"] as string,
+      slug: req.headers["Provider-Slug"] as string,
     };
 
     const listing = await ListingService.Create().save(key, payload);
@@ -89,7 +89,7 @@ const retrieveListingsSearch = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingsNearUser = async (
+const retrieveListingsNearBy = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -232,26 +232,6 @@ const retrieveListingById = async (
 };
 
 /**
- * Retrieves a listing by slug
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingBySlug = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const listing = req.listing as IListing;
-
-    return res.status(HttpCode.OK).json({ data: listing });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Retrieves a listing by id and populate
  * @param req Express Request Object
  * @param res Express Response Object
@@ -287,42 +267,6 @@ const retrieveListingByIdAndPopulate = async (
 };
 
 /**
- * Retrieves a listing by slug and populate
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingBySlugAndPopulate = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const slug = req.params.slug as string;
-
-    const options = {
-      type: req.params.type as string,
-
-      page: parseInt((req.query.page as string) ?? "1", 10),
-
-      limit: parseInt((req.query.limit as string) ?? "10", 10),
-    };
-
-    const listing = await ListingService.Create().findBySlugAndPopulate(
-      slug,
-      options
-    );
-
-    if (!listing)
-      throw new NotFoundError(`No record found for listing: ${slug}`);
-
-    return res.status(HttpCode.OK).json({ data: { listing } });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Finds and modifies a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -336,7 +280,7 @@ const updateListingById = async (
   try {
     const id = req.params.id as string;
 
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IListing>;
 
@@ -386,7 +330,7 @@ const createListingOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const type = req.params.type as string;
 
@@ -472,33 +416,6 @@ const retrieveListingOfferingById = async (
 };
 
 /**
- * Retrieves a listing's offering by slug
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingOfferingBySlug = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const offeringSlug = req.params.offeringSlug as string;
-
-    const type = req.params.type as string;
-
-    const offering = await ListingService.Create().findListingOfferingBySlug(
-      offeringSlug,
-      type
-    );
-
-    return res.status(HttpCode.OK).json({ data: offering });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Updates a listing's offering by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -512,7 +429,7 @@ const updateListingOfferingById = async (
   try {
     const offeringId = req.params.offeringId as string;
 
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const type = req.params.type as string;
 
@@ -567,20 +484,17 @@ export default {
   createListing,
   retrieveListings,
   retrieveListingsSearch,
-  retrieveListingsNearUser,
+  retrieveListingsNearBy,
   retrieveListingsByProvider,
   retrieveListingsByType,
   retrieveListingsByOfferings,
   retrieveListingsByOfferingSearch,
-  retrieveListingBySlug,
   retrieveListingById,
-  retrieveListingBySlugAndPopulate,
   retrieveListingByIdAndPopulate,
   updateListingById,
   deleteListingById,
   retrieveListingOfferings,
   createListingOffering,
-  retrieveListingOfferingBySlug,
   retrieveListingOfferingById,
   updateListingOfferingById,
   deleteListingOfferingById,

@@ -89,7 +89,7 @@ const retrieveOfferingsByLocation = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsNearUser = async (
+const retrieveOfferingsNearBy = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -260,26 +260,6 @@ const retrieveOfferingById = async (
 };
 
 /**
- * Retrieves an offering by slug
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveOfferingBySlug = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const offering = req.offering as IOffering;
-
-    return res.status(HttpCode.OK).json({ data: offering });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Retrieves an offering by id and populate its subdocument
  * @param req Express Request Object
  * @param res Express Response Object
@@ -309,48 +289,16 @@ const retrieveOfferingByIdAndPopulate = async (
   }
 };
 
-/**
- * Retrieves an offering by slug and populate its subdocument
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveOfferingBySlugAndPopulate = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const slug = req.params.slug as string;
-
-    const type = req.query.type as string;
-
-    const offering = await OfferingService.Create().findBySlugAndPopulate(
-      slug,
-      type
-    );
-
-    if (!offering)
-      throw new NotFoundError(`No record found for offering: ${slug}`);
-
-    return res.status(HttpCode.OK).json({ data: { offering } });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
 export default {
   retrieveOfferings,
   retrieveOfferingsSearch,
   retrieveOfferingsByLocation,
-  retrieveOfferingsNearUser,
+  retrieveOfferingsNearBy,
   retrieveOfferingsByProduct,
   retrieveOfferingsByProvider,
   retrieveOfferingsAvailableForBooking,
   retrieveOfferingsAvailableForLetting,
   retrieveOfferingsAvailableForSelling,
   retrieveOfferingById,
-  retrieveOfferingBySlug,
   retrieveOfferingByIdAndPopulate,
-  retrieveOfferingBySlugAndPopulate,
 };

@@ -9,7 +9,6 @@ import ListingRepository from "../repository/listingRepository";
  * @method findById
  * @method findBySlug
  * @method findByIdAndPopulate
- * @method findBySlugAndPopulate
  * @method save
  * @method update
  * @method delete
@@ -17,7 +16,6 @@ import ListingRepository from "../repository/listingRepository";
  * @method findListingsByOfferingSearch
  * @method findListingOfferings
  * @method findListingOfferingById
- * @method findListingOfferingBySlug
  * @method saveListingOffering
  * @method updateListingOffering
  * @method deleteListingOffering
@@ -51,20 +49,6 @@ export default class ListingService {
     }
   }
 
-  /** Retrieves a listing by slug
-   * @public
-   * @param slug listing slug
-   */
-  async findBySlug(slug: string): Promise<IListing | null> {
-    try {
-      const options = { retry: true };
-
-      return await ListingRepository.Create().findBySlug(slug, options);
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   /** Retrieves a listing by id and populates offering subdocument
    * @public
    * @param id listing id
@@ -82,31 +66,6 @@ export default class ListingService {
   ): Promise<IListing | null> {
     try {
       return await ListingRepository.Create().findByIdAndPopulate(id, {
-        ...options,
-        retry: true,
-      });
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a listing by slug and populates offering subdocument
-   * @public
-   * @param slug listing slug
-   * @param type offering type
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocument to retrieve per query
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    options: {
-      type: string;
-      page: number;
-      limit: number;
-    }
-  ): Promise<IListing | null> {
-    try {
-      return await ListingRepository.Create().findBySlugAndPopulate(slug, {
         ...options,
         retry: true,
       });
@@ -265,25 +224,6 @@ export default class ListingService {
   ): Promise<IOffering | null> {
     try {
       return await ListingRepository.Create().findListingOfferingById(id, type);
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a listing's offering by slug
-   * @public
-   * @param slug offering slug
-   * @param type offering type
-   */
-  async findListingOfferingBySlug(
-    slug: string,
-    type: string
-  ): Promise<IOffering | null> {
-    try {
-      return await ListingRepository.Create().findListingOfferingBySlug(
-        slug,
-        type
-      );
     } catch (error: any) {
       throw error;
     }

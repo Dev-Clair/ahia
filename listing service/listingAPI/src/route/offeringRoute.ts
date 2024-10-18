@@ -5,8 +5,6 @@ import OfferingController from "../controller/offeringController";
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
-const SlugParamRegex = "[a-zA-Z0-9]+";
-
 const OfferingRouter = Router();
 
 OfferingRouter.route("/").get(OfferingController.retrieveOfferings);
@@ -18,7 +16,7 @@ OfferingRouter.route(`/location`).get(
 
 OfferingRouter.route(`/near-me`).get(
   GeocodeMiddleware.parseUserGeoCoordinates,
-  OfferingController.retrieveOfferingsNearUser
+  OfferingController.retrieveOfferingsNearBy
 );
 
 OfferingRouter.route(`/now-booking`).get(
@@ -54,15 +52,6 @@ OfferingRouter.route(`/:id(${IdParamRegex})`).get(
 
 OfferingRouter.route(`/:id(${IdParamRegex})/:type/listing`).get(
   OfferingController.retrieveOfferingByIdAndPopulate
-);
-
-OfferingRouter.route(`/:slug(${SlugParamRegex})`).get(
-  DocumentMiddleware("offering", "slug"),
-  OfferingController.retrieveOfferingBySlug
-);
-
-OfferingRouter.route(`/:slug(${SlugParamRegex})/:type/listing`).get(
-  OfferingController.retrieveOfferingBySlugAndPopulate
 );
 
 export default OfferingRouter;

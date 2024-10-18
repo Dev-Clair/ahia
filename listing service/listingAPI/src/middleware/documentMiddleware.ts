@@ -6,10 +6,10 @@ import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 
 /**
- * Resolves a document by its id or slug and
+ * Resolves a document by its id and
  * attaches the resolved document to the request object
  * @param resourceName - The name of the document to resolve to
- * @param paramName - The name of the route parameter (e.g., 'id' or 'slug')
+ * @param paramName - The name of the route parameter (e.g., 'id')
  */
 const DocumentMiddleware = (
   resourceName: "listing" | "offering",
@@ -25,9 +25,7 @@ const DocumentMiddleware = (
       if (resourceName === "listing") {
         service = ListingService.Create();
 
-        const listing =
-          (await service.findById(paramValue)) ??
-          (await service.findBySlug(paramValue));
+        const listing = await service.findById(paramValue);
 
         if (!listing)
           throw new NotFoundError(
@@ -41,9 +39,7 @@ const DocumentMiddleware = (
       if (resourceName === "offering") {
         service = OfferingService.Create();
 
-        const offering =
-          (await service.findById(paramValue)) ??
-          (await service.findBySlug(paramValue));
+        const offering = await service.findById(paramValue);
 
         if (!offering)
           throw new NotFoundError(

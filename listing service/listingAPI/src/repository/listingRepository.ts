@@ -15,9 +15,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * Listing Repository
  * @method findAll
  * @method findById
- * @method findBySlug
  * @method findByIdAndPopulate
- * @method findBySlugAndPopulate
  * @method save
  * @method update
  * @method delete
@@ -25,7 +23,6 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findListingsByOfferingSearch
  * @method findListingOfferings
  * @method findListingOfferingById
- * @method findListingOfferingBySlug
  * @method saveListingOffering
  * @method updateListingOffering
  * @method deleteListingOffering
@@ -122,37 +119,6 @@ export default class ListingRepository implements IListingRepository {
     }
   }
 
-  /** Retrieves a listing by slug
-   * @public
-   * @param slug listing slug
-   * @param options configuration options
-   */
-  async findBySlug(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<IListing | null> {
-    try {
-      const { retry } = options;
-
-      const operation = async () => {
-        const listing = await Listing.findOne(
-          { slug: slug },
-          ListingRepository.LISTING_PROJECTION
-        ).exec();
-
-        return listing;
-      };
-
-      const listing = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return listing as Promise<IListing | null>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   /** Retrieves a listing by id and populates its subdocument(s)
    * @public
    * @param id listing id
@@ -173,54 +139,6 @@ export default class ListingRepository implements IListingRepository {
       const operation = async () => {
         const listing = await Listing.findById(
           { _id: id },
-          ListingRepository.LISTING_PROJECTION
-        )
-          .populate({
-            path: "offerings",
-            match: new RegExp(type, "i"),
-            model: "Offering",
-            select: ListingRepository.OFFERING_PROJECTION,
-            options: {
-              skip: (page - 1) * limit,
-              limit: limit,
-              sort: ListingRepository.SORT_OFFERINGS,
-            },
-          })
-          .exec();
-
-        return listing;
-      };
-
-      const listing = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return listing as Promise<IListing | null>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a listing by slug and populates its subdocument(s)
-   * @public
-   * @param slug listing slug
-   * @param options configuration options
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    options: {
-      type: string;
-      page: number;
-      limit: number;
-      retry: boolean;
-    }
-  ): Promise<IListing | null> {
-    try {
-      const { type, page, limit, retry } = options;
-
-      const operation = async () => {
-        const listing = await Listing.findOne(
-          { slug: slug },
           ListingRepository.LISTING_PROJECTION
         )
           .populate({
@@ -494,29 +412,6 @@ export default class ListingRepository implements IListingRepository {
 
       const offering = await this.OfferingRepositoryFactory(type).findById(
         id,
-        options
-      );
-
-      return offering;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a listing's offering by slug
-   * @public
-   * @param slug offering slug
-   * @param type offering type
-   */
-  async findListingOfferingBySlug(
-    slug: string,
-    type: string
-  ): Promise<IOffering | null> {
-    try {
-      const options = { retry: true };
-
-      const offering = await this.OfferingRepositoryFactory(type).findBySlug(
-        slug,
         options
       );
 
