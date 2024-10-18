@@ -18,7 +18,7 @@ export async function Boot(Server: HttpServer): Promise<void> {
     await Server.Init(Config.PORT)
       .then(() => Logger.info(`Listening on http port ${Config.PORT}`))
       .catch((reason: any) => {
-        throw new HttpServerError(reason, "HTTP Server Initialization Error");
+        throw new HttpServerError("HTTP Server Initialization Error", reason);
       });
 
     // Create and initialize database with connection string
@@ -68,7 +68,6 @@ export function ServerErrorHandler(
   const error = {
     name: err.name,
     message: err.message,
-    description: err.description,
     stack: err.stack,
   };
 
@@ -101,7 +100,6 @@ export function DatabaseErrorHandler(
   const error = {
     name: err.name,
     message: err.message,
-    description: err.description,
     stack: err.stack,
   };
 
