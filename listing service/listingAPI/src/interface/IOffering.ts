@@ -3,6 +3,7 @@ import IProduct from "./IProduct";
 
 export default interface IOffering extends Document {
   _id: Schema.Types.ObjectId;
+  id: () => string;
   listing: Schema.Types.ObjectId;
   name: string;
   slug?: string;
