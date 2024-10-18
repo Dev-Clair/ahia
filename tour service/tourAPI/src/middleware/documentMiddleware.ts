@@ -6,13 +6,9 @@ import TourService from "../service/tourService";
 /**
  * Resolves a document by its id and
  * attaches the resolved document to the request object
- * @param resourceName - The name of the document to resolve to
  * @param paramName - The name of the route parameter (e.g., 'id' or 'slug')
  */
-const DocumentMiddleware = (
-  resourceName: string = "tour",
-  paramName: string
-) => {
+const DocumentMiddleware = (paramName: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const paramValue = req.params[paramName] as string;
