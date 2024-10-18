@@ -26,8 +26,8 @@ class ConnectionService {
         await FailureRetry.LinearJitterBackoff(() => this.connect());
       } catch (err: any) {
         throw new ConnectionServiceError(
-          err.message,
-          "Retry strategies failed. Could not establish connection to the database."
+          "DATABASE CONNECTION SERVICE ERROR",
+          err.message
         );
       }
     }
