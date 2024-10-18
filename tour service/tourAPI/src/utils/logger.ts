@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-cloudwatch-logs";
 import Config from "../../config";
 
-/** *********************************Create Transport**************************/
+/** ***************************************Create Transport**************/
 
 interface CloudWatchLogsConfigOptions {
   logGroupName: string;
@@ -104,8 +104,7 @@ class CloudWatchLogsTransport extends TransportStream {
   }
 
   /**
-   * Creates and returns a new instance of the CloudWatchLogsTransport class.
-   * @returns CloudWatchLogsTransport
+   * Creates and returns a new instance of the CloudWatchLogsTransport class
    */
   public static Create(): CloudWatchLogsTransport {
     const clientConfiguration: CloudWatchLogsClientConfig = {
@@ -125,7 +124,7 @@ class CloudWatchLogsTransport extends TransportStream {
   }
 }
 
-/** *************************************Create Logger******************************* */
+/** ***************************************Create Logger**************/
 
 const { combine, timestamp, printf } = format;
 
@@ -140,7 +139,7 @@ const Logger = createLogger({
     new transports.Console(),
     // CloudWatchLogsTransport.Make()
   ],
-  defaultMeta: Config.TOUR.SERVICE.NAME,
+  defaultMeta: Config.TOUR_SERVICE.NAME,
 });
 
 export default Logger;

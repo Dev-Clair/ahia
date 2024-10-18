@@ -6,7 +6,6 @@ import VerifyRole from "../controller/authController";
 /**
  * Ensures role based access to resource
  * @param role
- * @returns Promise<Response|void>
  */
 const IsGranted =
   (roles: string[]) =>
@@ -17,13 +16,11 @@ const IsGranted =
   ): Promise<Response | void> => {
     const userRole = req.headers["role"] as string;
 
-    for (let role of roles) {
-      const status = await VerifyRole(userRole, role);
+    const status = await Promise.all(
+      roles.map((role) => VerifyRole(userRole, role))
+    );
 
-      if (status) {
-        return next();
-      }
-    }
+    if (status.some((status) => status)) return next();
 
     return res.status(HttpCode.FORBIDDEN).json({
       error: {

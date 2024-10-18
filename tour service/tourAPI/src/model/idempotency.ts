@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import IdempotencySchema from "../schema/idempotency";
-import IdempotencyInterface from "../interface/idempotency";
+import IdempotencySchema from "../schema/idempotencySchema";
+import IIdempotency from "../interface/IIdempotency";
 
-const Idempotency = mongoose.model<IdempotencyInterface>(
+const Idempotency = mongoose.model<IIdempotency>(
   "Idempotency",
   IdempotencySchema
 );

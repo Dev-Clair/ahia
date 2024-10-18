@@ -1,7 +1,7 @@
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 
-abstract class BaseError extends Error {
+abstract class AppError extends Error {
   public readonly name: string | HttpStatus;
   public readonly code: number | HttpCode;
   public readonly isOperational: boolean;
@@ -23,4 +23,4 @@ abstract class BaseError extends Error {
   }
 }
 
-export default BaseError;
+export default AppError;
