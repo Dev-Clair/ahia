@@ -66,7 +66,6 @@ export function ServerErrorHandler(
   const error = {
     name: err.name,
     message: err.message,
-    description: err.description,
     stack: err.stack,
   };
 
@@ -99,7 +98,6 @@ export function DatabaseErrorHandler(
   const error = {
     name: err.name,
     message: err.message,
-    description: err.description,
     stack: err.stack,
   };
 
