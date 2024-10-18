@@ -1,16 +1,9 @@
-class HttpServerError extends Error {
-  public readonly name;
+import AppError from "./appError";
+import HttpCode from "../enum/httpCode";
 
-  public readonly description;
-
-  constructor(message: string, description: string = "") {
-    super(message);
-
-    this.name = "HTTP SERVER ERROR";
-
-    this.description = description;
-
-    Error.captureStackTrace(this);
+class HttpServerError extends AppError {
+  constructor(name: string = "HTTP SERVER ERROR", message: string) {
+    super(name, HttpCode.SERVICE_UNAVAILABLE, true, message);
   }
 }
 
