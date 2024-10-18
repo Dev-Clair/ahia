@@ -21,7 +21,7 @@ export default class LocationRepository implements ILocationRepository {
   static SORT_LOCATIONS = ["-createdAt"];
 
   /** Retrieves a collection of locations
-   * @publics
+   * @public
    * @param queryString query object
    * @param options configuration options
    */
@@ -29,31 +29,35 @@ export default class LocationRepository implements ILocationRepository {
     queryString: Record<string, any>,
     options: { retry: boolean }
   ): Promise<ILocation[]> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const query = Location.find();
+      const operation = async () => {
+        const query = Location.find();
 
-      const filter = { ...queryString };
+        const filter = { ...queryString };
 
-      const queryBuilder = QueryBuilder.Create(query, filter);
+        const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const locations = (
-        await queryBuilder
-          .GeoSpatial()
-          .Sort(LocationRepository.SORT_LOCATIONS)
-          .Select(LocationRepository.LOCATION_PROJECTION)
-          .Paginate()
-      ).Exec();
+        const locations = (
+          await queryBuilder
+            .GeoSpatial()
+            .Sort(LocationRepository.SORT_LOCATIONS)
+            .Select(LocationRepository.LOCATION_PROJECTION)
+            .Paginate()
+        ).Exec();
 
-      return locations;
-    };
+        return locations;
+      };
 
-    const locations = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const locations = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return locations as Promise<ILocation[]>;
+      return locations as Promise<ILocation[]>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a location by id
@@ -65,22 +69,26 @@ export default class LocationRepository implements ILocationRepository {
     id: string,
     options: { retry: boolean }
   ): Promise<ILocation | null> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const location = await Location.findOne(
-        { _id: id },
-        LocationRepository.LOCATION_PROJECTION
-      ).exec();
+      const operation = async () => {
+        const location = await Location.findById(
+          { _id: id },
+          LocationRepository.LOCATION_PROJECTION
+        ).exec();
 
-      return location;
-    };
+        return location;
+      };
 
-    const location = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const location = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return location as Promise<ILocation | null>;
+      return location as Promise<ILocation | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a location by name
@@ -92,22 +100,26 @@ export default class LocationRepository implements ILocationRepository {
     name: string,
     options: { retry: boolean }
   ): Promise<ILocation | null> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const location = await Location.findOne(
-        { name: new RegExp(name, "i") },
-        LocationRepository.LOCATION_PROJECTION
-      ).exec();
+      const operation = async () => {
+        const location = await Location.findOne(
+          { name: new RegExp(name, "i") },
+          LocationRepository.LOCATION_PROJECTION
+        ).exec();
 
-      return location;
-    };
+        return location;
+      };
 
-    const location = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const location = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return location as Promise<ILocation | null>;
+      return location as Promise<ILocation | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**

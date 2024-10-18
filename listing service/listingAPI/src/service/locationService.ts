@@ -17,9 +17,13 @@ export default class LocationService {
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<ILocation[]> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    return await LocationRepository.Create().findAll(queryString, options);
+      return await LocationRepository.Create().findAll(queryString, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a location by id
@@ -27,9 +31,13 @@ export default class LocationService {
    * @param id location id
    */
   async findById(id: string): Promise<ILocation | null> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    return await LocationRepository.Create().findById(id, options);
+      return await LocationRepository.Create().findById(id, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a location by name
@@ -37,9 +45,13 @@ export default class LocationService {
    * @param name location name
    */
   async findByName(name: string): Promise<ILocation | null> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    return await LocationRepository.Create().findByName(name, options);
+      return await LocationRepository.Create().findByName(name, options);
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
