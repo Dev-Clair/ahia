@@ -6,9 +6,10 @@ import IOffering from "../interface/IOffering";
 declare global {
   namespace Express {
     export interface Request {
+      address?: string;
+      idempotent?: Record<string, any>;
       listing?: IListing;
       offering?: IOffering;
-      address?: string;
       geoCoordinates?: IGeoCoordinates;
     }
   }
