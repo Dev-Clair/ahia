@@ -33,7 +33,6 @@ export default class OfferingRepository implements IOfferingRepository {
   static LISTING_PROJECTION = [
     "-address",
     "-location",
-    "-provider.email",
     "-createdAt",
     "-updatedAt",
     "-__v",
@@ -50,34 +49,38 @@ export default class OfferingRepository implements IOfferingRepository {
     queryString: Record<string, any>,
     options: { retry: boolean }
   ): Promise<IOffering[]> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const query = Offering.find();
+      const operation = async () => {
+        const query = Offering.find();
 
-      const filter = {
-        ...queryString,
-        // verification: { status: true },
+        const filter = {
+          ...queryString,
+          // verification: { status: true },
+        };
+
+        const queryBuilder = QueryBuilder.Create(query, filter);
+
+        const offerings = (
+          await queryBuilder
+            .Filter()
+            .Sort(OfferingRepository.SORT_OFFERINGS)
+            .Select(OfferingRepository.OFFERING_PROJECTION)
+            .Paginate()
+        ).Exec();
+
+        return offerings;
       };
 
-      const queryBuilder = QueryBuilder.Create(query, filter);
+      const offerings = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-      const offerings = (
-        await queryBuilder
-          .Filter()
-          .Sort(OfferingRepository.SORT_OFFERINGS)
-          .Select(OfferingRepository.OFFERING_PROJECTION)
-          .Paginate()
-      ).Exec();
-
-      return offerings;
-    };
-
-    const offerings = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offerings as Promise<IOffering[]>;
+      return offerings as Promise<IOffering[]>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by id
@@ -89,22 +92,26 @@ export default class OfferingRepository implements IOfferingRepository {
     id: string,
     options: { retry: boolean }
   ): Promise<IOffering | null> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const offering = await Offering.findOne(
-        { _id: id },
-        OfferingRepository.OFFERING_PROJECTION
-      ).exec();
+      const operation = async () => {
+        const offering = await Offering.findById(
+          { _id: id },
+          OfferingRepository.OFFERING_PROJECTION
+        ).exec();
 
-      return offering;
-    };
+        return offering;
+      };
 
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const offering = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return offering as Promise<IOffering | null>;
+      return offering as Promise<IOffering | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by slug
@@ -116,22 +123,26 @@ export default class OfferingRepository implements IOfferingRepository {
     slug: string,
     options: { retry: boolean }
   ): Promise<IOffering | null> {
-    const { retry } = options;
+    try {
+      const { retry } = options;
 
-    const operation = async () => {
-      const offering = await Offering.findOne(
-        { slug: slug },
-        OfferingRepository.OFFERING_PROJECTION
-      ).exec();
+      const operation = async () => {
+        const offering = await Offering.findOne(
+          { slug: slug },
+          OfferingRepository.OFFERING_PROJECTION
+        ).exec();
 
-      return offering;
-    };
+        return offering;
+      };
 
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const offering = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return offering as Promise<IOffering | null>;
+      return offering as Promise<IOffering | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by id and populates its subdocument(s)
@@ -146,30 +157,34 @@ export default class OfferingRepository implements IOfferingRepository {
       type?: string;
     }
   ): Promise<IOffering | null> {
-    const { type, retry } = options;
+    try {
+      const { type, retry } = options;
 
-    const operation = async () => {
-      const offering = await Offering.findOne(
-        { _id: id },
-        OfferingRepository.OFFERING_PROJECTION
-      )
-        .populate({
-          path: "listing",
-          match: type ? new RegExp(type, "i") : undefined,
-          model: "Listing",
-          select: OfferingRepository.LISTING_PROJECTION,
-          options: { sort: OfferingRepository.SORT_LISTINGS },
-        })
-        .exec();
+      const operation = async () => {
+        const offering = await Offering.findOne(
+          { _id: id },
+          OfferingRepository.OFFERING_PROJECTION
+        )
+          .populate({
+            path: "listing",
+            match: type ? new RegExp(type, "i") : undefined,
+            model: "Listing",
+            select: OfferingRepository.LISTING_PROJECTION,
+            options: { sort: OfferingRepository.SORT_LISTINGS },
+          })
+          .exec();
 
-      return offering;
-    };
+        return offering;
+      };
 
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const offering = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return offering as Promise<IOffering | null>;
+      return offering as Promise<IOffering | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by slug and populates its subdocument(s)
@@ -184,30 +199,34 @@ export default class OfferingRepository implements IOfferingRepository {
       type?: string;
     }
   ): Promise<IOffering | null> {
-    const { type, retry } = options;
+    try {
+      const { type, retry } = options;
 
-    const operation = async () => {
-      const offering = await Offering.findOne(
-        { slug: slug },
-        OfferingRepository.OFFERING_PROJECTION
-      )
-        .populate({
-          path: "listing",
-          match: type ? new RegExp(type, "i") : undefined,
-          model: "Listing",
-          select: OfferingRepository.LISTING_PROJECTION,
-          options: { sort: OfferingRepository.SORT_LISTINGS },
-        })
-        .exec();
+      const operation = async () => {
+        const offering = await Offering.findOne(
+          { slug: slug },
+          OfferingRepository.OFFERING_PROJECTION
+        )
+          .populate({
+            path: "listing",
+            match: type ? new RegExp(type, "i") : undefined,
+            model: "Listing",
+            select: OfferingRepository.LISTING_PROJECTION,
+            options: { sort: OfferingRepository.SORT_LISTINGS },
+          })
+          .exec();
 
-      return offering;
-    };
+        return offering;
+      };
 
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
+      const offering = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
 
-    return offering as Promise<IOffering | null>;
+      return offering as Promise<IOffering | null>;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a collection of offerings by location (geo-coordinates)
@@ -217,26 +236,30 @@ export default class OfferingRepository implements IOfferingRepository {
   async findOfferingsByLocation(
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const operation = async () => {
-      // Find listings by geo-coordinates
-      const listings = await ListingRepository.Create().findAll(queryString, {
-        retry: false,
-      });
+    try {
+      const operation = async () => {
+        // Find listings by geo-coordinates
+        const listings = await ListingRepository.Create().findAll(queryString, {
+          retry: false,
+        });
 
-      const listingIds = listings.map((listing) => listing._id);
+        const listingIds = listings.map((listing) => listing._id);
 
-      if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
-      // Find offerings that contain these listing IDs
-      const offerings = await this.findAll(
-        { listing: { in: listingIds } },
-        { retry: false }
-      );
+        // Find offerings that contain these listing IDs
+        const offerings = await this.findAll(
+          { listing: { in: listingIds } },
+          { retry: false }
+        );
 
-      return offerings;
-    };
+        return offerings;
+      };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+      return await FailureRetry.LinearJitterBackoff(() => operation());
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a collection of offerings by provider
@@ -246,26 +269,30 @@ export default class OfferingRepository implements IOfferingRepository {
   async findOfferingsByProvider(
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const operation = async () => {
-      // Find listings by provider
-      const listings = await ListingRepository.Create().findAll(queryString, {
-        retry: false,
-      });
+    try {
+      const operation = async () => {
+        // Find listings by provider
+        const listings = await ListingRepository.Create().findAll(queryString, {
+          retry: false,
+        });
 
-      const listingIds = listings.map((listing) => listing._id);
+        const listingIds = listings.map((listing) => listing._id);
 
-      if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
-      // Find offerings that contain these listing IDs
-      const offerings = await this.findAll(
-        { listing: { in: listingIds } },
-        { retry: false }
-      );
+        // Find offerings that contain these listing IDs
+        const offerings = await this.findAll(
+          { listing: { in: listingIds } },
+          { retry: false }
+        );
 
-      return offerings;
-    };
+        return offerings;
+      };
 
-    return await FailureRetry.LinearJitterBackoff(() => operation());
+      return await FailureRetry.LinearJitterBackoff(() => operation());
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**

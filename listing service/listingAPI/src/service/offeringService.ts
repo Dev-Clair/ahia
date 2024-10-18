@@ -18,14 +18,18 @@ export default class OfferingService {
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<IOffering[]> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    const offerings = await OfferingRepository.Create().findAll(
-      queryString,
-      options
-    );
+      const offerings = await OfferingRepository.Create().findAll(
+        queryString,
+        options
+      );
 
-    return offerings;
+      return offerings;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a collection of offerings by location (geo-coordinates)
@@ -35,11 +39,14 @@ export default class OfferingService {
   async findOfferingsByLocation(
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = await OfferingRepository.Create().findOfferingsByLocation(
-      queryString
-    );
+    try {
+      const offerings =
+        await OfferingRepository.Create().findOfferingsByLocation(queryString);
 
-    return offerings;
+      return offerings;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves a collection of offerings by provider
@@ -49,11 +56,14 @@ export default class OfferingService {
   async findOfferingsByProvider(
     queryString: Record<string, any>
   ): Promise<IOffering[]> {
-    const offerings = await OfferingRepository.Create().findOfferingsByProvider(
-      queryString
-    );
+    try {
+      const offerings =
+        await OfferingRepository.Create().findOfferingsByProvider(queryString);
 
-    return offerings;
+      return offerings;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by id
@@ -61,11 +71,15 @@ export default class OfferingService {
    * @param id offering id
    */
   async findById(id: string): Promise<IOffering | null> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    const offering = await OfferingRepository.Create().findById(id, options);
+      const offering = await OfferingRepository.Create().findById(id, options);
 
-    return offering;
+      return offering;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by slug
@@ -73,14 +87,18 @@ export default class OfferingService {
    * @param slug offering slug
    */
   async findBySlug(slug: string): Promise<IOffering | null> {
-    const options = { retry: true };
+    try {
+      const options = { retry: true };
 
-    const offering = await OfferingRepository.Create().findBySlug(
-      slug,
-      options
-    );
+      const offering = await OfferingRepository.Create().findBySlug(
+        slug,
+        options
+      );
 
-    return offering;
+      return offering;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by id and populate its subdocument(s)
@@ -92,14 +110,18 @@ export default class OfferingService {
     id: string,
     type?: string
   ): Promise<IOffering | null> {
-    const options = { retry: true, type: type };
+    try {
+      const options = { retry: true, type: type };
 
-    const offering = await OfferingRepository.Create().findByIdAndPopulate(
-      id,
-      options
-    );
+      const offering = await OfferingRepository.Create().findByIdAndPopulate(
+        id,
+        options
+      );
 
-    return offering;
+      return offering;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /** Retrieves an offering by slug and populate its subdocument(s)
@@ -111,14 +133,18 @@ export default class OfferingService {
     slug: string,
     type?: string
   ): Promise<IOffering | null> {
-    const options = { retry: true, type: type };
+    try {
+      const options = { retry: true, type: type };
 
-    const offering = await OfferingRepository.Create().findBySlugAndPopulate(
-      slug,
-      options
-    );
+      const offering = await OfferingRepository.Create().findBySlugAndPopulate(
+        slug,
+        options
+      );
 
-    return offering;
+      return offering;
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   /**
