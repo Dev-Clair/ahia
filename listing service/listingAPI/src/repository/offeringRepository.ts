@@ -317,7 +317,7 @@ export default class OfferingRepository implements IOfferingRepository {
    */
   async update(
     id: string,
-    payload: Partial<IOffering | any>,
+    payload: Partial<IOffering> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;

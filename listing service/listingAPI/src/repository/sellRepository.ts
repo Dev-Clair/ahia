@@ -217,7 +217,7 @@ export default class SellRepository extends OfferingRepository {
    */
   async update(
     id: string,
-    payload: Partial<ISellOffering | any>,
+    payload: Partial<ISellOffering> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;

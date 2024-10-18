@@ -202,7 +202,7 @@ export default class LeaseRepository extends OfferingRepository {
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return (await offeringId) as Promise<string>;
+      return offeringId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
@@ -217,7 +217,7 @@ export default class LeaseRepository extends OfferingRepository {
    */
   async update(
     id: string,
-    payload: Partial<ILeaseOffering | any>,
+    payload: Partial<ILeaseOffering> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;

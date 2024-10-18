@@ -132,7 +132,7 @@ export default class ListingService {
   async update(
     id: string,
     key: Record<string, any>,
-    payload: Partial<IListing | any>
+    payload: Partial<IListing> | any
   ): Promise<string> {
     const session = await mongoose.startSession();
 
@@ -295,7 +295,7 @@ export default class ListingService {
     id: string,
     type: string,
     key: Record<string, any>,
-    payload: Partial<IOffering | any>
+    payload: Partial<IOffering> | any
   ): Promise<string> {
     const session = await mongoose.startSession();
 

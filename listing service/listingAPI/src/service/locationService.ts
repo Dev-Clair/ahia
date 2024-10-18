@@ -84,7 +84,7 @@ export default class LocationService {
   async update(
     id: string,
     key: Record<string, any>,
-    payload: Partial<ILocation | any>
+    payload: Partial<ILocation> | any
   ): Promise<string> {
     const session = await mongoose.startSession();
 

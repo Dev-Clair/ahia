@@ -279,7 +279,7 @@ export default class ListingRepository implements IListingRepository {
    */
   async update(
     id: string,
-    payload: Partial<IListing | any>,
+    payload: Partial<IListing> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -551,7 +551,7 @@ export default class ListingRepository implements IListingRepository {
   async updateListingOffering(
     id: string,
     type: string,
-    payload: Partial<IOffering | any>,
+    payload: Partial<IOffering> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;

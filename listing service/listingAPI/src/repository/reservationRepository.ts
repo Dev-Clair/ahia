@@ -217,7 +217,7 @@ export default class ReservationRepository extends OfferingRepository {
    */
   async update(
     id: string,
-    payload: Partial<IReservationOffering | any>,
+    payload: Partial<IReservationOffering> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;

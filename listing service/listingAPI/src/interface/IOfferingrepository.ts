@@ -70,7 +70,7 @@ export default interface IOfferingRepository extends IRepository<IOffering> {
    */
   update(
     id: string,
-    payload: Partial<IOffering | any>,
+    payload: Partial<IOffering> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 

@@ -70,7 +70,7 @@ export default interface IListingRepository extends IRepository<IListing> {
    */
   update(
     id: string,
-    payload: Partial<IListing | any>,
+    payload: Partial<IListing> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 

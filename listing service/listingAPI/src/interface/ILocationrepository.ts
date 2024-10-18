@@ -40,7 +40,7 @@ export default interface ILocationRepository extends IRepository<ILocation> {
    */
   update(
     id: string,
-    payload: Partial<ILocation | any>,
+    payload: Partial<ILocation> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 

@@ -159,7 +159,7 @@ export default class LocationRepository implements ILocationRepository {
    */
   async update(
     id: string,
-    payload: Partial<ILocation | any>,
+    payload: Partial<ILocation> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
