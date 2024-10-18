@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import DatabaseServiceError from "../error/connectionserviceError";
+import ConnectionServiceError from "../error/connectionserviceError";
 import FailureRetry from "../utils/failureRetry";
 
 /**
@@ -25,7 +25,7 @@ class ConnectionService {
       try {
         await FailureRetry.LinearJitterBackoff(() => this.connect());
       } catch (err: any) {
-        throw new DatabaseServiceError(
+        throw new ConnectionServiceError(
           err.message,
           "Retry strategies failed. Could not establish connection to the database."
         );
