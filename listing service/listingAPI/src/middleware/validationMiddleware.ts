@@ -23,7 +23,7 @@ const ListingSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  type: z.enum(["property", "land"]),
+  type: z.enum(["land", "mobile", "property"]),
   address: z.object({
     street: z.string({
       required_error: "street is required",
@@ -149,13 +149,15 @@ const OfferingSchema = z.object({
         invalid_type_error: "isNegotiable must be a boolean type",
         required_error: "isNegotiable is required",
       }),
-      amount: z.number({
-        required_error: "amount is required",
-        invalid_type_error: "amount must be a number",
-      }),
-      currency: z.string({
-        required_error: "currency is required",
-        invalid_type_error: "currency must be a string",
+      price: z.object({
+        amount: z.number({
+          required_error: "amount is required",
+          invalid_type_error: "amount must be a number",
+        }),
+        currency: z.string({
+          required_error: "currency is required",
+          invalid_type_error: "currency must be a string",
+        }),
       }),
       discount: z
         .number({
