@@ -24,4 +24,6 @@ export default interface IOffering extends Document {
     status: boolean;
     expiry: Date;
   };
+  createdAt: Date;
+  updatedAt: Date;
 }

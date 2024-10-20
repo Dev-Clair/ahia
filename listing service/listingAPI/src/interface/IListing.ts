@@ -25,4 +25,6 @@ export default interface IListing extends Document {
     image: string;
     video: string;
   };
+  createdAt: Date;
+  updatedAt: Date;
 }
