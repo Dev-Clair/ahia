@@ -14,7 +14,7 @@ OfferingRouter.route(`/location`).get(
   OfferingController.retrieveOfferingsByLocation
 );
 
-OfferingRouter.route(`/near-me`).get(
+OfferingRouter.route(`/nearby`).get(
   GeocodeMiddleware.parseUserGeoCoordinates,
   OfferingController.retrieveOfferingsNearBy
 );
