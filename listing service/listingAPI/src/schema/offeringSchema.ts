@@ -20,28 +20,9 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       type: String,
       required: true,
     },
-    area: {
-      size: {
-        type: Number,
-        required: true,
-      },
-      unit: {
-        type: String,
-        enum: ["sqm", "sqft"],
-        required: true,
-      },
-    },
-    features: {
-      type: [String],
-      required: true,
-    },
     product: {
       type: ProductSchema,
       required: true,
-    },
-    quantity: {
-      type: Number,
-      default: 1,
     },
     type: {
       type: String,
@@ -86,9 +67,9 @@ const OfferingSchema: Schema<IOffering> = new Schema(
 
 // Offering Schema Search Query Index
 OfferingSchema.index({
-  "area.size": 1,
   "product.name": "text",
   "product.category": "text",
+  "product.area.size": 1,
   "product.type": "text",
 });
 

@@ -14,6 +14,25 @@ const ProductSchema: Schema<IProduct> = new Schema(
       enum: ["economy", "premium", "luxury"],
       required: true,
     },
+    features: {
+      type: [String],
+      required: true,
+    },
+    area: {
+      size: {
+        type: Number,
+        required: true,
+      },
+      unit: {
+        type: String,
+        enum: ["sqm", "sqft"],
+        required: true,
+      },
+    },
+    quantity: {
+      type: Number,
+      default: 1,
+    },
     type: {
       type: String,
       enum: Object.values(ProductTypes).flat(),
@@ -23,8 +42,13 @@ const ProductSchema: Schema<IProduct> = new Schema(
   { _id: false, versionKey: false }
 );
 
-// Product Schema Search Query Index
-ProductSchema.index({ name: "text", category: "text", type: "text" });
+// // Product Schema Search Query Index
+// ProductSchema.index({
+//   name: "text",
+//   category: "text",
+//   "area.size": "text",
+//   type: "text",
+// });
 
 // Product Schema Middleware
 ProductSchema.pre("validate", function (next) {
