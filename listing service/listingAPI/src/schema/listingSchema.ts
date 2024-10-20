@@ -16,7 +16,7 @@ const ListingSchema: Schema<IListing> = new Schema(
     },
     type: {
       type: String,
-      enum: ["land", "property"],
+      enum: ["land", "mobile", "property"],
       required: true,
     },
     offerings: [
