@@ -88,7 +88,11 @@ const ListingSchema: Schema<IListing> = new Schema(
 );
 
 // Listing Schema Search Query Index
-ListingSchema.index({ location: "2dsphere" });
+ListingSchema.index({
+  location: "2dsphere",
+  "provider.id": "text",
+  "provider.slug": "text",
+});
 
 // Listing Schema Middleware
 ListingSchema.pre("findOneAndDelete", async function (next) {
