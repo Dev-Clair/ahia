@@ -315,33 +315,49 @@ export default class ListingRepository implements IListingRepository {
    * @param searchFilter query filter object
    */
   async findListingsByOfferingSearch(searchFilter: {
-    product: { name: string; category: string; type: string };
+    product: {
+      name: string;
+      category: string;
+      type: string;
+      minArea?: number;
+      maxArea?: number;
+    };
     status: string;
     type: string;
-    minArea?: number;
-    maxArea?: number;
   }): Promise<IListing[]> {
     try {
-      const { minArea, maxArea, product, status, type } = searchFilter;
+      const { product, status, type } = searchFilter;
 
       //Build the query for offerings
       const query: Record<string, any> = {};
 
-      // Filtering by area size
-      if (minArea !== undefined || maxArea !== undefined) {
-        query["area.size"] = {};
-
-        if (minArea !== undefined) query["area.size"] = { gte: minArea };
-
-        if (maxArea !== undefined) query["area.size"] = { lte: maxArea };
-      }
-
-      // Filtering by produt (name, category and type) using a case-insensitive regex
+      // Filtering by produt (name, category, area, and type) using a case-insensitive regex
       if (product)
         query.product = {
           name: new RegExp(product.name.toLowerCase()),
+
           category: new RegExp(product.category.toLowerCase()),
+
           type: new RegExp(product.type.toLowerCase()),
+
+          area: {
+            size: () => {
+              let size = {} as Record<string, any>;
+
+              if (
+                product.minArea !== undefined ||
+                product.maxArea !== undefined
+              ) {
+                if (product.minArea !== undefined)
+                  size["gte"] = product.minArea;
+
+                if (product.maxArea !== undefined)
+                  size["lte"] = product.maxArea;
+              }
+
+              return size;
+            },
+          },
         };
 
       // Filtering by status using a case-insensitive regex

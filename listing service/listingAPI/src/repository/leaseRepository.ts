@@ -73,33 +73,6 @@ export default class LeaseRepository extends OfferingRepository {
     return offering as Promise<ILeaseOffering | null>;
   }
 
-  /** Retrieves an offering by slug
-   * @public
-   * @param slug offering slug
-   * @param options configuration options
-   */
-  async findBySlug(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<ILeaseOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Lease.findOne(
-        { slug: slug },
-        LeaseRepository.OFFERING_PROJECTION
-      ).exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<ILeaseOffering | null>;
-  }
-
   /** Retrieves an offering by id and populates its subdocument(s)
    * @public
    * @param id offering id
@@ -114,40 +87,6 @@ export default class LeaseRepository extends OfferingRepository {
     const operation = async () => {
       const offering = await Lease.findOne(
         { _id: id },
-        LeaseRepository.OFFERING_PROJECTION
-      )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: LeaseRepository.LISTING_PROJECTION,
-          options: { sort: LeaseRepository.SORT_LISTINGS },
-        })
-        .exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<ILeaseOffering | null>;
-  }
-
-  /** Retrieves an offering by slug and populates its subdocument(s)
-   * @public
-   * @param slug listing slug
-   * @param options configuration options
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<ILeaseOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Lease.findOne(
-        { slug: slug },
         LeaseRepository.OFFERING_PROJECTION
       )
         .populate({

@@ -11,9 +11,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * Offering Repository
  * @method findAll
  * @method findById
- * @method findBySlug
  * @method findByIdAndPopulate
- * @method findBySlugAndPopulate
  * @method findOfferingsByLocation
  * @method findOfferingsByProvider
  * @method save
@@ -114,37 +112,6 @@ export default class OfferingRepository implements IOfferingRepository {
     }
   }
 
-  /** Retrieves an offering by slug
-   * @public
-   * @param slug offering slug
-   * @param options configuration options
-   */
-  async findBySlug(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<IOffering | null> {
-    try {
-      const { retry } = options;
-
-      const operation = async () => {
-        const offering = await Offering.findOne(
-          { slug: slug },
-          OfferingRepository.OFFERING_PROJECTION
-        ).exec();
-
-        return offering;
-      };
-
-      const offering = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return offering as Promise<IOffering | null>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   /** Retrieves an offering by id and populates its subdocument(s)
    * @public
    * @param id offering id
@@ -163,48 +130,6 @@ export default class OfferingRepository implements IOfferingRepository {
       const operation = async () => {
         const offering = await Offering.findOne(
           { _id: id },
-          OfferingRepository.OFFERING_PROJECTION
-        )
-          .populate({
-            path: "listing",
-            match: type ? new RegExp(type, "i") : undefined,
-            model: "Listing",
-            select: OfferingRepository.LISTING_PROJECTION,
-            options: { sort: OfferingRepository.SORT_LISTINGS },
-          })
-          .exec();
-
-        return offering;
-      };
-
-      const offering = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return offering as Promise<IOffering | null>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves an offering by slug and populates its subdocument(s)
-   * @public
-   * @param slug listing slug
-   * @param options configuration options
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    options: {
-      retry: boolean;
-      type?: string;
-    }
-  ): Promise<IOffering | null> {
-    try {
-      const { type, retry } = options;
-
-      const operation = async () => {
-        const offering = await Offering.findOne(
-          { slug: slug },
           OfferingRepository.OFFERING_PROJECTION
         )
           .populate({

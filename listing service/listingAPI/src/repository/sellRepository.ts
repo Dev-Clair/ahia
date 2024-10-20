@@ -73,33 +73,6 @@ export default class SellRepository extends OfferingRepository {
     return offering as Promise<ISellOffering | null>;
   }
 
-  /** Retrieves an offering by slug
-   * @public
-   * @param slug offering slug
-   * @param options configuration options
-   */
-  async findBySlug(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<ISellOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Sell.findOne(
-        { slug: slug },
-        SellRepository.OFFERING_PROJECTION
-      ).exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<ISellOffering | null>;
-  }
-
   /** Retrieves an offering by id and populates its subdocument(s)
    * @public
    * @param id offering id
@@ -114,40 +87,6 @@ export default class SellRepository extends OfferingRepository {
     const operation = async () => {
       const offering = await Sell.findOne(
         { _id: id },
-        SellRepository.OFFERING_PROJECTION
-      )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: SellRepository.LISTING_PROJECTION,
-          options: { sort: SellRepository.SORT_LISTINGS },
-        })
-        .exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<ISellOffering | null>;
-  }
-
-  /** Retrieves an offering by slug and populates its subdocument(s)
-   * @public
-   * @param slug listing slug
-   * @param options configuration options
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<ISellOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Sell.findOne(
-        { slug: slug },
         SellRepository.OFFERING_PROJECTION
       )
         .populate({

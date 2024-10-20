@@ -73,33 +73,6 @@ export default class ReservationRepository extends OfferingRepository {
     return offering as Promise<IReservationOffering | null>;
   }
 
-  /** Retrieves an offering by slug
-   * @public
-   * @param slug offering slug
-   * @param options configuration options
-   */
-  async findBySlug(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<IReservationOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Reservation.findOne(
-        { slug: slug },
-        ReservationRepository.OFFERING_PROJECTION
-      ).exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<IReservationOffering | null>;
-  }
-
   /** Retrieves an offering by id and populates its subdocument(s)
    * @public
    * @param id offering id
@@ -114,40 +87,6 @@ export default class ReservationRepository extends OfferingRepository {
     const operation = async () => {
       const offering = await Reservation.findOne(
         { _id: id },
-        ReservationRepository.OFFERING_PROJECTION
-      )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: ReservationRepository.LISTING_PROJECTION,
-          options: { sort: ReservationRepository.SORT_LISTINGS },
-        })
-        .exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<IReservationOffering | null>;
-  }
-
-  /** Retrieves an offering by slug and populates its subdocument(s)
-   * @public
-   * @param slug listing slug
-   * @param options configuration options
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<IReservationOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Reservation.findOne(
-        { slug: slug },
         ReservationRepository.OFFERING_PROJECTION
       )
         .populate({
