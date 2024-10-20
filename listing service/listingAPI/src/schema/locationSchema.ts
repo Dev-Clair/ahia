@@ -29,6 +29,7 @@ const LocationSchema: Schema<ILocation> = new Schema(
   }
 );
 
+// Location Schema Search Query Index
 LocationSchema.index({ name: "text", coordinates: "2dsphere" });
 
 export default LocationSchema;

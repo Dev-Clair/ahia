@@ -56,7 +56,7 @@ const ListingSchema: Schema<IListing> = new Schema(
           validator: function (value: [number, number]) {
             return Array.isArray(value) && value.length === 2;
           },
-          message: "coordinates must be an array of two numbers",
+          message: "coordinates must be an array tuple of two numbers",
         },
         required: false,
       },
@@ -88,20 +88,18 @@ const ListingSchema: Schema<IListing> = new Schema(
 );
 
 // Listing Schema Search Query Index
-ListingSchema.index({
-  type: "text",
-  location: "2dsphere",
-});
+ListingSchema.index({ location: "2dsphere" });
 
+// Listing Schema Middleware
 ListingSchema.pre("findOneAndDelete", async function (next) {
+  const session = await mongoose.startSession();
+
   try {
     const listing = (await this.model.findOne(this.getFilter())) as IListing;
 
     if (!listing) next();
 
-    const session = await mongoose.startSession();
-
-    session.withTransaction(async () => {
+    await session.withTransaction(async () => {
       // Delete all offering document records referenced to listing
       await mongoose.model("Offering", OfferingSchema).bulkWrite(
         [
@@ -116,6 +114,8 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
     next();
   } catch (err: any) {
     next(err);
+  } finally {
+    await session.endSession();
   }
 });
 

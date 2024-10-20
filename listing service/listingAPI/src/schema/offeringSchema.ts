@@ -92,15 +92,16 @@ OfferingSchema.index({
   "product.type": "text",
 });
 
+// Listing Schema Middleware
 OfferingSchema.pre("findOneAndDelete", async function (next) {
+  const session = await mongoose.startSession();
+
   try {
     const offering = (await this.model.findOne(this.getFilter())) as IOffering;
 
     if (!offering) next();
 
-    const session = await mongoose.startSession();
-
-    session.withTransaction(async () => {
+    await session.withTransaction(async () => {
       // Unlink listing reference to offering
       await mongoose
         .model("Listing", ListingSchema)
@@ -114,6 +115,8 @@ OfferingSchema.pre("findOneAndDelete", async function (next) {
     next();
   } catch (err: any) {
     next(err);
+  } finally {
+    await session.endSession();
   }
 });
 
