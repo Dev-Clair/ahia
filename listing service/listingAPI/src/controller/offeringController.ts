@@ -184,7 +184,7 @@ const retrieveOfferingsAvailableForSelling = async (
 };
 
 /**
- * Retrieve offerings by product (filter: name, category, type)
+ * Retrieve offerings by product (filter: name, category, area, type)
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -201,8 +201,26 @@ const retrieveOfferingsByProduct = async (
 
     const type = req.query.type as string;
 
+    const area = {
+      size: () => {
+        let size = {} as Record<string, any>;
+
+        const minArea = parseInt((req.query?.minArea as string) ?? "", 10);
+
+        const maxArea = parseInt((req.query?.maxArea as string) ?? "", 10);
+
+        if (minArea !== undefined || maxArea !== undefined) {
+          if (minArea !== undefined) size["gte"] = minArea;
+
+          if (maxArea !== undefined) size["lte"] = maxArea;
+        }
+
+        return size;
+      },
+    };
+
     const queryString = {
-      product: { name: name, category: category, type: type },
+      product: { name: name, category: category, type: type, area: area },
     };
 
     const offerings = await OfferingService.Create().findAll(queryString);

@@ -194,11 +194,11 @@ const retrieveListingsByOfferingSearch = async (
         name: req.query.productName as string,
         category: req.query.productCategory as string,
         type: req.query.productType as string,
+        minArea: parseInt((req.query?.minArea as string) ?? "", 10),
+        maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
       },
       status: req.query.status as string,
       type: req.query.type as string,
-      minArea: parseInt((req.query?.minArea as string) ?? "", 10),
-      maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
     };
 
     const listings = await ListingService.Create().findListingsByOfferingSearch(
