@@ -25,7 +25,7 @@ ListingRouter.route(`/offerings`).get(
   ListingController.retrieveListingsByOfferingSearch
 );
 
-ListingRouter.route(`/provider/:id`).get(
+ListingRouter.route(`/provider/:slug`).get(
   AuthMiddleware.isGranted([""]),
   ListingController.retrieveListingsByProvider
 );

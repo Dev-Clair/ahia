@@ -225,9 +225,9 @@ const retrieveOfferingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const providerId = req.query.id as string;
+    const provider = req.query.provider as string;
 
-    const queryString = { provider: { id: providerId } };
+    const queryString = { provider: { slug: provider } };
 
     const offerings = await OfferingService.Create().findOfferingsByProvider(
       queryString

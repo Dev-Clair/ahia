@@ -117,9 +117,9 @@ const retrieveListingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const providerId = req.params.providerId as string;
+    const slug = req.params.slug as string;
 
-    const queryString = { provider: { id: providerId } };
+    const queryString = { provider: { slug: slug } };
 
     const listings = await ListingService.Create().findAll(queryString);
 
