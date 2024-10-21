@@ -1,9 +1,8 @@
-import { Document, Schema } from "mongoose";
+import IDocument from "./IDocument";
+import { Schema } from "mongoose";
 import IProduct from "./IProduct";
 
-export default interface IOffering extends Document {
-  _id: Schema.Types.ObjectId;
-  id: () => string;
+export default interface IOffering extends IDocument {
   listing: Schema.Types.ObjectId;
   name: string;
   description: string;
@@ -18,6 +17,4 @@ export default interface IOffering extends Document {
     status: boolean;
     expiry: Date;
   };
-  createdAt: Date;
-  updatedAt: Date;
 }

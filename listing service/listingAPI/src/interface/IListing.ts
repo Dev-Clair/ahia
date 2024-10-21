@@ -1,8 +1,7 @@
-import { Document, Schema } from "mongoose";
+import IDocument from "./IDocument";
+import { Schema } from "mongoose";
 
-export default interface IListing extends Document {
-  _id: Schema.Types.ObjectId;
-  id: () => string;
+export default interface IListing extends IDocument {
   name: string;
   description: string;
   type: "land" | "mobile" | "property";
@@ -25,6 +24,4 @@ export default interface IListing extends Document {
     image: string;
     video: string;
   };
-  createdAt: Date;
-  updatedAt: Date;
 }
