@@ -62,7 +62,12 @@ const OfferingSchema: Schema<IOffering> = new Schema(
       },
     },
   },
-  { discriminatorKey: "type", timestamps: true }
+  {
+    discriminatorKey: "type",
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 // Offering Schema Search Query Index
@@ -71,9 +76,15 @@ OfferingSchema.index({
   "product.category": "text",
   "product.area.size": 1,
   "product.type": "text",
+  status: "text",
 });
 
-// Listing Schema Middleware
+// Offering Schema Virtuals
+OfferingSchema.virtual("inventory").get(function () {
+  return this.product.quantity > 0 ? "AVAILABLE" : "OUT-OF-STOCK";
+});
+
+// Offering Schema Middleware
 OfferingSchema.pre("findOneAndDelete", async function (next) {
   const session = await mongoose.startSession();
 

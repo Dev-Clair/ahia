@@ -14,7 +14,4 @@ const ReservationOfferingSchema: Schema<IReservationOffering> = new Schema({
   },
 });
 
-// ReservationOffering Schema Search Query Index
-ReservationOfferingSchema.index({ status: "text" });
-
 export default ReservationOfferingSchema;

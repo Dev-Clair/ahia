@@ -21,7 +21,4 @@ const SellOfferingSchema: Schema<ISellOffering> = new Schema({
   },
 });
 
-// SellOffering Schema Search Query Index
-SellOfferingSchema.index({ status: "text" });
-
 export default SellOfferingSchema;

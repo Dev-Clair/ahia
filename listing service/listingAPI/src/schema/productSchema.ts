@@ -42,14 +42,6 @@ const ProductSchema: Schema<IProduct> = new Schema(
   { _id: false, versionKey: false }
 );
 
-// // Product Schema Search Query Index
-// ProductSchema.index({
-//   name: "text",
-//   category: "text",
-//   "area.size": "text",
-//   type: "text",
-// });
-
 // Product Schema Middleware
 ProductSchema.pre("validate", function (next) {
   const names = ProductTypes[this.name];
