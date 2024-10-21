@@ -99,7 +99,9 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
   const session = await mongoose.startSession();
 
   try {
-    const listing = (await this.model.findOne(this.getFilter())) as IListing;
+    const listing = (await this.model
+      .findOne(this.getFilter())
+      .session(session)) as IListing;
 
     if (!listing) next();
 
