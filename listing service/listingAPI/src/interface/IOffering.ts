@@ -1,20 +1,13 @@
-import IDocument from "./IDocument";
-import { Schema } from "mongoose";
-import IProduct from "./IProduct";
+import Offerings from "../constant/offerings";
 
-export default interface IOffering extends IDocument {
-  listing: Schema.Types.ObjectId;
-  name: string;
-  description: string;
-  product: IProduct;
-  type: "lease" | "reservation" | "sell";
-  media: {
-    images: string[];
-    videos?: string[];
+export default interface IOffering {
+  name: keyof typeof Offerings;
+  category: "economy" | "premium" | "luxury";
+  features: string[];
+  area: {
+    size: number;
+    unit: "sqm" | "sqft";
   };
-  promotion: "platinum" | "gold" | "ruby" | "silver";
-  verification: {
-    status: boolean;
-    expiry: Date;
-  };
+  quantity: number;
+  type: (typeof Offerings)[IOffering["name"]][number];
 }

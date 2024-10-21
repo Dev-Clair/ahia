@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import IListing from "../interface/IListing";
-import OfferingSchema from "./offeringSchema";
+import ProductSchema from "./productSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -19,10 +19,10 @@ const ListingSchema: Schema<IListing> = new Schema(
       enum: ["land", "mobile", "property"],
       required: true,
     },
-    offerings: [
+    products: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Offering",
+        ref: "Product",
         required: false,
       },
     ],
@@ -104,8 +104,8 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
     if (!listing) next();
 
     await session.withTransaction(async () => {
-      // Delete all offering document records referenced to listing
-      await mongoose.model("Offering", OfferingSchema).bulkWrite(
+      // Delete all product document records referenced to listing
+      await mongoose.model("Product", ProductSchema).bulkWrite(
         [
           {
             deleteMany: { filter: { listing: listing._id } },

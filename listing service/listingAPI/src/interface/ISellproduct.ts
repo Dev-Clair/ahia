@@ -1,8 +1,8 @@
-import IOffering from "./IOffering";
+import IProduct from "./IProduct";
 import IInstalment from "./IInstalment";
 import IOutright from "./IOutright";
 
-export default interface ISellOffering extends IOffering {
+export default interface ISellProduct extends IProduct {
   status: "now-selling" | "sold";
   sell: {
     outright: IOutright;

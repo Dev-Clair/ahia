@@ -1,9 +1,9 @@
 import { Schema } from "mongoose";
 import InstalmentSchema from "./instalmentSchema";
 import OutrightSchema from "./instalmentSchema";
-import ISellOffering from "../interface/ISelloffering";
+import ISellProduct from "../interface/ISellproduct";
 
-const SellOfferingSchema: Schema<ISellOffering> = new Schema({
+const SellProductSchema: Schema<ISellProduct> = new Schema({
   status: {
     type: String,
     enum: ["now-selling", "sold"],
@@ -21,4 +21,4 @@ const SellOfferingSchema: Schema<ISellOffering> = new Schema({
   },
 });
 
-export default SellOfferingSchema;
+export default SellProductSchema;

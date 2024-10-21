@@ -1,8 +1,8 @@
 import { Schema } from "mongoose";
-import ILeaseOffering from "../interface/ILeaseoffering";
+import ILeaseProduct from "../interface/ILeaseproduct";
 import LeaseSchema from "./leaseSchema";
 
-const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
+const LeaseProductSchema: Schema<ILeaseProduct> = new Schema({
   status: {
     type: String,
     enum: ["now-letting", "closed"],
@@ -14,4 +14,4 @@ const LeaseOfferingSchema: Schema<ILeaseOffering> = new Schema({
   },
 });
 
-export default LeaseOfferingSchema;
+export default LeaseProductSchema;

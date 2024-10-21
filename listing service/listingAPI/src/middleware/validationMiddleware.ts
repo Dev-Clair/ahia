@@ -56,7 +56,7 @@ const ListingSchema = z.object({
   }),
 });
 
-const OfferingSchema = z.object({
+const ProductSchema = z.object({
   name: z.string({
     required_error: "name is required",
     invalid_type_error: "name must be a string",
@@ -295,5 +295,5 @@ export default {
   validateID: validateID(IdSchema),
   validateType: validateType(TypeSchema),
   validateListing: validateBody(ListingSchema),
-  validateOffering: validateBody(OfferingSchema),
+  validateProduct: validateBody(ProductSchema),
 };

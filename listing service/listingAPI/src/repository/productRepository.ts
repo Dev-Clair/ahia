@@ -1,32 +1,32 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
-import IOffering from "../interface/IOffering";
-import IOfferingRepository from "../interface/IOfferingrepository";
+import IProduct from "../interface/IProduct";
+import IProductRepository from "../interface/IProductrepository";
 import ListingRepository from "./listingRepository";
-import Offering from "../model/offeringModel";
+import Product from "../model/productModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
- * Offering Repository
+ * Product Repository
  * @method findAll
  * @method findById
  * @method findByIdAndPopulate
- * @method findOfferingsByLocation
- * @method findOfferingsByProvider
+ * @method findProductsByLocation
+ * @method findProductsByProvider
  * @method save
  * @method update
  * @method delete
  */
-export default class OfferingRepository implements IOfferingRepository {
-  static OFFERING_PROJECTION = [
+export default class ProductRepository implements IProductRepository {
+  static PRODUCT_PROJECTION = [
     "-createdAt",
     "-updatedAt",
     "-__v",
     "-verification",
   ];
 
-  static SORT_OFFERINGS = ["-createdAt"];
+  static SORT_PRODUCTS = ["-createdAt"];
 
   static LISTING_PROJECTION = [
     "-address",
@@ -38,7 +38,7 @@ export default class OfferingRepository implements IOfferingRepository {
 
   static SORT_LISTINGS = ["-createdAt"];
 
-  /** Retrieves a collection of offerings
+  /** Retrieves a collection of products
    * @public
    * @param queryString query object
    * @param options configuration options
@@ -46,12 +46,12 @@ export default class OfferingRepository implements IOfferingRepository {
   async findAll(
     queryString: Record<string, any>,
     options: { retry: boolean }
-  ): Promise<IOffering[]> {
+  ): Promise<IProduct[]> {
     try {
       const { retry } = options;
 
       const operation = async () => {
-        const query = Offering.find();
+        const query = Product.find();
 
         const filter = {
           ...queryString,
@@ -60,61 +60,61 @@ export default class OfferingRepository implements IOfferingRepository {
 
         const queryBuilder = QueryBuilder.Create(query, filter);
 
-        const offerings = (
+        const products = (
           await queryBuilder
             .Filter()
-            .Sort(OfferingRepository.SORT_OFFERINGS)
-            .Select(OfferingRepository.OFFERING_PROJECTION)
+            .Sort(ProductRepository.SORT_PRODUCTS)
+            .Select(ProductRepository.PRODUCT_PROJECTION)
             .Paginate()
         ).Exec();
 
-        return offerings;
+        return products;
       };
 
-      const offerings = retry
+      const products = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return offerings as Promise<IOffering[]>;
+      return products as Promise<IProduct[]>;
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves an offering by id
+  /** Retrieves a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async findById(
     id: string,
     options: { retry: boolean }
-  ): Promise<IOffering | null> {
+  ): Promise<IProduct | null> {
     try {
       const { retry } = options;
 
       const operation = async () => {
-        const offering = await Offering.findById(
+        const product = await Product.findById(
           { _id: id },
-          OfferingRepository.OFFERING_PROJECTION
+          ProductRepository.PRODUCT_PROJECTION
         ).exec();
 
-        return offering;
+        return product;
       };
 
-      const offering = retry
+      const product = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return offering as Promise<IOffering | null>;
+      return product as Promise<IProduct | null>;
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves an offering by id and populates its subdocument(s)
+  /** Retrieves a product by id and populates its subdocument(s)
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async findByIdAndPopulate(
@@ -123,44 +123,44 @@ export default class OfferingRepository implements IOfferingRepository {
       retry: boolean;
       type?: string;
     }
-  ): Promise<IOffering | null> {
+  ): Promise<IProduct | null> {
     try {
       const { type, retry } = options;
 
       const operation = async () => {
-        const offering = await Offering.findOne(
+        const product = await Product.findOne(
           { _id: id },
-          OfferingRepository.OFFERING_PROJECTION
+          ProductRepository.PRODUCT_PROJECTION
         )
           .populate({
             path: "listing",
             match: type ? new RegExp(type, "i") : undefined,
             model: "Listing",
-            select: OfferingRepository.LISTING_PROJECTION,
-            options: { sort: OfferingRepository.SORT_LISTINGS },
+            select: ProductRepository.LISTING_PROJECTION,
+            options: { sort: ProductRepository.SORT_LISTINGS },
           })
           .exec();
 
-        return offering;
+        return product;
       };
 
-      const offering = retry
+      const product = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return offering as Promise<IOffering | null>;
+      return product as Promise<IProduct | null>;
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves a collection of offerings by location (geo-coordinates)
+  /** Retrieves a collection of products by location (geo-coordinates)
    * @public
    * @param queryString query object
    */
-  async findOfferingsByLocation(
+  async findProductsByLocation(
     queryString: Record<string, any>
-  ): Promise<IOffering[]> {
+  ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by geo-coordinates
@@ -172,13 +172,13 @@ export default class OfferingRepository implements IOfferingRepository {
 
         if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
-        // Find offerings that contain these listing IDs
-        const offerings = await this.findAll(
+        // Find products that contain these listing IDs
+        const products = await this.findAll(
           { listing: { in: listingIds } },
           { retry: false }
         );
 
-        return offerings;
+        return products;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
@@ -187,13 +187,13 @@ export default class OfferingRepository implements IOfferingRepository {
     }
   }
 
-  /** Retrieves a collection of offerings by provider
+  /** Retrieves a collection of products by provider
    * @public
    * @param queryString query object
    */
-  async findOfferingsByProvider(
+  async findProductsByProvider(
     queryString: Record<string, any>
-  ): Promise<IOffering[]> {
+  ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by provider
@@ -205,13 +205,13 @@ export default class OfferingRepository implements IOfferingRepository {
 
         if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
-        // Find offerings that contain these listing IDs
-        const offerings = await this.findAll(
+        // Find products that contain these listing IDs
+        const products = await this.findAll(
           { listing: { in: listingIds } },
           { retry: false }
         );
 
-        return offerings;
+        return products;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
@@ -221,13 +221,13 @@ export default class OfferingRepository implements IOfferingRepository {
   }
 
   /**
-   * Creates a new offering in collection
+   * Creates a new product in collection
    * @public
    * @param payload the data object
    * @param options configuration options
    */
   async save(
-    payload: Partial<IOffering>,
+    payload: Partial<IProduct>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -238,38 +238,38 @@ export default class OfferingRepository implements IOfferingRepository {
 
     try {
       const operation = async () => {
-        const offerings = await Offering.create([payload], {
+        const products = await Product.create([payload], {
           session: session,
         });
 
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const offeringId = offerings[0]._id;
+        const productId = products[0]._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Updates an offering by id
+   * Updates a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param payload the data object
    * @param options configuration options
    */
   async update(
     id: string,
-    payload: Partial<IOffering> | any,
+    payload: Partial<IProduct> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -280,39 +280,35 @@ export default class OfferingRepository implements IOfferingRepository {
 
     try {
       const operation = async () => {
-        const offering = await Offering.findByIdAndUpdate(
-          { _id: id },
-          payload,
-          {
-            new: true,
-            session,
-          }
-        );
+        const product = await Product.findByIdAndUpdate({ _id: id }, payload, {
+          new: true,
+          session,
+        });
 
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        if (!offering) throw new Error("offering not found");
+        if (!product) throw new Error("product not found");
 
-        const offeringId = offering._id;
+        const productId = product._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Deletes an offering by id
+   * Deletes a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async delete(
@@ -323,29 +319,29 @@ export default class OfferingRepository implements IOfferingRepository {
 
     try {
       const operation = async () => {
-        const offering = await Offering.findByIdAndDelete({ _id: id }, session);
+        const product = await Product.findByIdAndDelete({ _id: id }, session);
 
-        if (!offering) throw new Error("offering not found");
+        if (!product) throw new Error("product not found");
 
-        const offeringId = offering._id;
+        const productId = product._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Creates and returns a new instance of the OfferingRepository class
+   * Creates and returns a new instance of the ProductRepository class
    */
-  static Create(): OfferingRepository {
-    return new OfferingRepository();
+  static Create(): ProductRepository {
+    return new ProductRepository();
   }
 }

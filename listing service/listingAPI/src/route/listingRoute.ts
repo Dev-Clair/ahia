@@ -20,9 +20,9 @@ ListingRouter.route("/")
     ListingController.createListing
   );
 
-ListingRouter.route(`/offerings`).get(
+ListingRouter.route(`/products`).get(
   AuthMiddleware.isGranted([""]),
-  ListingController.retrieveListingsByOfferingSearch
+  ListingController.retrieveListingsByProductSearch
 );
 
 ListingRouter.route(`/provider/:slug`).get(
@@ -65,13 +65,13 @@ ListingRouter.route(`/:id`)
     ListingController.deleteListingById
   );
 
-ListingRouter.route(`/:id/offerings/:type`)
+ListingRouter.route(`/:id/products/:type`)
   .get(
     AuthMiddleware.isGranted([""]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    ListingController.retrieveListingOfferings
+    ListingController.retrieveListingProducts
   )
   .post(
     AuthMiddleware.isGranted(["Provider"]),
@@ -80,16 +80,16 @@ ListingRouter.route(`/:id/offerings/:type`)
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
-    ValidationMiddleware.validateOffering,
+    ValidationMiddleware.validateProduct,
     DocumentMiddleware("listing", "id"),
-    ListingController.createListingOffering
+    ListingController.createListingProduct
   );
 
-ListingRouter.route(`/:id/offerings/:type/:offeringId`)
+ListingRouter.route(`/:id/products/:type/:productId`)
   .get(
     AuthMiddleware.isGranted([""]),
     DocumentMiddleware("listing", "id"),
-    ListingController.retrieveListingOfferingById
+    ListingController.retrieveListingProductById
   )
   .patch(
     AuthMiddleware.isGranted(["Provider"]),
@@ -99,18 +99,18 @@ ListingRouter.route(`/:id/offerings/:type/:offeringId`)
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    PaymentverificationMiddleware.verifyOfferingPaymentStatus,
-    ListingController.updateListingOfferingById
+    PaymentverificationMiddleware.verifyProductPaymentStatus,
+    ListingController.updateListingProductById
   )
   .delete(
     AuthMiddleware.isGranted(["Provider"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    ListingController.deleteListingOfferingById
+    ListingController.deleteListingProductById
   );
 
-ListingRouter.route(`/:id/offering/:type`).get(
+ListingRouter.route(`/:id/product/:type`).get(
   AuthMiddleware.isGranted([""]),
   ValidationMiddleware.validateType,
   ListingController.retrieveListingByIdAndPopulate

@@ -1,8 +1,8 @@
 import { Schema } from "mongoose";
 import ReservationSchema from "./reservationSchema";
-import IReservationOffering from "../interface/IReservationoffering";
+import IReservationProduct from "../interface/IReservationproduct";
 
-const ReservationOfferingSchema: Schema<IReservationOffering> = new Schema({
+const ReservationProductSchema: Schema<IReservationProduct> = new Schema({
   status: {
     type: String,
     enum: ["now-booking", "booked"],
@@ -14,4 +14,4 @@ const ReservationOfferingSchema: Schema<IReservationOffering> = new Schema({
   },
 });
 
-export default ReservationOfferingSchema;
+export default ReservationProductSchema;

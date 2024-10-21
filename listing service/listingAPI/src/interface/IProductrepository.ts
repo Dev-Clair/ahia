@@ -1,62 +1,62 @@
-import IOffering from "./IOffering";
+import IProduct from "./IProduct";
 import IRepository from "./IRepository";
 
-export default interface IOfferingRepository extends IRepository<IOffering> {
+export default interface IProductRepository extends IRepository<IProduct> {
   /**
-   * Retrieves a collection of offerings
+   * Retrieves a collection of products
    * @param queryString query object
    * @param options configuration options
    */
   findAll(
     queryString: Record<string, any>,
     options?: { [key: string]: any }
-  ): Promise<IOffering[]>;
+  ): Promise<IProduct[]>;
 
   /**
-   * Retrieves an offering by id
-   * @param id offering id
+   * Retrieves a product by id
+   * @param id product id
    * @param options configuration options
    */
   findById(
     id: string,
     options?: { [key: string]: any }
-  ): Promise<IOffering | null>;
+  ): Promise<IProduct | null>;
 
   /**
-   * Retrieves a offering by id and populate its subdocument
-   * @param id offering id
+   * Retrieves a product by id and populate its subdocument
+   * @param id product id
    * @param options configuration options
    */
   findByIdAndPopulate(
     id: string,
     options?: { [key: string]: any }
-  ): Promise<IOffering | null>;
+  ): Promise<IProduct | null>;
 
   /**
-   * Creates a new offering in collection
+   * Creates a new product in collection
    * @param payload data object
    * @param options configuration options
    */
   save(
-    payload: Partial<IOffering>,
+    payload: Partial<IProduct>,
     options?: { [key: string]: any }
   ): Promise<string>;
 
   /**
-   * Updates a offering by id
-   * @param id offering id
+   * Updates a product by id
+   * @param id product id
    * @param payload data object
    * @param options configuration options
    */
   update(
     id: string,
-    payload: Partial<IOffering> | any,
+    payload: Partial<IProduct> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 
   /**
-   * Deletes a offering by id
-   * @param id offering id
+   * Deletes a product by id
+   * @param id product id
    * @param options configuration options
    */
   delete(id: string, options?: { [key: string]: any }): Promise<string>;

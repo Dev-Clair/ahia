@@ -1,4 +1,4 @@
-const ProductTypes = {
+const Offerings = {
   commercial: ["factory", "office", "showroom", "storefront", "warehouse"],
   hospitality: [
     "event-hall",
@@ -40,4 +40,4 @@ const ProductTypes = {
   ],
 };
 
-export default ProductTypes;
+export default Offerings;

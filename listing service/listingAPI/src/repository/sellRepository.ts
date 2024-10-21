@@ -1,13 +1,13 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
-import ISellOffering from "../interface/ISelloffering";
+import ISellProduct from "../interface/ISellproduct";
 import Sell from "../model/sellModel";
-import OfferingRepository from "./offeringRepository";
+import ProductRepository from "./productRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
 
-export default class SellRepository extends OfferingRepository {
-  /** Retrieves a collection of offerings
+export default class SellRepository extends ProductRepository {
+  /** Retrieves a collection of products
    * @public
    * @param queryString query object
    * @param options configuration options
@@ -15,7 +15,7 @@ export default class SellRepository extends OfferingRepository {
   async findAll(
     queryString: Record<string, any>,
     options: { retry: boolean }
-  ): Promise<ISellOffering[]> {
+  ): Promise<ISellProduct[]> {
     const { retry } = options;
 
     const operation = async () => {
@@ -28,66 +28,66 @@ export default class SellRepository extends OfferingRepository {
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const offerings = (
+      const products = (
         await queryBuilder
           .Filter()
-          .Sort(SellRepository.SORT_OFFERINGS)
-          .Select(SellRepository.OFFERING_PROJECTION)
+          .Sort(SellRepository.SORT_PRODUCTS)
+          .Select(SellRepository.PRODUCT_PROJECTION)
           .Paginate()
       ).Exec();
 
-      return offerings;
+      return products;
     };
 
-    const offerings = retry
+    const products = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return offerings as Promise<ISellOffering[]>;
+    return products as Promise<ISellProduct[]>;
   }
 
-  /** Retrieves an offering by id
+  /** Retrieves a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async findById(
     id: string,
     options: { retry: boolean }
-  ): Promise<ISellOffering | null> {
+  ): Promise<ISellProduct | null> {
     const { retry } = options;
 
     const operation = async () => {
-      const offering = await Sell.findOne(
+      const product = await Sell.findOne(
         { _id: id },
-        SellRepository.OFFERING_PROJECTION
+        SellRepository.PRODUCT_PROJECTION
       ).exec();
 
-      return offering;
+      return product;
     };
 
-    const offering = retry
+    const product = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return offering as Promise<ISellOffering | null>;
+    return product as Promise<ISellProduct | null>;
   }
 
-  /** Retrieves an offering by id and populates its subdocument(s)
+  /** Retrieves a product by id and populates its subdocument(s)
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async findByIdAndPopulate(
     id: string,
     options: { retry: boolean }
-  ): Promise<ISellOffering | null> {
+  ): Promise<ISellProduct | null> {
     const { retry } = options;
 
     const operation = async () => {
-      const offering = await Sell.findOne(
+      const product = await Sell.findOne(
         { _id: id },
-        SellRepository.OFFERING_PROJECTION
+        SellRepository.PRODUCT_PROJECTION
       )
         .populate({
           path: "listing",
@@ -97,24 +97,24 @@ export default class SellRepository extends OfferingRepository {
         })
         .exec();
 
-      return offering;
+      return product;
     };
 
-    const offering = retry
+    const product = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return offering as Promise<ISellOffering | null>;
+    return product as Promise<ISellProduct | null>;
   }
 
   /**
-   * Creates a new offering in collection
+   * Creates a new product in collection
    * @public
    * @param payload the data object
    * @param options configuration options
    */
   async save(
-    payload: Partial<ISellOffering>,
+    payload: Partial<ISellProduct>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -125,38 +125,38 @@ export default class SellRepository extends OfferingRepository {
 
     try {
       const operation = async () => {
-        const offerings = await Sell.create([payload], {
+        const products = await Sell.create([payload], {
           session: session,
         });
 
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const offeringId = offerings[0]._id;
+        const productId = products[0]._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Updates an offering by id
+   * Updates a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param payload the data object
    * @param options configuration options
    */
   async update(
     id: string,
-    payload: Partial<ISellOffering> | any,
+    payload: Partial<ISellProduct> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -167,7 +167,7 @@ export default class SellRepository extends OfferingRepository {
 
     try {
       const operation = async () => {
-        const offering = await Sell.findByIdAndUpdate({ _id: id }, payload, {
+        const product = await Sell.findByIdAndUpdate({ _id: id }, payload, {
           new: true,
           session,
         });
@@ -175,27 +175,27 @@ export default class SellRepository extends OfferingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        if (!offering) throw new Error("offering not found");
+        if (!product) throw new Error("product not found");
 
-        const offeringId = offering._id;
+        const productId = product._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Deletes an offering by id
+   * Deletes a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async delete(
@@ -206,20 +206,20 @@ export default class SellRepository extends OfferingRepository {
 
     try {
       const operation = async () => {
-        const offering = await Sell.findByIdAndDelete({ _id: id }, session);
+        const product = await Sell.findByIdAndDelete({ _id: id }, session);
 
-        if (!offering) throw new Error("offering not found");
+        if (!product) throw new Error("product not found");
 
-        const offeringId = offering._id;
+        const productId = product._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }

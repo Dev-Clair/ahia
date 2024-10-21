@@ -2,16 +2,16 @@ import HttpCode from "../enum/httpCode";
 import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
-import IOffering from "../interface/IOffering";
-import OfferingService from "../service/offeringService";
+import IProduct from "../interface/IProduct";
+import ProductService from "../service/productService";
 
 /**
- * Retrieve offerings
+ * Retrieve products
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferings = async (
+const retrieveProducts = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -19,21 +19,21 @@ const retrieveOfferings = async (
   try {
     const queryString = req.query as Record<string, any>;
 
-    const offerings = await OfferingService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAll(queryString);
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieves collection of offerings based on search query
+ * Retrieves collection of products based on search query
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsSearch = async (
+const retrieveProductsSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -45,21 +45,21 @@ const retrieveOfferingsSearch = async (
 
     const searchQuery = { $text: { $search: search } };
 
-    const offerings = await OfferingService.Create().findAll(searchQuery);
+    const products = await ProductService.Create().findAll(searchQuery);
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieves offerings by location (geo-coordinates)
+ * Retrieves products by location (geo-coordinates)
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsByLocation = async (
+const retrieveProductsByLocation = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -73,23 +73,23 @@ const retrieveOfferingsByLocation = async (
 
     queryString.radius = req.geoCoordinates?.radius;
 
-    const offerings = await OfferingService.Create().findOfferingsByLocation(
+    const products = await ProductService.Create().findProductsByLocation(
       queryString
     );
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieve offerings near user's location
+ * Retrieve products near user's location
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsNearBy = async (
+const retrieveProductsNearBy = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -97,23 +97,23 @@ const retrieveOfferingsNearBy = async (
   try {
     const queryString = req.query as Record<string, any>;
 
-    const offerings = await OfferingService.Create().findOfferingsByLocation(
+    const products = await ProductService.Create().findProductsByLocation(
       queryString
     );
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieve offerings by status: now-booking
+ * Retrieve products by status: now-booking
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsAvailableForBooking = async (
+const retrieveProductsAvailableForBooking = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -127,21 +127,21 @@ const retrieveOfferingsAvailableForBooking = async (
       status: "now-booking",
     };
 
-    const offerings = await OfferingService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAll(queryString);
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieve offerings by status: now-letting
+ * Retrieve products by status: now-letting
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsAvailableForLetting = async (
+const retrieveProductsAvailableForLetting = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -151,21 +151,21 @@ const retrieveOfferingsAvailableForLetting = async (
 
     const queryString = { ...query, type: "Lease", status: "now-letting" };
 
-    const offerings = await OfferingService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAll(queryString);
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieve offerings by status: now-selling
+ * Retrieve products by status: now-selling
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsAvailableForSelling = async (
+const retrieveProductsAvailableForSelling = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -175,21 +175,21 @@ const retrieveOfferingsAvailableForSelling = async (
 
     const queryString = { ...query, type: "Sell", status: "now-selling" };
 
-    const offerings = await OfferingService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAll(queryString);
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieve offerings by product (filter: name, category, area, type)
+ * Retrieve products by offering (filter: name, category, area, type)
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsByProduct = async (
+const retrieveProductsByOffering = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -220,24 +220,24 @@ const retrieveOfferingsByProduct = async (
     };
 
     const queryString = {
-      product: { name: name, category: category, type: type, area: area },
+      offering: { name: name, category: category, type: type, area: area },
     };
 
-    const offerings = await OfferingService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAll(queryString);
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieves offerings by provider
+ * Retrieves products by provider
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingsByProvider = async (
+const retrieveProductsByProvider = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -247,43 +247,43 @@ const retrieveOfferingsByProvider = async (
 
     const queryString = { provider: { slug: provider } };
 
-    const offerings = await OfferingService.Create().findOfferingsByProvider(
+    const products = await ProductService.Create().findProductsByProvider(
       queryString
     );
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieves an offering by id
+ * Retrieves a product by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingById = async (
+const retrieveProductById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const offering = req.offering as IOffering;
+    const product = req.product as IProduct;
 
-    return res.status(HttpCode.OK).json({ data: offering });
+    return res.status(HttpCode.OK).json({ data: product });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieves an offering by id and populate its subdocument
+ * Retrieves a product by id and populate its subdocument
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveOfferingByIdAndPopulate = async (
+const retrieveProductByIdAndPopulate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -293,30 +293,26 @@ const retrieveOfferingByIdAndPopulate = async (
 
     const type = req.query.type as string;
 
-    const offering = await OfferingService.Create().findByIdAndPopulate(
-      id,
-      type
-    );
+    const product = await ProductService.Create().findByIdAndPopulate(id, type);
 
-    if (!offering)
-      throw new NotFoundError(`No record found for offering: ${id}`);
+    if (!product) throw new NotFoundError(`No record found for product: ${id}`);
 
-    return res.status(HttpCode.OK).json({ data: { offering } });
+    return res.status(HttpCode.OK).json({ data: { product } });
   } catch (err: any) {
     return next(err);
   }
 };
 
 export default {
-  retrieveOfferings,
-  retrieveOfferingsSearch,
-  retrieveOfferingsByLocation,
-  retrieveOfferingsNearBy,
-  retrieveOfferingsByProduct,
-  retrieveOfferingsByProvider,
-  retrieveOfferingsAvailableForBooking,
-  retrieveOfferingsAvailableForLetting,
-  retrieveOfferingsAvailableForSelling,
-  retrieveOfferingById,
-  retrieveOfferingByIdAndPopulate,
+  retrieveProducts,
+  retrieveProductsSearch,
+  retrieveProductsByLocation,
+  retrieveProductsNearBy,
+  retrieveProductsByOffering,
+  retrieveProductsByProvider,
+  retrieveProductsAvailableForBooking,
+  retrieveProductsAvailableForLetting,
+  retrieveProductsAvailableForSelling,
+  retrieveProductById,
+  retrieveProductByIdAndPopulate,
 };
