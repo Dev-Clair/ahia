@@ -373,7 +373,7 @@ const retrieveListingProducts = async (
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id;
+    const listingId = listing.id();
 
     queryString.listing = listingId;
 
@@ -466,7 +466,7 @@ const deleteListingProductById = async (
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id.toString();
+    const listingId = listing.id();
 
     const product = await ListingService.Create().deleteListingProduct(
       type,
