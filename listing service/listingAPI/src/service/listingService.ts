@@ -175,7 +175,7 @@ export default class ListingService {
    * @param searchFilter query filter object
    */
   public async findListingsByProductSearch(searchFilter: {
-    product: { name: string; category: string; type: string };
+    offering: { name: string; category: string; type: string };
     status: string;
     type: string;
     minArea?: number;

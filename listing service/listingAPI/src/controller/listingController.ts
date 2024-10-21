@@ -190,10 +190,10 @@ const retrieveListingsByProductSearch = async (
 ): Promise<Response | void> => {
   try {
     const queryString = {
-      product: {
-        name: req.query.oferingName as string,
-        category: req.query.productCategory as string,
-        type: req.query.productType as string,
+      offering: {
+        name: req.query.offeringName as string,
+        category: req.query.offeringCategory as string,
+        type: req.query.offeringType as string,
         minArea: parseInt((req.query?.minArea as string) ?? "", 10),
         maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
       },

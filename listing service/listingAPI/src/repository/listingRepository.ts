@@ -315,7 +315,7 @@ export default class ListingRepository implements IListingRepository {
    * @param searchFilter query filter object
    */
   async findListingsByProductSearch(searchFilter: {
-    product: {
+    offering: {
       name: string;
       category: string;
       type: string;
@@ -326,33 +326,33 @@ export default class ListingRepository implements IListingRepository {
     type: string;
   }): Promise<IListing[]> {
     try {
-      const { product, status, type } = searchFilter;
+      const { offering, status, type } = searchFilter;
 
       //Build the query for products
       const query: Record<string, any> = {};
 
-      // Filtering by product (name, category, area, and type) using a case-insensitive regex
-      if (product)
+      // Filtering by offering (name, category, area, and type) using a case-insensitive regex
+      if (offering)
         query.product = {
-          name: new RegExp(product.name.toLowerCase()),
+          name: new RegExp(offering.name.toLowerCase()),
 
-          category: new RegExp(product.category.toLowerCase()),
+          category: new RegExp(offering.category.toLowerCase()),
 
-          type: new RegExp(product.type.toLowerCase()),
+          type: new RegExp(offering.type.toLowerCase()),
 
           area: {
             size: () => {
               let size = {} as Record<string, any>;
 
               if (
-                product.minArea !== undefined ||
-                product.maxArea !== undefined
+                offering.minArea !== undefined ||
+                offering.maxArea !== undefined
               ) {
-                if (product.minArea !== undefined)
-                  size["gte"] = product.minArea;
+                if (offering.minArea !== undefined)
+                  size["gte"] = offering.minArea;
 
-                if (product.maxArea !== undefined)
-                  size["lte"] = product.maxArea;
+                if (offering.maxArea !== undefined)
+                  size["lte"] = offering.maxArea;
               }
 
               return size;
