@@ -66,7 +66,7 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves an product by id
+  /** Retrieves a product by id
    * @public
    * @param id product id
    */
@@ -82,7 +82,7 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves an product by id and populate its subdocument(s)
+  /** Retrieves a product by id and populate its subdocument(s)
    * @public
    * @param id product id
    * @param type product type
