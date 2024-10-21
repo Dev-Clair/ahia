@@ -7,7 +7,7 @@ import APIError from "./src/error/apiError";
 import GlobalErrorHandler from "./src/middleware/globalErrorHandlingMiddleware.ts";
 import HttpCode from "./src/enum/httpCode";
 import HttpStatus from "./src/enum/httpStatus";
-import AppRouter from "./src/router";
+import AppRouter from "./src/route";
 
 const App = express();
 

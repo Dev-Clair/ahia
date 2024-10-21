@@ -7,13 +7,15 @@ const OutrightSchema: Schema<IOutright> = new Schema(
       type: Boolean,
       required: false,
     },
-    amount: {
-      type: Number,
-      required: true,
-    },
-    currency: {
-      type: String,
-      required: true,
+    price: {
+      amount: {
+        type: Number,
+        required: true,
+      },
+      currency: {
+        type: String,
+        required: true,
+      },
     },
     discount: {
       type: Number,

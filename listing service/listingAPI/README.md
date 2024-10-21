@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ahia Listing Service API is a robust backend service designed to manage real estate listings on the ahia marketplace. It provides endpoints for creating, retrieving, updating, and deleting listings and associated offerings, as well as specialized endpoints for carrying out various operations on listing and offerings. This API ensures idempotency, handles listing approval and payment checkout, and supports features like pagination and geospatial queries.
+The ahia Listing Service API is a robust backend service designed to manage real estate listings on the ahia marketplace. It provides endpoints for creating, retrieving, updating, and deleting listings and associated products, as well as specialized endpoints for carrying out various operations on listing and products. This API ensures idempotency, handles listing approval and payment checkout, and supports features like pagination and geospatial queries.
 This API ensures idempotency, uses transactions, and supports features like pagination and geospatial queries.
 Authorization and authentication is enabled by an identity server which manages user account and permissions.
 
@@ -36,7 +36,7 @@ Authorization and authentication is enabled by an identity server which manages 
 
 - **CRUD Endpoints**: Read, Create, Update and Delete.
 
-- **Specialized Endpoints**: Fetch customizable listing and offering information based on pre-defined and/or aliased endpoints.
+- **Specialized Endpoints**: Fetch customizable listing and product information based on pre-defined and/or aliased endpoints.
 
 ## Installation
 
@@ -114,90 +114,90 @@ Authorization and authentication is enabled by an identity server which manages 
     GET /api/v1/listings/type/:type
     ```
 
-    2.4 Retrieve a Listing's Offerings
+    2.4 Retrieve a Listing's Products
 
     ```
-    GET /api/v1/listings/:id/offerings/:type
+    GET /api/v1/listings/:id/products/:type
     ```
 
-    2.5 Create a new Offering for a Listing
+    2.5 Create a new Product for a Listing
 
     ```
-    POST /api/v1/listings/:id/offerings/:type
+    POST /api/v1/listings/:id/products/:type
     ```
 
     2.6 Retrieve a Listing By Id / Slug And Populate
 
     ```
-    GET /api/v1/listings/:id|:slug/offering/:type
+    GET /api/v1/listings/:id|:slug/product/:type
     ```
 
-    2.7 Retrieve a Listing's Offering By Id | Slug
+    2.7 Retrieve a Listing's Product By Id | Slug
 
     ```
-    GET /api/v1/listings/:id/offering/:type/:offeringId|:offeringSlug
+    GET /api/v1/listings/:id/product/:type/:productId|:productSlug
     ```
 
-    2.8 Update a Listing's Offering By Id
+    2.8 Update a Listing's Product By Id
 
     ```
-    PATCH /api/v1/listings/:id/offerings/:type/:OfferingId
+    PATCH /api/v1/listings/:id/products/:type/:ProductId
     ```
 
-    2.9 Delete a Listing's Offering By Id
+    2.9 Delete a Listing's Product By Id
 
     ```
-    DELETE /api/v1/listings/:id/offerings/:type/:OfferingId
+    DELETE /api/v1/listings/:id/products/:type/:ProductId
     ```
 
-3.  Specialized Offering Endpoints
+3.  Specialized Product Endpoints
 
-    3.1 Retrieve All Offerings
-
-    ```
-    GET /api/v1/offerings
-    ```
-
-    3.2 Retrieve Offerings By Category
+    3.1 Retrieve All Products
 
     ```
-    GET /api/v1/offerings/category
+    GET /api/v1/products
     ```
 
-    3.3 Retrieve Offerings By Space
+    3.2 Retrieve Products By Category
 
     ```
-    GET /api/v1/offerings/space
+    GET /api/v1/products/category
     ```
 
-    3.4 Retrieve Offerings By Status
+    3.3 Retrieve Products By Space
 
     ```
-    GET /api/v1/offerings/status
+    GET /api/v1/products/space
     ```
 
-    3.5 Retrieves Offerings based on search
+    3.4 Retrieve Products By Status
 
     ```
-    GET /api/v1/offerings/search
+    GET /api/v1/products/status
     ```
 
-    3.6 Retrieves Offering by Id / Slug
+    3.5 Retrieves Products based on search
 
     ```
-    GET /api/v1/offerings/:id|:slug
+    GET /api/v1/products/search
     ```
 
-    3.7 Retrieves Offerings by Id / Slug and Populate
+    3.6 Retrieves Product by Id / Slug
 
     ```
-    GET /api/v1/offerings/:id|:slug/listing
+    GET /api/v1/products/:id|:slug
     ```
 
-    3.8 Retrieves Listings based Offerings search
+    3.7 Retrieves Products by Id / Slug and Populate
 
     ```
-    GET /api/v1/offerings/search
+    GET /api/v1/products/:id|:slug/listing
+    ```
+
+    3.8 Retrieves Listings based Products search
+
+    ```
+    GET /api/v1/products/search
     ```
 
 ## Error Handling

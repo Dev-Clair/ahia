@@ -1,12 +1,11 @@
-import { Document, Schema } from "mongoose";
+import IDocument from "./IDocument";
+import { Schema } from "mongoose";
 
-export default interface IListing extends Document {
-  _id: Schema.Types.ObjectId;
+export default interface IListing extends IDocument {
   name: string;
-  slug: string;
   description: string;
-  type: "land" | "property";
-  offerings?: Schema.Types.ObjectId[];
+  type: "land" | "mobile" | "property";
+  products?: Schema.Types.ObjectId[];
   address: {
     street: string;
     city: string;
@@ -19,7 +18,7 @@ export default interface IListing extends Document {
   };
   provider: {
     id: string;
-    email: string;
+    slug: string;
   };
   media: {
     image: string;

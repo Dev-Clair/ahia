@@ -1,7 +1,7 @@
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
-import IOffering from "../interface/IOffering";
+import IProduct from "../interface/IProduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
@@ -18,13 +18,13 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IListing>;
 
     payload.provider = {
-      id: req.headers["provider-id"] as string,
-      email: req.headers["provider-email"] as string,
+      id: req.headers["Provider-Id"] as string,
+      slug: req.headers["Provider-Slug"] as string,
     };
 
     const listing = await ListingService.Create().save(key, payload);
@@ -89,7 +89,7 @@ const retrieveListingsSearch = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingsNearUser = async (
+const retrieveListingsNearBy = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -117,9 +117,9 @@ const retrieveListingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const providerId = req.params.providerId as string;
+    const slug = req.params.slug as string;
 
-    const queryString = { provider: { id: providerId } };
+    const queryString = { provider: { slug: slug } };
 
     const listings = await ListingService.Create().findAll(queryString);
 
@@ -154,20 +154,20 @@ const retrieveListingsByType = async (
 };
 
 /**
- * Retrieves listings by offerings
+ * Retrieves listings by products
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingsByOfferings = async (
+const retrieveListingsByProducts = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query.offerings as string[];
+    const queryString = req.query.products as string[];
 
-    const listings = await ListingService.Create().findListingsByOfferings(
+    const listings = await ListingService.Create().findListingsByProducts(
       queryString
     );
 
@@ -178,30 +178,30 @@ const retrieveListingsByOfferings = async (
 };
 
 /**
- * Retrieves listings by offerings search
+ * Retrieves listings by products search
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingsByOfferingSearch = async (
+const retrieveListingsByProductSearch = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
     const queryString = {
-      product: {
-        name: req.query.productName as string,
-        category: req.query.productCategory as string,
-        type: req.query.productType as string,
+      offering: {
+        name: req.query.offeringName as string,
+        category: req.query.offeringCategory as string,
+        type: req.query.offeringType as string,
+        minArea: parseInt((req.query?.minArea as string) ?? "", 10),
+        maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
       },
       status: req.query.status as string,
       type: req.query.type as string,
-      minArea: parseInt((req.query?.minArea as string) ?? "", 10),
-      maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
     };
 
-    const listings = await ListingService.Create().findListingsByOfferingSearch(
+    const listings = await ListingService.Create().findListingsByProductSearch(
       queryString
     );
 
@@ -218,26 +218,6 @@ const retrieveListingsByOfferingSearch = async (
  * @param next Express NextFunction Object
  */
 const retrieveListingById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const listing = req.listing as IListing;
-
-    return res.status(HttpCode.OK).json({ data: listing });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieves a listing by slug
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingBySlug = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -287,42 +267,6 @@ const retrieveListingByIdAndPopulate = async (
 };
 
 /**
- * Retrieves a listing by slug and populate
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingBySlugAndPopulate = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const slug = req.params.slug as string;
-
-    const options = {
-      type: req.params.type as string,
-
-      page: parseInt((req.query.page as string) ?? "1", 10),
-
-      limit: parseInt((req.query.limit as string) ?? "10", 10),
-    };
-
-    const listing = await ListingService.Create().findBySlugAndPopulate(
-      slug,
-      options
-    );
-
-    if (!listing)
-      throw new NotFoundError(`No record found for listing: ${slug}`);
-
-    return res.status(HttpCode.OK).json({ data: { listing } });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Finds and modifies a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -336,7 +280,7 @@ const updateListingById = async (
   try {
     const id = req.params.id as string;
 
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IListing>;
 
@@ -375,22 +319,22 @@ const deleteListingById = async (
 };
 
 /**
- * Creates a new listing offering
+ * Creates a new listing product
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const createListingOffering = async (
+const createListingProduct = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = { key: req.headers["idempotency-key"] as string };
+    const key = req.idempotent as Record<string, any>;
 
     const type = req.params.type as string;
 
-    const payload = req.body as Partial<IOffering>;
+    const payload = req.body as Partial<IProduct>;
 
     const listing = req.listing as IListing;
 
@@ -398,26 +342,26 @@ const createListingOffering = async (
 
     payload.listing = listingId;
 
-    const offering = await ListingService.Create().saveListingOffering(
+    const product = await ListingService.Create().saveListingProduct(
       type,
       key,
       payload,
       listingId
     );
 
-    return res.status(HttpCode.CREATED).json({ data: offering });
+    return res.status(HttpCode.CREATED).json({ data: product });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieve a listing's offerings
+ * Retrieve a listing's products
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingOfferings = async (
+const retrieveListingProducts = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -429,135 +373,108 @@ const retrieveListingOfferings = async (
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id;
+    const listingId = listing.id();
 
     queryString.listing = listingId;
 
-    const offerings = await ListingService.Create().findListingOfferings(
+    const products = await ListingService.Create().findListingProducts(
       type,
       queryString
     );
 
-    return res.status(HttpCode.OK).json({ data: offerings });
+    return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieves a listing's offering by id
+ * Retrieves a listing's product by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingOfferingById = async (
+const retrieveListingProductById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const offeringId = req.params.offeringId as string;
+    const productId = req.params.productId as string;
 
     const type = req.params.type as string;
 
-    const offering = await ListingService.Create().findListingOfferingById(
-      offeringId,
+    const product = await ListingService.Create().findListingProductById(
+      productId,
       type
     );
 
-    return res.status(HttpCode.OK).json({ data: offering });
+    return res.status(HttpCode.OK).json({ data: product });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieves a listing's offering by slug
+ * Updates a listing's product by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveListingOfferingBySlug = async (
+const updateListingProductById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const offeringSlug = req.params.offeringSlug as string;
+    const productId = req.params.productId as string;
+
+    const key = req.idempotent as Record<string, any>;
 
     const type = req.params.type as string;
 
-    const offering = await ListingService.Create().findListingOfferingBySlug(
-      offeringSlug,
-      type
-    );
+    const payload = req.body as Partial<IProduct>;
 
-    return res.status(HttpCode.OK).json({ data: offering });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Updates a listing's offering by id
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const updateListingOfferingById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const offeringId = req.params.offeringId as string;
-
-    const key = { key: req.headers["idempotency-key"] as string };
-
-    const type = req.params.type as string;
-
-    const payload = req.body as Partial<IOffering>;
-
-    const offering = await ListingService.Create().updateListingOffering(
-      offeringId,
+    const product = await ListingService.Create().updateListingProduct(
+      productId,
       type,
       key,
       payload
     );
 
-    return res.status(HttpCode.MODIFIED).json({ data: offering });
+    return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Deletes a listing's offering by id
+ * Deletes a listing's product by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const deleteListingOfferingById = async (
+const deleteListingProductById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const offeringId = req.params.offeringId as string;
+    const productId = req.params.productId as string;
 
     const type = req.params.type as string;
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id.toString();
+    const listingId = listing.id();
 
-    const offering = await ListingService.Create().deleteListingOffering(
+    const product = await ListingService.Create().deleteListingProduct(
       type,
-      offeringId,
+      productId,
       listingId
     );
 
-    return res.status(HttpCode.MODIFIED).json({ data: offering });
+    return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -567,21 +484,18 @@ export default {
   createListing,
   retrieveListings,
   retrieveListingsSearch,
-  retrieveListingsNearUser,
+  retrieveListingsNearBy,
   retrieveListingsByProvider,
   retrieveListingsByType,
-  retrieveListingsByOfferings,
-  retrieveListingsByOfferingSearch,
-  retrieveListingBySlug,
+  retrieveListingsByProducts,
+  retrieveListingsByProductSearch,
   retrieveListingById,
-  retrieveListingBySlugAndPopulate,
   retrieveListingByIdAndPopulate,
   updateListingById,
   deleteListingById,
-  retrieveListingOfferings,
-  createListingOffering,
-  retrieveListingOfferingBySlug,
-  retrieveListingOfferingById,
-  updateListingOfferingById,
-  deleteListingOfferingById,
+  retrieveListingProducts,
+  createListingProduct,
+  retrieveListingProductById,
+  updateListingProductById,
+  deleteListingProductById,
 };

@@ -1,13 +1,13 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
-import ILeaseOffering from "../interface/ILeaseoffering";
+import ILeaseProduct from "../interface/ILeaseproduct";
 import Lease from "../model/leaseModel";
-import OfferingRepository from "./offeringRepository";
+import ProductRepository from "./productRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
 
-export default class LeaseRepository extends OfferingRepository {
-  /** Retrieves a collection of offerings
+export default class LeaseRepository extends ProductRepository {
+  /** Retrieves a collection of products
    * @public
    * @param queryString query object
    * @param options configuration options
@@ -15,7 +15,7 @@ export default class LeaseRepository extends OfferingRepository {
   async findAll(
     queryString: Record<string, any>,
     options: { retry: boolean }
-  ): Promise<ILeaseOffering[]> {
+  ): Promise<ILeaseProduct[]> {
     const { retry } = options;
 
     const operation = async () => {
@@ -28,93 +28,66 @@ export default class LeaseRepository extends OfferingRepository {
 
       const queryBuilder = QueryBuilder.Create(query, filter);
 
-      const offerings = (
+      const products = (
         await queryBuilder
           .Filter()
-          .Sort(LeaseRepository.SORT_OFFERINGS)
-          .Select(LeaseRepository.OFFERING_PROJECTION)
+          .Sort(LeaseRepository.SORT_PRODUCTS)
+          .Select(LeaseRepository.PRODUCT_PROJECTION)
           .Paginate()
       ).Exec();
 
-      return offerings;
+      return products;
     };
 
-    const offerings = retry
+    const products = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return offerings as Promise<ILeaseOffering[]>;
+    return products as Promise<ILeaseProduct[]>;
   }
 
-  /** Retrieves an offering by id
+  /** Retrieves a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async findById(
     id: string,
     options: { retry: boolean }
-  ): Promise<ILeaseOffering | null> {
+  ): Promise<ILeaseProduct | null> {
     const { retry } = options;
 
     const operation = async () => {
-      const offering = await Lease.findOne(
+      const product = await Lease.findOne(
         { _id: id },
-        LeaseRepository.OFFERING_PROJECTION
+        LeaseRepository.PRODUCT_PROJECTION
       ).exec();
 
-      return offering;
+      return product;
     };
 
-    const offering = retry
+    const product = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return offering as Promise<ILeaseOffering | null>;
+    return product as Promise<ILeaseProduct | null>;
   }
 
-  /** Retrieves an offering by slug
+  /** Retrieves a product by id and populates its subdocument(s)
    * @public
-   * @param slug offering slug
-   * @param options configuration options
-   */
-  async findBySlug(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<ILeaseOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Lease.findOne(
-        { slug: slug },
-        LeaseRepository.OFFERING_PROJECTION
-      ).exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<ILeaseOffering | null>;
-  }
-
-  /** Retrieves an offering by id and populates its subdocument(s)
-   * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async findByIdAndPopulate(
     id: string,
     options: { retry: boolean }
-  ): Promise<ILeaseOffering | null> {
+  ): Promise<ILeaseProduct | null> {
     const { retry } = options;
 
     const operation = async () => {
-      const offering = await Lease.findOne(
+      const product = await Lease.findOne(
         { _id: id },
-        LeaseRepository.OFFERING_PROJECTION
+        LeaseRepository.PRODUCT_PROJECTION
       )
         .populate({
           path: "listing",
@@ -124,58 +97,24 @@ export default class LeaseRepository extends OfferingRepository {
         })
         .exec();
 
-      return offering;
+      return product;
     };
 
-    const offering = retry
+    const product = retry
       ? await FailureRetry.LinearJitterBackoff(() => operation())
       : await operation();
 
-    return offering as Promise<ILeaseOffering | null>;
-  }
-
-  /** Retrieves an offering by slug and populates its subdocument(s)
-   * @public
-   * @param slug listing slug
-   * @param options configuration options
-   */
-  async findBySlugAndPopulate(
-    slug: string,
-    options: { retry: boolean }
-  ): Promise<ILeaseOffering | null> {
-    const { retry } = options;
-
-    const operation = async () => {
-      const offering = await Lease.findOne(
-        { slug: slug },
-        LeaseRepository.OFFERING_PROJECTION
-      )
-        .populate({
-          path: "listing",
-          model: "Listing",
-          select: LeaseRepository.LISTING_PROJECTION,
-          options: { sort: LeaseRepository.SORT_LISTINGS },
-        })
-        .exec();
-
-      return offering;
-    };
-
-    const offering = retry
-      ? await FailureRetry.LinearJitterBackoff(() => operation())
-      : await operation();
-
-    return offering as Promise<ILeaseOffering | null>;
+    return product as Promise<ILeaseProduct | null>;
   }
 
   /**
-   * Creates a new offering in collection
+   * Creates a new product in collection
    * @public
    * @param payload the data object
    * @param options configuration options
    */
   async save(
-    payload: Partial<ILeaseOffering>,
+    payload: Partial<ILeaseProduct>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -186,38 +125,38 @@ export default class LeaseRepository extends OfferingRepository {
 
     try {
       const operation = async () => {
-        const offerings = await Lease.create([payload], {
+        const products = await Lease.create([payload], {
           session: session,
         });
 
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const offeringId = offerings[0]._id;
+        const productId = products[0]._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return (await offeringId) as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Updates an offering by id
+   * Updates a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param payload the data object
    * @param options configuration options
    */
   async update(
     id: string,
-    payload: Partial<ILeaseOffering | any>,
+    payload: Partial<ILeaseProduct> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -228,7 +167,7 @@ export default class LeaseRepository extends OfferingRepository {
 
     try {
       const operation = async () => {
-        const offering = await Lease.findByIdAndUpdate({ _id: id }, payload, {
+        const product = await Lease.findByIdAndUpdate({ _id: id }, payload, {
           new: true,
           session,
         });
@@ -236,27 +175,27 @@ export default class LeaseRepository extends OfferingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        if (!offering) throw new Error("offering not found");
+        if (!product) throw new Error("product not found");
 
-        const offeringId = offering._id;
+        const productId = product._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Deletes an offering by id
+   * Deletes a product by id
    * @public
-   * @param id offering id
+   * @param id product id
    * @param options configuration options
    */
   async delete(
@@ -267,20 +206,20 @@ export default class LeaseRepository extends OfferingRepository {
 
     try {
       const operation = async () => {
-        const offering = await Lease.findByIdAndDelete({ _id: id }, session);
+        const product = await Lease.findByIdAndDelete({ _id: id }, session);
 
-        if (!offering) throw new Error("offering not found");
+        if (!product) throw new Error("product not found");
 
-        const offeringId = offering._id;
+        const productId = product._id;
 
-        return offeringId.toString();
+        return productId.toString();
       };
 
-      const offeringId = retry
+      const productId = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return offeringId as Promise<string>;
+      return productId as Promise<string>;
     } catch (error: any) {
       throw error;
     }

@@ -6,9 +6,10 @@ import HttpStatus from "../enum/httpStatus";
  * Verifies request header content types
  * @param contentTypes List of allowed content types
  */
-const isContentType = (contentTypes: string[]) => {
-  return (req: Request, res: Response, next: NextFunction): Response | void => {
-    const getContentType = req.headers["content-type"] as string;
+const isContentType =
+  (contentTypes: string[]) =>
+  (req: Request, res: Response, next: NextFunction): Response | void => {
+    const getContentType = req.headers["Content-Type"] as string;
 
     if (!contentTypes.includes(getContentType)) {
       return res.status(HttpCode.BAD_REQUEST).json({
@@ -24,7 +25,6 @@ const isContentType = (contentTypes: string[]) => {
 
     next();
   };
-};
 
 /**
  * Handles not allowed operations
@@ -40,7 +40,7 @@ const isNotAllowed = (
   return res.status(HttpCode.NOT_ALLOWED).json({
     error: {
       name: HttpStatus.NOT_ALLOWED,
-      message: "operation not allowed",
+      message: "Operation not allowed",
     },
   });
 };
@@ -56,11 +56,9 @@ const isSecure = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const getProtocol = req.protocol;
+  const { protocol, secure } = req;
 
-  const getSecurity = req.secure;
-
-  if (getProtocol !== "https" || getSecurity === false) {
+  if (protocol !== "https" && secure === false) {
     return res.status(HttpCode.FORBIDDEN).json({
       error: {
         name: HttpStatus.FORBIDDEN,
@@ -76,17 +74,16 @@ const isSecure = (
  * Verifies request body contains creatable fields
  * @param fields List of fields that cannot be inserted
  */
-const filterInsertion = (fields: string[]) => {
-  return (req: Request, res: Response, next: NextFunction): Response | void => {
-    const getRequestBody = req.body as object;
+const filterInsertion =
+  (fields: string[]) =>
+  (req: Request, res: Response, next: NextFunction): Response | void => {
+    const { body } = req;
 
-    const creatable = Object.keys(getRequestBody);
+    const creatable = Object.keys(body);
 
-    const errorCache: string[] = [];
-
-    creatable.forEach((element) => {
-      if (fields.includes(element)) errorCache.push(element);
-    });
+    const errorCache: string[] = creatable.filter((element) =>
+      fields.includes(element)
+    );
 
     if (errorCache.length !== 0)
       return res.status(HttpCode.BAD_REQUEST).json({
@@ -98,23 +95,21 @@ const filterInsertion = (fields: string[]) => {
 
     next();
   };
-};
 
 /**
  * Verifies request body contains updatable fields
  * @param fields List of fields that cannot be updated
  */
-const filterUpdate = (fields: string[]) => {
-  return (req: Request, res: Response, next: NextFunction): Response | void => {
-    const getRequestBody = req.body as object;
+const filterUpdate =
+  (fields: string[]) =>
+  (req: Request, res: Response, next: NextFunction): Response | void => {
+    const { body } = req;
 
-    const updatable = Object.keys(getRequestBody);
+    const updatable = Object.keys(body);
 
-    const errorCache: string[] = [];
-
-    updatable.forEach((element) => {
-      if (fields.includes(element)) errorCache.push(element);
-    });
+    const errorCache: string[] = updatable.filter((element) =>
+      fields.includes(element)
+    );
 
     if (errorCache.length !== 0)
       return res.status(HttpCode.BAD_REQUEST).json({
@@ -126,7 +121,6 @@ const filterUpdate = (fields: string[]) => {
 
     next();
   };
-};
 
 export default {
   isContentType,

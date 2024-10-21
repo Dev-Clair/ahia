@@ -1,7 +1,7 @@
-import Offering from "./offeringModel";
-import ISellOffering from "../interface/ISelloffering";
-import SellOfferingSchema from "../schema/sellofferingSchema";
+import Product from "./productModel";
+import ISellProduct from "../interface/ISellproduct";
+import SellProductSchema from "../schema/sellproductSchema";
 
-const Sell = Offering.discriminator<ISellOffering>("Sell", SellOfferingSchema);
+const Sell = Product.discriminator<ISellProduct>("Sell", SellProductSchema);
 
 export default Sell;

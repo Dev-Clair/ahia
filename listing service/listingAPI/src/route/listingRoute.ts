@@ -2,14 +2,10 @@ import { Router } from "express";
 import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
-import ListingMiddleware from "../middleware/listingMiddleware";
+import AppMiddleware from "../middleware/appMiddleware";
 import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import ListingController from "../controller/listingController";
-
-const IdParamRegex = "[0-9a-fA-F]{24}";
-
-const SlugParamRegex = "[a-zA-Z0-9]+";
 
 const ListingRouter = Router();
 
@@ -17,19 +13,19 @@ ListingRouter.route("/")
   .get(AuthMiddleware.isGranted([""]), ListingController.retrieveListings)
   .post(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterInsertion(["media"]),
+    AppMiddleware.isContentType(["application/json"]),
+    AppMiddleware.filterInsertion(["media"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateListing,
     ListingController.createListing
   );
 
-ListingRouter.route(`/offerings`).get(
+ListingRouter.route(`/products`).get(
   AuthMiddleware.isGranted([""]),
-  ListingController.retrieveListingsByOfferingSearch
+  ListingController.retrieveListingsByProductSearch
 );
 
-ListingRouter.route(`/provider/:id(${IdParamRegex})`).get(
+ListingRouter.route(`/provider/:slug`).get(
   AuthMiddleware.isGranted([""]),
   ListingController.retrieveListingsByProvider
 );
@@ -44,12 +40,12 @@ ListingRouter.route("/search").get(
   ListingController.retrieveListingsSearch
 );
 
-ListingRouter.route("/near-me").get(
+ListingRouter.route("/nearby").get(
   AuthMiddleware.isGranted([""]),
-  ListingController.retrieveListingsNearUser
+  ListingController.retrieveListingsNearBy
 );
 
-ListingRouter.route(`/:id(${IdParamRegex})`)
+ListingRouter.route(`/:id`)
   .get(
     AuthMiddleware.isGranted([""]),
     ValidationMiddleware.validateID,
@@ -58,7 +54,7 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
   )
   .patch(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.filterUpdate(["address", "location", "type"]),
+    AppMiddleware.filterUpdate(["address", "location", "type"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ListingController.updateListingById
@@ -69,78 +65,55 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
     ListingController.deleteListingById
   );
 
-ListingRouter.route(`/:id(${IdParamRegex})/offerings/:type`)
+ListingRouter.route(`/:id/products/:type`)
   .get(
     AuthMiddleware.isGranted([""]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    ListingController.retrieveListingOfferings
+    ListingController.retrieveListingProducts
   )
   .post(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterInsertion(["media", "verification"]),
+    AppMiddleware.isContentType(["application/json"]),
+    AppMiddleware.filterInsertion(["media", "verification"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
-    ValidationMiddleware.validateOffering,
+    ValidationMiddleware.validateProduct,
     DocumentMiddleware("listing", "id"),
-    ListingController.createListingOffering
+    ListingController.createListingProduct
   );
 
-ListingRouter.route(
-  `/:id(${IdParamRegex})/offerings/:type/:offeringId(${IdParamRegex})`
-)
+ListingRouter.route(`/:id/products/:type/:productId`)
   .get(
     AuthMiddleware.isGranted([""]),
     DocumentMiddleware("listing", "id"),
-    ListingController.retrieveListingOfferingById
+    ListingController.retrieveListingProductById
   )
   .patch(
     AuthMiddleware.isGranted(["Provider"]),
-    ListingMiddleware.isContentType(["application/json"]),
-    ListingMiddleware.filterUpdate(["category", "type", "verification"]),
+    AppMiddleware.isContentType(["application/json"]),
+    AppMiddleware.filterUpdate(["category", "type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    PaymentverificationMiddleware.verifyOfferingPaymentStatus,
-    ListingController.updateListingOfferingById
+    PaymentverificationMiddleware.verifyProductPaymentStatus,
+    ListingController.updateListingProductById
   )
   .delete(
     AuthMiddleware.isGranted(["Provider"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
-    ListingController.deleteListingOfferingById
+    ListingController.deleteListingProductById
   );
 
-ListingRouter.route(`/:id(${IdParamRegex})/offering/:type`).get(
+ListingRouter.route(`/:id/product/:type`).get(
   AuthMiddleware.isGranted([""]),
   ValidationMiddleware.validateType,
   ListingController.retrieveListingByIdAndPopulate
-);
-
-ListingRouter.route(
-  `/:slug(${SlugParamRegex})/offerings/:type/:offeringSlug(${SlugParamRegex})`
-).get(
-  AuthMiddleware.isGranted([""]),
-  ValidationMiddleware.validateType,
-  DocumentMiddleware("listing", "slug"),
-  ListingController.retrieveListingOfferingBySlug
-);
-
-ListingRouter.route(`/:slug(${SlugParamRegex})/offering/:type`).get(
-  AuthMiddleware.isGranted([""]),
-  ValidationMiddleware.validateType,
-  ListingController.retrieveListingBySlugAndPopulate
-);
-
-ListingRouter.route(`/:slug(${SlugParamRegex})`).get(
-  AuthMiddleware.isGranted([""]),
-  DocumentMiddleware("listing", "slug"),
-  ListingController.retrieveListingBySlug
 );
 
 export default ListingRouter;

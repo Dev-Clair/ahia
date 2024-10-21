@@ -1,15 +1,7 @@
-const ProductTypes = {
-  commercial: [
-    "office",
-    "restaurant",
-    "retail",
-    "showroom",
-    "storefront",
-    "factory",
-    "warehouse",
-  ],
+const Offerings = {
+  commercial: ["factory", "office", "showroom", "storefront", "warehouse"],
   hospitality: [
-    "event-space",
+    "event-hall",
     "hotel",
     "lounge",
     "motel",
@@ -38,6 +30,14 @@ const ProductTypes = {
     "townhouse",
     "villa",
   ],
+  outdoor: [
+    "event-tents",
+    "camping-tents",
+    "glamping-tents",
+    "emergency-shelters",
+    "field-tents",
+    "exhibition-tents",
+  ],
 };
 
-export default ProductTypes;
+export default Offerings;

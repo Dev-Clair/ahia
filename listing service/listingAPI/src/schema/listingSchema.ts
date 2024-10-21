@@ -1,8 +1,6 @@
-import { randomUUID } from "node:crypto";
 import mongoose, { Schema } from "mongoose";
-import slugify from "slugify";
 import IListing from "../interface/IListing";
-import OfferingSchema from "./offeringSchema";
+import ProductSchema from "./productSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -12,24 +10,19 @@ const ListingSchema: Schema<IListing> = new Schema(
       type: String,
       required: false,
     },
-    slug: {
-      type: String,
-      unique: true,
-      required: false,
-    },
     description: {
       type: String,
       required: true,
     },
     type: {
       type: String,
-      enum: ["land", "property"],
+      enum: ["land", "mobile", "property"],
       required: true,
     },
-    offerings: [
+    products: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Offering",
+        ref: "Product",
         required: false,
       },
     ],
@@ -48,7 +41,7 @@ const ListingSchema: Schema<IListing> = new Schema(
       },
       zip: {
         type: String,
-        required: true,
+        required: false,
       },
     },
     location: {
@@ -63,7 +56,7 @@ const ListingSchema: Schema<IListing> = new Schema(
           validator: function (value: [number, number]) {
             return Array.isArray(value) && value.length === 2;
           },
-          message: "coordinates must be an array of two numbers",
+          message: "coordinates must be an array tuple of two numbers",
         },
         required: false,
       },
@@ -73,7 +66,7 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: String,
         required: true,
       },
-      email: {
+      slug: {
         type: String,
         required: true,
       },
@@ -96,39 +89,25 @@ const ListingSchema: Schema<IListing> = new Schema(
 
 // Listing Schema Search Query Index
 ListingSchema.index({
-  slug: "text",
-  description: "text",
-  type: "text",
   location: "2dsphere",
+  "provider.id": "text",
+  "provider.slug": "text",
 });
 
 // Listing Schema Middleware
-ListingSchema.pre("save", function (next) {
-  if (!this.isModified("name")) this.name = this.type + randomUUID();
-
-  if (this.isModified("name")) {
-    this.slug = slugify(this.name, {
-      replacement: "-",
-      lower: true,
-      strict: true,
-      trim: true,
-    });
-  }
-
-  next();
-});
-
 ListingSchema.pre("findOneAndDelete", async function (next) {
+  const session = await mongoose.startSession();
+
   try {
-    const listing = (await this.model.findOne(this.getFilter())) as IListing;
+    const listing = (await this.model
+      .findOne(this.getFilter())
+      .session(session)) as IListing;
 
     if (!listing) next();
 
-    const session = await mongoose.startSession();
-
-    session.withTransaction(async () => {
-      // Delete all offering document records referenced to listing
-      await mongoose.model("Offering", OfferingSchema).bulkWrite(
+    await session.withTransaction(async () => {
+      // Delete all product document records referenced to listing
+      await mongoose.model("Product", ProductSchema).bulkWrite(
         [
           {
             deleteMany: { filter: { listing: listing._id } },
@@ -141,6 +120,8 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
     next();
   } catch (err: any) {
     next(err);
+  } finally {
+    await session.endSession();
   }
 });
 

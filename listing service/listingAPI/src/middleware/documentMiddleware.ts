@@ -1,18 +1,18 @@
 import IListing from "../interface/IListing";
-import IOffering from "../interface/IOffering";
+import IProduct from "../interface/IProduct";
 import ListingService from "../service/listingService";
-import OfferingService from "../service/offeringService";
+import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 
 /**
- * Resolves a document by its id or slug and
+ * Resolves a document by its id and
  * attaches the resolved document to the request object
  * @param resourceName - The name of the document to resolve to
- * @param paramName - The name of the route parameter (e.g., 'id' or 'slug')
+ * @param paramName - The name of the route parameter (e.g., 'id')
  */
 const DocumentMiddleware = (
-  resourceName: "listing" | "offering",
+  resourceName: "listing" | "product",
   paramName: string
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -25,9 +25,7 @@ const DocumentMiddleware = (
       if (resourceName === "listing") {
         service = ListingService.Create();
 
-        const listing =
-          (await service.findById(paramValue)) ??
-          (await service.findBySlug(paramValue));
+        const listing = await service.findById(paramValue);
 
         if (!listing)
           throw new NotFoundError(
@@ -37,20 +35,18 @@ const DocumentMiddleware = (
         (req as Request).listing = listing as IListing;
       }
 
-      // Offering document resolver
-      if (resourceName === "offering") {
-        service = OfferingService.Create();
+      // Product document resolver
+      if (resourceName === "product") {
+        service = ProductService.Create();
 
-        const offering =
-          (await service.findById(paramValue)) ??
-          (await service.findBySlug(paramValue));
+        const product = await service.findById(paramValue);
 
-        if (!offering)
+        if (!product)
           throw new NotFoundError(
-            `No document found for offering: ${paramValue}`
+            `No document found for product: ${paramValue}`
           );
 
-        (req as Request).offering = offering as IOffering;
+        (req as Request).product = product as IProduct;
       }
 
       next();

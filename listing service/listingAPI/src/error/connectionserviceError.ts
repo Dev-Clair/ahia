@@ -1,16 +1,15 @@
-class ConnectionServiceError extends Error {
-  public readonly name;
+import AppError from "./appError";
+import HttpCode from "../enum/httpCode";
+import HttpStatus from "../enum/httpStatus";
 
-  public readonly description;
-
-  constructor(message: string, description: string = "") {
-    super(message);
-
-    this.name = "CONNECTION SERVICE ERROR: DATABASE";
-
-    this.description = description;
-
-    Error.captureStackTrace(this);
+class ConnectionServiceError extends AppError {
+  constructor(name: string, message: string) {
+    super(
+      (name = HttpStatus.SERVICE_UNAVAILABLE),
+      HttpCode.SERVICE_UNAVAILABLE,
+      true,
+      message
+    );
   }
 }
 

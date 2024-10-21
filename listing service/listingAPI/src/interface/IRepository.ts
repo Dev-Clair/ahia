@@ -31,7 +31,7 @@ export default interface IRepository<T> {
    */
   update(
     id: string,
-    payload: Partial<T | any>,
+    payload: Partial<T> | any,
     options?: { [key: string]: any }
   ): Promise<string>;
 

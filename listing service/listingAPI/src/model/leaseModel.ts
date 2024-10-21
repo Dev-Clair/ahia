@@ -1,10 +1,7 @@
-import Offering from "./offeringModel";
-import ILeaseOffering from "../interface/ILeaseoffering";
-import LeaseOfferingSchema from "../schema/leaseofferingSchema";
+import Product from "./productModel";
+import ILeaseProduct from "../interface/ILeaseproduct";
+import LeaseProductSchema from "../schema/leaseproductSchema";
 
-const Lease = Offering.discriminator<ILeaseOffering>(
-  "Lease",
-  LeaseOfferingSchema
-);
+const Lease = Product.discriminator<ILeaseProduct>("Lease", LeaseProductSchema);
 
 export default Lease;
