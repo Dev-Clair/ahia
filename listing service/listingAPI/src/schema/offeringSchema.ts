@@ -47,7 +47,7 @@ OfferingSchema.pre("validate", function (next) {
   const names = Offerings[this.name];
 
   if (!names.includes(this.type))
-    throw new Error(`Invalid type option for product name: ${this.name}`);
+    throw new Error(`Invalid type option for offering name: ${this.name}`);
 
   next();
 });
