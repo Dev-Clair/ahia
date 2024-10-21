@@ -123,11 +123,12 @@ const retrieveProductsAvailableForBooking = async (
 
     const queryString = {
       ...query,
-      type: "Reservation",
       status: "now-booking",
     };
 
-    const products = await ProductService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAllReservation(
+      queryString
+    );
 
     return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
@@ -149,9 +150,9 @@ const retrieveProductsAvailableForLetting = async (
   try {
     const query = req.query as Record<string, any>;
 
-    const queryString = { ...query, type: "Lease", status: "now-letting" };
+    const queryString = { ...query, status: "now-letting" };
 
-    const products = await ProductService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAllLease(queryString);
 
     return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
@@ -173,9 +174,9 @@ const retrieveProductsAvailableForSelling = async (
   try {
     const query = req.query as Record<string, any>;
 
-    const queryString = { ...query, type: "Sell", status: "now-selling" };
+    const queryString = { ...query, status: "now-selling" };
 
-    const products = await ProductService.Create().findAll(queryString);
+    const products = await ProductService.Create().findAllSell(queryString);
 
     return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {

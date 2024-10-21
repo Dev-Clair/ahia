@@ -1,4 +1,5 @@
 import { Router } from "express";
+import AppMiddleware from "../middleware/appMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import ProductController from "../controller/productController";
@@ -7,7 +8,10 @@ const IdParamRegex = "[0-9a-fA-F]{24}";
 
 const ProductRouter = Router();
 
-ProductRouter.route("/").get(ProductController.retrieveProducts);
+ProductRouter.route("/").get(
+  AppMiddleware.isNotAllowed,
+  ProductController.retrieveProducts
+);
 
 ProductRouter.route(`/location`).get(
   GeocodeMiddleware.getLocationGeoCoordinates,
