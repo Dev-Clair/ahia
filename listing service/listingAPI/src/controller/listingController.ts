@@ -36,7 +36,7 @@ const createListing = async (
 };
 
 /**
- * Retrieves collection of listings
+ * Retrieve listings
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -58,7 +58,7 @@ const retrieveListings = async (
 };
 
 /**
- * Retrieves collection of listings based on search query
+ * Retrieve listings by search query
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -84,29 +84,7 @@ const retrieveListingsSearch = async (
 };
 
 /**
- * Retrieves collection of listings near user's current location
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingsNearBy = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const queryString = req.query as Record<string, any>;
-
-    const listings = await ListingService.Create().findAll(queryString);
-
-    return res.status(HttpCode.OK).json({ data: listings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieves listing based on a particular provider
+ * Retrieve listings by provider
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -130,7 +108,7 @@ const retrieveListingsByProvider = async (
 };
 
 /**
- * Retrieves listings by type: land | property
+ * Retrieve listings by type: land | property
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -154,7 +132,7 @@ const retrieveListingsByType = async (
 };
 
 /**
- * Retrieves listings by products
+ * Retrieve listings by products
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -178,41 +156,7 @@ const retrieveListingsByProducts = async (
 };
 
 /**
- * Retrieves listings by products search
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingsByProductSearch = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const queryString = {
-      offering: {
-        name: req.query.offeringName as string,
-        category: req.query.offeringCategory as string,
-        type: req.query.offeringType as string,
-        minArea: parseInt((req.query?.minArea as string) ?? "", 10),
-        maxArea: parseInt((req.query?.maxArea as string) ?? "", 10),
-      },
-      status: req.query.status as string,
-      type: req.query.type as string,
-    };
-
-    const listings = await ListingService.Create().findListingsByProductSearch(
-      queryString
-    );
-
-    return res.status(HttpCode.OK).json({ data: listings });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieves a listing by id
+ * Retrieve a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -232,7 +176,7 @@ const retrieveListingById = async (
 };
 
 /**
- * Retrieves a listing by id and populate
+ * Retrieve a listing by id and populate
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -267,7 +211,7 @@ const retrieveListingByIdAndPopulate = async (
 };
 
 /**
- * Finds and modifies a listing by id
+ * Updates a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -295,7 +239,7 @@ const updateListingById = async (
 };
 
 /**
- * Finds and removes a listing by id
+ * Deletes a listing by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -389,33 +333,6 @@ const retrieveListingProducts = async (
 };
 
 /**
- * Retrieves a listing's product by id
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListingProductById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const productId = req.params.productId as string;
-
-    const type = req.params.type as string;
-
-    const product = await ListingService.Create().findListingProductById(
-      productId,
-      type
-    );
-
-    return res.status(HttpCode.OK).json({ data: product });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Updates a listing's product by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -484,18 +401,15 @@ export default {
   createListing,
   retrieveListings,
   retrieveListingsSearch,
-  retrieveListingsNearBy,
   retrieveListingsByProvider,
   retrieveListingsByType,
   retrieveListingsByProducts,
-  retrieveListingsByProductSearch,
   retrieveListingById,
   retrieveListingByIdAndPopulate,
   updateListingById,
   deleteListingById,
-  retrieveListingProducts,
   createListingProduct,
-  retrieveListingProductById,
+  retrieveListingProducts,
   updateListingProductById,
   deleteListingProductById,
 };

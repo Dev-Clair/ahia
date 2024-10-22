@@ -1,5 +1,6 @@
 import { Router } from "express";
 import AppMiddleware from "../middleware/appMiddleware";
+import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import ProductController from "../controller/productController";
@@ -9,7 +10,7 @@ const IdParamRegex = "[0-9a-fA-F]{24}";
 const ProductRouter = Router();
 
 ProductRouter.route("/").get(
-  AppMiddleware.isNotAllowed,
+  AuthMiddleware.isGranted(["Admin"]),
   ProductController.retrieveProducts
 );
 
@@ -44,10 +45,14 @@ ProductRouter.route(`/offering`).get(
 );
 
 ProductRouter.route(`/provider`).get(
-  ProductController.retrieveProductsByProvider
+  ProductController.retrieveProductsByListingProvider
 );
 
 ProductRouter.route("/search").get(ProductController.retrieveProductsSearch);
+
+ProductRouter.route(`/type`).get(
+  ProductController.retrieveProductsByListingType
+);
 
 ProductRouter.route(`/:id(${IdParamRegex})`).get(
   DocumentMiddleware("product", "id"),

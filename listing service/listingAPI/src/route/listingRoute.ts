@@ -22,11 +22,6 @@ ListingRouter.route("/")
     ListingController.createListing
   );
 
-ListingRouter.route(`/products`).get(
-  AuthMiddleware.isGranted(["Admin"]),
-  ListingController.retrieveListingsByProductSearch
-);
-
 ListingRouter.route(`/provider/:slug`).get(
   AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsByProvider
@@ -42,14 +37,9 @@ ListingRouter.route("/search").get(
   ListingController.retrieveListingsSearch
 );
 
-ListingRouter.route("/nearby").get(
-  AuthMiddleware.isGranted(["Admin"]),
-  ListingController.retrieveListingsNearBy
-);
-
 ListingRouter.route(`/:id(${IdParamRegex})`)
   .get(
-    AuthMiddleware.isGranted(["Admin"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     ValidationMiddleware.validateID,
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingById
@@ -88,11 +78,6 @@ ListingRouter.route(`/:id(${IdParamRegex})/products/:type`)
   );
 
 ListingRouter.route(`/:id(${IdParamRegex})/products/:type/:productId`)
-  .get(
-    AuthMiddleware.isGranted(["Admin"]),
-    DocumentMiddleware("listing", "id"),
-    ListingController.retrieveListingProductById
-  )
   .patch(
     AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.isContentType(["application/json"]),

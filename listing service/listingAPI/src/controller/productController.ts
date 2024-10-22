@@ -28,7 +28,7 @@ const retrieveProducts = async (
 };
 
 /**
- * Retrieves collection of products based on search query
+ * Retrieves products by search query
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -54,7 +54,7 @@ const retrieveProductsSearch = async (
 };
 
 /**
- * Retrieves products by location (geo-coordinates)
+ * Retrieve products by location (geo-coordinates)
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -126,11 +126,11 @@ const retrieveProductsAvailableForBooking = async (
       status: "now-booking",
     };
 
-    const products = await ProductService.Create().findAllReservation(
+    const reservations = await ProductService.Create().findAllReservation(
       queryString
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    return res.status(HttpCode.OK).json({ data: reservations });
   } catch (err: any) {
     return next(err);
   }
@@ -152,9 +152,9 @@ const retrieveProductsAvailableForLetting = async (
 
     const queryString = { ...query, status: "now-letting" };
 
-    const products = await ProductService.Create().findAllLease(queryString);
+    const leases = await ProductService.Create().findAllLease(queryString);
 
-    return res.status(HttpCode.OK).json({ data: products });
+    return res.status(HttpCode.OK).json({ data: leases });
   } catch (err: any) {
     return next(err);
   }
@@ -176,9 +176,9 @@ const retrieveProductsAvailableForSelling = async (
 
     const queryString = { ...query, status: "now-selling" };
 
-    const products = await ProductService.Create().findAllSell(queryString);
+    const sales = await ProductService.Create().findAllSell(queryString);
 
-    return res.status(HttpCode.OK).json({ data: products });
+    return res.status(HttpCode.OK).json({ data: sales });
   } catch (err: any) {
     return next(err);
   }
@@ -233,12 +233,12 @@ const retrieveProductsByOffering = async (
 };
 
 /**
- * Retrieves products by provider
+ * Retrieve products by listing provider
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveProductsByProvider = async (
+const retrieveProductsByListingProvider = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -248,7 +248,32 @@ const retrieveProductsByProvider = async (
 
     const queryString = { provider: { slug: provider } };
 
-    const products = await ProductService.Create().findProductsByProvider(
+    const products =
+      await ProductService.Create().findProductsByListingProvider(queryString);
+
+    return res.status(HttpCode.OK).json({ data: products });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve products by listing type: land | mobile | property
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveProductsByListingType = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const type = req.query.type as string;
+
+    const queryString = { type: type };
+
+    const products = await ProductService.Create().findProductsByListingType(
       queryString
     );
 
@@ -259,7 +284,7 @@ const retrieveProductsByProvider = async (
 };
 
 /**
- * Retrieves a product by id
+ * Retrieve a product by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -279,7 +304,7 @@ const retrieveProductById = async (
 };
 
 /**
- * Retrieves a product by id and populate its subdocument
+ * Retrieve a product by id and populate its subdocument
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -310,7 +335,8 @@ export default {
   retrieveProductsByLocation,
   retrieveProductsNearBy,
   retrieveProductsByOffering,
-  retrieveProductsByProvider,
+  retrieveProductsByListingProvider,
+  retrieveProductsByListingType,
   retrieveProductsAvailableForBooking,
   retrieveProductsAvailableForLetting,
   retrieveProductsAvailableForSelling,
