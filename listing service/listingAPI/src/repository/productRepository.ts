@@ -13,7 +13,8 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findById
  * @method findByIdAndPopulate
  * @method findProductsByLocation
- * @method findProductsByProvider
+ * @method findProductsByListingProvider
+ * @method findProductsByListingType
  * @method save
  * @method update
  * @method delete
@@ -191,12 +192,45 @@ export default class ProductRepository implements IProductRepository {
    * @public
    * @param queryString query object
    */
-  async findProductsByProvider(
+  async findProductsByListingProvider(
     queryString: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by provider
+        const listings = await ListingRepository.Create().findAll(queryString, {
+          retry: false,
+        });
+
+        const listingIds = listings.map((listing) => listing._id);
+
+        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+
+        // Find products that contain these listing IDs
+        const products = await this.findAll(
+          { listing: { in: listingIds } },
+          { retry: false }
+        );
+
+        return products;
+      };
+
+      return await FailureRetry.LinearJitterBackoff(() => operation());
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /** Retrieves a collection of products by listing type: land | mobile | property
+   * @public
+   * @param queryString query object
+   */
+  async findProductsByListingType(
+    queryString: Record<string, any>
+  ): Promise<IProduct[]> {
+    try {
+      const operation = async () => {
+        // Find listings by type
         const listings = await ListingRepository.Create().findAll(queryString, {
           retry: false,
         });
