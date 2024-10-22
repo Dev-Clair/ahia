@@ -7,12 +7,14 @@ import PaymentverificationMiddleware from "../middleware/paymentverificationMidd
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import ListingController from "../controller/listingController";
 
+const IdParamRegex = "[0-9a-fA-F]{24}";
+
 const ListingRouter = Router();
 
 ListingRouter.route("/")
-  .get(AuthMiddleware.isGranted([""]), ListingController.retrieveListings)
+  .get(AuthMiddleware.isGranted(["Admin"]), ListingController.retrieveListings)
   .post(
-    AuthMiddleware.isGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterInsertion(["media"]),
     IdempotencyMiddleware.isIdempotent,
@@ -21,60 +23,60 @@ ListingRouter.route("/")
   );
 
 ListingRouter.route(`/products`).get(
-  AuthMiddleware.isGranted([""]),
+  AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsByProductSearch
 );
 
 ListingRouter.route(`/provider/:slug`).get(
-  AuthMiddleware.isGranted([""]),
+  AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsByProvider
 );
 
 ListingRouter.route("/type/:type").get(
-  AuthMiddleware.isGranted([""]),
+  AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsByType
 );
 
 ListingRouter.route("/search").get(
-  AuthMiddleware.isGranted([""]),
+  AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsSearch
 );
 
 ListingRouter.route("/nearby").get(
-  AuthMiddleware.isGranted([""]),
+  AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsNearBy
 );
 
-ListingRouter.route(`/:id`)
+ListingRouter.route(`/:id(${IdParamRegex})`)
   .get(
-    AuthMiddleware.isGranted([""]),
+    AuthMiddleware.isGranted(["Admin"]),
     ValidationMiddleware.validateID,
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingById
   )
   .patch(
-    AuthMiddleware.isGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.filterUpdate(["address", "location", "type"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ListingController.updateListingById
   )
   .delete(
-    AuthMiddleware.isGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     ValidationMiddleware.validateID,
     ListingController.deleteListingById
   );
 
-ListingRouter.route(`/:id/products/:type`)
+ListingRouter.route(`/:id(${IdParamRegex})/products/:type`)
   .get(
-    AuthMiddleware.isGranted([""]),
+    AuthMiddleware.isGranted(["Admin"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingProducts
   )
   .post(
-    AuthMiddleware.isGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterInsertion(["media", "verification"]),
     IdempotencyMiddleware.isIdempotent,
@@ -85,14 +87,14 @@ ListingRouter.route(`/:id/products/:type`)
     ListingController.createListingProduct
   );
 
-ListingRouter.route(`/:id/products/:type/:productId`)
+ListingRouter.route(`/:id(${IdParamRegex})/products/:type/:productId`)
   .get(
-    AuthMiddleware.isGranted([""]),
+    AuthMiddleware.isGranted(["Admin"]),
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingProductById
   )
   .patch(
-    AuthMiddleware.isGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterUpdate(["category", "type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
@@ -103,15 +105,15 @@ ListingRouter.route(`/:id/products/:type/:productId`)
     ListingController.updateListingProductById
   )
   .delete(
-    AuthMiddleware.isGranted(["Provider"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateType,
     DocumentMiddleware("listing", "id"),
     ListingController.deleteListingProductById
   );
 
-ListingRouter.route(`/:id/product/:type`).get(
-  AuthMiddleware.isGranted([""]),
+ListingRouter.route(`/:id(${IdParamRegex})/product/:type`).get(
+  AuthMiddleware.isGranted(["Admin"]),
   ValidationMiddleware.validateType,
   ListingController.retrieveListingByIdAndPopulate
 );
