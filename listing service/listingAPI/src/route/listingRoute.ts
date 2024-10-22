@@ -7,6 +7,8 @@ import PaymentverificationMiddleware from "../middleware/paymentverificationMidd
 import ValidationMiddleware from "../middleware/validationMiddleware";
 import ListingController from "../controller/listingController";
 
+const IdParamRegex = "[0-9a-fA-F]{24}";
+
 const ListingRouter = Router();
 
 ListingRouter.route("/")
@@ -45,7 +47,7 @@ ListingRouter.route("/nearby").get(
   ListingController.retrieveListingsNearBy
 );
 
-ListingRouter.route(`/:id`)
+ListingRouter.route(`/:id(${IdParamRegex})`)
   .get(
     AuthMiddleware.isGranted([""]),
     ValidationMiddleware.validateID,
@@ -65,7 +67,7 @@ ListingRouter.route(`/:id`)
     ListingController.deleteListingById
   );
 
-ListingRouter.route(`/:id/products/:type`)
+ListingRouter.route(`/:id(${IdParamRegex})/products/:type`)
   .get(
     AuthMiddleware.isGranted([""]),
     ValidationMiddleware.validateID,
@@ -85,7 +87,7 @@ ListingRouter.route(`/:id/products/:type`)
     ListingController.createListingProduct
   );
 
-ListingRouter.route(`/:id/products/:type/:productId`)
+ListingRouter.route(`/:id(${IdParamRegex})/products/:type/:productId`)
   .get(
     AuthMiddleware.isGranted([""]),
     DocumentMiddleware("listing", "id"),
@@ -110,7 +112,7 @@ ListingRouter.route(`/:id/products/:type/:productId`)
     ListingController.deleteListingProductById
   );
 
-ListingRouter.route(`/:id/product/:type`).get(
+ListingRouter.route(`/:id(${IdParamRegex})/product/:type`).get(
   AuthMiddleware.isGranted([""]),
   ValidationMiddleware.validateType,
   ListingController.retrieveListingByIdAndPopulate
