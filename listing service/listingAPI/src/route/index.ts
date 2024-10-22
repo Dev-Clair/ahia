@@ -1,11 +1,14 @@
 import { Router } from "express";
+import AppRouter from "./appRoute";
 import ListingRouter from "./listingRoute";
 import ProductRouter from "./productRoute";
 
-const AppRouter = Router();
+const Routes = Router();
+
+Routes.use("/", AppRouter);
 
 AppRouter.use("/listings", ListingRouter);
 
-AppRouter.use("/products", ProductRouter);
+ListingRouter.use("/products", ProductRouter);
 
-export default AppRouter;
+export default Routes;
