@@ -13,19 +13,25 @@ const TourSchema: Schema<ITour> = new Schema(
       type: String,
       required: true,
       validate: {
-        validator: (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
-        message: "Invalid ID",
+        validator: (value: string) =>
+          /^[0-9a-fA-F]{24}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+            value
+          ),
+        message: "Invalid ID (must be either an ObjectId or a UUID)",
       },
     },
     realtor: {
       type: String,
       required: false,
       validate: {
-        validator: (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
-        message: "Invalid ID",
+        validator: (value: string) =>
+          /^[0-9a-fA-F]{24}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+            value
+          ),
+        message: "Invalid ID (must be either an ObjectId or a UUID)",
       },
     },
-    offerings: [
+    products: [
       {
         type: String,
         required: true,
@@ -74,7 +80,9 @@ TourSchema.pre("findOneAndDelete", async function (next) {
   const session = await mongoose.startSession();
 
   try {
-    const tour = (await this.model.findOne(this.getFilter())) as ITour;
+    const tour = (await this.model
+      .findOne(this.getFilter())
+      .session(session)) as ITour;
 
     if (!tour) next();
 

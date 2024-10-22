@@ -4,7 +4,7 @@ export default interface ITour extends IDocument {
   name: string;
   customer: string;
   realtor: string;
-  offerings: string[];
+  products: string[];
   schedule: {
     date: string;
     time: string;
