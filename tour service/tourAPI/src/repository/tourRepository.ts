@@ -1,9 +1,9 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotency";
+import Idempotency from "../model/idempotencyModel";
 import ITour from "../interface/ITour";
 import ITourRepository from "../interface/ITourrepository";
-import Tour from "../model/tour";
+import Tour from "../model/tourModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 export default class TourRepository implements ITourRepository {

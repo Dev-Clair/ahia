@@ -1,9 +1,9 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotency";
+import Idempotency from "../model/idempotencyModel";
 import IRealtor from "../interface/IRealtor";
 import IRealtorRepository from "../interface/IRealtorrepository";
-import Realtor from "../model/realtor";
+import Realtor from "../model/realtorModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 export default class RealtorRepository implements IRealtorRepository {
