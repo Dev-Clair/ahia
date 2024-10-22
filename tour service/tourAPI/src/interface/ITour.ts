@@ -1,8 +1,6 @@
-import { Document, Schema } from "mongoose";
+import IDocument from "./IDocument";
 
-export default interface ITour extends Document {
-  _id: Schema.Types.ObjectId;
-  id: () => string;
+export default interface ITour extends IDocument {
   name: string;
   customer: string;
   realtor: string;
