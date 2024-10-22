@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/node";
 import Config from "./config";
 
 export default function InitializeSentry(
-  sentry_dsn: string = Config.TOUR.SERVICE.SENTRY_DSN,
+  sentry_dsn: string = Config.TOUR_SERVICE.SENTRY_DSN,
   environment: string = Config.NODE_ENV
 ): Sentry.NodeClient | undefined {
   return Sentry.init({
