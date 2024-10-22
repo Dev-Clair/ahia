@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { NextFunction, Request, Response } from "express";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
-import Idempotency from "../model/idempotency";
+import Idempotency from "../model/idempotencyModel";
 
 /**
  * Verifies operation idempotency

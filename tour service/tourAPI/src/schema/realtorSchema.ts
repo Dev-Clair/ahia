@@ -12,8 +12,11 @@ const RealtorSchema: Schema<IRealtor> = new Schema(
       type: String,
       required: true,
       validate: {
-        validator: (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
-        message: "Invalid ID",
+        validator: (value: string) =>
+          /^[0-9a-fA-F]{24}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+            value
+          ),
+        message: "Invalid ID (must be either an ObjectId or a UUID)",
       },
     },
   },

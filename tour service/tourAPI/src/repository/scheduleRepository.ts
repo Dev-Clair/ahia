@@ -1,9 +1,9 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotency";
+import Idempotency from "../model/idempotencyModel";
 import ISchedule from "../interface/ISchedule";
 import IScheduleRepository from "../interface/ISchedulerepository";
-import Schedule from "../model/schedule";
+import Schedule from "../model/scheduleModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 export default class ScheduleRepository implements IScheduleRepository {
