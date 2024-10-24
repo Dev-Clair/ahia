@@ -157,6 +157,10 @@ const getLocationAddress = async (
 
     (req as Request).address = body.data.results[0].formatted_address;
 
+    delete req.query.lat;
+
+    delete req.query.lng;
+
     next();
   } catch (error: any) {
     Sentry.captureException({ error });
@@ -224,9 +228,17 @@ const parseUserGeoCoordinates = async (
   req.geoCoordinates = {
     lat: parsedLat,
     lng: parsedLng,
-    radius: parseInt(req.query?.radius as string, 10),
     distance: parseInt(req.query?.distance as string, 10),
+    radius: parseInt(req.query?.radius as string, 10),
   };
+
+  delete req.query.lat;
+
+  delete req.query.lng;
+
+  delete req.query?.distance;
+
+  delete req.query?.radius;
 
   next();
 };
