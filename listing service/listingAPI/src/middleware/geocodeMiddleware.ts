@@ -224,7 +224,8 @@ const parseUserGeoCoordinates = async (
   req.geoCoordinates = {
     lat: parsedLat,
     lng: parsedLng,
-    distance: parseInt(req.query.distance as string, 10),
+    radius: parseInt(req.query?.radius as string, 10),
+    distance: parseInt(req.query?.distance as string, 10),
   };
 
   next();
