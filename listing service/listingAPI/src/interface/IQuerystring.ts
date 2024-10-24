@@ -1,4 +1,4 @@
-export default interface IQueryString {
+export default interface IQueryString extends Record<string, any> {
   page?: string;
   sort?: string;
   limit?: string;
