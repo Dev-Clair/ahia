@@ -25,10 +25,12 @@ const appController = async (
 
     const parsedPaginationParams = paginationParamsParser(queryString);
 
-    const results = await serviceFactory({
+    const parsedQueryString = {
       ...parsedPaginationParams,
       ...parsedGeoCoordinates,
-    });
+    };
+
+    const results = await serviceFactory(parsedQueryString);
 
     const response = {
       leases: results[0].status === "fulfilled" ? results[0].value : null,

@@ -18,15 +18,11 @@ const retrieveProducts = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query as Record<string, any>;
+    const query = req.query as Record<string, any>;
 
     const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
-    queryString.lat = lat;
-
-    queryString.lng = lng;
-
-    queryString.radius = radius;
+    const queryString = { ...query, lat, lng, radius };
 
     const products = await ProductService.Create().findAll(queryString);
 
@@ -74,15 +70,11 @@ const retrieveProductsByLocation = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query as Record<string, any>;
+    const query = req.query as Record<string, any>;
 
     const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
-    queryString.lat = lat;
-
-    queryString.lng = lng;
-
-    queryString.radius = radius;
+    const queryString = { ...query, lat, lng, radius };
 
     const products = await ProductService.Create().findProductsByLocation(
       queryString
@@ -106,15 +98,11 @@ const retrieveProductsNearBy = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query as Record<string, any>;
+    const query = req.query as Record<string, any>;
 
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
-    queryString.lat = lat;
-
-    queryString.lng = lng;
-
-    queryString.distance = distance;
+    const queryString = { ...query, lat, lng, distance };
 
     const products = await ProductService.Create().findProductsByLocation(
       queryString
@@ -204,9 +192,9 @@ const retrieveProductsAvailableForSell = async (
 
     const queryString = { ...query, status: "now-selling", lat, lng, distance };
 
-    const sales = await ProductService.Create().findAllSell(queryString);
+    const sells = await ProductService.Create().findAllSell(queryString);
 
-    return res.status(HttpCode.OK).json({ data: sales });
+    return res.status(HttpCode.OK).json({ data: sells });
   } catch (err: any) {
     return next(err);
   }
