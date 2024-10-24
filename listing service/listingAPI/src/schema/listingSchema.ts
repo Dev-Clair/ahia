@@ -92,6 +92,7 @@ ListingSchema.index({
   location: "2dsphere",
   "provider.id": "text",
   "provider.slug": "text",
+  type: "text",
 });
 
 // Listing Schema Middleware
