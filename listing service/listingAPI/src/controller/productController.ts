@@ -2,6 +2,7 @@ import HttpCode from "../enum/httpCode";
 import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
+import IGeoCoordinates from "../interface/IGeocoordinates";
 import IProduct from "../interface/IProduct";
 import ProductService from "../service/productService";
 
@@ -18,6 +19,14 @@ const retrieveProducts = async (
 ): Promise<Response | void> => {
   try {
     const queryString = req.query as Record<string, any>;
+
+    const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
+
+    queryString.lat = lat;
+
+    queryString.lng = lng;
+
+    queryString.radius = radius;
 
     const products = await ProductService.Create().findAll(queryString);
 
@@ -67,11 +76,13 @@ const retrieveProductsByLocation = async (
   try {
     const queryString = req.query as Record<string, any>;
 
-    queryString.lat = req.geoCoordinates?.lat;
+    const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
-    queryString.lng = req.geoCoordinates?.lng;
+    queryString.lat = lat;
 
-    queryString.radius = req.geoCoordinates?.radius;
+    queryString.lng = lng;
+
+    queryString.radius = radius;
 
     const products = await ProductService.Create().findProductsByLocation(
       queryString
@@ -97,6 +108,14 @@ const retrieveProductsNearBy = async (
   try {
     const queryString = req.query as Record<string, any>;
 
+    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
+
+    queryString.lat = lat;
+
+    queryString.lng = lng;
+
+    queryString.distance = distance;
+
     const products = await ProductService.Create().findProductsByLocation(
       queryString
     );
@@ -113,7 +132,7 @@ const retrieveProductsNearBy = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveProductsAvailableForBooking = async (
+const retrieveProductsAvailableForReservation = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -121,9 +140,14 @@ const retrieveProductsAvailableForBooking = async (
   try {
     const query = req.query as Record<string, any>;
 
+    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
+
     const queryString = {
       ...query,
       status: "now-booking",
+      lat,
+      lng,
+      distance,
     };
 
     const reservations = await ProductService.Create().findAllReservation(
@@ -142,7 +166,7 @@ const retrieveProductsAvailableForBooking = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveProductsAvailableForLetting = async (
+const retrieveProductsAvailableForLease = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -150,7 +174,9 @@ const retrieveProductsAvailableForLetting = async (
   try {
     const query = req.query as Record<string, any>;
 
-    const queryString = { ...query, status: "now-letting" };
+    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
+
+    const queryString = { ...query, status: "now-letting", lat, lng, distance };
 
     const leases = await ProductService.Create().findAllLease(queryString);
 
@@ -166,7 +192,7 @@ const retrieveProductsAvailableForLetting = async (
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveProductsAvailableForSelling = async (
+const retrieveProductsAvailableForSell = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -174,7 +200,9 @@ const retrieveProductsAvailableForSelling = async (
   try {
     const query = req.query as Record<string, any>;
 
-    const queryString = { ...query, status: "now-selling" };
+    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
+
+    const queryString = { ...query, status: "now-selling", lat, lng, distance };
 
     const sales = await ProductService.Create().findAllSell(queryString);
 
@@ -337,9 +365,9 @@ export default {
   retrieveProductsByOffering,
   retrieveProductsByListingProvider,
   retrieveProductsByListingType,
-  retrieveProductsAvailableForBooking,
-  retrieveProductsAvailableForLetting,
-  retrieveProductsAvailableForSelling,
+  retrieveProductsAvailableForReservation,
+  retrieveProductsAvailableForLease,
+  retrieveProductsAvailableForSell,
   retrieveProductById,
   retrieveProductByIdAndPopulate,
 };

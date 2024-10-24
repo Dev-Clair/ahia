@@ -1,6 +1,5 @@
 import { Router } from "express";
-import AppMiddleware from "../middleware/appMiddleware";
-import AuthMiddleware from "../middleware/authMiddleware";
+import AppController from "../controller/appController";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import ProductController from "../controller/productController";
@@ -10,8 +9,8 @@ const IdParamRegex = "[0-9a-fA-F]{24}";
 const ProductRouter = Router();
 
 ProductRouter.route("/").get(
-  AuthMiddleware.isGranted(["Admin"]),
-  ProductController.retrieveProducts
+  GeocodeMiddleware.parseUserGeoCoordinates,
+  AppController
 );
 
 ProductRouter.route(`/location`).get(
@@ -26,17 +25,17 @@ ProductRouter.route(`/nearby`).get(
 
 ProductRouter.route(`/now-booking`).get(
   GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForBooking
+  ProductController.retrieveProductsAvailableForReservation
 );
 
 ProductRouter.route(`/now-letting`).get(
   GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForLetting
+  ProductController.retrieveProductsAvailableForLease
 );
 
 ProductRouter.route(`/now-selling`).get(
   GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForSelling
+  ProductController.retrieveProductsAvailableForSell
 );
 
 ProductRouter.route(`/offering`).get(

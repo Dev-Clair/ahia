@@ -89,9 +89,9 @@ export default class ProductService {
     try {
       const options = { retry: true };
 
-      const sales = await SellRepository.Create().findAll(queryString, options);
+      const sells = await SellRepository.Create().findAll(queryString, options);
 
-      return sales;
+      return sells;
     } catch (error: any) {
       throw error;
     }
