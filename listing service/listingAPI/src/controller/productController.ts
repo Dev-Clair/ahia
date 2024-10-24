@@ -115,6 +115,32 @@ const retrieveProductsNearBy = async (
 };
 
 /**
+ * Retrieve products by status: now-letting
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveProductsAvailableForLease = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const query = req.query as Record<string, any>;
+
+    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
+
+    const queryString = { ...query, status: "now-letting", lat, lng, distance };
+
+    const leases = await ProductService.Create().findAllLease(queryString);
+
+    return res.status(HttpCode.OK).json({ data: leases });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
  * Retrieve products by status: now-booking
  * @param req Express Request Object
  * @param res Express Response Object
@@ -143,32 +169,6 @@ const retrieveProductsAvailableForReservation = async (
     );
 
     return res.status(HttpCode.OK).json({ data: reservations });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve products by status: now-letting
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveProductsAvailableForLease = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const query = req.query as Record<string, any>;
-
-    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
-
-    const queryString = { ...query, status: "now-letting", lat, lng, distance };
-
-    const leases = await ProductService.Create().findAllLease(queryString);
-
-    return res.status(HttpCode.OK).json({ data: leases });
   } catch (err: any) {
     return next(err);
   }
