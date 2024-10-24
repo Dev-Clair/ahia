@@ -57,7 +57,7 @@ const serviceFactory = async ({
   sellsLimit,
   lat,
   lng,
-}: IPaginationParams) => {
+}: Record<string, any>) => {
   const productService = ProductService.Create();
 
   const promises: Promise<any>[] = [];
@@ -92,7 +92,7 @@ const serviceFactory = async ({
           page: leasePage || 1,
           limit: leaseLimit || 10,
           status: "now-letting",
-          ...{ lat, lng, radius },
+          ...{ lat: lat, lng: lng, radius: radius },
         })
         .then((value) => {
           cache.set(leaseKey, value);
@@ -124,7 +124,7 @@ const serviceFactory = async ({
           page: reservationPage || 1,
           limit: reservationLimit || 10,
           status: "now-booking",
-          ...{ lat, lng, radius },
+          ...{ lat: lat, lng: lng, radius: radius },
         })
         .then((value) => {
           cache.set(reservationKey, value);
@@ -153,7 +153,7 @@ const serviceFactory = async ({
           page: sellsPage || 1,
           limit: sellsLimit || 10,
           status: "now-selling",
-          ...{ lat, lng, radius },
+          ...{ lat: lat, lng: lng, radius: radius },
         })
         .then((value) => {
           cache.set(salesKey, value);

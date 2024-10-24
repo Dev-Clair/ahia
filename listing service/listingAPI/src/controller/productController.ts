@@ -22,7 +22,7 @@ const retrieveProducts = async (
 
     const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
-    const queryString = { ...query, lat, lng, radius };
+    const queryString = { ...query, lat: lat, lng: lng, radius: radius };
 
     const products = await ProductService.Create().findAll(queryString);
 
@@ -74,7 +74,7 @@ const retrieveProductsByLocation = async (
 
     const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
-    const queryString = { ...query, lat, lng, radius };
+    const queryString = { ...query, lat: lat, lng: lng, radius: radius };
 
     const products = await ProductService.Create().findProductsByLocation(
       queryString
@@ -102,7 +102,7 @@ const retrieveProductsNearBy = async (
 
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
-    const queryString = { ...query, lat, lng, distance };
+    const queryString = { ...query, lat: lat, lng: lng, distance: distance };
 
     const products = await ProductService.Create().findProductsByLocation(
       queryString
@@ -130,7 +130,13 @@ const retrieveProductsAvailableForLease = async (
 
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
-    const queryString = { ...query, status: "now-letting", lat, lng, distance };
+    const queryString = {
+      ...query,
+      status: "now-letting",
+      lat: lat,
+      lng: lng,
+      distance: distance,
+    };
 
     const leases = await ProductService.Create().findAllLease(queryString);
 
@@ -159,9 +165,9 @@ const retrieveProductsAvailableForReservation = async (
     const queryString = {
       ...query,
       status: "now-booking",
-      lat,
-      lng,
-      distance,
+      lat: lat,
+      lng: lng,
+      distance: distance,
     };
 
     const reservations = await ProductService.Create().findAllReservation(
@@ -190,7 +196,13 @@ const retrieveProductsAvailableForSell = async (
 
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
-    const queryString = { ...query, status: "now-selling", lat, lng, distance };
+    const queryString = {
+      ...query,
+      status: "now-selling",
+      lat: lat,
+      lng: lng,
+      distance: distance,
+    };
 
     const sells = await ProductService.Create().findAllSell(queryString);
 
