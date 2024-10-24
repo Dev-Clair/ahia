@@ -30,7 +30,7 @@ const getLocationGeoCoordinates = async (
       });
     }
 
-    // Search and retrieve location coordinates from cache
+    // Search and retrieve location coordinates from cache if available
     const cacheKey = place.trim().toLowerCase();
 
     const cache = Cache.LruCache;
@@ -38,7 +38,7 @@ const getLocationGeoCoordinates = async (
     let location = cache.get(cacheKey);
 
     if (location) {
-      // Attach cached coordinates to the req object
+      // Attach cached coordinates to the req object for downstream handler use
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -54,7 +54,7 @@ const getLocationGeoCoordinates = async (
     location = await LocationService.Create().findByName(place.trim());
 
     if (location) {
-      // Attach retrieved coordinates to the req object
+      // Attach retrieved coordinates to the req object for downstream handler use
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -84,7 +84,7 @@ const getLocationGeoCoordinates = async (
       return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
         error: {
           name: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Geo coordinates retrieval for location ${place.trim()} failed`,
+          message: `Geocoordinates retrieval for location ${place.trim()} failed`,
         },
       });
     }
@@ -103,7 +103,7 @@ const getLocationGeoCoordinates = async (
       }
     );
 
-    // Attach coordinates to the req object
+    // Attach coordinates to the req object for downstream handler use
     req.geoCoordinates = {
       lat: coordinates.lat,
       lng: coordinates.lng,
@@ -150,7 +150,7 @@ const getLocationAddress = async (
       return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
         error: {
           name: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Address retrieval for geo coordinates ${geoCoordinates} failed`,
+          message: `Address retrieval for geocoordinates: ${geoCoordinates} failed`,
         },
       });
     }
@@ -178,12 +178,34 @@ const parseUserGeoCoordinates = async (
 ) => {
   const { lat, lng } = req.query as Record<string, any>;
 
-  if (!lat || !lng) next();
+  // Check if coordinates (latitude and longitude) are present
+  if (!lat || !lng) {
+    return res.status(HttpCode.BAD_REQUEST).json({
+      error: {
+        name: HttpStatus.BAD_REQUEST,
+        message:
+          "Unable to proceed without geolocation data. Please enable location services",
+      },
+    });
+  }
 
-  const parsedLat = parseInt(lat, 10);
+  // Parse and verify the coordinates
+  const parsedLat = parseFloat(lat);
 
-  const parsedLng = parseInt(lng, 10);
+  const parsedLng = parseFloat(lng);
 
+  // Validate the parsed coordinates
+  if (isNaN(parsedLat) || isNaN(parsedLng)) {
+    return res.status(HttpCode.BAD_REQUEST).json({
+      error: {
+        name: HttpStatus.BAD_REQUEST,
+        message:
+          "Invalid geocoordinates: 'lat' and 'lng' must be valid numbers",
+      },
+    });
+  }
+
+  // Ensure coordinates fall within valid range
   const verifyGeoCoordinates = Geocode.verifyGeoCoordinates([
     parsedLat,
     parsedLng,
@@ -193,10 +215,17 @@ const parseUserGeoCoordinates = async (
     return res.status(HttpCode.BAD_REQUEST).json({
       error: {
         name: HttpStatus.BAD_REQUEST,
-        message: "Provided geo coordinates are out of the valid range",
+        message: "Provided geocoordinates are out of the valid range",
       },
     });
   }
+
+  // Attach parsed coordinates to the request object for downstream handler use
+  req.geoCoordinates = {
+    lat: parsedLat,
+    lng: parsedLng,
+    distance: parseInt(req.query.distance as string, 10),
+  };
 
   next();
 };
