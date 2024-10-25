@@ -5,8 +5,7 @@ import { Express } from "express";
 
 /**
  * Http Server
- * @method StartHTTP
- * @method StartHTTPS
+ * @method Init
  * @method Close
  */
 class HttpServer {
@@ -68,6 +67,7 @@ class HttpServer {
       }
     });
   }
+
   /**
    * Creates and returns a new instance of the HttpServer class
    * @param App

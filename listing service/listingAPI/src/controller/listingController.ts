@@ -23,8 +23,8 @@ const createListing = async (
     const payload = req.body as Partial<IListing>;
 
     payload.provider = {
-      id: req.headers["Provider-Id"] as string,
-      slug: req.headers["Provider-Slug"] as string,
+      id: req.headers["provider-id"] as string,
+      slug: req.headers["provider-slug"] as string,
     };
 
     const listing = await ListingService.Create().save(key, payload);
