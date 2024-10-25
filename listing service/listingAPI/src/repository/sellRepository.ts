@@ -58,7 +58,7 @@ export default class SellRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Sell.findOne(
+      const product = await Sell.findById(
         { _id: id },
         SellRepository.PRODUCT_PROJECTION
       ).exec();
@@ -85,7 +85,7 @@ export default class SellRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Sell.findOne(
+      const product = await Sell.findById(
         { _id: id },
         SellRepository.PRODUCT_PROJECTION
       )

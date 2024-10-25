@@ -58,7 +58,7 @@ export default class LeaseRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Lease.findOne(
+      const product = await Lease.findById(
         { _id: id },
         LeaseRepository.PRODUCT_PROJECTION
       ).exec();
@@ -85,7 +85,7 @@ export default class LeaseRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Lease.findOne(
+      const product = await Lease.findById(
         { _id: id },
         LeaseRepository.PRODUCT_PROJECTION
       )

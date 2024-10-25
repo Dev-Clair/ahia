@@ -58,7 +58,7 @@ export default class ReservationRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Reservation.findOne(
+      const product = await Reservation.findById(
         { _id: id },
         ReservationRepository.PRODUCT_PROJECTION
       ).exec();
@@ -85,7 +85,7 @@ export default class ReservationRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Reservation.findOne(
+      const product = await Reservation.findById(
         { _id: id },
         ReservationRepository.PRODUCT_PROJECTION
       )

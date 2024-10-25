@@ -129,7 +129,7 @@ export default class ProductRepository implements IProductRepository {
       const { type, retry } = options;
 
       const operation = async () => {
-        const product = await Product.findOne(
+        const product = await Product.findById(
           { _id: id },
           ProductRepository.PRODUCT_PROJECTION
         )
