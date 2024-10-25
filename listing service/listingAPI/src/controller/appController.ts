@@ -38,7 +38,7 @@ const appController = async (
       sells: results[2].status === "fulfilled" ? results[2].value : null,
     };
 
-    res.status(HttpCode.OK).json({ data: response });
+    return res.status(HttpCode.OK).json({ data: response });
   } catch (err: any) {
     return next(err);
   }
