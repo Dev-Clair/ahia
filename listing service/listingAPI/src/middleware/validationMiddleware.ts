@@ -65,22 +65,6 @@ const ProductSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  quantity: z
-    .number({
-      required_error: "quantity is required",
-      invalid_type_error: "quantity must be a number",
-    })
-    .optional(),
-  area: z.object({
-    size: z.number({
-      required_error: "size is required",
-      invalid_type_error: "size must be a number",
-    }),
-    unit: z.string({
-      required_error: "unit is required",
-      invalid_type_error: "unit must be a string",
-    }),
-  }),
   features: z.array(
     z.string({
       required_error: "features are required",
