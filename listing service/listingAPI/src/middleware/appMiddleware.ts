@@ -16,7 +16,7 @@ const isContentType =
         error: {
           name: HttpStatus.BAD_REQUEST,
           message: {
-            expected: contentTypes.join(", "),
+            expected: contentTypes.join(),
             received: `${getContentType}`,
           },
         },
