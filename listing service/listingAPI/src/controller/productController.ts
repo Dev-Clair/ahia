@@ -3,9 +3,6 @@ import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
 import IGeoCoordinates from "../interface/IGeocoordinates";
-import ILeaseProduct from "../interface/ILeaseproduct";
-import IReservationProduct from "../interface/IReservationproduct";
-import ISellProduct from "../interface/ISellproduct";
 import IProduct from "../interface/IProduct";
 import ProductService from "../service/productService";
 
@@ -21,7 +18,7 @@ const retrieveProducts = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query as Partial<IProduct>;
+    const queryString = req.query as Record<string, any>;
 
     const products = await ProductService.Create().findAll(queryString);
 
@@ -43,7 +40,7 @@ const retrieveProductsSearch = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -83,7 +80,7 @@ const retrieveProductsByLocation = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -93,7 +90,7 @@ const retrieveProductsByLocation = async (
     };
 
     // Product filter
-    const productFilter = req.query as Partial<IProduct>;
+    const productFilter = req.query as Record<string, any>;
 
     // Query
     const products = await ProductService.Create().findProductsByLocation(
@@ -119,7 +116,7 @@ const retrieveProductsNearBy = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -129,7 +126,7 @@ const retrieveProductsNearBy = async (
     };
 
     // Product filter
-    const productFilter = req.query as Partial<IProduct>;
+    const productFilter = req.query as Record<string, any>;
 
     // Query
     const products = await ProductService.Create().findProductsByLocation(
@@ -155,7 +152,7 @@ const retrieveProductsAvailableForLease = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -165,7 +162,7 @@ const retrieveProductsAvailableForLease = async (
     };
 
     // Product filter
-    const leaseFilter = req.query as Partial<ILeaseProduct>;
+    const leaseFilter = req.query as Record<string, any>;
 
     leaseFilter.status = "now-letting";
 
@@ -193,7 +190,7 @@ const retrieveProductsAvailableForReservation = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -203,7 +200,7 @@ const retrieveProductsAvailableForReservation = async (
     };
 
     // Product filter
-    const reservationFilter = req.query as Partial<IReservationProduct>;
+    const reservationFilter = req.query as Record<string, any>;
 
     reservationFilter.status = "now-booking";
 
@@ -231,7 +228,7 @@ const retrieveProductsAvailableForSell = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -241,7 +238,7 @@ const retrieveProductsAvailableForSell = async (
     };
 
     // Product filter
-    const sellFilter = req.query as Partial<ISellProduct>;
+    const sellFilter = req.query as Record<string, any>;
 
     sellFilter.status = "now-selling";
 
@@ -269,7 +266,7 @@ const retrieveProductsByOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -357,7 +354,7 @@ const retrieveProductsByListingType = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
+    // Location filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
     const locationFilter = {
@@ -435,8 +432,8 @@ export default {
   retrieveProductsByOffering,
   retrieveProductsByListingProvider,
   retrieveProductsByListingType,
-  retrieveProductsAvailableForReservation,
   retrieveProductsAvailableForLease,
+  retrieveProductsAvailableForReservation,
   retrieveProductsAvailableForSell,
   retrieveProductById,
   retrieveProductByIdAndPopulate,

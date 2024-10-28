@@ -104,7 +104,7 @@ export default class ProductService {
    */
   async findProductsByLocation(
     locationFilter: Record<string, any>,
-    productFilter: Partial<IProduct> | Record<string, any>
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const products = await ProductRepository.Create().findProductsByLocation(

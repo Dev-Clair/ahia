@@ -4,9 +4,6 @@ import IGeoCoordinates from "../interface/IGeocoordinates";
 import IPaginationParams from "../interface/IPaginationparams";
 import { NextFunction, Request, Response } from "express";
 import ProductService from "../service/productService";
-import ILeaseProduct from "../interface/ILeaseproduct";
-import IReservationProduct from "../interface/IReservationproduct";
-import ISellProduct from "../interface/ISellproduct";
 
 /**
  * Retrieve resources dynamically
@@ -97,7 +94,11 @@ const promiseServiceFactory = async ({
     );
   } else {
     // Lease product filter
-    const leaseFilter = {} as Partial<ILeaseProduct>;
+    const leaseFilter = {} as Record<string, any>;
+
+    leaseFilter.leasePage = leasePage;
+
+    leaseFilter.leaseLimit = leaseLimit;
 
     leaseFilter.status = "now-letting";
 
@@ -129,7 +130,11 @@ const promiseServiceFactory = async ({
     );
   } else {
     // Reservation product filter
-    const reservationFilter = {} as Partial<IReservationProduct>;
+    const reservationFilter = {} as Record<string, any>;
+
+    reservationFilter.reservationPage = reservationPage;
+
+    reservationFilter.reservationLimit = reservationLimit;
 
     reservationFilter.status = "now-booking";
 
@@ -158,7 +163,11 @@ const promiseServiceFactory = async ({
     );
   } else {
     // Sell product filter
-    const sellFilter = {} as Partial<ISellProduct>;
+    const sellFilter = {} as Record<string, any>;
+
+    sellFilter.sellsPage = sellsPage;
+
+    sellFilter.sellsLimit = sellsLimit;
 
     sellFilter.status = "now-selling";
 

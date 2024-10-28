@@ -164,7 +164,7 @@ export default class ProductRepository implements IProductRepository {
    */
   async findProductsByLocation(
     locationFilter: Record<string, any>,
-    productFilter: Partial<IProduct> | Record<string, any>
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
