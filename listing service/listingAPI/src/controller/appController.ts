@@ -4,6 +4,9 @@ import IGeoCoordinates from "../interface/IGeocoordinates";
 import IPaginationParams from "../interface/IPaginationparams";
 import { NextFunction, Request, Response } from "express";
 import ProductService from "../service/productService";
+import ILeaseProduct from "../interface/ILeaseproduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 
 /**
  * Retrieve resources dynamically
@@ -30,7 +33,7 @@ const appController = async (
       ...parsedGeoCoordinates,
     };
 
-    const results = await serviceFactory(parsedQueryString);
+    const results = await promiseServiceFactory(parsedQueryString);
 
     const response = {
       leases: results[0].status === "fulfilled" ? results[0].value : null,
@@ -48,7 +51,7 @@ const appController = async (
  * Evaluates and returns an array of fulfilled or rejected promises
  * @param queryString query object
  */
-const serviceFactory = async ({
+const promiseServiceFactory = async ({
   leasePage,
   leaseLimit,
   reservationPage,
@@ -74,6 +77,13 @@ const serviceFactory = async ({
     zoneKey = getZoneCacheKey(lat, lng, radius);
   }
 
+  // Listing location filter
+  const locationFilter = {
+    lat: lat,
+    lng: lng,
+    radius: radius,
+  };
+
   // Lease Cache Key
   const leaseKey = generateCacheKey("lease", {
     leasePage,
@@ -86,14 +96,14 @@ const serviceFactory = async ({
       Promise.resolve({ status: "fulfilled", value: cache.get(leaseKey) })
     );
   } else {
+    // Lease product filter
+    const leaseFilter = {} as Partial<ILeaseProduct>;
+
+    leaseFilter.status = "now-letting";
+
     promises.push(
       productService
-        .findAllLease({
-          page: leasePage || 1,
-          limit: leaseLimit || 10,
-          status: "now-letting",
-          ...{ lat: lat, lng: lng, radius: radius },
-        })
+        .findProductsByLocation(locationFilter, leaseFilter)
         .then((value) => {
           cache.set(leaseKey, value);
 
@@ -118,14 +128,14 @@ const serviceFactory = async ({
       })
     );
   } else {
+    // Reservation product filter
+    const reservationFilter = {} as Partial<IReservationProduct>;
+
+    reservationFilter.status = "now-booking";
+
     promises.push(
       productService
-        .findAllReservation({
-          page: reservationPage || 1,
-          limit: reservationLimit || 10,
-          status: "now-booking",
-          ...{ lat: lat, lng: lng, radius: radius },
-        })
+        .findProductsByLocation(locationFilter, reservationFilter)
         .then((value) => {
           cache.set(reservationKey, value);
 
@@ -136,7 +146,7 @@ const serviceFactory = async ({
   }
 
   // Sells Cache Key
-  const salesKey = generateCacheKey("sales", {
+  const salesKey = generateCacheKey("sell", {
     sellsPage,
     sellsLimit,
     zoneKey,
@@ -147,14 +157,14 @@ const serviceFactory = async ({
       Promise.resolve({ status: "fulfilled", value: cache.get(salesKey) })
     );
   } else {
+    // Sell product filter
+    const sellFilter = {} as Partial<ISellProduct>;
+
+    sellFilter.status = "now-selling";
+
     promises.push(
       productService
-        .findAllSell({
-          page: sellsPage || 1,
-          limit: sellsLimit || 10,
-          status: "now-selling",
-          ...{ lat: lat, lng: lng, radius: radius },
-        })
+        .findProductsByLocation(locationFilter, sellFilter)
         .then((value) => {
           cache.set(salesKey, value);
 
@@ -174,17 +184,17 @@ const serviceFactory = async ({
 const paginationParamsParser = (
   queryString: IPaginationParams
 ): Record<string, any> => {
-  const leasePage = queryString?.leasePage as string;
+  const leasePage = (queryString?.leasePage as string) || 1;
 
-  const leaseLimit = queryString?.leaseLimit as string;
+  const leaseLimit = (queryString?.leaseLimit as string) || 50;
 
-  const reservationPage = queryString?.reservationPage as string;
+  const reservationPage = (queryString?.reservationPage as string) || 1;
 
-  const reservationLimit = queryString?.reservationLimit as string;
+  const reservationLimit = (queryString?.reservationLimit as string) || 50;
 
-  const sellsPage = queryString?.sellsPage as string;
+  const sellsPage = (queryString?.sellsPage as string) || 1;
 
-  const sellsLimit = queryString?.sellsLimit as string;
+  const sellsLimit = (queryString?.sellsLimit as string) || 50;
 
   return {
     leasePage,
