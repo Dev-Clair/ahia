@@ -10,7 +10,11 @@ const IdSchema = z.object({
   }),
 });
 
-const TypeSchema = z.object({
+const ListingTypeSchema = z.object({
+  type: z.enum(["land", "mobile", "property"]),
+});
+
+const ProductTypeSchema = z.object({
   type: z.enum(["lease", "reservation", "sell"]),
 });
 
@@ -277,7 +281,8 @@ const validateBody =
 
 export default {
   validateID: validateID(IdSchema),
-  validateType: validateType(TypeSchema),
+  validateListingType: validateType(ListingTypeSchema),
+  validateProductType: validateType(ProductTypeSchema),
   validateListing: validateBody(ListingSchema),
   validateProduct: validateBody(ProductSchema),
 };
