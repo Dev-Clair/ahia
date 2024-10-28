@@ -92,7 +92,7 @@ export default class SellRepository extends ProductRepository {
         .populate({
           path: "listing",
           model: "Listing",
-          select: SellRepository.LISTING_PROJECTION,
+          select: SellRepository.LISTING_PROJECTION_BASIC,
           options: { sort: SellRepository.SORT_LISTINGS },
         })
         .exec();

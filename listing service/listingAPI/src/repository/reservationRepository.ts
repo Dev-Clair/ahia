@@ -92,7 +92,7 @@ export default class ReservationRepository extends ProductRepository {
         .populate({
           path: "listing",
           model: "Listing",
-          select: ReservationRepository.LISTING_PROJECTION,
+          select: ReservationRepository.LISTING_PROJECTION_BASIC,
           options: { sort: ReservationRepository.SORT_LISTINGS },
         })
         .exec();

@@ -92,7 +92,7 @@ export default class LeaseRepository extends ProductRepository {
         .populate({
           path: "listing",
           model: "Listing",
-          select: LeaseRepository.LISTING_PROJECTION,
+          select: LeaseRepository.LISTING_PROJECTION_BASIC,
           options: { sort: LeaseRepository.SORT_LISTINGS },
         })
         .exec();
