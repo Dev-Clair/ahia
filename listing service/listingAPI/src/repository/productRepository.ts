@@ -29,13 +29,15 @@ export default class ProductRepository implements IProductRepository {
 
   static SORT_PRODUCTS = ["-createdAt"];
 
-  static LISTING_PROJECTION = [
+  static LISTING_PROJECTION_BASIC = [
     "-address",
     "-location",
     "-createdAt",
     "-updatedAt",
     "-__v",
   ];
+
+  static LISTING_PROJECTION_PLUS = ["-createdAt", "-updatedAt", "-__v"];
 
   static SORT_LISTINGS = ["-createdAt"];
 
@@ -137,7 +139,7 @@ export default class ProductRepository implements IProductRepository {
             path: "listing",
             match: type ? new RegExp(type, "i") : undefined,
             model: "Listing",
-            select: ProductRepository.LISTING_PROJECTION,
+            select: ProductRepository.LISTING_PROJECTION_PLUS,
             options: { sort: ProductRepository.SORT_LISTINGS },
           })
           .exec();
@@ -157,25 +159,30 @@ export default class ProductRepository implements IProductRepository {
 
   /** Retrieves a collection of products by location (geo-coordinates)
    * @public
-   * @param queryString query object
+   * @param locationFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByLocation(
-    queryString: Record<string, any>
+    locationFilter: Record<string, any>,
+    productFilter: Partial<IProduct> | Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by geo-coordinates
-        const listings = await ListingRepository.Create().findAll(queryString, {
-          retry: false,
-        });
+        const listings = await ListingRepository.Create().findAll(
+          locationFilter,
+          {
+            retry: false,
+          }
+        );
 
         const listingIds = listings.map((listing) => listing._id);
 
         if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
-        // Find products that contain these listing IDs
+        // Find products that match the listing IDs and product filter
         const products = await this.findAll(
-          { listing: { in: listingIds } },
+          { listing: { in: listingIds }, ...productFilter },
           { retry: false }
         );
 

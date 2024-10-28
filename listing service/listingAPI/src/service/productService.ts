@@ -1,5 +1,5 @@
-import IProduct from "../interface/IProduct";
 import ILeaseProduct from "../interface/ILeaseproduct";
+import IProduct from "../interface/IProduct";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import LeaseRepository from "../repository/leaseRepository";
@@ -39,7 +39,7 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products for lease
+  /** Retrieves a collection of products for lease by location
    * @public
    * @param queryString query object
    */
@@ -60,7 +60,7 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products for reservation
+  /** Retrieves a collection of products for reservation by location
    * @public
    * @param queryString query object
    */
@@ -81,7 +81,7 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products for sell
+  /** Retrieves a collection of products for sell by location
    * @public
    * @param queryString query object
    */
@@ -97,16 +97,19 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products by location (geo-coordinates)
+  /** Retrieves a collection of product offerings by location (geo-coordinates)
    * @public
-   * @param queryString query object
+   * @param locationFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByLocation(
-    queryString: Record<string, any>
+    locationFilter: Record<string, any>,
+    productFilter: Partial<IProduct> | Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const products = await ProductRepository.Create().findProductsByLocation(
-        queryString
+        locationFilter,
+        productFilter
       );
 
       return products;
