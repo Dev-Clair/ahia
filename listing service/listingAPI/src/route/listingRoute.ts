@@ -16,7 +16,7 @@ ListingRouter.route("/")
   .post(
     AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.isContentType(["application/json"]),
-    AppMiddleware.filterInsertion(["media"]),
+    AppMiddleware.filterInsertion(["product"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateListing,
     ListingController.createListing
@@ -28,7 +28,7 @@ ListingRouter.route(`/provider/:slug`).get(
 );
 
 ListingRouter.get(
-  ["/tour", "/booking"],
+  ["/tours", "/bookings"],
   AuthMiddleware.isGranted(["Customer"]),
   ListingController.retrieveListingsByProducts
 );
@@ -53,7 +53,7 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
   )
   .patch(
     AuthMiddleware.isGranted(["Admin", "Provider"]),
-    AppMiddleware.filterUpdate(["address", "location", "type"]),
+    AppMiddleware.filterUpdate(["address", "location", "product", "type"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ListingController.updateListingById
@@ -64,7 +64,7 @@ ListingRouter.route(`/:id(${IdParamRegex})`)
     ListingController.deleteListingById
   );
 
-ListingRouter.route(`/:id(${IdParamRegex})/products/:type`)
+ListingRouter.route(`/:id(${IdParamRegex})/products/type/:type`)
   .get(
     AuthMiddleware.isGranted(["Admin"]),
     ValidationMiddleware.validateID,
@@ -84,11 +84,11 @@ ListingRouter.route(`/:id(${IdParamRegex})/products/:type`)
     ListingController.createListingProduct
   );
 
-ListingRouter.route(`/:id(${IdParamRegex})/products/:type/:productId`)
+ListingRouter.route(`/:id(${IdParamRegex})/products/type/:type/:productId`)
   .patch(
     AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.isContentType(["application/json"]),
-    AppMiddleware.filterUpdate(["category", "type", "verification"]),
+    AppMiddleware.filterUpdate(["type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateProductType,
@@ -105,7 +105,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/products/:type/:productId`)
   );
 
 ListingRouter.get(
-  `/:id(${IdParamRegex})/product/:type`,
+  `/:id(${IdParamRegex})/product/type/:type`,
   AuthMiddleware.isGranted(["Admin"]),
   ValidationMiddleware.validateProductType,
   ListingController.retrieveListingByIdAndPopulate

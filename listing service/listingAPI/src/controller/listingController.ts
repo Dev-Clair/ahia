@@ -108,7 +108,7 @@ const retrieveListingsByProvider = async (
 };
 
 /**
- * Retrieve listings by type: land | property
+ * Retrieve listings by type: land | mobile | property
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
