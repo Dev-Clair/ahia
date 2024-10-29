@@ -106,7 +106,7 @@ export class QueryBuilder<T> {
   public async Paginate(): Promise<this> {
     const page = parseInt((this.queryString.page as string) || "1", 10);
 
-    const limit = parseInt((this.queryString.limit as string) || "10", 10);
+    const limit = parseInt((this.queryString.limit as string) || "50", 10);
 
     const skip = (page - 1) * limit;
 
