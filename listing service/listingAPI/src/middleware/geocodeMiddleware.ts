@@ -20,7 +20,7 @@ const getLocationGeoCoordinates = async (
   next: NextFunction
 ) => {
   try {
-    const place = (req.query.location as string) ?? "";
+    const place = req.params.location as string;
 
     if (!place.trim()) {
       return res.status(HttpCode.BAD_REQUEST).json({

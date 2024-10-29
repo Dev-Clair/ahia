@@ -18,6 +18,10 @@ const ProductTypeSchema = z.object({
   type: z.enum(["lease", "reservation", "sell"]),
 });
 
+const ProductStatusSchema = z.object({
+  type: z.enum(["now-letting", "now-booking", "now-selling"]),
+});
+
 const ListingSchema = z.object({
   name: z.string({
     required_error: "name is required",
@@ -256,6 +260,29 @@ const validateType =
     }
   };
 
+const validateStatus =
+  (schema: z.ZodSchema<any>) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      schema.parse({ status: req.params.status });
+
+      next();
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(HttpCode.NOT_FOUND).json({
+          error: {
+            name: HttpStatus.NOT_FOUND,
+            errors: err.errors.map((error) => ({
+              path: error.path,
+              message: error.message,
+            })),
+          },
+        });
+      }
+      next(err);
+    }
+  };
+
 const validateBody =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
@@ -283,6 +310,7 @@ export default {
   validateID: validateID(IdSchema),
   validateListingType: validateType(ListingTypeSchema),
   validateProductType: validateType(ProductTypeSchema),
+  validateProductStatus: validateStatus(ProductStatusSchema),
   validateListing: validateBody(ListingSchema),
   validateProduct: validateBody(ProductSchema),
 };
