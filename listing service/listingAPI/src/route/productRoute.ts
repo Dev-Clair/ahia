@@ -10,60 +10,48 @@ const IdParamRegex = "[0-9a-fA-F]{24}";
 const ProductRouter = Router();
 
 ProductRouter.get(
-  "/",
+  "/", // api/v1/listings/products/?lat=lat&lng=lng&key=value
   GeocodeMiddleware.parseUserGeoCoordinates,
   AppController
 );
 
 ProductRouter.get(
-  `/location`,
+  `/status/:status/location/:location`, // api/v1/listings/products/status/:status/location/:location
+  ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.getLocationGeoCoordinates,
   ProductController.retrieveProductsByLocation
 );
 
 ProductRouter.get(
-  `/nearby`,
+  `/status/:status/nearby`, // api/v1/listings/products/status/:status/nearby?lat=lat&lng=lng&key=value
+  ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsNearBy
 );
 
 ProductRouter.get(
-  `/now-booking`,
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForReservation
-);
-
-ProductRouter.get(
-  `/now-letting`,
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForLease
-);
-
-ProductRouter.get(
-  `/now-selling`,
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForSell
-);
-
-ProductRouter.get(
-  `/offering`,
+  `/status/:status/offering`, // api/v1/listings/products/status/:status/offering?lat=lat&lng=lng&key=value
+  ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsByOffering
 );
 
 ProductRouter.get(
-  `/provider/:slug`,
+  `/status/:status/provider/:slug`, // api/v1/listings/products/status/:status/provider/:slug
+  ValidationMiddleware.validateProductStatus,
   ProductController.retrieveProductsByListingProvider
 );
 
 ProductRouter.get(
-  "/search",
+  "/status/:status/search", // api/v1/listings/products/status/:status/search?lat=lat&lng=lng
+  ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsSearch
 );
 
 ProductRouter.get(
-  `/type/:type`,
+  `/status/:status/type/:type`, // api/v1/listings/products/status/:status/type/:type?lat=lat&lng=lng
+  ValidationMiddleware.validateProductStatus,
   ValidationMiddleware.validateListingType,
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsByListingType

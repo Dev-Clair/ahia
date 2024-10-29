@@ -53,8 +53,8 @@ const promiseServiceFactory = async ({
   leaseLimit,
   reservationPage,
   reservationLimit,
-  sellsPage,
-  sellsLimit,
+  sellPage,
+  sellLimit,
   lat,
   lng,
 }: Record<string, any>) => {
@@ -93,7 +93,7 @@ const promiseServiceFactory = async ({
       Promise.resolve({ status: "fulfilled", value: cache.get(leaseKey) })
     );
   } else {
-    // Lease product filter
+    // Lease filter
     const leaseFilter = {} as Record<string, any>;
 
     leaseFilter.leasePage = leasePage;
@@ -129,7 +129,7 @@ const promiseServiceFactory = async ({
       })
     );
   } else {
-    // Reservation product filter
+    // Reservation filter
     const reservationFilter = {} as Record<string, any>;
 
     reservationFilter.reservationPage = reservationPage;
@@ -150,24 +150,24 @@ const promiseServiceFactory = async ({
     );
   }
 
-  // Sells Cache Key
-  const salesKey = generateCacheKey("sell", {
-    sellsPage,
-    sellsLimit,
+  // Sell Cache Key
+  const sellKey = generateCacheKey("sell", {
+    sellPage,
+    sellLimit,
     zoneKey,
   });
 
-  if (cache.has(salesKey)) {
+  if (cache.has(sellKey)) {
     promises.push(
-      Promise.resolve({ status: "fulfilled", value: cache.get(salesKey) })
+      Promise.resolve({ status: "fulfilled", value: cache.get(sellKey) })
     );
   } else {
-    // Sell product filter
+    // Sell filter
     const sellFilter = {} as Record<string, any>;
 
-    sellFilter.sellsPage = sellsPage;
+    sellFilter.sellPage = sellPage;
 
-    sellFilter.sellsLimit = sellsLimit;
+    sellFilter.sellLimit = sellLimit;
 
     sellFilter.status = "now-selling";
 
@@ -175,7 +175,7 @@ const promiseServiceFactory = async ({
       productService
         .findProductsByLocation(locationFilter, sellFilter)
         .then((value) => {
-          cache.set(salesKey, value);
+          cache.set(sellKey, value);
 
           return { status: "fulfilled", value };
         })
@@ -193,25 +193,22 @@ const promiseServiceFactory = async ({
 const paginationParamsParser = (
   queryString: IPaginationParams
 ): Record<string, any> => {
-  const leasePage = (queryString?.leasePage as string) || 1;
-
-  const leaseLimit = (queryString?.leaseLimit as string) || 50;
-
-  const reservationPage = (queryString?.reservationPage as string) || 1;
-
-  const reservationLimit = (queryString?.reservationLimit as string) || 50;
-
-  const sellsPage = (queryString?.sellsPage as string) || 1;
-
-  const sellsLimit = (queryString?.sellsLimit as string) || 50;
+  const {
+    leasePage = 1,
+    leaseLimit = 50,
+    reservationPage = 1,
+    reservationLimit = 50,
+    sellPage = 1,
+    sellLimit = 50,
+  } = queryString;
 
   return {
     leasePage,
     leaseLimit,
     reservationPage,
     reservationLimit,
-    sellsPage,
-    sellsLimit,
+    sellPage,
+    sellLimit,
   };
 };
 
