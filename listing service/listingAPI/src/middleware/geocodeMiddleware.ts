@@ -4,6 +4,7 @@ import Cache from "../utils/cache";
 import Geocode from "../utils/geocode";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
+import InternalServerError from "../error/internalserverError";
 import { NextFunction, Request, Response } from "express";
 import LocationService from "../service/locationService";
 
@@ -82,12 +83,10 @@ const getLocationGeoCoordinates = async (
         response: geocodeAPIResponse,
       });
 
-      return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
-        error: {
-          name: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Geocoordinates retrieval for location ${place.trim()} failed`,
-        },
-      });
+      throw new InternalServerError(
+        false,
+        `Geocoordinates retrieval for location ${place.trim()} failed`
+      );
     }
 
     const coordinates = body.data.results[0].geometry.location;
@@ -121,7 +120,7 @@ const getLocationGeoCoordinates = async (
   } catch (error: any) {
     Sentry.captureException(error);
 
-    next(error);
+    return next(error);
   }
 };
 
@@ -148,12 +147,10 @@ const getLocationAddress = async (
     if (statusCode !== HttpCode.OK) {
       Sentry.captureException({ response });
 
-      return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
-        error: {
-          name: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Address retrieval for geocoordinates: ${geoCoordinates} failed`,
-        },
-      });
+      throw new InternalServerError(
+        false,
+        `Address retrieval for geocoordinates: ${geoCoordinates} failed`
+      );
     }
 
     (req as Request).address = body.data.results[0].formatted_address;
@@ -166,7 +163,7 @@ const getLocationAddress = async (
   } catch (error: any) {
     Sentry.captureException({ error });
 
-    next(error);
+    return next(error);
   }
 };
 
