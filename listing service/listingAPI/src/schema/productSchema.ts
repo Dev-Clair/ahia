@@ -31,16 +31,13 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     media: {
       images: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
+        type: String,
+        get: (value: string) => `${baseStoragePath}${value}`,
+        required: [true, "Kindly add an image (.png | .jpg) for this product"],
       },
       videos: {
         type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
+        get: (value: string) => `${baseStoragePath}${value}`,
         required: false,
       },
     },
