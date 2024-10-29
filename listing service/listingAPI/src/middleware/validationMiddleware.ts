@@ -135,83 +135,85 @@ const ProductSchema = z.object({
       })
     )
     .optional(),
-  sell: z.object({
-    outright: z.object({
-      isNegotiable: z.boolean({
-        invalid_type_error: "isNegotiable must be a boolean type",
-        required_error: "isNegotiable is required",
-      }),
-      price: z.object({
-        amount: z.number({
-          required_error: "amount is required",
-          invalid_type_error: "amount must be a number",
+  sell: z
+    .object({
+      outright: z.object({
+        isNegotiable: z.boolean({
+          invalid_type_error: "isNegotiable must be a boolean type",
+          required_error: "isNegotiable is required",
         }),
-        currency: z.string({
-          required_error: "currency is required",
-          invalid_type_error: "currency must be a string",
+        price: z.object({
+          amount: z.number({
+            required_error: "amount is required",
+            invalid_type_error: "amount must be a number",
+          }),
+          currency: z.string({
+            required_error: "currency is required",
+            invalid_type_error: "currency must be a string",
+          }),
         }),
-      }),
-      discount: z
-        .number({
-          required_error: "discount is required",
-          invalid_type_error: "discount must be a number",
-        })
-        .optional(),
-      termsAndConditions: z
-        .array(
-          z.string({
-            required_error: "terms and conditions is required",
-            invalid_type_error:
-              "terms and conditions can only contain string elements",
+        discount: z
+          .number({
+            required_error: "discount is required",
+            invalid_type_error: "discount must be a number",
           })
-        )
-        .optional(),
-    }),
-    instalment: z.array(
-      z
-        .object({
-          isNegotiable: z.boolean({
-            invalid_type_error: "isNegotiable must be a boolean type",
-            required_error: "isNegotiable is required",
-          }),
-          plan: z.enum(["short", "medium", "long"]),
-          duration: z.number({
-            required_error: "duration is required",
-            invalid_type_error: "duration must be a number",
-          }),
-          downPayment: z.object({
-            amount: z.number({
-              required_error: "amount is required",
-              invalid_type_error: "amount must be a number",
+          .optional(),
+        termsAndConditions: z
+          .array(
+            z.string({
+              required_error: "terms and conditions is required",
+              invalid_type_error:
+                "terms and conditions can only contain string elements",
+            })
+          )
+          .optional(),
+      }),
+      instalment: z.array(
+        z
+          .object({
+            isNegotiable: z.boolean({
+              invalid_type_error: "isNegotiable must be a boolean type",
+              required_error: "isNegotiable is required",
             }),
-            currency: z.string({
-              required_error: "currency is required",
-              invalid_type_error: "currency must be a string",
+            plan: z.enum(["short", "medium", "long"]),
+            duration: z.number({
+              required_error: "duration is required",
+              invalid_type_error: "duration must be a number",
             }),
-          }),
-          instalmentPayment: z.object({
-            amount: z.number({
-              required_error: "amount is required",
-              invalid_type_error: "amount must be a number",
+            downPayment: z.object({
+              amount: z.number({
+                required_error: "amount is required",
+                invalid_type_error: "amount must be a number",
+              }),
+              currency: z.string({
+                required_error: "currency is required",
+                invalid_type_error: "currency must be a string",
+              }),
             }),
-            currency: z.string({
-              required_error: "currency is required",
-              invalid_type_error: "currency must be a string",
+            instalmentPayment: z.object({
+              amount: z.number({
+                required_error: "amount is required",
+                invalid_type_error: "amount must be a number",
+              }),
+              currency: z.string({
+                required_error: "currency is required",
+                invalid_type_error: "currency must be a string",
+              }),
             }),
-          }),
-          termsAndConditions: z
-            .array(
-              z.string({
-                required_error: "terms and conditions is required",
-                invalid_type_error:
-                  "terms and conditions can only contain string elements",
-              })
-            )
-            .optional(),
-        })
-        .optional()
-    ),
-  }),
+            termsAndConditions: z
+              .array(
+                z.string({
+                  required_error: "terms and conditions is required",
+                  invalid_type_error:
+                    "terms and conditions can only contain string elements",
+                })
+              )
+              .optional(),
+          })
+          .optional()
+      ),
+    })
+    .optional(),
 });
 
 const validateID =
