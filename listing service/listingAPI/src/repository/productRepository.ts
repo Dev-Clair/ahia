@@ -159,18 +159,18 @@ export default class ProductRepository implements IProductRepository {
 
   /** Retrieves a collection of products by location (geo-coordinates)
    * @public
-   * @param locationFilter listing filter
+   * @param listingFilter listing filter
    * @param productFilter product filter
    */
   async findProductsByLocation(
-    locationFilter: Record<string, any>,
+    listingFilter: Record<string, any>,
     productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by geo-coordinates
         const listings = await ListingRepository.Create().findAll(
-          locationFilter,
+          listingFilter,
           {
             retry: false,
           }
@@ -197,17 +197,22 @@ export default class ProductRepository implements IProductRepository {
 
   /** Retrieves a collection of products by provider
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByListingProvider(
-    queryString: Record<string, any>
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by provider
-        const listings = await ListingRepository.Create().findAll(queryString, {
-          retry: false,
-        });
+        const listings = await ListingRepository.Create().findAll(
+          listingFilter,
+          {
+            retry: false,
+          }
+        );
 
         const listingIds = listings.map((listing) => listing._id);
 
@@ -215,7 +220,7 @@ export default class ProductRepository implements IProductRepository {
 
         // Find products that contain these listing IDs
         const products = await this.findAll(
-          { listing: { in: listingIds } },
+          { listing: { in: listingIds }, ...productFilter },
           { retry: false }
         );
 
@@ -230,17 +235,22 @@ export default class ProductRepository implements IProductRepository {
 
   /** Retrieves a collection of products by listing type: land | mobile | property
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByListingType(
-    queryString: Record<string, any>
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by type
-        const listings = await ListingRepository.Create().findAll(queryString, {
-          retry: false,
-        });
+        const listings = await ListingRepository.Create().findAll(
+          listingFilter,
+          {
+            retry: false,
+          }
+        );
 
         const listingIds = listings.map((listing) => listing._id);
 
@@ -248,7 +258,7 @@ export default class ProductRepository implements IProductRepository {
 
         // Find products that contain these listing IDs
         const products = await this.findAll(
-          { listing: { in: listingIds } },
+          { listing: { in: listingIds }, ...productFilter },
           { retry: false }
         );
 

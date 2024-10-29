@@ -99,16 +99,16 @@ export default class ProductService {
 
   /** Retrieves a collection of product offerings by location (geo-coordinates)
    * @public
-   * @param locationFilter listing filter
+   * @param listingFilter listing filter
    * @param productFilter product filter
    */
   async findProductsByLocation(
-    locationFilter: Record<string, any>,
+    listingFilter: Record<string, any>,
     productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const products = await ProductRepository.Create().findProductsByLocation(
-        locationFilter,
+        listingFilter,
         productFilter
       );
 
@@ -120,15 +120,18 @@ export default class ProductService {
 
   /** Retrieves a collection of products by listing provider
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByListingProvider(
-    queryString: Record<string, any>
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const products =
         await ProductRepository.Create().findProductsByListingProvider(
-          queryString
+          listingFilter,
+          productFilter
         );
 
       return products;
@@ -139,14 +142,19 @@ export default class ProductService {
 
   /** Retrieves a collection of products by listing type: land | mobile | property
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByListingType(
-    queryString: Record<string, any>
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const products =
-        await ProductRepository.Create().findProductsByListingType(queryString);
+        await ProductRepository.Create().findProductsByListingType(
+          listingFilter,
+          productFilter
+        );
 
       return products;
     } catch (error: any) {
