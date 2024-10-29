@@ -19,7 +19,7 @@ const ProductTypeSchema = z.object({
 });
 
 const ProductStatusSchema = z.object({
-  type: z.enum(["now-letting", "now-booking", "now-selling"]),
+  status: z.enum(["now-letting", "now-booking", "now-selling"]),
 });
 
 const ListingSchema = z.object({
