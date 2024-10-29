@@ -7,7 +7,6 @@ import ListingRepository from "../repository/listingRepository";
  * Listing Service
  * @method findAll
  * @method findById
- * @method findBySlug
  * @method findByIdAndPopulate
  * @method save
  * @method update

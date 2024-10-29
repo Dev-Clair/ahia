@@ -31,16 +31,13 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     media: {
       images: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
+        type: String,
+        get: (value: string) => `${baseStoragePath}${value}`,
+        required: [true, "Kindly add an image (.png | .jpg) for this product"],
       },
       videos: {
         type: [String],
-        get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
-        default: undefined,
+        get: (value: string) => `${baseStoragePath}${value}`,
         required: false,
       },
     },
@@ -65,8 +62,6 @@ const ProductSchema: Schema<IProduct> = new Schema(
   {
     discriminatorKey: "type",
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
   }
 );
 
@@ -77,11 +72,6 @@ ProductSchema.index({
   "offering.area.size": 1,
   "offering.type": "text",
   status: "text",
-});
-
-// Product Schema Virtuals
-ProductSchema.virtual("inventory").get(function () {
-  return this.offering.quantity > 0 ? "AVAILABLE" : "OUT-OF-STOCK";
 });
 
 // Product Schema Middleware

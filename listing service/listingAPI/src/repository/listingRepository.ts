@@ -28,13 +28,15 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteListingProduct
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTING_PROJECTION = [
+  static LISTING_PROJECTION_BASIC = [
     "-address",
     "-location",
     "-createdAt",
     "-updatedAt",
     "-__v",
   ];
+
+  static LISTING_PROJECTION_PLUS = ["-createdAt", "-updatedAt", "-__v"];
 
   static SORT_LISTINGS = ["-createdAt"];
 
@@ -71,7 +73,7 @@ export default class ListingRepository implements IListingRepository {
             .GeoSpatial()
             .Filter()
             .Sort(ListingRepository.SORT_LISTINGS)
-            .Select(ListingRepository.LISTING_PROJECTION)
+            .Select(ListingRepository.LISTING_PROJECTION_BASIC)
             .Paginate()
         ).Exec();
 
@@ -103,7 +105,7 @@ export default class ListingRepository implements IListingRepository {
       const operation = async () => {
         const listing = await Listing.findById(
           { _id: id },
-          ListingRepository.LISTING_PROJECTION
+          ListingRepository.LISTING_PROJECTION_BASIC
         ).exec();
 
         return listing;
@@ -139,7 +141,7 @@ export default class ListingRepository implements IListingRepository {
       const operation = async () => {
         const listing = await Listing.findById(
           { _id: id },
-          ListingRepository.LISTING_PROJECTION
+          ListingRepository.LISTING_PROJECTION_PLUS
         )
           .populate({
             path: "products",

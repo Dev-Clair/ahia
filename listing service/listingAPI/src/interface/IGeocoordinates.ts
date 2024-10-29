@@ -1,6 +1,7 @@
-export default interface IGeoCoordinates {
+export default interface IGeoCoordinates extends Record<string, any> {
   lat: number;
   lng: number;
-  maxDistance?: number;
+  distance?: number;
   radius?: number;
+  [key: string]: any;
 }

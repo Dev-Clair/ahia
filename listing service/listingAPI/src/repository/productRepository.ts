@@ -13,7 +13,8 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findById
  * @method findByIdAndPopulate
  * @method findProductsByLocation
- * @method findProductsByProvider
+ * @method findProductsByListingProvider
+ * @method findProductsByListingType
  * @method save
  * @method update
  * @method delete
@@ -28,13 +29,15 @@ export default class ProductRepository implements IProductRepository {
 
   static SORT_PRODUCTS = ["-createdAt"];
 
-  static LISTING_PROJECTION = [
+  static LISTING_PROJECTION_BASIC = [
     "-address",
     "-location",
     "-createdAt",
     "-updatedAt",
     "-__v",
   ];
+
+  static LISTING_PROJECTION_PLUS = ["-createdAt", "-updatedAt", "-__v"];
 
   static SORT_LISTINGS = ["-createdAt"];
 
@@ -128,7 +131,7 @@ export default class ProductRepository implements IProductRepository {
       const { type, retry } = options;
 
       const operation = async () => {
-        const product = await Product.findOne(
+        const product = await Product.findById(
           { _id: id },
           ProductRepository.PRODUCT_PROJECTION
         )
@@ -136,7 +139,7 @@ export default class ProductRepository implements IProductRepository {
             path: "listing",
             match: type ? new RegExp(type, "i") : undefined,
             model: "Listing",
-            select: ProductRepository.LISTING_PROJECTION,
+            select: ProductRepository.LISTING_PROJECTION_PLUS,
             options: { sort: ProductRepository.SORT_LISTINGS },
           })
           .exec();
@@ -156,25 +159,30 @@ export default class ProductRepository implements IProductRepository {
 
   /** Retrieves a collection of products by location (geo-coordinates)
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByLocation(
-    queryString: Record<string, any>
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by geo-coordinates
-        const listings = await ListingRepository.Create().findAll(queryString, {
-          retry: false,
-        });
+        const listings = await ListingRepository.Create().findAll(
+          listingFilter,
+          {
+            retry: false,
+          }
+        );
 
         const listingIds = listings.map((listing) => listing._id);
 
         if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
-        // Find products that contain these listing IDs
+        // Find products that match the listing IDs and product filter
         const products = await this.findAll(
-          { listing: { in: listingIds } },
+          { listing: { in: listingIds }, ...productFilter },
           { retry: false }
         );
 
@@ -189,17 +197,22 @@ export default class ProductRepository implements IProductRepository {
 
   /** Retrieves a collection of products by provider
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
-  async findProductsByProvider(
-    queryString: Record<string, any>
+  async findProductsByListingProvider(
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
         // Find listings by provider
-        const listings = await ListingRepository.Create().findAll(queryString, {
-          retry: false,
-        });
+        const listings = await ListingRepository.Create().findAll(
+          listingFilter,
+          {
+            retry: false,
+          }
+        );
 
         const listingIds = listings.map((listing) => listing._id);
 
@@ -207,7 +220,45 @@ export default class ProductRepository implements IProductRepository {
 
         // Find products that contain these listing IDs
         const products = await this.findAll(
-          { listing: { in: listingIds } },
+          { listing: { in: listingIds }, ...productFilter },
+          { retry: false }
+        );
+
+        return products;
+      };
+
+      return await FailureRetry.LinearJitterBackoff(() => operation());
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /** Retrieves a collection of products by listing type: land | mobile | property
+   * @public
+   * @param listingFilter listing filter
+   * @param productFilter product filter
+   */
+  async findProductsByListingType(
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
+  ): Promise<IProduct[]> {
+    try {
+      const operation = async () => {
+        // Find listings by type
+        const listings = await ListingRepository.Create().findAll(
+          listingFilter,
+          {
+            retry: false,
+          }
+        );
+
+        const listingIds = listings.map((listing) => listing._id);
+
+        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+
+        // Find products that contain these listing IDs
+        const products = await this.findAll(
+          { listing: { in: listingIds }, ...productFilter },
           { retry: false }
         );
 

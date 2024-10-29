@@ -13,7 +13,8 @@ export default class Geocode {
 
     const url = `${Config.GOOGLE_MAP_API.GEOCODE_URL}address=${parsedAddress}&key=${Config.GOOGLE_MAP_API.KEY}`;
 
-    const headers = { "Content-Type": "application/json" };
+    const headers = { "content-type": "application/json" };
+
     try {
       const httpClient = HttpClient.Create(url, headers);
 
@@ -23,7 +24,9 @@ export default class Geocode {
 
       return { statusCode, body };
     } catch (error: any) {
-      throw new Error("Failed to make request to Geocode API");
+      throw new Error(
+        `Failed to make request to Geocode API:\n${error.message}`
+      );
     }
   }
 
@@ -40,7 +43,7 @@ export default class Geocode {
 
     const url = `${Config.GOOGLE_MAP_API.PLACE_URL}latlng=${parsedGeoCoordinates}&key=${Config.GOOGLE_MAP_API.KEY}`;
 
-    const headers = { "Content-Type": "application/json" };
+    const headers = { "content-type": "application/json" };
 
     try {
       const httpClient = HttpClient.Create(url, headers);
@@ -51,7 +54,9 @@ export default class Geocode {
 
       return { statusCode, body };
     } catch (error: any) {
-      throw new Error("Failed to make request to Geocode API");
+      throw new Error(
+        `Failed to make request to Geocode API:\n${error.message}`
+      );
     }
   }
 

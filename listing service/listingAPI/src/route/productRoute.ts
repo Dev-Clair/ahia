@@ -1,60 +1,71 @@
 import { Router } from "express";
-import AppMiddleware from "../middleware/appMiddleware";
+import AppController from "../controller/appController";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
+import ValidationMiddleware from "../middleware/validationMiddleware";
 import ProductController from "../controller/productController";
 
 const IdParamRegex = "[0-9a-fA-F]{24}";
 
 const ProductRouter = Router();
 
-ProductRouter.route("/").get(
-  AppMiddleware.isNotAllowed,
-  ProductController.retrieveProducts
+ProductRouter.get(
+  "/", // api/v1/listings/products/?lat=lat&lng=lng&key=value
+  GeocodeMiddleware.parseUserGeoCoordinates,
+  AppController
 );
 
-ProductRouter.route(`/location`).get(
+ProductRouter.get(
+  `/status/:status/location/:location`, // api/v1/listings/products/status/:status/location/:location
+  ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.getLocationGeoCoordinates,
   ProductController.retrieveProductsByLocation
 );
 
-ProductRouter.route(`/nearby`).get(
+ProductRouter.get(
+  `/status/:status/nearby`, // api/v1/listings/products/status/:status/nearby?lat=lat&lng=lng&key=value
+  ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsNearBy
 );
 
-ProductRouter.route(`/now-booking`).get(
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForBooking
-);
-
-ProductRouter.route(`/now-letting`).get(
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForLetting
-);
-
-ProductRouter.route(`/now-selling`).get(
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsAvailableForSelling
-);
-
-ProductRouter.route(`/offering`).get(
+ProductRouter.get(
+  `/status/:status/offering`, // api/v1/listings/products/status/:status/offering?lat=lat&lng=lng&key=value
+  ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsByOffering
 );
 
-ProductRouter.route(`/provider`).get(
-  ProductController.retrieveProductsByProvider
+ProductRouter.get(
+  `/status/:status/provider/:slug`, // api/v1/listings/products/status/:status/provider/:slug
+  ValidationMiddleware.validateProductStatus,
+  ProductController.retrieveProductsByListingProvider
 );
 
-ProductRouter.route("/search").get(ProductController.retrieveProductsSearch);
+ProductRouter.get(
+  "/status/:status/search", // api/v1/listings/products/status/:status/search?lat=lat&lng=lng
+  ValidationMiddleware.validateProductStatus,
+  GeocodeMiddleware.parseUserGeoCoordinates,
+  ProductController.retrieveProductsSearch
+);
 
-ProductRouter.route(`/:id(${IdParamRegex})`).get(
+ProductRouter.get(
+  `/status/:status/type/:type`, // api/v1/listings/products/status/:status/type/:type?lat=lat&lng=lng
+  ValidationMiddleware.validateProductStatus,
+  ValidationMiddleware.validateListingType,
+  GeocodeMiddleware.parseUserGeoCoordinates,
+  ProductController.retrieveProductsByListingType
+);
+
+ProductRouter.get(
+  `/:id(${IdParamRegex})`,
   DocumentMiddleware("product", "id"),
   ProductController.retrieveProductById
 );
 
-ProductRouter.route(`/:id(${IdParamRegex})/:type/listing`).get(
+ProductRouter.get(
+  `/:id(${IdParamRegex})/type/:type/listing`,
+  ValidationMiddleware.validateListingType,
   ProductController.retrieveProductByIdAndPopulate
 );
 

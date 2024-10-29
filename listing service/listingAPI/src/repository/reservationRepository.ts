@@ -58,7 +58,7 @@ export default class ReservationRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Reservation.findOne(
+      const product = await Reservation.findById(
         { _id: id },
         ReservationRepository.PRODUCT_PROJECTION
       ).exec();
@@ -85,14 +85,14 @@ export default class ReservationRepository extends ProductRepository {
     const { retry } = options;
 
     const operation = async () => {
-      const product = await Reservation.findOne(
+      const product = await Reservation.findById(
         { _id: id },
         ReservationRepository.PRODUCT_PROJECTION
       )
         .populate({
           path: "listing",
           model: "Listing",
-          select: ReservationRepository.LISTING_PROJECTION,
+          select: ReservationRepository.LISTING_PROJECTION_BASIC,
           options: { sort: ReservationRepository.SORT_LISTINGS },
         })
         .exec();

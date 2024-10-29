@@ -1,4 +1,7 @@
+import ILeaseProduct from "../interface/ILeaseproduct";
 import IProduct from "../interface/IProduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 import LeaseRepository from "../repository/leaseRepository";
 import ProductRepository from "../repository/productRepository";
 import ReservationRepository from "../repository/reservationRepository";
@@ -11,7 +14,8 @@ import SellRepository from "../repository/sellRepository";
  * @method findAllReservation
  * @method findAllSell
  * @method findByLocation
- * @method findByProvider
+ * @method findByListingProvider
+ * @method findByListingType
  * @method findById
  * @method findByIdAndPopulate
  */
@@ -35,11 +39,13 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products for lease
+  /** Retrieves a collection of products for lease by location
    * @public
    * @param queryString query object
    */
-  async findAllLease(queryString: Record<string, any>): Promise<IProduct[]> {
+  async findAllLease(
+    queryString: Record<string, any>
+  ): Promise<ILeaseProduct[]> {
     try {
       const options = { retry: true };
 
@@ -54,13 +60,13 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products for reservation
+  /** Retrieves a collection of products for reservation by location
    * @public
    * @param queryString query object
    */
   async findAllReservation(
     queryString: Record<string, any>
-  ): Promise<IProduct[]> {
+  ): Promise<IReservationProduct[]> {
     try {
       const options = { retry: true };
 
@@ -75,32 +81,35 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products for sell
+  /** Retrieves a collection of products for sell by location
    * @public
    * @param queryString query object
    */
-  async findAllSell(queryString: Record<string, any>): Promise<IProduct[]> {
+  async findAllSell(queryString: Record<string, any>): Promise<ISellProduct[]> {
     try {
       const options = { retry: true };
 
-      const sales = await SellRepository.Create().findAll(queryString, options);
+      const sells = await SellRepository.Create().findAll(queryString, options);
 
-      return sales;
+      return sells;
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves a collection of products by location (geo-coordinates)
+  /** Retrieves a collection of product offerings by location (geo-coordinates)
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
   async findProductsByLocation(
-    queryString: Record<string, any>
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const products = await ProductRepository.Create().findProductsByLocation(
-        queryString
+        listingFilter,
+        productFilter
       );
 
       return products;
@@ -109,17 +118,43 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of products by provider
+  /** Retrieves a collection of products by listing provider
    * @public
-   * @param queryString query object
+   * @param listingFilter listing filter
+   * @param productFilter product filter
    */
-  async findProductsByProvider(
-    queryString: Record<string, any>
+  async findProductsByListingProvider(
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
-      const products = await ProductRepository.Create().findProductsByProvider(
-        queryString
-      );
+      const products =
+        await ProductRepository.Create().findProductsByListingProvider(
+          listingFilter,
+          productFilter
+        );
+
+      return products;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /** Retrieves a collection of products by listing type: land | mobile | property
+   * @public
+   * @param listingFilter listing filter
+   * @param productFilter product filter
+   */
+  async findProductsByListingType(
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
+  ): Promise<IProduct[]> {
+    try {
+      const products =
+        await ProductRepository.Create().findProductsByListingType(
+          listingFilter,
+          productFilter
+        );
 
       return products;
     } catch (error: any) {

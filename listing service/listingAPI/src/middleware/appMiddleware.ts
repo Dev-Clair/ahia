@@ -9,14 +9,14 @@ import HttpStatus from "../enum/httpStatus";
 const isContentType =
   (contentTypes: string[]) =>
   (req: Request, res: Response, next: NextFunction): Response | void => {
-    const getContentType = req.headers["Content-Type"] as string;
+    const getContentType = req.headers["content-type"] as string;
 
     if (!contentTypes.includes(getContentType)) {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
           message: {
-            expected: contentTypes.join(", "),
+            expected: contentTypes.join(),
             received: `${getContentType}`,
           },
         },

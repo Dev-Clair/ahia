@@ -4,6 +4,7 @@ import Cache from "../utils/cache";
 import Geocode from "../utils/geocode";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
+import InternalServerError from "../error/internalserverError";
 import { NextFunction, Request, Response } from "express";
 import LocationService from "../service/locationService";
 
@@ -19,7 +20,7 @@ const getLocationGeoCoordinates = async (
   next: NextFunction
 ) => {
   try {
-    const place = (req.query.location as string) ?? "";
+    const place = req.params.location as string;
 
     if (!place.trim()) {
       return res.status(HttpCode.BAD_REQUEST).json({
@@ -30,7 +31,7 @@ const getLocationGeoCoordinates = async (
       });
     }
 
-    // Search and retrieve location coordinates from cache
+    // Search and retrieve location coordinates from cache if available
     const cacheKey = place.trim().toLowerCase();
 
     const cache = Cache.LruCache;
@@ -38,11 +39,11 @@ const getLocationGeoCoordinates = async (
     let location = cache.get(cacheKey);
 
     if (location) {
-      // Attach cached coordinates to the req object
+      // Attach cached coordinates to the req object for downstream handler use
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
-        radius: parseInt(req.query.radius as string, 10),
+        radius: parseInt(req.query?.radius as string, 10) ?? 10,
       };
 
       delete req.query.location;
@@ -54,7 +55,7 @@ const getLocationGeoCoordinates = async (
     location = await LocationService.Create().findByName(place.trim());
 
     if (location) {
-      // Attach retrieved coordinates to the req object
+      // Attach retrieved coordinates to the req object for downstream handler use
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -63,7 +64,8 @@ const getLocationGeoCoordinates = async (
       // Set coordinates in cache for future requests
       cache.set(cacheKey, req.geoCoordinates);
 
-      req.geoCoordinates.radius = parseInt(req.query.radius as string, 10);
+      req.geoCoordinates.radius =
+        parseInt(req.query?.radius as string, 10) ?? 10;
 
       delete req.query.location;
 
@@ -81,12 +83,10 @@ const getLocationGeoCoordinates = async (
         response: geocodeAPIResponse,
       });
 
-      return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
-        error: {
-          name: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Geo coordinates retrieval for location ${place.trim()} failed`,
-        },
-      });
+      throw new InternalServerError(
+        false,
+        `Geocoordinates retrieval for location ${place.trim()} failed`
+      );
     }
 
     const coordinates = body.data.results[0].geometry.location;
@@ -103,7 +103,7 @@ const getLocationGeoCoordinates = async (
       }
     );
 
-    // Attach coordinates to the req object
+    // Attach coordinates to the req object for downstream handler use
     req.geoCoordinates = {
       lat: coordinates.lat,
       lng: coordinates.lng,
@@ -112,7 +112,7 @@ const getLocationGeoCoordinates = async (
     // Set coordinates in cache for future requests
     cache.set(cacheKey, req.geoCoordinates);
 
-    req.geoCoordinates.radius = parseInt(req.query.radius as string, 10);
+    req.geoCoordinates.radius = parseInt(req.query?.radius as string, 10) ?? 10;
 
     delete req.query.location;
 
@@ -120,7 +120,7 @@ const getLocationGeoCoordinates = async (
   } catch (error: any) {
     Sentry.captureException(error);
 
-    next(error);
+    return next(error);
   }
 };
 
@@ -147,21 +147,23 @@ const getLocationAddress = async (
     if (statusCode !== HttpCode.OK) {
       Sentry.captureException({ response });
 
-      return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
-        error: {
-          name: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Address retrieval for geo coordinates ${geoCoordinates} failed`,
-        },
-      });
+      throw new InternalServerError(
+        false,
+        `Address retrieval for geocoordinates: ${geoCoordinates} failed`
+      );
     }
 
     (req as Request).address = body.data.results[0].formatted_address;
+
+    delete req.query.lat;
+
+    delete req.query.lng;
 
     next();
   } catch (error: any) {
     Sentry.captureException({ error });
 
-    next(error);
+    return next(error);
   }
 };
 
@@ -178,12 +180,34 @@ const parseUserGeoCoordinates = async (
 ) => {
   const { lat, lng } = req.query as Record<string, any>;
 
-  if (!lat || !lng) next();
+  // Check if coordinates (latitude and longitude) are present
+  if (!lat || !lng) {
+    return res.status(HttpCode.BAD_REQUEST).json({
+      error: {
+        name: HttpStatus.BAD_REQUEST,
+        message:
+          "Unable to proceed without geolocation data. Please enable location services",
+      },
+    });
+  }
 
-  const parsedLat = parseInt(lat, 10);
+  // Parse and verify the coordinates
+  const parsedLat = parseFloat(lat);
 
-  const parsedLng = parseInt(lng, 10);
+  const parsedLng = parseFloat(lng);
 
+  // Validate the parsed coordinates
+  if (isNaN(parsedLat) || isNaN(parsedLng)) {
+    return res.status(HttpCode.BAD_REQUEST).json({
+      error: {
+        name: HttpStatus.BAD_REQUEST,
+        message:
+          "Invalid geocoordinates: 'lat' and 'lng' must be valid numbers",
+      },
+    });
+  }
+
+  // Ensure coordinates fall within valid range
   const verifyGeoCoordinates = Geocode.verifyGeoCoordinates([
     parsedLat,
     parsedLng,
@@ -193,10 +217,26 @@ const parseUserGeoCoordinates = async (
     return res.status(HttpCode.BAD_REQUEST).json({
       error: {
         name: HttpStatus.BAD_REQUEST,
-        message: "Provided geo coordinates are out of the valid range",
+        message: "Provided geocoordinates are out of the valid range",
       },
     });
   }
+
+  // Attach parsed coordinates to the request object for downstream handler use
+  req.geoCoordinates = {
+    lat: parsedLat,
+    lng: parsedLng,
+    distance: parseInt(req.query?.distance as string, 10) ?? 5000,
+    radius: parseInt(req.query?.radius as string, 10) ?? 10,
+  };
+
+  delete req.query.lat;
+
+  delete req.query.lng;
+
+  delete req.query?.distance;
+
+  delete req.query?.radius;
 
   next();
 };
