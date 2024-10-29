@@ -62,8 +62,6 @@ const ProductSchema: Schema<IProduct> = new Schema(
   {
     discriminatorKey: "type",
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
   }
 );
 
@@ -74,11 +72,6 @@ ProductSchema.index({
   "offering.area.size": 1,
   "offering.type": "text",
   status: "text",
-});
-
-// Product Schema Virtuals
-ProductSchema.virtual("inventory").get(function () {
-  return this.offering.quantity > 0 ? "AVAILABLE" : "OUT-OF-STOCK";
 });
 
 // Product Schema Middleware
