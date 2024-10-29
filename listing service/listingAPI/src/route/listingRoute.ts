@@ -75,7 +75,7 @@ ListingRouter.route(`/:id(${IdParamRegex})/products/type/:type`)
   .post(
     AuthMiddleware.isGranted(["Admin", "Provider"]),
     AppMiddleware.isContentType(["application/json"]),
-    AppMiddleware.filterInsertion(["media", "verification"]),
+    AppMiddleware.filterInsertion(["verification"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
     ValidationMiddleware.validateProductType,
