@@ -129,14 +129,13 @@ export default class ListingRepository implements IListingRepository {
   async findByIdAndPopulate(
     id: string,
     options: {
-      type: string;
       page: number;
       limit: number;
       retry: boolean;
     }
   ): Promise<IListing | null> {
     try {
-      const { type, page, limit, retry } = options;
+      const { page, limit, retry } = options;
 
       const operation = async () => {
         const listing = await Listing.findById(
@@ -145,7 +144,6 @@ export default class ListingRepository implements IListingRepository {
         )
           .populate({
             path: "products",
-            match: new RegExp(type, "i"),
             model: "Product",
             select: ListingRepository.PRODUCT_PROJECTION,
             options: {

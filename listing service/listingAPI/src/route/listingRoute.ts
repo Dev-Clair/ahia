@@ -105,9 +105,8 @@ ListingRouter.route(`/:id(${IdParamRegex})/products/type/:type/:productId`)
   );
 
 ListingRouter.get(
-  `/:id(${IdParamRegex})/product/type/:type`,
+  `/:id(${IdParamRegex})/product`,
   AuthMiddleware.isGranted(["Admin"]),
-  ValidationMiddleware.validateProductType,
   ListingController.retrieveListingByIdAndPopulate
 );
 

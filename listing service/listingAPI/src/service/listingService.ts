@@ -51,14 +51,12 @@ export default class ListingService {
   /** Retrieves a listing by id and populates product subdocument
    * @public
    * @param id listing id
-   * @param type product type
    * @param page the set to retrieve per query
    * @param limit the number of subdocument to retrieve per query
    */
   async findByIdAndPopulate(
     id: string,
     options: {
-      type: string;
       page: number;
       limit: number;
     }

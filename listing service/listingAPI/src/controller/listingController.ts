@@ -190,8 +190,6 @@ const retrieveListingByIdAndPopulate = async (
     const id = req.params.id as string;
 
     const options = {
-      type: req.params.type as string,
-
       page: parseInt((req.query.page as string) ?? "1", 10),
 
       limit: parseInt((req.query.limit as string) ?? "10", 10),
