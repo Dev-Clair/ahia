@@ -1,18 +1,9 @@
-import ILeaseProduct from "../interface/ILeaseproduct";
 import IProduct from "../interface/IProduct";
-import IReservationProduct from "../interface/IReservationproduct";
-import ISellProduct from "../interface/ISellproduct";
-import LeaseRepository from "../repository/leaseRepository";
 import ProductRepository from "../repository/productRepository";
-import ReservationRepository from "../repository/reservationRepository";
-import SellRepository from "../repository/sellRepository";
 
 /**
  * Product Service
  * @method findAll
- * @method findAllLease
- * @method findAllReservation
- * @method findAllSell
  * @method findByLocation
  * @method findByListingProvider
  * @method findByListingType
@@ -34,64 +25,6 @@ export default class ProductService {
       );
 
       return products;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a collection of products for lease by location
-   * @public
-   * @param queryString query object
-   */
-  async findAllLease(
-    queryString: Record<string, any>
-  ): Promise<ILeaseProduct[]> {
-    try {
-      const options = { retry: true };
-
-      const leases = await LeaseRepository.Create().findAll(
-        queryString,
-        options
-      );
-
-      return leases;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a collection of products for reservation by location
-   * @public
-   * @param queryString query object
-   */
-  async findAllReservation(
-    queryString: Record<string, any>
-  ): Promise<IReservationProduct[]> {
-    try {
-      const options = { retry: true };
-
-      const reservations = await ReservationRepository.Create().findAll(
-        queryString,
-        options
-      );
-
-      return reservations;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a collection of products for sell by location
-   * @public
-   * @param queryString query object
-   */
-  async findAllSell(queryString: Record<string, any>): Promise<ISellProduct[]> {
-    try {
-      const options = { retry: true };
-
-      const sells = await SellRepository.Create().findAll(queryString, options);
-
-      return sells;
     } catch (error: any) {
       throw error;
     }
