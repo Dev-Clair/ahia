@@ -76,7 +76,7 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: [String],
         get: (values: string[]) =>
           values.map((value) => `${baseStoragePath}${value}`),
-        required: [true, "Kindly add an image for this product"],
+        required: false,
       },
       videos: {
         type: [String],
