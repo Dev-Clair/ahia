@@ -3,11 +3,6 @@ import https from "node:https";
 import Config from "../../config";
 import { Express } from "express";
 
-/**
- * Http Server
- * @method Init
- * @method Close
- */
 class HttpServer {
   private app: Express;
 
@@ -23,7 +18,7 @@ class HttpServer {
 
   /**
    * Start http(s) server listening for connections
-   * @param PORT
+   * @param PORT server port
    */
   public Init(PORT: string | number): Promise<http.Server | https.Server> {
     return new Promise((resolve, reject) => {
@@ -70,8 +65,8 @@ class HttpServer {
 
   /**
    * Creates and returns a new instance of the HttpServer class
-   * @param App
-   * @param SSL_Options
+   * @param App express application instance
+   * @param SSL_Options ssl contfiguration options
    */
   static Create(App: Express, SSL_Options: object | null = null): HttpServer {
     return new HttpServer(App, SSL_Options);

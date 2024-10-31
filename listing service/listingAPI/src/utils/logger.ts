@@ -9,18 +9,11 @@ import {
 import Config from "../../config";
 
 /** ***************************************Create Transport**************/
-
 interface CloudWatchLogsConfigOptions {
   logGroupName: string;
   logStreamName: string;
 }
 
-/**
- * Cloudwatch Logs Transport
- * @method initializeSequenceToken
- * @method log
- * @method Create
- */
 class CloudWatchLogsTransport extends TransportStream {
   private cloudWatchLogsClient: CloudWatchLogsClient;
 
@@ -36,6 +29,7 @@ class CloudWatchLogsTransport extends TransportStream {
     options?: TransportStreamOptions
   ) {
     super(options);
+
     this.logGroupName = logConfig.logGroupName;
 
     this.logStreamName = logConfig.logStreamName;
@@ -66,14 +60,14 @@ class CloudWatchLogsTransport extends TransportStream {
 
       this.sequenceToken = logStream?.uploadSequenceToken;
     } catch (error) {
-      console.error("Failed to retrieve sequence token:", error);
+      throw new Error(`Failed to retrieve sequence token: ${error}`);
     }
   }
 
   /**
    * Sends logs to cloudwatch
-   * @param info
-   * @param callback
+   * @param info log entry
+   * @param callback log callback
    */
   async log(info: LogEntry, callback: () => void): Promise<void> {
     setImmediate(() => this.emit("logged", info));
@@ -97,7 +91,7 @@ class CloudWatchLogsTransport extends TransportStream {
 
       this.sequenceToken = response.nextSequenceToken;
     } catch (error) {
-      console.error("Error sending logs to CloudWatch:", error);
+      throw new Error(`Error sending logs to CloudWatch: ${error}`);
     }
 
     callback();

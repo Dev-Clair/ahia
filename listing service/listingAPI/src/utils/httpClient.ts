@@ -5,14 +5,6 @@ import HttpCode from "../enum/httpCode";
 import IHttpRequestOptions from "../interface/IHttprequestoptions";
 import IHttpResponse from "../interface/IHttpresponse";
 
-/**
- * Http Client
- * @method Get
- * @method Post
- * @method Put
- * @method Patch
- * @method Delete
- */
 class HttpClient {
   private httpOptions: IHttpRequestOptions;
 
@@ -40,8 +32,8 @@ class HttpClient {
   /**
    * Http request handler
    * @private
-   * @param options
-   * @param payload
+   * @param options http request options
+   * @param payload request payload (optional)
    */
   private async call(
     options: IHttpRequestOptions,
@@ -91,8 +83,8 @@ class HttpClient {
   /**
    * Handles various http request operations
    * @private
-   * @param method
-   * @param payload
+   * @param method http request method: GET | POST | PATCH | PUT | DELETE
+   * @param payload request payload (optional)
    */
   private async request(method: string, payload?: any): Promise<IHttpResponse> {
     try {
@@ -125,7 +117,7 @@ class HttpClient {
   /**
    * Carries out a post request
    * @public
-   * @param payload
+   * @param payload request payload
    */
   public Post(payload: any): Promise<IHttpResponse> {
     return this.request("POST", payload);
@@ -134,7 +126,7 @@ class HttpClient {
   /**
    * Carries out a put request
    * @public
-   * @param payload
+   * @param payload request payload
    */
   public Put(payload: any): Promise<IHttpResponse> {
     return this.request("PUT", payload);
@@ -143,7 +135,7 @@ class HttpClient {
   /**
    * Carries out a patch request
    * @public
-   * @param payload
+   * @param payload request payload
    */
   public Patch(payload: any): Promise<IHttpResponse> {
     return this.request("PATCH", payload);
@@ -159,8 +151,8 @@ class HttpClient {
 
   /**
    * Creates and returns a new instance of the HttpClient class
-   * @param url
-   * @param httpHeaders
+   * @param url request url
+   * @param httpHeaders request headers
    */
   static Create(url: string, httpHeaders: Record<string, string>): HttpClient {
     return new HttpClient(url, httpHeaders);

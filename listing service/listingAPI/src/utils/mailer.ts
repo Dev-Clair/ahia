@@ -7,10 +7,6 @@ import {
 } from "@aws-sdk/client-ses";
 import Config from "../../config";
 
-/**
- * Mailer
- * @method SendMail
- */
 class Mailer {
   private client: SESClient;
 
@@ -70,7 +66,6 @@ class Mailer {
 
   /**
    * Creates and returns a new instance of the Mailer class
-   * @returns Mailer
    */
   public static Create(): Mailer {
     const configuration: SESClientConfig = {
