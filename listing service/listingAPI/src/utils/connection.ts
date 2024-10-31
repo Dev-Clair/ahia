@@ -1,13 +1,8 @@
 import mongoose from "mongoose";
-import ConnectionServiceError from "../error/connectionserviceError";
-import FailureRetry from "../utils/failureRetry";
+import ConnectionError from "../error/connectionError";
+import FailureRetry from "./failureRetry";
 
-/**
- * Connection Service
- * @method connect
- * @method getConnection
- */
-class ConnectionService {
+class Connection {
   private connectionUri: string;
 
   constructor(connectionUri: string) {
@@ -25,10 +20,7 @@ class ConnectionService {
       try {
         await FailureRetry.LinearJitterBackoff(() => this.connect());
       } catch (err: any) {
-        throw new ConnectionServiceError(
-          "DATABASE CONNECTION SERVICE ERROR",
-          err.message
-        );
+        throw new ConnectionError("DATABASE CONNECTION ERROR", err.message);
       }
     }
   }
@@ -48,12 +40,12 @@ class ConnectionService {
   }
 
   /**
-   * Creates and returns a new instance of the ConnectionService class
+   * Creates and returns a new instance of the Connection class
    * @param connectionUri
    */
-  public static Create(connectionUri: string): ConnectionService {
-    return new ConnectionService(connectionUri);
+  public static Create(connectionUri: string): Connection {
+    return new Connection(connectionUri);
   }
 }
 
-export default ConnectionService;
+export default Connection;

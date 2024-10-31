@@ -2,8 +2,8 @@ import * as Sentry from "@sentry/node";
 import process from "node:process";
 import mongoose from "mongoose";
 import Config from "./config";
-import ConnectionService from "./src/service/connectionService";
-import ConnectionServiceError from "./src/error/connectionserviceError";
+import Connection from "./src/utils/connection";
+import ConnectionError from "./src/error/connectionError";
 import HttpServer from "./src/utils/httpServer";
 import HttpServerError from "./src/error/httpserverError";
 import Logger from "./src/utils/logger";
@@ -22,12 +22,11 @@ export async function Boot(Server: HttpServer): Promise<void> {
       });
 
     // Create and initialize database with connection string
-    await ConnectionService.Create(Config.MONGO_URI).getConnection();
+    await Connection.Create(Config.MONGO_URI).getConnection();
   } catch (err: any) {
     if (err instanceof HttpServerError) ServerErrorHandler(err, Server);
 
-    if (err instanceof ConnectionServiceError)
-      DatabaseErrorHandler(err, Server);
+    if (err instanceof ConnectionError) DatabaseErrorHandler(err, Server);
   }
 }
 
@@ -94,7 +93,7 @@ export function ServerErrorHandler(
  * @returns void
  */
 export function DatabaseErrorHandler(
-  err: ConnectionServiceError,
+  err: ConnectionError,
   Server: HttpServer
 ): void {
   const error = {
@@ -103,7 +102,7 @@ export function DatabaseErrorHandler(
     stack: err.stack,
   };
 
-  if (err instanceof ConnectionServiceError)
+  if (err instanceof ConnectionError)
     Sentry.withScope((scope) => {
       scope.setTag("Database Connection Error", "Critical");
 
