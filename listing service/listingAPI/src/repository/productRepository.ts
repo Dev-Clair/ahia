@@ -1,10 +1,16 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
+import ILeaseProduct from "../interface/ILeaseproduct";
 import IProduct from "../interface/IProduct";
 import IProductRepository from "../interface/IProductrepository";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 import ListingRepository from "./listingRepository";
+import Lease from "../model/leaseModel";
 import Product from "../model/productModel";
+import Reservation from "../model/reservationModel";
+import Sell from "../model/sellModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
@@ -16,6 +22,9 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findProductsByListingProvider
  * @method findProductsByListingType
  * @method save
+ * @method lease
+ * @method reservation
+ * @method sell
  * @method update
  * @method delete
  */
@@ -288,6 +297,126 @@ export default class ProductRepository implements IProductRepository {
     try {
       const operation = async () => {
         const products = await Product.create([payload], {
+          session: session,
+        });
+
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        const productId = products[0]._id;
+
+        return productId.toString();
+      };
+
+      const productId = retry
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
+
+      return productId as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new lease product in collection
+   * @public
+   * @param payload the data object
+   * @param options configuration options
+   */
+  async lease(
+    payload: Partial<ILeaseProduct>,
+    options: {
+      session: ClientSession;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
+    }
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
+
+    try {
+      const operation = async () => {
+        const products = await Lease.create([payload], {
+          session: session,
+        });
+
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        const productId = products[0]._id;
+
+        return productId.toString();
+      };
+
+      const productId = retry
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
+
+      return productId as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a reservation new product in collection
+   * @public
+   * @param payload the data object
+   * @param options configuration options
+   */
+  async reservation(
+    payload: Partial<IReservationProduct>,
+    options: {
+      session: ClientSession;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
+    }
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
+
+    try {
+      const operation = async () => {
+        const products = await Reservation.create([payload], {
+          session: session,
+        });
+
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        const productId = products[0]._id;
+
+        return productId.toString();
+      };
+
+      const productId = retry
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
+
+      return productId as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new sell product in collection
+   * @public
+   * @param payload the data object
+   * @param options configuration options
+   */
+  async sell(
+    payload: Partial<ISellProduct>,
+    options: {
+      session: ClientSession;
+      idempotent: Record<string, any> | null;
+      retry: boolean;
+    }
+  ): Promise<string> {
+    const { session, idempotent, retry } = options;
+
+    try {
+      const operation = async () => {
+        const products = await Sell.create([payload], {
           session: session,
         });
 
