@@ -28,7 +28,7 @@ class Storage {
    */
   public async Upload(
     id: string,
-    body: any,
+    body: Buffer,
     contentType?: string
   ): Promise<string | void> {
     try {
