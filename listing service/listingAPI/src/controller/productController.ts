@@ -299,9 +299,7 @@ const retrieveProductByIdAndPopulate = async (
   try {
     const id = req.params.id as string;
 
-    const type = req.params.type as string;
-
-    const product = await ProductService.Create().findByIdAndPopulate(id, type);
+    const product = await ProductService.Create().findByIdAndPopulate(id);
 
     if (!product) throw new NotFoundError(`No record found for product: ${id}`);
 

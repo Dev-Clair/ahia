@@ -124,11 +124,10 @@ export default class ProductRepository implements IProductRepository {
     id: string,
     options: {
       retry: boolean;
-      type?: string;
     }
   ): Promise<IProduct | null> {
     try {
-      const { type, retry } = options;
+      const { retry } = options;
 
       const operation = async () => {
         const product = await Product.findById(
@@ -137,7 +136,6 @@ export default class ProductRepository implements IProductRepository {
         )
           .populate({
             path: "listing",
-            match: type ? new RegExp(type, "i") : undefined,
             model: "Listing",
             select: ProductRepository.LISTING_PROJECTION_PLUS,
             options: { sort: ProductRepository.SORT_LISTINGS },

@@ -181,14 +181,13 @@ export default class ProductService {
   /** Retrieves a product by id and populate its subdocument(s)
    * @public
    * @param id product id
-   * @param type product type
    */
   async findByIdAndPopulate(
     id: string,
     type?: string
   ): Promise<IProduct | null> {
     try {
-      const options = { retry: true, type: type };
+      const options = { retry: true };
 
       const product = await ProductRepository.Create().findByIdAndPopulate(
         id,

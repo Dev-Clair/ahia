@@ -64,8 +64,7 @@ ProductRouter.get(
 );
 
 ProductRouter.get(
-  `/:id(${IdParamRegex})/type/:type/listing`,
-  ValidationMiddleware.validateListingType,
+  `/:id(${IdParamRegex})/listing`,
   ProductController.retrieveProductByIdAndPopulate
 );
 
