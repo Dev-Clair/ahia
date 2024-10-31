@@ -18,7 +18,7 @@ const getLocationGeoCoordinates = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void | Response<any, Record<string, any>>> => {
   try {
     const place = req.params.location as string;
 
@@ -134,7 +134,7 @@ const getLocationAddress = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { lat, lng } = req.query as Record<string, any>;
 
@@ -177,7 +177,7 @@ const parseUserGeoCoordinates = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<Response<any, Record<string, any>> | undefined> => {
   const { lat, lng } = req.query as Record<string, any>;
 
   // Check if coordinates (latitude and longitude) are present
