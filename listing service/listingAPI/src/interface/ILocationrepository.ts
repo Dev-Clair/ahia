@@ -9,7 +9,7 @@ export default interface ILocationRepository extends IRepository<ILocation> {
    */
   findAll(
     queryString: Record<string, any>,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<ILocation[]>;
 
   /**
@@ -19,7 +19,7 @@ export default interface ILocationRepository extends IRepository<ILocation> {
    */
   findById(
     id: string,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<ILocation | null>;
 
   /**
@@ -29,7 +29,7 @@ export default interface ILocationRepository extends IRepository<ILocation> {
    */
   save(
     payload: Partial<ILocation>,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -41,7 +41,7 @@ export default interface ILocationRepository extends IRepository<ILocation> {
   update(
     id: string,
     payload: Partial<ILocation> | any,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -49,5 +49,5 @@ export default interface ILocationRepository extends IRepository<ILocation> {
    * @param id location id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<string>;
+  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }

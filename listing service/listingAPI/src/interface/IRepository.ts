@@ -6,7 +6,7 @@ export default interface IRepository<T> {
    */
   findAll(
     queryString: Record<string, any>,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<T[]>;
 
   /**
@@ -14,14 +14,17 @@ export default interface IRepository<T> {
    * @param id document id
    * @param options configuration options
    */
-  findById(id: string, options?: { [key: string]: any }): Promise<T | null>;
+  findById(id: string, options?: { [key: string]: unknown }): Promise<T | null>;
 
   /**
    * Creates a new document in collection
    * @param payload data object
    * @param options configuration options
    */
-  save(payload: Partial<T>, options?: { [key: string]: any }): Promise<string>;
+  save(
+    payload: Partial<T>,
+    options?: { [key: string]: unknown }
+  ): Promise<string>;
 
   /**
    * Updates a document by id
@@ -32,7 +35,7 @@ export default interface IRepository<T> {
   update(
     id: string,
     payload: Partial<T> | any,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -40,5 +43,5 @@ export default interface IRepository<T> {
    * @param id document id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<string>;
+  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }

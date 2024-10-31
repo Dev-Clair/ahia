@@ -9,7 +9,7 @@ export default interface IListingRepository extends IRepository<IListing> {
    */
   findAll(
     queryString: Record<string, any>,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<IListing[]>;
 
   /**
@@ -19,7 +19,7 @@ export default interface IListingRepository extends IRepository<IListing> {
    */
   findById(
     id: string,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<IListing | null>;
 
   /**
@@ -29,7 +29,7 @@ export default interface IListingRepository extends IRepository<IListing> {
    */
   findByIdAndPopulate(
     id: string,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<IListing | null>;
 
   /**
@@ -39,7 +39,7 @@ export default interface IListingRepository extends IRepository<IListing> {
    */
   save(
     payload: Partial<IListing>,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -51,7 +51,7 @@ export default interface IListingRepository extends IRepository<IListing> {
   update(
     id: string,
     payload: Partial<IListing> | any,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -59,5 +59,5 @@ export default interface IListingRepository extends IRepository<IListing> {
    * @param id listing id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<string>;
+  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }
