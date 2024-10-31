@@ -9,8 +9,8 @@ export default interface IProduct extends IDocument {
   offering: IOffering;
   type: "lease" | "reservation" | "sell";
   media: {
-    images: string;
-    videos?: string;
+    images: string[];
+    videos?: string[];
   };
   promotion: "platinum" | "gold" | "ruby" | "silver";
   verification: {

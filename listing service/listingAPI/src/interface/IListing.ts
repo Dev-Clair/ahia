@@ -21,7 +21,7 @@ export default interface IListing extends IDocument {
     slug: string;
   };
   media: {
-    image: string;
-    video?: string;
+    image: string[];
+    video?: string[];
   };
 }

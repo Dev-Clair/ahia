@@ -72,14 +72,16 @@ const ListingSchema: Schema<IListing> = new Schema(
       },
     },
     media: {
-      image: {
-        type: String,
-        get: (value: string) => `${baseStoragePath}${value}`,
-        required: [true, "Kindly add an image (.png | .jpg) for this listing"],
+      images: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        required: [true, "Kindly add an image for this product"],
       },
-      video: {
-        type: String,
-        get: (value: string) => `${baseStoragePath}${value}`,
+      videos: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
         required: false,
       },
     },
