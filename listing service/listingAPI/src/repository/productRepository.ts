@@ -57,10 +57,10 @@ export default class ProductRepository implements IProductRepository {
    */
   async findAll(
     queryString: Record<string, any>,
-    options: { retry: boolean }
+    options: { retry?: boolean }
   ): Promise<IProduct[]> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const query = Product.find();
@@ -100,10 +100,10 @@ export default class ProductRepository implements IProductRepository {
    */
   async findById(
     id: string,
-    options: { retry: boolean }
+    options: { retry?: boolean }
   ): Promise<IProduct | null> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const product = await Product.findById(
@@ -131,12 +131,10 @@ export default class ProductRepository implements IProductRepository {
    */
   async findByIdAndPopulate(
     id: string,
-    options: {
-      retry: boolean;
-    }
+    options: { retry?: boolean }
   ): Promise<IProduct | null> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const product = await Product.findById(
@@ -329,10 +327,10 @@ export default class ProductRepository implements IProductRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    const { session, idempotent, retry = true } = options;
 
     try {
       const operation = async () => {
@@ -369,10 +367,10 @@ export default class ProductRepository implements IProductRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    const { session, idempotent, retry = true } = options;
 
     try {
       const operation = async () => {
@@ -409,10 +407,10 @@ export default class ProductRepository implements IProductRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    const { session, idempotent, retry = true } = options;
 
     try {
       const operation = async () => {
@@ -451,10 +449,10 @@ export default class ProductRepository implements IProductRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    const { session, idempotent, retry = true } = options;
 
     try {
       const operation = async () => {
@@ -491,9 +489,9 @@ export default class ProductRepository implements IProductRepository {
    */
   async delete(
     id: string,
-    options: { session: ClientSession; retry: boolean }
+    options: { session: ClientSession; retry?: boolean }
   ): Promise<string> {
-    const { session, retry } = options;
+    const { session, retry = true } = options;
 
     try {
       const operation = async () => {

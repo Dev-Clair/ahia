@@ -27,10 +27,10 @@ export default class LocationRepository implements ILocationRepository {
    */
   async findAll(
     queryString: Record<string, any>,
-    options: { retry: boolean }
+    options: { retry?: boolean }
   ): Promise<ILocation[]> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const query = Location.find();
@@ -67,10 +67,10 @@ export default class LocationRepository implements ILocationRepository {
    */
   async findById(
     id: string,
-    options: { retry: boolean }
+    options: { retry?: boolean }
   ): Promise<ILocation | null> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const location = await Location.findById(
@@ -98,10 +98,10 @@ export default class LocationRepository implements ILocationRepository {
    */
   async findByName(
     name: string,
-    options: { retry: boolean }
+    options: { retry?: boolean }
   ): Promise<ILocation | null> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const location = await Location.findOne(
@@ -133,10 +133,10 @@ export default class LocationRepository implements ILocationRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    const { session, idempotent, retry = true } = options;
 
     try {
       const operation = async () => {
@@ -175,10 +175,10 @@ export default class LocationRepository implements ILocationRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    const { session, idempotent, retry = true } = options;
 
     try {
       const operation = async () => {
@@ -219,9 +219,9 @@ export default class LocationRepository implements ILocationRepository {
    */
   async delete(
     id: string,
-    options: { session: ClientSession; retry: boolean }
+    options: { session: ClientSession; retry?: boolean }
   ): Promise<string> {
-    const { session, retry } = options;
+    const { session, retry = true } = options;
 
     try {
       const operation = async () => {

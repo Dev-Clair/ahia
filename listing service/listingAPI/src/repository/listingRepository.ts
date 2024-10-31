@@ -51,10 +51,10 @@ export default class ListingRepository implements IListingRepository {
    */
   async findAll(
     queryString: Record<string, any>,
-    options: { retry: boolean }
+    options: { retry?: boolean }
   ): Promise<IListing[]> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const query = Listing.find();
@@ -92,10 +92,10 @@ export default class ListingRepository implements IListingRepository {
    */
   async findById(
     id: string,
-    options: { retry: boolean }
+    options: { retry?: boolean }
   ): Promise<IListing | null> {
     try {
-      const { retry } = options;
+      const { retry = true } = options;
 
       const operation = async () => {
         const listing = await Listing.findById(
@@ -124,13 +124,13 @@ export default class ListingRepository implements IListingRepository {
   async findByIdAndPopulate(
     id: string,
     options: {
-      page: number;
-      limit: number;
-      retry: boolean;
+      page?: number;
+      limit?: number;
+      retry?: boolean;
     }
   ): Promise<IListing | null> {
     try {
-      const { page, limit, retry } = options;
+      const { page = 1, limit = 10, retry = true } = options;
 
       const operation = async () => {
         const listing = await Listing.findById(
@@ -173,11 +173,11 @@ export default class ListingRepository implements IListingRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
     try {
-      const { session, idempotent, retry } = options;
+      const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
         const listings = await Listing.create([payload], {
@@ -215,11 +215,11 @@ export default class ListingRepository implements IListingRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
     try {
-      const { session, idempotent, retry } = options;
+      const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
         const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
@@ -255,10 +255,10 @@ export default class ListingRepository implements IListingRepository {
    */
   async delete(
     id: string,
-    options: { session: ClientSession; retry: boolean }
+    options: { session: ClientSession; retry?: boolean }
   ): Promise<string> {
     try {
-      const { session, retry } = options;
+      const { session, retry = true } = options;
 
       const operation = async () => {
         const listing = await Listing.findByIdAndDelete({ _id: id }, session);
@@ -338,11 +338,11 @@ export default class ListingRepository implements IListingRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
     try {
-      const { session, idempotent, retry } = options;
+      const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
         const product = await ProductRepository.Create().save(payload, {
@@ -390,11 +390,11 @@ export default class ListingRepository implements IListingRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
     }
   ): Promise<string> {
     try {
-      const { session, idempotent, retry } = options;
+      const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
         const product = await ProductRepository.Create().update(id, payload, {
@@ -429,10 +429,10 @@ export default class ListingRepository implements IListingRepository {
   async deleteListingProduct(
     productId: string,
     listingId: string,
-    options: { session: ClientSession; retry: boolean }
+    options: { session: ClientSession; retry?: boolean }
   ): Promise<string> {
     try {
-      const { session, retry } = options;
+      const { session, retry = true } = options;
 
       const operation = async () => {
         const product = await ProductRepository.Create().delete(productId, {
