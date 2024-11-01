@@ -1,6 +1,6 @@
 import Config from "../../config";
 import HttpCode from "../enum/httpCode";
-import ListingService from "../service/listingService";
+import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
 
 /**
@@ -17,12 +17,7 @@ const verifyProductPaymentStatus = async (
   try {
     const productId = req.params.productId as string;
 
-    const type = req.params.type as string;
-
-    const product = await ListingService.Create().findListingProductById(
-      productId,
-      type
-    );
+    const product = await ProductService.Create().findById(productId);
 
     if (!product?.verification.status)
       return res.status(HttpCode.REDIRECT).json({
