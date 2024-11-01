@@ -10,7 +10,7 @@ import ListingController from "../controller/listingController";
 const ListingRouter = Router();
 
 ListingRouter.route("/")
-  .get(AuthMiddleware.isGranted(["Admin"]), AppMiddleware.isNotAllowed)
+  .get(AppMiddleware.isNotAllowed)
   .post(
     AuthMiddleware.isGranted(["Provider"]),
     AppMiddleware.isContentType(["application/json"]),
@@ -22,7 +22,7 @@ ListingRouter.route("/")
 
 ListingRouter.get(
   "/provider/:slug",
-  AuthMiddleware.isGranted(["Admin"]),
+  AuthMiddleware.isGranted(["Admin", "Provider"]),
   ListingController.retrieveListingsByProvider
 );
 
@@ -34,7 +34,7 @@ ListingRouter.get(
 
 ListingRouter.get(
   "/type/:type",
-  AuthMiddleware.isGranted(["Admin"]),
+  AuthMiddleware.isGranted(["Admin", "Provider"]),
   ListingController.retrieveListingsByType
 );
 
@@ -78,7 +78,7 @@ ListingRouter.get(
 
 ListingRouter.route("/:id/products")
   .get(
-    AuthMiddleware.isGranted(["Admin"]),
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
     ValidationMiddleware.validateID,
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingProducts

@@ -1,9 +1,12 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
+import Idempotency from "../model/idempotencyModel";
 import IListing from "../interface/IListing";
 import IListingRepository from "../interface/IListingrepository";
 import IProduct from "../interface/IProduct";
-import Idempotency from "../model/idempotencyModel";
+import ILeaseProduct from "../interface/ILeaseproduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 import Listing from "../model/listingModel";
 import ProductRepository from "./productRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
@@ -18,7 +21,9 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method delete
  * @method findListingsByProducts
  * @method findListingProducts
- * @method saveListingProduct
+ * @method saveListingLeaseProduct
+ * @method saveListingReservationProduct
+ * @method saveListingSellProduct
  * @method updateListingProduct
  * @method deleteListingProduct
  */
@@ -326,15 +331,15 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Creates a new product on a listing
+   * Creates a new lease type product on a listing
    * @public
    * @param payload data object
    * @param listingId listing id
    * @param options configuration options
    */
-  async saveListingProduct(
-    payload: Partial<IProduct>,
-    listingId: Partial<IListing> | any,
+  async saveListingLeaseProduct(
+    payload: Partial<ILeaseProduct>,
+    listingId: string,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -345,7 +350,111 @@ export default class ListingRepository implements IListingRepository {
       const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
-        const product = await ProductRepository.Create().save(payload, {
+        const product = await ProductRepository.Create().lease(payload, {
+          session: session,
+          idempotent: null,
+          retry: false,
+        });
+
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        await Listing.updateOne(
+          { _id: listingId },
+          {
+            $addToSet: {
+              products: product,
+            },
+          },
+          { session }
+        );
+
+        return product;
+      };
+
+      const product = retry
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
+
+      return product as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new reservation type product on a listing
+   * @public
+   * @param payload data object
+   * @param listingId listing id
+   * @param options configuration options
+   */
+  async saveListingReservationProduct(
+    payload: Partial<IReservationProduct>,
+    listingId: string,
+    options: {
+      session: ClientSession;
+      idempotent: Record<string, any>;
+      retry?: boolean;
+    }
+  ): Promise<string> {
+    try {
+      const { session, idempotent, retry = true } = options;
+
+      const operation = async () => {
+        const product = await ProductRepository.Create().reservation(payload, {
+          session: session,
+          idempotent: null,
+          retry: false,
+        });
+
+        if (idempotent)
+          await Idempotency.create([idempotent], { session: session });
+
+        await Listing.updateOne(
+          { _id: listingId },
+          {
+            $addToSet: {
+              products: product,
+            },
+          },
+          { session }
+        );
+
+        return product;
+      };
+
+      const product = retry
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
+
+      return product as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new sell type product on a listing
+   * @public
+   * @param payload data object
+   * @param listingId listing id
+   * @param options configuration options
+   */
+  async saveListingSellProduct(
+    payload: Partial<ISellProduct>,
+    listingId: string,
+    options: {
+      session: ClientSession;
+      idempotent: Record<string, any>;
+      retry?: boolean;
+    }
+  ): Promise<string> {
+    try {
+      const { session, idempotent, retry = true } = options;
+
+      const operation = async () => {
+        const product = await ProductRepository.Create().sell(payload, {
           session: session,
           idempotent: null,
           retry: false,

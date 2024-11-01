@@ -1,7 +1,10 @@
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
+import ILeaseProduct from "../interface/ILeaseproduct";
 import IListing from "../interface/IListing";
 import IProduct from "../interface/IProduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
@@ -18,7 +21,7 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IListing>;
 
@@ -27,31 +30,9 @@ const createListing = async (
       slug: req.headers["provider-slug"] as string,
     };
 
-    const listing = await ListingService.Create().save(key, payload);
+    const listing = await ListingService.Create().save(payload, { idempotent });
 
     return res.status(HttpCode.CREATED).json({ data: listing });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve listings
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListings = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const queryString = req.query as Record<string, any>;
-
-    const listings = await ListingService.Create().findAll(queryString);
-
-    return res.status(HttpCode.OK).json({ data: listings });
   } catch (err: any) {
     return next(err);
   }
@@ -222,11 +203,13 @@ const updateListingById = async (
   try {
     const id = req.params.id as string;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IListing>;
 
-    const listing = await ListingService.Create().update(id, key, payload);
+    const listing = await ListingService.Create().update(id, payload, {
+      idempotent,
+    });
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -272,26 +255,63 @@ const createListingProduct = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const type = req.query.type as string;
 
-    const type = req.params.type as string;
+    if (!type) throw new Error(`Kindly specify a product type`);
 
-    const payload = req.body as Partial<IProduct>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id;
+    const listingId = listing._id.toString();
 
-    payload.listing = listingId;
+    let product: string;
 
-    const product = await ListingService.Create().saveListingProduct(
-      type,
-      key,
-      payload,
-      listingId
-    );
+    let payload: Partial<ILeaseProduct | IReservationProduct | ISellProduct>;
 
-    return res.status(HttpCode.CREATED).json({ data: product });
+    switch (type) {
+      case "lease":
+        payload = req.body as Partial<ILeaseProduct>;
+
+        payload.listing = listing._id;
+
+        product = await ListingService.Create().saveListingLeaseProduct(
+          payload,
+          listingId,
+          { idempotent }
+        );
+
+        return res.status(HttpCode.CREATED).json({ data: product });
+
+      case "reservation":
+        payload = req.body as Partial<IReservationProduct>;
+
+        payload.listing = listing._id;
+
+        product = await ListingService.Create().saveListingReservationProduct(
+          payload,
+          listingId,
+          { idempotent }
+        );
+
+        return res.status(HttpCode.CREATED).json({ data: product });
+
+      case "sell":
+        payload = req.body as Partial<ISellProduct>;
+
+        payload.listing = listing._id;
+
+        product = await ListingService.Create().saveListingSellProduct(
+          payload,
+          listingId,
+          { idempotent }
+        );
+
+        return res.status(HttpCode.CREATED).json({ data: product });
+
+      default:
+        throw new Error("Invalid product type option");
+    }
   } catch (err: any) {
     return next(err);
   }
@@ -309,8 +329,6 @@ const retrieveListingProducts = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const type = req.params.type as string;
-
     const queryString = req.query as Record<string, any>;
 
     const listing = req.listing as IListing;
@@ -320,7 +338,6 @@ const retrieveListingProducts = async (
     queryString.listing = listingId;
 
     const products = await ListingService.Create().findListingProducts(
-      type,
       queryString
     );
 
@@ -344,17 +361,14 @@ const updateListingProductById = async (
   try {
     const productId = req.params.productId as string;
 
-    const key = req.idempotent as Record<string, any>;
-
-    const type = req.params.type as string;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IProduct>;
 
     const product = await ListingService.Create().updateListingProduct(
       productId,
-      type,
-      key,
-      payload
+      payload,
+      { idempotent }
     );
 
     return res.status(HttpCode.MODIFIED).json({ data: product });
@@ -377,14 +391,11 @@ const deleteListingProductById = async (
   try {
     const productId = req.params.productId as string;
 
-    const type = req.params.type as string;
-
     const listing = req.listing as IListing;
 
     const listingId = listing._id.toString();
 
     const product = await ListingService.Create().deleteListingProduct(
-      type,
       productId,
       listingId
     );
@@ -397,7 +408,6 @@ const deleteListingProductById = async (
 
 export default {
   createListing,
-  retrieveListings,
   retrieveListingsSearch,
   retrieveListingsByProvider,
   retrieveListingsByType,
