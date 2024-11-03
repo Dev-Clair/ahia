@@ -9,16 +9,14 @@ import ListingController from "../controller/listingController";
 
 const ListingRouter = Router();
 
-ListingRouter.route("/")
-  .get(AppMiddleware.isNotAllowed)
-  .post(
-    AuthMiddleware.isGranted(["Provider"]),
-    AppMiddleware.isContentType(["application/json"]),
-    AppMiddleware.filterInsertion(["media", "product"]),
-    IdempotencyMiddleware.isIdempotent,
-    ValidationMiddleware.validateListing,
-    ListingController.createListing
-  );
+ListingRouter.route("/").post(
+  AuthMiddleware.isGranted(["Provider"]),
+  AppMiddleware.isContentType(["application/json"]),
+  AppMiddleware.filterInsertion(["media", "product"]),
+  IdempotencyMiddleware.isIdempotent,
+  ValidationMiddleware.validateListing,
+  ListingController.createListing
+);
 
 ListingRouter.get(
   "/provider/:slug",
@@ -39,7 +37,7 @@ ListingRouter.get(
 );
 
 ListingRouter.get(
-  "/search",
+  "/search/q?",
   AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsSearch
 );

@@ -50,7 +50,7 @@ const retrieveListingsSearch = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const search = req.query.search as string;
+    const search = req.query.q as string;
 
     if (!search) throw new BadRequestError(`Kindly enter a text to search`);
 
