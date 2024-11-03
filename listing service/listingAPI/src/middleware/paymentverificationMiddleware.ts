@@ -20,10 +20,10 @@ const verifyProductPaymentStatus = async (
     const product = await ProductService.Create().findById(productId);
 
     if (!product?.verification.status)
-      return res.status(HttpCode.REDIRECT).json({
+      return res.status(HttpCode.PAYMENT_REQUIRED).json({
         data: {
           message: `${product?.name.toUpperCase()} has not been verified for listing. Kindly pay the listing fee to verify your product.`,
-          redirect: encodeURI(Config.PAYMENT_SERVICE_URL),
+          url: encodeURI(Config.PAYMENT_SERVICE_URL),
         },
       });
 
