@@ -10,19 +10,21 @@ import Logger from "./src/utils/logger";
 
 /**
  * Bootstraps the entire application
- * @returns Promise<void>
  */
-export async function Boot(Server: HttpServer): Promise<void> {
+export async function Boot(
+  Server: HttpServer,
+  Database: Connection
+): Promise<void> {
   try {
-    // Start and initialize server on http(s) port
+    // Initialize server on http(s) port
     await Server.Init(Config.PORT)
       .then(() => Logger.info(`Listening on http port ${Config.PORT}`))
       .catch((reason: any) => {
         throw new HttpServerError("HTTP Server Initialization Error", reason);
       });
 
-    // Create and initialize database with connection string
-    await Connection.Create(Config.MONGO_URI).getConnection();
+    // Initialize database
+    await Database.Init();
   } catch (err: any) {
     if (err instanceof HttpServerError) ServerErrorHandler(err, Server);
 
@@ -32,7 +34,6 @@ export async function Boot(Server: HttpServer): Promise<void> {
 
 /**
  * Global process events listeners/handlers
- * @returns void
  */
 export function GlobalProcessEventsListener(): void {
   process
@@ -44,7 +45,6 @@ export function GlobalProcessEventsListener(): void {
 
 /**
  * Database connection event listeners
- * @returns void
  */
 export function DatabaseEventsListener(): void {
   mongoose.connection
@@ -56,9 +56,8 @@ export function DatabaseEventsListener(): void {
 
 /**
  * Handles server error
- * @param err
- * @param Server
- * @returns void
+ * @param err error object
+ * @param Server http server instance
  */
 export function ServerErrorHandler(
   err: HttpServerError,
@@ -88,9 +87,8 @@ export function ServerErrorHandler(
 
 /**
  * Handles database error
- * @param err
- * @param Server
- * @returns void
+ * @param err error object
+ * @param Server http server instance
  */
 export function DatabaseErrorHandler(
   err: ConnectionError,
@@ -122,7 +120,6 @@ export function DatabaseErrorHandler(
  * Handles unhandled rejections
  * @param reason
  * @param promise
- * @returns void
  */
 export function UnhandledRejectionsHandler(
   reason: unknown,
@@ -137,8 +134,7 @@ export function UnhandledRejectionsHandler(
 
 /**
  * Handles uncaught exceptions
- * @param error
- * @returns void
+ * @param error error object
  */
 export function UnCaughtExceptionsHandler(error: any): void {
   Sentry.captureException(error);
@@ -150,8 +146,7 @@ export function UnCaughtExceptionsHandler(error: any): void {
 
 /**
  * Handles graceful shutdown
- * @param server
- * @returns Promise<void>
+ * @param server http server instance
  */
 export async function ShutdownHandler(
   Server: HttpServer | null = null

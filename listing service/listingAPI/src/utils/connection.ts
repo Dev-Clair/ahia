@@ -11,14 +11,13 @@ class Connection {
 
   /**
    * Provides connection resource with round-robin retry strategy on failure
-   * @public
    */
-  async getConnection(): Promise<void> {
+  public async Init(): Promise<void> {
     try {
-      await FailureRetry.ExponentialBackoff(() => this.connect());
+      await FailureRetry.ExponentialBackoff(() => this.Connect());
     } catch (err: any) {
       try {
-        await FailureRetry.LinearJitterBackoff(() => this.connect());
+        await FailureRetry.LinearJitterBackoff(() => this.Connect());
       } catch (err: any) {
         throw new ConnectionError("DATABASE CONNECTION ERROR", err.message);
       }
@@ -28,7 +27,7 @@ class Connection {
   /**
    * Establishes connection to the database
    */
-  private async connect(): Promise<void> {
+  private async Connect(): Promise<void> {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(this.connectionUri, {
         serverSelectionTimeoutMS: 10000,
