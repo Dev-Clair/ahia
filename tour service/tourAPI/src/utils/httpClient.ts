@@ -58,7 +58,7 @@ class HttpClient {
         res.on("end", () => {
           try {
             const parsedData =
-              res.headers["Content-Type"] === "application/json"
+              res.headers["content-type"] === "application/json"
                 ? JSON.parse(data)
                 : data;
 
@@ -99,10 +99,10 @@ class HttpClient {
       const headers = { ...this.httpHeaders };
 
       if (!headers["Content-Type"])
-        headers["Content-Type"] = "application/json";
+        headers["content-type"] = "application/json";
 
       if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH")
-        headers["Idempotency-Key"] = await this.generateIdempotencyKey();
+        headers["idempotency-key"] = await this.generateIdempotencyKey();
 
       const options = { ...this.httpOptions, method, headers };
 
