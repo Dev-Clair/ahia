@@ -17,6 +17,11 @@ TourRouter.route("/")
     TourController.createTour
   );
 
+TourRouter.route("/products/:id").get(
+  AuthMiddleware.IsGranted(["Customer"]),
+  TourController.retrieveToursByProducts
+);
+
 TourRouter.route("/customer/:id").get(
   AuthMiddleware.IsGranted(["Customer"]),
   TourController.retrieveToursByCustomer

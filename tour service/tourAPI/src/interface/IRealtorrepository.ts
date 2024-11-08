@@ -8,8 +8,8 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
    * @param options configuration options
    */
   findAll(
-    queryString: Record<string, any>,
-    options?: { [key: string]: any }
+    queryString: Record<string, unknown>,
+    options?: { [key: string]: unknown }
   ): Promise<IRealtor[]>;
 
   /**
@@ -19,17 +19,17 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
    */
   findById(
     id: string,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<IRealtor | null>;
 
   /**
    * Retrieves a realtor by tour
-   * @param tour realtor tour
+   * @param tour tour id
    * @param options configuration options
    */
   findByTour(
     tour: string,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<IRealtor | null>;
 
   /**
@@ -39,7 +39,7 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
    */
   save(
     payload: Partial<IRealtor>,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -50,8 +50,8 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
    */
   update(
     id: string,
-    payload: Partial<IRealtor> | any,
-    options?: { [key: string]: any }
+    payload: Partial<IRealtor> | unknown,
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -59,5 +59,5 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
    * @param id realtor id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<string>;
+  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }

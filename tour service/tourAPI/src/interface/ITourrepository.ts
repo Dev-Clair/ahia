@@ -8,8 +8,8 @@ export default interface ITourRepository extends IRepository<ITour> {
    * @param options configuration options
    */
   findAll(
-    queryString: Record<string, any>,
-    options?: { [key: string]: any }
+    queryString: Record<string, unknown>,
+    options?: { [key: string]: unknown }
   ): Promise<ITour[]>;
 
   /**
@@ -17,7 +17,10 @@ export default interface ITourRepository extends IRepository<ITour> {
    * @param id tour id
    * @param options configuration options
    */
-  findById(id: string, options?: { [key: string]: any }): Promise<ITour | null>;
+  findById(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<ITour | null>;
 
   /**
    * Creates a new tour in collection
@@ -26,7 +29,7 @@ export default interface ITourRepository extends IRepository<ITour> {
    */
   save(
     payload: Partial<ITour>,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -37,8 +40,8 @@ export default interface ITourRepository extends IRepository<ITour> {
    */
   update(
     id: string,
-    payload: Partial<ITour> | any,
-    options?: { [key: string]: any }
+    payload: Partial<ITour>,
+    options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
@@ -46,5 +49,5 @@ export default interface ITourRepository extends IRepository<ITour> {
    * @param id tour id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<string>;
+  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }
