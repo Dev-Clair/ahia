@@ -125,7 +125,7 @@ export default class TourRepository implements ITourRepository {
    */
   async update(
     id: string,
-    payload: Partial<ITour> | any,
+    payload: Partial<ITour>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;

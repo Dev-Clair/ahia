@@ -76,7 +76,7 @@ export default class TourService {
   async update(
     id: string,
     key: Record<string, any>,
-    payload: Partial<ITour> | any
+    payload: Partial<ITour>
   ): Promise<string> {
     const session = await mongoose.startSession();
 
@@ -126,7 +126,7 @@ export default class TourService {
   async acceptRealtor(
     id: string,
     key: Record<string, any>,
-    payload: Partial<ITour> | any
+    payload: Partial<ITour>
   ) {
     const session = await mongoose.startSession();
 

@@ -17,11 +17,6 @@ TourRouter.route("/")
     TourController.createTour
   );
 
-TourRouter.route("/products/:id").get(
-  AuthMiddleware.IsGranted(["Customer"]),
-  TourController.retrieveToursByProducts
-);
-
 TourRouter.route("/customer/:id").get(
   AuthMiddleware.IsGranted(["Customer"]),
   TourController.retrieveToursByCustomer
@@ -30,6 +25,11 @@ TourRouter.route("/customer/:id").get(
 TourRouter.route("/realtor/:id").get(
   AuthMiddleware.IsGranted(["Realtor"]),
   TourController.retrieveToursByRealtor
+);
+
+TourRouter.route("/products/:id").get(
+  AuthMiddleware.IsGranted(["Customer"]),
+  TourController.retrieveToursByProducts
 );
 
 TourRouter.route("/:id")

@@ -107,6 +107,35 @@ const retrieveToursByRealtor = async (
 };
 
 /**
+ * Retrieves tours by product
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
+const retrieveToursByProducts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const id = req.params.id as string;
+
+    const queryString = {
+      products: id,
+      status: new RegExp(/^[pending|ongoing]$/),
+      isClosed: false,
+    };
+
+    const tours = await TourService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: tours });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+/**
  * Retrieves a tour by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -144,7 +173,7 @@ const updateTourById = async (
 
     const id = req.params.id as string;
 
-    const payload = req.body as Partial<ITour> | any;
+    const payload = req.body as Partial<ITour>;
 
     const tour = await TourService.Create().update(id, key, payload);
 
@@ -227,15 +256,15 @@ const acceptTourRealtorRequest = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     const payload = {} as Partial<ITour> | any;
 
     const realtor = await TourService.Create().acceptRealtor(
       tourId,
-      key,
+      idempotent,
       payload
     );
 
@@ -263,7 +292,7 @@ const rejectTourRealtorRequest = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     await TourService.Create().rejectRealtor(tourId);
 
@@ -290,7 +319,7 @@ const removeTourRealtor = async (
 
     const key = { key: req.headers["Idempotency-Key"] as string };
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     const payload = tour.$set("realtor", "");
 
@@ -350,9 +379,9 @@ const acceptTourReschedule = async (
 
     const key = req.idempotent as Record<string, any>;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
-    const payload = {} as Partial<ITour> | any;
+    const payload = {} as Partial<ITour>;
 
     const schedule = await TourService.Create().acceptReschedule(
       tourId,
@@ -384,7 +413,7 @@ const rejectTourReschedule = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     await TourService.Create().rejectReschedule(tourId);
 
@@ -399,6 +428,7 @@ export default {
   retrieveTours,
   retrieveToursByCustomer,
   retrieveToursByRealtor,
+  retrieveToursByProducts,
   retrieveTourById,
   updateTourById,
   deleteTourById,
