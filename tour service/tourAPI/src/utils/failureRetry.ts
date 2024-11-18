@@ -3,7 +3,7 @@ import AsyncRetry from "async-retry";
 class FailureRetry {
   static async ExponentialBackoff(
     operation: any,
-    options = { retries: 3, factor: 2, minTimeout: 5000 }
+    options = { retries: 3, factor: 2, minTimeout: 2500 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -26,7 +26,7 @@ class FailureRetry {
 
   static async ExponentialJitterBackoff(
     operation: any,
-    options = { retries: 3, factor: 2, minTimeout: 5000, jitterFactor: 1000 }
+    options = { retries: 3, factor: 2, minTimeout: 2500, jitterFactor: 1000 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -54,7 +54,7 @@ class FailureRetry {
 
   static async LinearBackoff(
     operation: any,
-    options = { retries: 5, minTimeout: 10000 }
+    options = { retries: 5, minTimeout: 5000 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -75,7 +75,7 @@ class FailureRetry {
 
   static async LinearJitterBackoff(
     operation: any,
-    options = { retries: 5, minTimeout: 7500, jitterFactor: 1000 }
+    options = { retries: 5, minTimeout: 5000, jitterFactor: 1000 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {

@@ -1,53 +1,37 @@
 import http from "node:http";
-import https from "node:https";
-import Config from "../../config";
 import { Express } from "express";
 
 /**
  * Http Server
- * @method StartHTTP
- * @method StartHTTPS
+ * @method Init
  * @method Close
  * @method Create
  */
 class HttpServer {
   private app: Express;
 
-  private sslOptions: object | null;
+  private server: http.Server | null = null;
 
-  private server: http.Server | https.Server | null = null;
-
-  constructor(App: Express, SSLOptions: object | null = null) {
+  constructor(App: Express) {
     this.app = App;
-
-    this.sslOptions = SSLOptions;
   }
 
   /**
    * Start http(s) server listening for connections
-   * @param PORT
-   * @returns Promise<unknown>
+   * @param PORT http server port
    */
-  public Init(PORT: string | number): Promise<http.Server | https.Server> {
+  public Init(PORT: string | number): Promise<http.Server> {
     return new Promise((resolve, reject) => {
-      const isProduction = Config.NODE_ENV === "production";
-
-      this.server = isProduction
-        ? https.createServer(this.sslOptions!, this.app)
-        : http.createServer(this.app);
+      this.server = http.createServer(this.app);
 
       this.server.listen(PORT);
 
       this.server.on("listening", () => resolve(this.server!));
 
       this.server.on("error", (err) => {
-        if (err.name === "EADDRINUSE") {
-          this.server?.close(() => {
-            this.server?.listen(PORT);
-          });
-        } else {
-          reject(err);
-        }
+        err.name === "EADDRINUSE"
+          ? this.server?.close(() => this.server?.listen(PORT))
+          : reject(err);
       });
     });
   }
@@ -72,12 +56,10 @@ class HttpServer {
   }
   /**
    * Returns a new instance of the HttpServer class
-   * @param App
-   * @param SSL_Options
-   * @returns HttpServer
+   * @param App application instance
    */
-  static Create(App: Express, SSL_Options: object | null = null): HttpServer {
-    return new HttpServer(App, SSL_Options);
+  static Create(App: Express): HttpServer {
+    return new HttpServer(App);
   }
 }
 
