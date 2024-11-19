@@ -201,9 +201,9 @@ const retrieveProductsByListingProvider = async (
 ): Promise<Response | void> => {
   try {
     // Listing filter
-    const slug = req.params.slug as string;
+    const id = req.params.id as string;
 
-    const listingFilter = { provider: { slug: slug } };
+    const listingFilter = { provider: id };
 
     // Product Filter
     const status = req.params.status as string;

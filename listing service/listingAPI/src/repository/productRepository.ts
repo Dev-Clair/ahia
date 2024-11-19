@@ -301,9 +301,11 @@ export default class ProductRepository implements IProductRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const productId = products[0]._id;
+        const productId = products[0]._id.toString();
 
-        return productId.toString();
+        const listingId = products[0].listing.toString();
+
+        return JSON.stringify({ productId: productId, listingId: listingId });
       };
 
       const productId = retry
@@ -341,9 +343,11 @@ export default class ProductRepository implements IProductRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const productId = products[0]._id;
+        const productId = products[0]._id.toString();
 
-        return productId.toString();
+        const listingId = products[0].listing.toString();
+
+        return JSON.stringify({ productId: productId, listingId: listingId });
       };
 
       const productId = retry
@@ -381,9 +385,11 @@ export default class ProductRepository implements IProductRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const productId = products[0]._id;
+        const productId = products[0]._id.toString();
 
-        return productId.toString();
+        const listingId = products[0].listing.toString();
+
+        return JSON.stringify({ productId: productId, listingId: listingId });
       };
 
       const productId = retry
@@ -421,9 +427,11 @@ export default class ProductRepository implements IProductRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const productId = products[0]._id;
+        const productId = products[0]._id.toString();
 
-        return productId.toString();
+        const listingId = products[0].listing.toString();
+
+        return JSON.stringify({ productId: productId, listingId: listingId });
       };
 
       const productId = retry
@@ -499,9 +507,11 @@ export default class ProductRepository implements IProductRepository {
 
         if (!product) throw new Error("product not found");
 
-        const productId = product._id;
+        const productId = product._id.toString();
 
-        return productId.toString();
+        const listingId = product.listing.toString();
+
+        return JSON.stringify({ productId: productId, listingId: listingId });
       };
 
       const productId = retry

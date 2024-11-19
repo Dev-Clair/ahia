@@ -26,7 +26,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     type: {
       type: String,
-      enum: ["lease", "reservation", "sell"],
+      enum: ["Lease", "Reservation", "Sell"],
       required: true,
     },
     media: {
@@ -45,8 +45,8 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     promotion: {
       type: String,
-      enum: ["platinum", "gold", "ruby", "silver"],
-      default: "silver",
+      enum: ["Platinum", "Gold", "Ruby", "Silver"],
+      default: "Silver",
     },
     verification: {
       status: {
@@ -56,6 +56,10 @@ const ProductSchema: Schema<IProduct> = new Schema(
       },
       expiry: {
         type: Date,
+        validate: {
+          validator: function (this: IProduct, value: Date) {},
+          message: "",
+        },
         default: () =>
           new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString(),
       },

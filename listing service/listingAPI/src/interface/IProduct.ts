@@ -7,12 +7,12 @@ export default interface IProduct extends IDocument {
   name: string;
   description: string;
   offering: IOffering;
-  type: "lease" | "reservation" | "sell";
+  type: "Lease" | "Reservation" | "Sell";
   media: {
     images: string[];
     videos?: string[];
   };
-  promotion: "platinum" | "gold" | "ruby" | "silver";
+  promotion: "Platinum" | "Gold" | "Ruby" | "Silver";
   verification: {
     status: boolean;
     expiry: Date;

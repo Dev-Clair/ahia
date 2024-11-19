@@ -35,7 +35,7 @@ ProductRouter.get(
 );
 
 ProductRouter.get(
-  "/status/:status/provider/:slug",
+  "/status/:status/provider/:id",
   ValidationMiddleware.validateProductStatus,
   ProductController.retrieveProductsByListingProvider
 );
