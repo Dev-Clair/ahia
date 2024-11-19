@@ -25,10 +25,7 @@ const createListing = async (
 
     const payload = req.body as Partial<IListing>;
 
-    payload.provider = {
-      id: req.headers["provider-id"] as string,
-      slug: req.headers["provider-slug"] as string,
-    };
+    payload.provider = req.headers["provider"] as string;
 
     const listing = await ListingService.Create().save(payload, { idempotent });
 
@@ -76,9 +73,9 @@ const retrieveListingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const slug = req.params.slug as string;
+    const id = req.params.id as string;
 
-    const queryString = { provider: { slug: slug } };
+    const queryString = { provider: id };
 
     const listings = await ListingService.Create().findAll(queryString);
 
@@ -257,13 +254,11 @@ const createListingProduct = async (
   try {
     const type = req.query.type as string;
 
-    if (!type) throw new Error(`Kindly specify a product type`);
+    if (!type) throw new Error(`Kindly indicate a product type`);
 
     const idempotent = req.idempotent as Record<string, any>;
 
     const listing = req.listing as IListing;
-
-    const listingId = listing._id.toString();
 
     let product: string;
 
@@ -277,7 +272,6 @@ const createListingProduct = async (
 
         product = await ListingService.Create().saveListingLeaseProduct(
           payload,
-          listingId,
           { idempotent }
         );
 
@@ -290,7 +284,6 @@ const createListingProduct = async (
 
         product = await ListingService.Create().saveListingReservationProduct(
           payload,
-          listingId,
           { idempotent }
         );
 
@@ -303,7 +296,6 @@ const createListingProduct = async (
 
         product = await ListingService.Create().saveListingSellProduct(
           payload,
-          listingId,
           { idempotent }
         );
 
@@ -359,14 +351,14 @@ const updateListingProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const productId = req.params.productId as string;
+    const id = req.params.productId as string;
 
     const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IProduct>;
 
     const product = await ListingService.Create().updateListingProduct(
-      productId,
+      id,
       payload,
       { idempotent }
     );
@@ -389,16 +381,9 @@ const deleteListingProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const productId = req.params.productId as string;
+    const id = req.params.productId as string;
 
-    const listing = req.listing as IListing;
-
-    const listingId = listing._id.toString();
-
-    const product = await ListingService.Create().deleteListingProduct(
-      productId,
-      listingId
-    );
+    const product = await ListingService.Create().deleteListingProduct(id);
 
     return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {

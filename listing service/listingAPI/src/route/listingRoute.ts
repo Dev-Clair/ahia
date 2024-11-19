@@ -12,15 +12,15 @@ const ListingRouter = Router();
 ListingRouter.route("/").post(
   AuthMiddleware.isGranted(["Provider"]),
   AppMiddleware.isContentType(["application/json"]),
-  AppMiddleware.filterInsertion(["media", "product"]),
+  AppMiddleware.filterInsertion(["media", "product", "provider"]),
   IdempotencyMiddleware.isIdempotent,
   ValidationMiddleware.validateListing,
   ListingController.createListing
 );
 
 ListingRouter.get(
-  "/provider/:slug",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
+  "/provider/:id",
+  AuthMiddleware.isGranted(["Provider"]),
   ListingController.retrieveListingsByProvider
 );
 
@@ -56,6 +56,7 @@ ListingRouter.route("/:id")
       "location",
       "media",
       "product",
+      "provider",
       "type",
     ]),
     IdempotencyMiddleware.isIdempotent,

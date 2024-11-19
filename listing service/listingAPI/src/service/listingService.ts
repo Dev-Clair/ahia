@@ -208,12 +208,10 @@ export default class ListingService {
    * Creates a new lease product on a listing
    * @public
    * @param payload data object
-   * @param listingId listing id
    * @param options configuration options
    */
   public async saveListingLeaseProduct(
     payload: Partial<ILeaseProduct>,
-    listingId: string,
     options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
@@ -223,15 +221,11 @@ export default class ListingService {
 
       return await session.withTransaction(async () => {
         const product =
-          await ListingRepository.Create().saveListingLeaseProduct(
-            payload,
-            listingId,
-            {
-              session: session,
-              idempotent: idempotent,
-              retry: true,
-            }
-          );
+          await ListingRepository.Create().saveListingLeaseProduct(payload, {
+            session: session,
+            idempotent: idempotent,
+            retry: true,
+          });
 
         return product;
       });
@@ -246,12 +240,10 @@ export default class ListingService {
    * Creates a new reservation product on a listing
    * @public
    * @param payload data object
-   * @param listingId listing id
    * @param options configuration options
    */
   public async saveListingReservationProduct(
     payload: Partial<IReservationProduct>,
-    listingId: string,
     options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
@@ -263,7 +255,6 @@ export default class ListingService {
         const product =
           await ListingRepository.Create().saveListingReservationProduct(
             payload,
-            listingId,
             {
               session: session,
               idempotent: idempotent,
@@ -283,12 +274,10 @@ export default class ListingService {
    * Creates a new sell product on a listing
    * @public
    * @param payload data object
-   * @param listingId listing id
    * @param options configuration options
    */
   public async saveListingSellProduct(
     payload: Partial<ISellProduct>,
-    listingId: string,
     options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
@@ -299,7 +288,6 @@ export default class ListingService {
       return await session.withTransaction(async () => {
         const product = await ListingRepository.Create().saveListingSellProduct(
           payload,
-          listingId,
           {
             session: session,
             idempotent: idempotent,
@@ -355,13 +343,11 @@ export default class ListingService {
   /**
    * Deletes a listing's product by id
    * @public
-   * @param productId product id
-   * @param listingId listing id
+   * @param id product id
    * @param options configuration options (optional)
    */
   public async deleteListingProduct(
-    productId: string,
-    listingId: string,
+    id: string,
     options?: { [key: string]: unknown }
   ): Promise<string> {
     const session = await mongoose.startSession();
@@ -369,8 +355,7 @@ export default class ListingService {
     try {
       return await session.withTransaction(async () => {
         const product = await ListingRepository.Create().deleteListingProduct(
-          productId,
-          listingId,
+          id,
           { session: session, retry: true }
         );
 

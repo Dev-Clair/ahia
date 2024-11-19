@@ -3,12 +3,12 @@ import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import IListing from "../interface/IListing";
 import IListingRepository from "../interface/IListingrepository";
-import IProduct from "../interface/IProduct";
 import ILeaseProduct from "../interface/ILeaseproduct";
+import IProduct from "../interface/IProduct";
+import ProductRepository from "./productRepository";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import Listing from "../model/listingModel";
-import ProductRepository from "./productRepository";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
@@ -334,12 +334,10 @@ export default class ListingRepository implements IListingRepository {
    * Creates a new lease type product on a listing
    * @public
    * @param payload data object
-   * @param listingId listing id
    * @param options configuration options
    */
   async saveListingLeaseProduct(
     payload: Partial<ILeaseProduct>,
-    listingId: string,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -359,17 +357,19 @@ export default class ListingRepository implements IListingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
+        const { productId, listingId } = JSON.parse(product);
+
         await Listing.updateOne(
           { _id: listingId },
           {
             $addToSet: {
-              products: product,
+              products: productId,
             },
           },
           { session }
         );
 
-        return product;
+        return productId;
       };
 
       const product = retry
@@ -386,12 +386,10 @@ export default class ListingRepository implements IListingRepository {
    * Creates a new reservation type product on a listing
    * @public
    * @param payload data object
-   * @param listingId listing id
    * @param options configuration options
    */
   async saveListingReservationProduct(
     payload: Partial<IReservationProduct>,
-    listingId: string,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -411,17 +409,19 @@ export default class ListingRepository implements IListingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
+        const { productId, listingId } = JSON.parse(product);
+
         await Listing.updateOne(
           { _id: listingId },
           {
             $addToSet: {
-              products: product,
+              products: productId,
             },
           },
           { session }
         );
 
-        return product;
+        return productId;
       };
 
       const product = retry
@@ -438,12 +438,10 @@ export default class ListingRepository implements IListingRepository {
    * Creates a new sell type product on a listing
    * @public
    * @param payload data object
-   * @param listingId listing id
    * @param options configuration options
    */
   async saveListingSellProduct(
     payload: Partial<ISellProduct>,
-    listingId: string,
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -463,17 +461,19 @@ export default class ListingRepository implements IListingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
+        const { productId, listingId } = JSON.parse(product);
+
         await Listing.updateOne(
           { _id: listingId },
           {
             $addToSet: {
-              products: product,
+              products: productId,
             },
           },
           { session }
         );
 
-        return product;
+        return productId;
       };
 
       const product = retry
@@ -531,31 +531,31 @@ export default class ListingRepository implements IListingRepository {
   /**
    * Deletes a listing's product
    * @public
-   * @param productId product id
-   * @param listingId listing id
+   * @param id product id
    * @param options configuration options
    */
   async deleteListingProduct(
-    productId: string,
-    listingId: string,
+    id: string,
     options: { session: ClientSession; retry?: boolean }
   ): Promise<string> {
     try {
       const { session, retry = true } = options;
 
       const operation = async () => {
-        const product = await ProductRepository.Create().delete(productId, {
+        const product = await ProductRepository.Create().delete(id, {
           session: session,
           retry: false,
         });
 
+        const { productId, listingId } = JSON.parse(product);
+
         await Listing.updateOne(
           { _id: listingId },
-          { $pull: { products: product } },
+          { $pull: { products: productId } },
           { session }
         );
 
-        return product;
+        return productId;
       };
 
       const product = retry

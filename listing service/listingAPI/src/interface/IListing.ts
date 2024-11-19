@@ -16,10 +16,7 @@ export default interface IListing extends IDocument {
     type: string;
     coordinates: [number, number];
   };
-  provider: {
-    id: string;
-    slug: string;
-  };
+  provider: string;
   media: {
     image: string[];
     video?: string[];

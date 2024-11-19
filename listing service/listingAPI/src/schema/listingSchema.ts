@@ -62,14 +62,12 @@ const ListingSchema: Schema<IListing> = new Schema(
       },
     },
     provider: {
-      id: {
-        type: String,
-        required: true,
+      type: String,
+      validate: {
+        validator: () => {},
+        message: "",
       },
-      slug: {
-        type: String,
-        required: true,
-      },
+      required: true,
     },
     media: {
       images: {
