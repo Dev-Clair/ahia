@@ -64,8 +64,11 @@ const ListingSchema: Schema<IListing> = new Schema(
     provider: {
       type: String,
       validate: {
-        validator: () => {},
-        message: "",
+        validator: (value: string) =>
+          /^[0-9a-fA-F]{24}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+            value
+          ),
+        message: "Invalid ID (must be either an ObjectId or a UUID)",
       },
       required: true,
     },
@@ -84,14 +87,13 @@ const ListingSchema: Schema<IListing> = new Schema(
       },
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
 
 // Listing Schema Search Query Index
 ListingSchema.index({
   location: "2dsphere",
-  "provider.id": "text",
-  "provider.slug": "text",
+  provider: "text",
   type: "text",
 });
 
