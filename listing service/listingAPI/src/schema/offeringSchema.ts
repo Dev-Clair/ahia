@@ -29,22 +29,13 @@ const OfferingSchema: Schema<IOffering> = new Schema(
         required: true,
       },
     },
-    quantity: {
-      type: Number,
-      default: 1,
-    },
     type: {
       type: String,
       enum: Object.values(Offerings).flat(),
       required: true,
     },
   },
-  {
-    _id: false,
-    versionKey: false,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  }
+  { _id: false, versionKey: false }
 );
 
 // Offering Schema Middleware
@@ -52,16 +43,9 @@ OfferingSchema.pre("validate", function (next) {
   const names = Offerings[this.name];
 
   if (!names.includes(this.type))
-    throw new Error(`Invalid type option for offering name: ${this.name}`);
+    throw new Error(`Invalid type option for offering: ${this.name}`);
 
   next();
-});
-
-// Offering Schema Virtuals
-OfferingSchema.virtual("inventory").get(function () {
-  if (!this.quantity === undefined) return "UNKNOWN";
-
-  return this.quantity > 0 ? "AVAILABLE" : "OUT-OF-STOCK";
 });
 
 export default OfferingSchema;

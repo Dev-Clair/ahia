@@ -26,7 +26,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     type: {
       type: String,
-      enum: ["Lease", "Reservation", "Sell"],
+      enum: ["lease", "reservation", "sell"],
       required: true,
     },
     media: {
@@ -45,8 +45,32 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     promotion: {
       type: String,
-      enum: ["Platinum", "Gold", "Ruby", "Silver"],
-      default: "Silver",
+      enum: ["platinum", "gold", "ruby", "silver"],
+      default: "silver",
+    },
+    status: {
+      type: String,
+      enum: [
+        "now-letting",
+        "closed",
+        "now-booking",
+        "booked",
+        "now-selling",
+        "sold",
+      ],
+      default: function (this: IProduct) {
+        switch (this.type) {
+          case "lease":
+            return "now-letting";
+          case "reservation":
+            return "now-booking";
+          case "sell":
+            return "now-selling";
+          default:
+            throw new Error("Invalid product type option");
+        }
+      },
+      required: true,
     },
     verification: {
       status: {
@@ -57,21 +81,28 @@ const ProductSchema: Schema<IProduct> = new Schema(
       expiry: {
         type: Date,
         validate: {
-          validator: function (this: IProduct, value: Date) {},
-          message: "",
+          validator: function (this: IProduct, value: Date) {
+            return this.type !== "reservation" || value == null;
+          },
+          message: "expiry only applies for non-reservation products",
         },
-        default: () =>
-          new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString(),
+        default: function (this: IProduct) {
+          return this.type !== "reservation"
+            ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString()
+            : undefined;
+        },
       },
     },
   },
   {
     discriminatorKey: "type",
     timestamps: true,
+    toJSON: { getters: true },
+    toObject: { getters: true },
   }
 );
 
-// Product Schema Search Query Index
+// Product Schema Search Index
 ProductSchema.index({
   "offering.name": "text",
   "offering.category": "text",
