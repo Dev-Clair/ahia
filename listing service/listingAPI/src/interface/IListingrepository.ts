@@ -38,7 +38,7 @@ export default interface IListingRepository extends IRepository<IListing> {
    * @param options configuration options
    */
   save(
-    payload: Partial<IListing>,
+    payload: Partial<IListing> | Partial<IListing>[],
     options?: { [key: string]: unknown }
   ): Promise<string>;
 
