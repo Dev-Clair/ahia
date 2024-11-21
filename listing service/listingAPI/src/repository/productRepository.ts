@@ -283,7 +283,7 @@ export default class ProductRepository implements IProductRepository {
    * @param options configuration options
    */
   async save(
-    payload: Partial<IProduct>,
+    payload: Partial<IProduct> | Partial<IProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -294,25 +294,38 @@ export default class ProductRepository implements IProductRepository {
 
     try {
       const operation = async () => {
-        const products = await Product.create([payload], {
-          session: session,
-        });
+        const isCollection = Array.isArray(payload);
 
-        if (idempotent)
-          await Idempotency.create([idempotent], { session: session });
+        const products = await Product.create(
+          isCollection ? payload : [payload],
+          {
+            session,
+          }
+        );
 
-        const productId = products[0]._id.toString();
+        if (idempotent) await Idempotency.create([idempotent], { session });
 
-        const listingId = products[0].listing.toString();
+        const result =
+          products.length > 1
+            ? // Create Collection
+              products.map((product) => ({
+                productId: product._id.toString(),
+                listingId: product.listing.toString(),
+              }))
+            : // Create Item
+              {
+                productId: products[0]._id.toString(),
+                listingId: products[0].listing.toString(),
+              };
 
-        return JSON.stringify({ productId: productId, listingId: listingId });
+        return JSON.stringify(result);
       };
 
-      const productId = retry
+      const result = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return productId as Promise<string>;
+      return result as Promise<string>;
     } catch (error: any) {
       throw error;
     }
@@ -321,11 +334,11 @@ export default class ProductRepository implements IProductRepository {
   /**
    * Creates a new lease product in collection
    * @public
-   * @param payload the data object
+   * @param payload the data object (single or bulk)
    * @param options configuration options
    */
   async lease(
-    payload: Partial<ILeaseProduct>,
+    payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -336,38 +349,51 @@ export default class ProductRepository implements IProductRepository {
 
     try {
       const operation = async () => {
-        const products = await Lease.create([payload], {
-          session: session,
-        });
+        const isCollection = Array.isArray(payload);
 
-        if (idempotent)
-          await Idempotency.create([idempotent], { session: session });
+        const products = await Lease.create(
+          isCollection ? payload : [payload],
+          {
+            session,
+          }
+        );
 
-        const productId = products[0]._id.toString();
+        if (idempotent) await Idempotency.create([idempotent], { session });
 
-        const listingId = products[0].listing.toString();
+        const result =
+          products.length > 1
+            ? // Create Collection
+              products.map((product) => ({
+                productId: product._id.toString(),
+                listingId: product.listing.toString(),
+              }))
+            : // Create Item
+              {
+                productId: products[0]._id.toString(),
+                listingId: products[0].listing.toString(),
+              };
 
-        return JSON.stringify({ productId: productId, listingId: listingId });
+        return JSON.stringify(result);
       };
 
-      const productId = retry
+      const result = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return productId as Promise<string>;
+      return result as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Creates a reservation new product in collection
+   * Creates a new reservation product in collection
    * @public
    * @param payload the data object
    * @param options configuration options
    */
   async reservation(
-    payload: Partial<IReservationProduct>,
+    payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -378,25 +404,38 @@ export default class ProductRepository implements IProductRepository {
 
     try {
       const operation = async () => {
-        const products = await Reservation.create([payload], {
-          session: session,
-        });
+        const isCollection = Array.isArray(payload);
 
-        if (idempotent)
-          await Idempotency.create([idempotent], { session: session });
+        const products = await Reservation.create(
+          isCollection ? payload : [payload],
+          {
+            session,
+          }
+        );
 
-        const productId = products[0]._id.toString();
+        if (idempotent) await Idempotency.create([idempotent], { session });
 
-        const listingId = products[0].listing.toString();
+        const result =
+          products.length > 1
+            ? // Create Collection
+              products.map((product) => ({
+                productId: product._id.toString(),
+                listingId: product.listing.toString(),
+              }))
+            : // Create Item
+              {
+                productId: products[0]._id.toString(),
+                listingId: products[0].listing.toString(),
+              };
 
-        return JSON.stringify({ productId: productId, listingId: listingId });
+        return JSON.stringify(result);
       };
 
-      const productId = retry
+      const result = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return productId as Promise<string>;
+      return result as Promise<string>;
     } catch (error: any) {
       throw error;
     }
@@ -409,7 +448,7 @@ export default class ProductRepository implements IProductRepository {
    * @param options configuration options
    */
   async sell(
-    payload: Partial<ISellProduct>,
+    payload: Partial<ISellProduct> | Partial<ISellProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -420,25 +459,35 @@ export default class ProductRepository implements IProductRepository {
 
     try {
       const operation = async () => {
-        const products = await Sell.create([payload], {
-          session: session,
+        const isCollection = Array.isArray(payload);
+
+        const products = await Sell.create(isCollection ? payload : [payload], {
+          session,
         });
 
-        if (idempotent)
-          await Idempotency.create([idempotent], { session: session });
+        if (idempotent) await Idempotency.create([idempotent], { session });
 
-        const productId = products[0]._id.toString();
+        const result =
+          products.length > 1
+            ? // Create Collection
+              products.map((product) => ({
+                productId: product._id.toString(),
+                listingId: product.listing.toString(),
+              }))
+            : // Create Item
+              {
+                productId: products[0]._id.toString(),
+                listingId: products[0].listing.toString(),
+              };
 
-        const listingId = products[0].listing.toString();
-
-        return JSON.stringify({ productId: productId, listingId: listingId });
+        return JSON.stringify(result);
       };
 
-      const productId = retry
+      const result = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return productId as Promise<string>;
+      return result as Promise<string>;
     } catch (error: any) {
       throw error;
     }

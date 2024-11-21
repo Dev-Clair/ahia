@@ -1,10 +1,7 @@
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
-import ILeaseProduct from "../interface/ILeaseproduct";
 import IListing from "../interface/IListing";
 import IProduct from "../interface/IProduct";
-import IReservationProduct from "../interface/IReservationproduct";
-import ISellProduct from "../interface/ISellproduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
@@ -23,9 +20,19 @@ const createListing = async (
   try {
     const idempotent = req.idempotent as Record<string, any>;
 
-    const payload = req.body as Partial<IListing>;
+    let payload: Partial<IListing> | Partial<IListing>[];
 
-    payload.provider = req.headers["provider"] as string;
+    if (Array.isArray(req.body)) {
+      payload = req.body.map((item) => ({
+        ...item,
+        provider: req.headers["provider"] as string,
+      }));
+    } else {
+      payload = {
+        ...req.body,
+        provider: req.headers["provider"] as string,
+      };
+    }
 
     const listing = await ListingService.Create().save(payload, { idempotent });
 
@@ -241,7 +248,7 @@ const deleteListingById = async (
 };
 
 /**
- * Creates a new listing product
+ * Creates a new listing product dynamically based on product type
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -254,56 +261,45 @@ const createListingProduct = async (
   try {
     const type = req.query.type as string;
 
-    if (!type) throw new Error(`Kindly indicate a product type`);
+    if (!type) throw new Error("Kindly indicate a product type");
 
     const idempotent = req.idempotent as Record<string, any>;
 
     const listing = req.listing as IListing;
 
-    let product: string;
+    const productTypeServiceFactory: Record<
+      string,
+      (
+        payload: Partial<unknown> | Partial<unknown>[],
+        options: any
+      ) => Promise<string | string[]>
+    > = {
+      lease: ListingService.Create().saveListingLeaseProduct,
+      reservation: ListingService.Create().saveListingReservationProduct,
+      sell: ListingService.Create().saveListingSellProduct,
+    };
 
-    let payload: Partial<ILeaseProduct | IReservationProduct | ISellProduct>;
+    const productService = productTypeServiceFactory[type];
 
-    switch (type) {
-      case "lease":
-        payload = req.body as Partial<ILeaseProduct>;
+    if (!productService) throw new Error("Invalid product type option");
 
-        payload.listing = listing._id;
+    let payload: Partial<unknown> | Partial<unknown>[];
 
-        product = await ListingService.Create().saveListingLeaseProduct(
-          payload,
-          { idempotent }
-        );
-
-        return res.status(HttpCode.CREATED).json({ data: product });
-
-      case "reservation":
-        payload = req.body as Partial<IReservationProduct>;
-
-        payload.listing = listing._id;
-
-        product = await ListingService.Create().saveListingReservationProduct(
-          payload,
-          { idempotent }
-        );
-
-        return res.status(HttpCode.CREATED).json({ data: product });
-
-      case "sell":
-        payload = req.body as Partial<ISellProduct>;
-
-        payload.listing = listing._id;
-
-        product = await ListingService.Create().saveListingSellProduct(
-          payload,
-          { idempotent }
-        );
-
-        return res.status(HttpCode.CREATED).json({ data: product });
-
-      default:
-        throw new Error("Invalid product type option");
+    if (Array.isArray(req.body)) {
+      payload = req.body.map((item) => ({
+        ...item,
+        listing: listing._id,
+      }));
+    } else {
+      payload = {
+        ...req.body,
+        listing: listing._id,
+      };
     }
+
+    const product = await productService(payload, { idempotent });
+
+    return res.status(HttpCode.CREATED).json({ data: product });
   } catch (err: any) {
     return next(err);
   }

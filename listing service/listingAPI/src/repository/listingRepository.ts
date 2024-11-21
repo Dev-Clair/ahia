@@ -174,7 +174,7 @@ export default class ListingRepository implements IListingRepository {
    * @param options configuration options
    */
   async save(
-    payload: Partial<IListing>,
+    payload: Partial<IListing> | Partial<IListing>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -185,23 +185,38 @@ export default class ListingRepository implements IListingRepository {
       const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
-        const listings = await Listing.create([payload], {
-          session: session,
-        });
+        const isCollection = Array.isArray(payload);
 
-        if (idempotent)
-          await Idempotency.create([idempotent], { session: session });
+        const listings = await Listing.create(
+          isCollection ? payload : [payload],
+          {
+            session,
+          }
+        );
 
-        const listingId = listings[0]._id;
+        if (idempotent) await Idempotency.create([idempotent], { session });
 
-        return listingId.toString();
+        const result =
+          listings.length > 1
+            ? // Create Collection
+              listings.map((listing) => ({
+                id: listing._id.toString(),
+                name: listing.name,
+              }))
+            : // Create Item
+              {
+                id: listings[0]._id.toString(),
+                name: listings[0].name,
+              };
+
+        return JSON.stringify(result);
       };
 
-      const listingId = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
+      const result = retry
+        ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return listingId as Promise<string>;
+      return result as Promise<string>;
     } catch (error: any) {
       throw error;
     }
@@ -337,7 +352,7 @@ export default class ListingRepository implements IListingRepository {
    * @param options configuration options
    */
   async saveListingLeaseProduct(
-    payload: Partial<ILeaseProduct>,
+    payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -357,19 +372,24 @@ export default class ListingRepository implements IListingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const { productId, listingId } = JSON.parse(product);
+        const result = JSON.parse(product);
 
-        await Listing.updateOne(
-          { _id: listingId },
-          {
-            $addToSet: {
-              products: productId,
+        if (Array.isArray(result)) {
+        } else {
+          const { productId, listingId } = JSON.parse(result);
+
+          await Listing.updateOne(
+            { _id: listingId },
+            {
+              $addToSet: {
+                products: productId,
+              },
             },
-          },
-          { session }
-        );
+            { session }
+          );
 
-        return productId;
+          return productId as string;
+        }
       };
 
       const product = retry
@@ -389,7 +409,7 @@ export default class ListingRepository implements IListingRepository {
    * @param options configuration options
    */
   async saveListingReservationProduct(
-    payload: Partial<IReservationProduct>,
+    payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -409,19 +429,24 @@ export default class ListingRepository implements IListingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const { productId, listingId } = JSON.parse(product);
+        const result = JSON.parse(product);
 
-        await Listing.updateOne(
-          { _id: listingId },
-          {
-            $addToSet: {
-              products: productId,
+        if (Array.isArray(result)) {
+        } else {
+          const { productId, listingId } = JSON.parse(result);
+
+          await Listing.updateOne(
+            { _id: listingId },
+            {
+              $addToSet: {
+                products: productId,
+              },
             },
-          },
-          { session }
-        );
+            { session }
+          );
 
-        return productId;
+          return productId as string;
+        }
       };
 
       const product = retry
@@ -441,7 +466,7 @@ export default class ListingRepository implements IListingRepository {
    * @param options configuration options
    */
   async saveListingSellProduct(
-    payload: Partial<ISellProduct>,
+    payload: Partial<ISellProduct> | Partial<ISellProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any>;
@@ -461,19 +486,24 @@ export default class ListingRepository implements IListingRepository {
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const { productId, listingId } = JSON.parse(product);
+        const result = JSON.parse(product);
 
-        await Listing.updateOne(
-          { _id: listingId },
-          {
-            $addToSet: {
-              products: productId,
+        if (Array.isArray(result)) {
+        } else {
+          const { productId, listingId } = JSON.parse(result);
+
+          await Listing.updateOne(
+            { _id: listingId },
+            {
+              $addToSet: {
+                products: productId,
+              },
             },
-          },
-          { session }
-        );
+            { session }
+          );
 
-        return productId;
+          return productId as string;
+        }
       };
 
       const product = retry

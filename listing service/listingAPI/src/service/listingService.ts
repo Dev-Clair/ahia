@@ -89,9 +89,9 @@ export default class ListingService {
    * @param options configuration options
    */
   async save(
-    payload: Partial<IListing>,
+    payload: Partial<IListing> | Partial<IListing>[],
     options: { idempotent: Record<string, any> }
-  ): Promise<string> {
+  ): Promise<string | string[]> {
     const session = await mongoose.startSession();
 
     try {
@@ -211,9 +211,9 @@ export default class ListingService {
    * @param options configuration options
    */
   public async saveListingLeaseProduct(
-    payload: Partial<ILeaseProduct>,
+    payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
     options: { idempotent: Record<string, any> }
-  ): Promise<string> {
+  ): Promise<string | string[]> {
     const session = await mongoose.startSession();
 
     try {
@@ -243,9 +243,9 @@ export default class ListingService {
    * @param options configuration options
    */
   public async saveListingReservationProduct(
-    payload: Partial<IReservationProduct>,
+    payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
     options: { idempotent: Record<string, any> }
-  ): Promise<string> {
+  ): Promise<string | string[]> {
     const session = await mongoose.startSession();
 
     try {
@@ -277,9 +277,9 @@ export default class ListingService {
    * @param options configuration options
    */
   public async saveListingSellProduct(
-    payload: Partial<ISellProduct>,
+    payload: Partial<ISellProduct> | Partial<ISellProduct>[],
     options: { idempotent: Record<string, any> }
-  ): Promise<string> {
+  ): Promise<string | string[]> {
     const session = await mongoose.startSession();
 
     try {
