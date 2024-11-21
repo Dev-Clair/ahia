@@ -1,32 +1,22 @@
 import http from "node:http";
-import https from "node:https";
-import Config from "../../config";
 import { Express } from "express";
 
 class HttpServer {
   private app: Express;
 
-  private sslOptions: object | null;
+  private server: http.Server | null = null;
 
-  private server: http.Server | https.Server | null = null;
-
-  constructor(App: Express, SSLOptions: object | null = null) {
+  constructor(App: Express) {
     this.app = App;
-
-    this.sslOptions = SSLOptions;
   }
 
   /**
    * Start http(s) server listening for connections
    * @param PORT server port
    */
-  public Init(PORT: string | number): Promise<http.Server | https.Server> {
+  public Init(PORT: string | number): Promise<http.Server> {
     return new Promise((resolve, reject) => {
-      const isProduction = Config.NODE_ENV === "production";
-
-      this.server = isProduction
-        ? https.createServer(this.sslOptions!, this.app)
-        : http.createServer(this.app);
+      this.server = http.createServer(this.app);
 
       this.server.listen(PORT);
 
@@ -66,10 +56,9 @@ class HttpServer {
   /**
    * Creates and returns a new instance of the HttpServer class
    * @param App express application instance
-   * @param SSL_Options ssl contfiguration options
    */
-  static Create(App: Express, SSL_Options: object | null = null): HttpServer {
-    return new HttpServer(App, SSL_Options);
+  static Create(App: Express): HttpServer {
+    return new HttpServer(App);
   }
 }
 
