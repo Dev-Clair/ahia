@@ -64,6 +64,8 @@ const ListingSchema = z.object({
   }),
 });
 
+const Listing = z.union([ListingSchema, z.array(ListingSchema)]);
+
 const ProductSchema = z.object({
   name: z.string({
     required_error: "name is required",
@@ -216,6 +218,8 @@ const ProductSchema = z.object({
     .optional(),
 });
 
+const Product = z.union([ProductSchema, z.array(ProductSchema)]);
+
 const validateID =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
@@ -313,6 +317,6 @@ export default {
   validateListingType: validateType(ListingTypeSchema),
   validateProductType: validateType(ProductTypeSchema),
   validateProductStatus: validateStatus(ProductStatusSchema),
-  validateListing: validateBody(ListingSchema),
-  validateProduct: validateBody(ProductSchema),
+  validateListing: validateBody(Listing),
+  validateProduct: validateBody(Product),
 };
