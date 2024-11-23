@@ -375,7 +375,19 @@ export default class ListingRepository implements IListingRepository {
         const result = JSON.parse(product);
 
         if (Array.isArray(result)) {
+          // Bulk creation
+          const updateOperations = result.map(({ productId, listingId }) => ({
+            updateOne: {
+              filter: { _id: listingId },
+              update: { $addToSet: { products: productId } },
+            },
+          }));
+
+          await Listing.bulkWrite(updateOperations, { session });
+
+          return JSON.stringify(result.map(({ productId }) => productId));
         } else {
+          // Single creation
           const { productId, listingId } = JSON.parse(result);
 
           await Listing.updateOne(
@@ -388,7 +400,7 @@ export default class ListingRepository implements IListingRepository {
             { session }
           );
 
-          return productId as string;
+          return JSON.stringify(productId);
         }
       };
 
@@ -432,7 +444,19 @@ export default class ListingRepository implements IListingRepository {
         const result = JSON.parse(product);
 
         if (Array.isArray(result)) {
+          // Bulk creation
+          const updateOperations = result.map(({ productId, listingId }) => ({
+            updateOne: {
+              filter: { _id: listingId },
+              update: { $addToSet: { products: productId } },
+            },
+          }));
+
+          await Listing.bulkWrite(updateOperations, { session });
+
+          return JSON.stringify(result.map(({ productId }) => productId));
         } else {
+          // Single creation
           const { productId, listingId } = JSON.parse(result);
 
           await Listing.updateOne(
@@ -489,7 +513,19 @@ export default class ListingRepository implements IListingRepository {
         const result = JSON.parse(product);
 
         if (Array.isArray(result)) {
+          // Bulk creation
+          const updateOperations = result.map(({ productId, listingId }) => ({
+            updateOne: {
+              filter: { _id: listingId },
+              update: { $addToSet: { products: productId } },
+            },
+          }));
+
+          await Listing.bulkWrite(updateOperations, { session });
+
+          return JSON.stringify(result.map(({ productId }) => productId));
         } else {
+          // Single creation
           const { productId, listingId } = JSON.parse(result);
 
           await Listing.updateOne(

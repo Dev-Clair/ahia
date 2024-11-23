@@ -307,12 +307,12 @@ export default class ProductRepository implements IProductRepository {
 
         const result =
           products.length > 1
-            ? // Create Collection
+            ? // Create Many
               products.map((product) => ({
                 productId: product._id.toString(),
                 listingId: product.listing.toString(),
               }))
-            : // Create Item
+            : // Create One
               {
                 productId: products[0]._id.toString(),
                 listingId: products[0].listing.toString(),
@@ -362,12 +362,12 @@ export default class ProductRepository implements IProductRepository {
 
         const result =
           products.length > 1
-            ? // Create Collection
+            ? // Create Many
               products.map((product) => ({
                 productId: product._id.toString(),
                 listingId: product.listing.toString(),
               }))
-            : // Create Item
+            : // Create One
               {
                 productId: products[0]._id.toString(),
                 listingId: products[0].listing.toString(),
@@ -417,12 +417,12 @@ export default class ProductRepository implements IProductRepository {
 
         const result =
           products.length > 1
-            ? // Create Collection
+            ? // Create Many
               products.map((product) => ({
                 productId: product._id.toString(),
                 listingId: product.listing.toString(),
               }))
-            : // Create Item
+            : // Create One
               {
                 productId: products[0]._id.toString(),
                 listingId: products[0].listing.toString(),
@@ -469,12 +469,12 @@ export default class ProductRepository implements IProductRepository {
 
         const result =
           products.length > 1
-            ? // Create Collection
+            ? // Create Many
               products.map((product) => ({
                 productId: product._id.toString(),
                 listingId: product.listing.toString(),
               }))
-            : // Create Item
+            : // Create One
               {
                 productId: products[0]._id.toString(),
                 listingId: products[0].listing.toString(),
