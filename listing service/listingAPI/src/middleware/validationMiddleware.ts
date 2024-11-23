@@ -233,7 +233,7 @@ const validateID =
           error: {
             name: HttpStatus.UNPROCESSABLE_ENTITY,
             errors: err.errors.map((error) => ({
-              path: error.path,
+              code: error.code,
               message: error.message,
             })),
           },
@@ -256,7 +256,7 @@ const validateType =
           error: {
             name: HttpStatus.NOT_FOUND,
             errors: err.errors.map((error) => ({
-              path: error.path,
+              code: error.code,
               message: error.message,
             })),
           },
@@ -279,7 +279,7 @@ const validateStatus =
           error: {
             name: HttpStatus.NOT_FOUND,
             errors: err.errors.map((error) => ({
-              path: error.path,
+              code: error.code,
               message: error.message,
             })),
           },
@@ -302,7 +302,7 @@ const validateBody =
           error: {
             name: HttpStatus.UNPROCESSABLE_ENTITY,
             errors: err.errors.map((error) => ({
-              path: error.path,
+              code: error.code,
               message: error.message,
             })),
           },
