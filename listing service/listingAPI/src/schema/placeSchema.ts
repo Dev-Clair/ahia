@@ -3,11 +3,6 @@ import IPlace from "../interface/IPlace";
 
 const PlaceSchema: Schema<IPlace> = new Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     city: {
       type: String,
       required: true,
@@ -21,13 +16,13 @@ const PlaceSchema: Schema<IPlace> = new Schema(
     coordinates: {
       lat: {
         type: Number,
-        required: true,
+        required: false,
         min: -90,
         max: 90,
       },
       lng: {
         type: Number,
-        required: true,
+        required: false,
         min: -180,
         max: 180,
       },
@@ -39,6 +34,6 @@ const PlaceSchema: Schema<IPlace> = new Schema(
 );
 
 // Place Schema Search Query Index
-PlaceSchema.index({ name: "text", city: "text", state: "text" });
+PlaceSchema.index({ city: "text", state: "text" });
 
 export default PlaceSchema;

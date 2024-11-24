@@ -91,13 +91,13 @@ export default class PlaceRepository implements IPlaceRepository {
     }
   }
 
-  /** Retrieves a place by name
+  /** Retrieves a place by field
    * @public
-   * @param name place name
+   * @param field field name
    * @param options configuration options
    */
-  async findByName(
-    name: string,
+  async findByField(
+    field: string,
     options: { retry?: boolean }
   ): Promise<IPlace | null> {
     try {
@@ -105,7 +105,7 @@ export default class PlaceRepository implements IPlaceRepository {
 
       const operation = async () => {
         const place = await Place.findOne(
-          { name: new RegExp(name, "i") },
+          { field: new RegExp(field, "i") },
           PlaceRepository.LOCATION_PROJECTION
         ).exec();
 

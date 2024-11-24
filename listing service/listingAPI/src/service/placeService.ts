@@ -6,7 +6,7 @@ import PlaceRepository from "../repository/placeRepository";
  * Place Service
  * @method findAll
  * @method findById
- * @method findByName
+ * @method findByField
  * @method save
  * @method update
  * @method delete
@@ -40,15 +40,15 @@ export default class PlaceService {
     }
   }
 
-  /** Retrieves a place by name
+  /** Retrieves a place by field
    * @public
-   * @param name place name
+   * @param field field name
    */
-  async findByName(name: string): Promise<IPlace | null> {
+  async findByField(field: string): Promise<IPlace | null> {
     try {
       const options = { retry: true };
 
-      return await PlaceRepository.Create().findByName(name, options);
+      return await PlaceRepository.Create().findByField(field, options);
     } catch (error: any) {
       throw error;
     }
@@ -57,18 +57,24 @@ export default class PlaceService {
   /**
    * Creates a new place collection
    * @public
-   * @param key operation idempotency key
    * @param payload the data object
+   * @param options configuration options
    */
   async save(
-    key: Record<string, any>,
-    payload: Partial<IPlace>
+    payload: Partial<IPlace>,
+    options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
+      const { idempotent } = options;
+
       const place = await session.withTransaction(async () => {
-        const options = { session: session, idempotent: key, retry: true };
+        const options = {
+          session: session,
+          idempotent: idempotent,
+          retry: true,
+        };
 
         const place = await PlaceRepository.Create().save(payload, options);
 
@@ -86,20 +92,26 @@ export default class PlaceService {
   /**
    * Updates a place by id
    * @public
-   * @param id the place string
-   * @param key operation idempotency key
+   * @param id place id
    * @param payload the data object
+   * @param options configuration options
    */
   async update(
     id: string,
-    key: Record<string, any>,
-    payload: Partial<IPlace> | any
+    payload: Partial<IPlace> | any,
+    options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
+      const { idempotent } = options;
+
       const place = await session.withTransaction(async () => {
-        const options = { session: session, idempotent: key, retry: true };
+        const options = {
+          session: session,
+          idempotent: idempotent,
+          retry: true,
+        };
 
         const place = await PlaceRepository.Create().update(
           id,
