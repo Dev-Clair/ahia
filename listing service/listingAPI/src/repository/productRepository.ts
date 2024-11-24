@@ -39,7 +39,6 @@ export default class ProductRepository implements IProductRepository {
   static SORT_PRODUCTS = ["-createdAt"];
 
   static LISTING_PROJECTION_BASIC = [
-    "-address",
     "-location",
     "-createdAt",
     "-updatedAt",

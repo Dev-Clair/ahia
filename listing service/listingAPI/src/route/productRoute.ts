@@ -14,9 +14,8 @@ ProductRouter.get(
 );
 
 ProductRouter.get(
-  "/status/:status/location/:location",
+  "/status/:status/location/:city/:state",
   ValidationMiddleware.validateProductStatus,
-  GeocodeMiddleware.getLocationGeoCoordinates,
   ProductController.retrieveProductsByLocation
 );
 
@@ -32,6 +31,13 @@ ProductRouter.get(
   ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsByOffering
+);
+
+ProductRouter.get(
+  "/status/:status/place/:place",
+  ValidationMiddleware.validateProductStatus,
+  GeocodeMiddleware.getLocationGeoCoordinates,
+  ProductController.retrieveProductsByLocation
 );
 
 ProductRouter.get(

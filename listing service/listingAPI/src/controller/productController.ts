@@ -51,7 +51,7 @@ const retrieveProductsSearch = async (
 };
 
 /**
- * Retrieve products by location (geo-coordinates)
+ * Retrieve products by location
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -63,12 +63,10 @@ const retrieveProductsByLocation = async (
 ): Promise<Response | void> => {
   try {
     // Location filter
-    const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
+    const { city, state } = req.query as Record<string, any>;
 
     const locationFilter = {
-      lat: lat,
-      lng: lng,
-      radius: radius,
+      location: { address: { city: city, state: state } },
     };
 
     // Product filter
@@ -175,6 +173,44 @@ const retrieveProductsByOffering = async (
         ...area,
       },
     };
+
+    // Query
+    const products = await ProductService.Create().findProductsByLocation(
+      locationFilter,
+      productFilter
+    );
+
+    return res.status(HttpCode.OK).json({ data: products });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve products by place (geo-coordinates)
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveProductsByPlace = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    // Location filter
+    const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
+
+    const locationFilter = {
+      lat: lat,
+      lng: lng,
+      radius: radius,
+    };
+
+    // Product filter
+    const status = req.params.status as string;
+
+    const productFilter: Record<string, any> = { status: status };
 
     // Query
     const products = await ProductService.Create().findProductsByLocation(
@@ -314,6 +350,7 @@ export default {
   retrieveProductsByLocation,
   retrieveProductsNearBy,
   retrieveProductsByOffering,
+  retrieveProductsByPlace,
   retrieveProductsByListingProvider,
   retrieveProductsByListingType,
   retrieveProductById,
