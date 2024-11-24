@@ -52,7 +52,7 @@ const getLocationGeoCoordinates = async (
     }
 
     // Search and retrieve place coordinates from the database
-    location = await PlaceService.Create().findByName(place.trim());
+    location = await PlaceService.Create().findByField(place.trim());
 
     if (location) {
       // Attach retrieved coordinates to the req object for downstream use
@@ -93,14 +93,14 @@ const getLocationGeoCoordinates = async (
 
     // Save the new place to the database
     await PlaceService.Create().save(
-      { key: randomUUID() },
       {
-        name: place.trim(),
+        city: place.trim(),
         coordinates: {
           lat: coordinates.lat,
           lng: coordinates.lng,
         },
-      }
+      },
+      { idempotent: { idempotent: randomUUID() } }
     );
 
     // Attach coordinates to the req object for downstream use

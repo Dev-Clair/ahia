@@ -1,6 +1,8 @@
 import IListing from "../interface/IListing";
+import IPlace from "../interface/IPlace";
 import IProduct from "../interface/IProduct";
 import ListingService from "../service/listingService";
+import PlaceService from "../service/placeService";
 import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
@@ -12,7 +14,7 @@ import NotFoundError from "../error/notfoundError";
  * @param paramName - The name of the route parameter (e.g., 'id')
  */
 const DocumentMiddleware = (
-  resourceName: "listing" | "product",
+  resourceName: "listing" | "product" | "place",
   paramName: string
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -48,6 +50,18 @@ const DocumentMiddleware = (
 
         (req as Request).product = product as IProduct;
       }
+
+      // Place document resolver
+      // if (resourceName === "place") {
+      //   service = PlaceService.Create();
+
+      //   const place = await service.findById(paramValue);
+
+      //   if (!place)
+      //     throw new NotFoundError(`No document found for place: ${paramValue}`);
+
+      //   (req as Request).place = place as IPlace;
+      // }
 
       next();
     } catch (err: any) {
