@@ -1,52 +1,52 @@
-import ILocation from "./ILocation";
+import IPlace from "./IPlace";
 import IRepository from "./IRepository";
 
-export default interface ILocationRepository extends IRepository<ILocation> {
+export default interface IPlaceRepository extends IRepository<IPlace> {
   /**
-   * Retrieves a collection of location documents
+   * Retrieves a collection of place documents
    * @param queryString query object
    * @param options configuration options
    */
   findAll(
     queryString: Record<string, any>,
     options?: { [key: string]: unknown }
-  ): Promise<ILocation[]>;
+  ): Promise<IPlace[]>;
 
   /**
-   * Retrieves a location by id
-   * @param id location id
+   * Retrieves a place by id
+   * @param id place id
    * @param options configuration options
    */
   findById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<ILocation | null>;
+  ): Promise<IPlace | null>;
 
   /**
-   * Creates a new location in collection
+   * Creates a new place in collection
    * @param payload data object
    * @param options configuration options
    */
   save(
-    payload: Partial<ILocation>,
+    payload: Partial<IPlace>,
     options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
-   * Updates a location by id
-   * @param id location id
+   * Updates a place by id
+   * @param id place id
    * @param payload data object
    * @param options configuration options
    */
   update(
     id: string,
-    payload: Partial<ILocation> | any,
+    payload: Partial<IPlace> | any,
     options?: { [key: string]: unknown }
   ): Promise<string>;
 
   /**
-   * Deletes a location by id
-   * @param id location id
+   * Deletes a place by id
+   * @param id place id
    * @param options configuration options
    */
   delete(id: string, options?: { [key: string]: unknown }): Promise<string>;

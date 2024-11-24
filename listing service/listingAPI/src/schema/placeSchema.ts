@@ -1,12 +1,21 @@
 import { Schema } from "mongoose";
-import ILocation from "../interface/ILocation";
+import IPlace from "../interface/IPlace";
 
-const LocationSchema: Schema<ILocation> = new Schema(
+const PlaceSchema: Schema<IPlace> = new Schema(
   {
     name: {
       type: String,
       required: true,
-      unique: true,
+      trim: true,
+    },
+    city: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    state: {
+      type: String,
+      required: true,
       trim: true,
     },
     coordinates: {
@@ -29,7 +38,7 @@ const LocationSchema: Schema<ILocation> = new Schema(
   }
 );
 
-// Location Schema Search Query Index
-LocationSchema.index({ name: "text", coordinates: "2dsphere" });
+// Place Schema Search Query Index
+PlaceSchema.index({ name: "text", city: "text", state: "text" });
 
-export default LocationSchema;
+export default PlaceSchema;

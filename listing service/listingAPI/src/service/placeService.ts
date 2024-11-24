@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import ILocation from "../interface/ILocation";
-import LocationRepository from "../repository/locationRepository";
+import IPlace from "../interface/IPlace";
+import PlaceRepository from "../repository/placeRepository";
 
 /**
- * Location Service
+ * Place Service
  * @method findAll
  * @method findById
  * @method findByName
@@ -11,74 +11,71 @@ import LocationRepository from "../repository/locationRepository";
  * @method update
  * @method delete
  */
-export default class LocationService {
-  /** Retrieves a collection of locations
+export default class PlaceService {
+  /** Retrieves a collection of places
    * @public
    * @param queryString query object
    */
-  async findAll(queryString: Record<string, any>): Promise<ILocation[]> {
+  async findAll(queryString: Record<string, any>): Promise<IPlace[]> {
     try {
       const options = { retry: true };
 
-      return await LocationRepository.Create().findAll(queryString, options);
+      return await PlaceRepository.Create().findAll(queryString, options);
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves a location by id
+  /** Retrieves a place by id
    * @public
-   * @param id location id
+   * @param id place id
    */
-  async findById(id: string): Promise<ILocation | null> {
+  async findById(id: string): Promise<IPlace | null> {
     try {
       const options = { retry: true };
 
-      return await LocationRepository.Create().findById(id, options);
+      return await PlaceRepository.Create().findById(id, options);
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves a location by name
+  /** Retrieves a place by name
    * @public
-   * @param name location name
+   * @param name place name
    */
-  async findByName(name: string): Promise<ILocation | null> {
+  async findByName(name: string): Promise<IPlace | null> {
     try {
       const options = { retry: true };
 
-      return await LocationRepository.Create().findByName(name, options);
+      return await PlaceRepository.Create().findByName(name, options);
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Creates a new location collection
+   * Creates a new place collection
    * @public
    * @param key operation idempotency key
    * @param payload the data object
    */
   async save(
     key: Record<string, any>,
-    payload: Partial<ILocation>
+    payload: Partial<IPlace>
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      const location = await session.withTransaction(async () => {
+      const place = await session.withTransaction(async () => {
         const options = { session: session, idempotent: key, retry: true };
 
-        const location = await LocationRepository.Create().save(
-          payload,
-          options
-        );
+        const place = await PlaceRepository.Create().save(payload, options);
 
-        return location;
+        return place;
       });
 
-      return location;
+      return place;
     } catch (error: any) {
       throw error;
     } finally {
@@ -87,33 +84,33 @@ export default class LocationService {
   }
 
   /**
-   * Updates a location by id
+   * Updates a place by id
    * @public
-   * @param id the location string
+   * @param id the place string
    * @param key operation idempotency key
    * @param payload the data object
    */
   async update(
     id: string,
     key: Record<string, any>,
-    payload: Partial<ILocation> | any
+    payload: Partial<IPlace> | any
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      const location = await session.withTransaction(async () => {
+      const place = await session.withTransaction(async () => {
         const options = { session: session, idempotent: key, retry: true };
 
-        const location = await LocationRepository.Create().update(
+        const place = await PlaceRepository.Create().update(
           id,
           payload,
           options
         );
 
-        return location;
+        return place;
       });
 
-      return location;
+      return place;
     } catch (error: any) {
       throw error;
     } finally {
@@ -122,23 +119,23 @@ export default class LocationService {
   }
 
   /**
-   * Deletes a location by id
+   * Deletes a place by id
    * @public
-   * @param id the location string
+   * @param id the place string
    */
   async delete(id: string): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      const location = await session.withTransaction(async () => {
+      const place = await session.withTransaction(async () => {
         const options = { session: session, retry: true };
 
-        const location = await LocationRepository.Create().delete(id, options);
+        const place = await PlaceRepository.Create().delete(id, options);
 
-        return location;
+        return place;
       });
 
-      return location;
+      return place;
     } catch (error: any) {
       throw error;
     } finally {
@@ -147,9 +144,9 @@ export default class LocationService {
   }
 
   /**
-   * Creates and returns a new instance of the LocationService class
+   * Creates and returns a new instance of the PlaceService class
    */
-  static Create(): LocationService {
-    return new LocationService();
+  static Create(): PlaceService {
+    return new PlaceService();
   }
 }

@@ -1,13 +1,13 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
-import ILocation from "../interface/ILocation";
-import ILocationRepository from "../interface/ILocationrepository";
+import IPlace from "../interface/IPlace";
+import IPlaceRepository from "../interface/IPlacerepository";
 import Idempotency from "../model/idempotencyModel";
-import Location from "../model/locationModel";
+import Place from "../model/placeModel";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
- * Location Repository
+ * Place Repository
  * @method findAll
  * @method findById
  * @method findByName
@@ -15,12 +15,12 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method update
  * @method delete
  */
-export default class LocationRepository implements ILocationRepository {
+export default class PlaceRepository implements IPlaceRepository {
   static LOCATION_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
 
   static SORT_LOCATIONS = ["-createdAt"];
 
-  /** Retrieves a collection of locations
+  /** Retrieves a collection of places
    * @public
    * @param queryString query object
    * @param options configuration options
@@ -28,108 +28,108 @@ export default class LocationRepository implements ILocationRepository {
   async findAll(
     queryString: Record<string, any>,
     options: { retry?: boolean }
-  ): Promise<ILocation[]> {
+  ): Promise<IPlace[]> {
     try {
       const { retry = true } = options;
 
       const operation = async () => {
-        const query = Location.find();
+        const query = Place.find();
 
         const filter = { ...queryString };
 
         const queryBuilder = QueryBuilder.Create(query, filter);
 
-        const locations = (
+        const places = (
           await queryBuilder
             .GeoSpatial()
-            .Sort(LocationRepository.SORT_LOCATIONS)
-            .Select(LocationRepository.LOCATION_PROJECTION)
+            .Sort(PlaceRepository.SORT_LOCATIONS)
+            .Select(PlaceRepository.LOCATION_PROJECTION)
             .Paginate()
         ).Exec();
 
-        return locations;
+        return places;
       };
 
-      const locations = retry
+      const places = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return locations as Promise<ILocation[]>;
+      return places as Promise<IPlace[]>;
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves a location by id
+  /** Retrieves a place by id
    * @public
-   * @param id location id
+   * @param id place id
    * @param options configuration options
    */
   async findById(
     id: string,
     options: { retry?: boolean }
-  ): Promise<ILocation | null> {
+  ): Promise<IPlace | null> {
     try {
       const { retry = true } = options;
 
       const operation = async () => {
-        const location = await Location.findById(
+        const place = await Place.findById(
           { _id: id },
-          LocationRepository.LOCATION_PROJECTION
+          PlaceRepository.LOCATION_PROJECTION
         ).exec();
 
-        return location;
+        return place;
       };
 
-      const location = retry
+      const place = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return location as Promise<ILocation | null>;
+      return place as Promise<IPlace | null>;
     } catch (error: any) {
       throw error;
     }
   }
 
-  /** Retrieves a location by name
+  /** Retrieves a place by name
    * @public
-   * @param name location name
+   * @param name place name
    * @param options configuration options
    */
   async findByName(
     name: string,
     options: { retry?: boolean }
-  ): Promise<ILocation | null> {
+  ): Promise<IPlace | null> {
     try {
       const { retry = true } = options;
 
       const operation = async () => {
-        const location = await Location.findOne(
+        const place = await Place.findOne(
           { name: new RegExp(name, "i") },
-          LocationRepository.LOCATION_PROJECTION
+          PlaceRepository.LOCATION_PROJECTION
         ).exec();
 
-        return location;
+        return place;
       };
 
-      const location = retry
+      const place = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return location as Promise<ILocation | null>;
+      return place as Promise<IPlace | null>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Creates a new location in collection
+   * Creates a new place in collection
    * @public
    * @param payload data object
    * @param options configuration options
    */
   async save(
-    payload: Partial<ILocation>,
+    payload: Partial<IPlace>,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -140,38 +140,38 @@ export default class LocationRepository implements ILocationRepository {
 
     try {
       const operation = async () => {
-        const locations = await Location.create([payload], {
+        const places = await Place.create([payload], {
           session: session,
         });
 
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        const locationId = locations[0]._id;
+        const placeId = places[0]._id;
 
-        return locationId.toString();
+        return placeId.toString();
       };
 
-      const locationId = retry
+      const placeId = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return locationId as Promise<string>;
+      return placeId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Updates a location by id
+   * Updates a place by id
    * @public
-   * @param id location id
+   * @param id place id
    * @param payload data object
    * @param options configuration options
    */
   async update(
     id: string,
-    payload: Partial<ILocation> | any,
+    payload: Partial<IPlace> | any,
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
@@ -182,39 +182,35 @@ export default class LocationRepository implements ILocationRepository {
 
     try {
       const operation = async () => {
-        const location = await Location.findByIdAndUpdate(
-          { _id: id },
-          payload,
-          {
-            new: true,
-            session,
-          }
-        );
+        const place = await Place.findByIdAndUpdate({ _id: id }, payload, {
+          new: true,
+          session,
+        });
 
         if (idempotent)
           await Idempotency.create([idempotent], { session: session });
 
-        if (!location) throw new Error("location not found");
+        if (!place) throw new Error("place not found");
 
-        const locationId = location._id;
+        const placeId = place._id;
 
-        return locationId.toString();
+        return placeId.toString();
       };
 
-      const locationId = retry
+      const placeId = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return locationId as Promise<string>;
+      return placeId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Deletes a location by id
+   * Deletes a place by id
    * @public
-   * @param id location id
+   * @param id place id
    * @param options configuration options
    */
   async delete(
@@ -225,29 +221,29 @@ export default class LocationRepository implements ILocationRepository {
 
     try {
       const operation = async () => {
-        const location = await Location.findByIdAndDelete({ _id: id }, session);
+        const place = await Place.findByIdAndDelete({ _id: id }, session);
 
-        if (!location) throw new Error("location not found");
+        if (!place) throw new Error("place not found");
 
-        const locationId = location._id;
+        const placeId = place._id;
 
-        return locationId.toString();
+        return placeId.toString();
       };
 
-      const locationId = retry
+      const placeId = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      return locationId as Promise<string>;
+      return placeId as Promise<string>;
     } catch (error: any) {
       throw error;
     }
   }
 
   /**
-   * Creates and returns a new instance of the LocationRepository class
+   * Creates and returns a new instance of the PlaceRepository class
    */
-  static Create(): LocationRepository {
-    return new LocationRepository();
+  static Create(): PlaceRepository {
+    return new PlaceRepository();
   }
 }
