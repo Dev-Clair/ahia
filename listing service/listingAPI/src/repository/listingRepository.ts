@@ -29,7 +29,6 @@ import { QueryBuilder } from "../utils/queryBuilder";
  */
 export default class ListingRepository implements IListingRepository {
   static LISTING_PROJECTION_BASIC = [
-    "-address",
     "-location",
     "-createdAt",
     "-updatedAt",

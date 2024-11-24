@@ -26,24 +26,6 @@ const ListingSchema: Schema<IListing> = new Schema(
         required: false,
       },
     ],
-    address: {
-      street: {
-        type: String,
-        required: true,
-      },
-      city: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
-      zip: {
-        type: String,
-        required: false,
-      },
-    },
     location: {
       type: {
         type: String,
@@ -59,6 +41,24 @@ const ListingSchema: Schema<IListing> = new Schema(
           message: "coordinates must be an array tuple of two numbers",
         },
         required: false,
+      },
+      address: {
+        street: {
+          type: String,
+          required: true,
+        },
+        city: {
+          type: String,
+          required: true,
+        },
+        state: {
+          type: String,
+          required: true,
+        },
+        zip: {
+          type: String,
+          required: false,
+        },
       },
     },
     provider: {
@@ -92,7 +92,9 @@ const ListingSchema: Schema<IListing> = new Schema(
 
 // Listing Schema Search Query Index
 ListingSchema.index({
-  location: "2dsphere",
+  "location.coordinates": "2dsphere",
+  "location.address.city": "text",
+  "location.address.state": "text",
   provider: "text",
   type: "text",
 });

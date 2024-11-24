@@ -6,15 +6,15 @@ export default interface IListing extends IDocument {
   description: string;
   type: "land" | "mobile" | "property";
   products?: Schema.Types.ObjectId[];
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zip?: string;
-  };
   location: {
     type: string;
     coordinates: [number, number];
+    address: {
+      street: string;
+      city: string;
+      state: string;
+      zip?: string;
+    };
   };
   provider: string;
   media: {
