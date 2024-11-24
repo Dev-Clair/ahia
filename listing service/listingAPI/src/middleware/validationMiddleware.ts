@@ -32,26 +32,6 @@ const ListingSchema = z.object({
     invalid_type_error: "description must be a string",
   }),
   type: z.enum(["land", "mobile", "property"]),
-  address: z.object({
-    street: z.string({
-      required_error: "street is required",
-      invalid_type_error: "street must be a string",
-    }),
-    city: z.string({
-      required_error: "city is required",
-      invalid_type_error: "city must be a string",
-    }),
-    state: z.string({
-      required_error: "state is required",
-      invalid_type_error: "state must be a string",
-    }),
-    zip: z
-      .string({
-        required_error: "zip is required",
-        invalid_type_error: "zipe must be a string",
-      })
-      .optional(),
-  }),
   location: z.object({
     coordinates: z.array(
       z.number({
@@ -61,6 +41,26 @@ const ListingSchema = z.object({
         description: "location coordinates: [lng, lat]",
       })
     ),
+    address: z.object({
+      street: z.string({
+        required_error: "street is required",
+        invalid_type_error: "street must be a string",
+      }),
+      city: z.string({
+        required_error: "city is required",
+        invalid_type_error: "city must be a string",
+      }),
+      state: z.string({
+        required_error: "state is required",
+        invalid_type_error: "state must be a string",
+      }),
+      zip: z
+        .string({
+          required_error: "zip is required",
+          invalid_type_error: "zip must be a string",
+        })
+        .optional(),
+    }),
   }),
 });
 

@@ -6,7 +6,7 @@ import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 import InternalServerError from "../error/internalserverError";
 import { NextFunction, Request, Response } from "express";
-import LocationService from "../service/locationService";
+import PlaceService from "../service/placeService";
 
 /**
  * Retrieves a location's coordinates using google map geocode API
@@ -20,18 +20,18 @@ const getLocationGeoCoordinates = async (
   next: NextFunction
 ): Promise<void | Response<any, Record<string, any>>> => {
   try {
-    const place = req.params.location as string;
+    const place = req.params.place as string;
 
     if (!place.trim()) {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: "Location is required",
+          message: "Place is required",
         },
       });
     }
 
-    // Search and retrieve location coordinates from cache if available
+    // Search and retrieve coordinates from cache if available
     const cacheKey = place.trim().toLowerCase();
 
     const cache = Cache.LruCache;
@@ -39,7 +39,7 @@ const getLocationGeoCoordinates = async (
     let location = cache.get(cacheKey);
 
     if (location) {
-      // Attach cached coordinates to the req object for downstream handler use
+      // Attach cached coordinates to the req object for downstream use
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -51,11 +51,11 @@ const getLocationGeoCoordinates = async (
       return next();
     }
 
-    // Search and retrieve location coordinates from the database
-    location = await LocationService.Create().findByName(place.trim());
+    // Search and retrieve place coordinates from the database
+    location = await PlaceService.Create().findByName(place.trim());
 
     if (location) {
-      // Attach retrieved coordinates to the req object for downstream handler use
+      // Attach retrieved coordinates to the req object for downstream use
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -91,8 +91,8 @@ const getLocationGeoCoordinates = async (
 
     const coordinates = body.data.results[0].geometry.location;
 
-    // Save the new location to the database
-    await LocationService.Create().save(
+    // Save the new place to the database
+    await PlaceService.Create().save(
       { key: randomUUID() },
       {
         name: place.trim(),
@@ -103,7 +103,7 @@ const getLocationGeoCoordinates = async (
       }
     );
 
-    // Attach coordinates to the req object for downstream handler use
+    // Attach coordinates to the req object for downstream use
     req.geoCoordinates = {
       lat: coordinates.lat,
       lng: coordinates.lng,
@@ -153,7 +153,12 @@ const getLocationAddress = async (
       );
     }
 
-    (req as Request).address = body.data.results[0].formatted_address;
+    // Attach address to the req object for downstream use
+    req.geoCoordinates = {
+      lat: lat,
+      lng: lng,
+      address: body.data.results[0].formatted_address,
+    };
 
     delete req.query.lat;
 
