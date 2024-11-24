@@ -3,5 +3,6 @@ export default interface IGeoCoordinates extends Record<string, any> {
   lng: number;
   distance?: number;
   radius?: number;
+  address?: string;
   [key: string]: unknown;
 }
