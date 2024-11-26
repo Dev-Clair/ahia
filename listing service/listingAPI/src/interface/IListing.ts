@@ -7,8 +7,8 @@ export default interface IListing extends IDocument {
   type: "land" | "mobile" | "property";
   products?: Schema.Types.ObjectId[];
   location: {
-    type: string;
-    coordinates: [number, number];
+    type?: string;
+    coordinates?: [number, number];
     address: {
       street: string;
       city: string;

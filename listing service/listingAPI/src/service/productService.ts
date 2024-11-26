@@ -40,7 +40,7 @@ export default class ProductService {
     productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
-      const products = await ProductRepository.Create().findProductsByLocation(
+      const products = await ProductRepository.Create().findProductsByListing(
         listingFilter,
         productFilter
       );
@@ -61,11 +61,10 @@ export default class ProductService {
     productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
-      const products =
-        await ProductRepository.Create().findProductsByListingProvider(
-          listingFilter,
-          productFilter
-        );
+      const products = await ProductRepository.Create().findProductsByListing(
+        listingFilter,
+        productFilter
+      );
 
       return products;
     } catch (error: any) {
@@ -83,11 +82,10 @@ export default class ProductService {
     productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
-      const products =
-        await ProductRepository.Create().findProductsByListingType(
-          listingFilter,
-          productFilter
-        );
+      const products = await ProductRepository.Create().findProductsByListing(
+        listingFilter,
+        productFilter
+      );
 
       return products;
     } catch (error: any) {

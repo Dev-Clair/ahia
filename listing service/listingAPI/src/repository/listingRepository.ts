@@ -184,25 +184,18 @@ export default class ListingRepository implements IListingRepository {
       const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
-        const isCollection = Array.isArray(payload);
-
-        const listings = await Listing.create(
-          isCollection ? payload : [payload],
-          {
-            session,
-          }
-        );
+        const listings = await this.create(payload, session);
 
         if (idempotent) await Idempotency.create([idempotent], { session });
 
         const result =
           listings.length > 1
-            ? // Create Collection
+            ? // Parse Collection
               listings.map((listing) => ({
                 id: listing._id.toString(),
                 name: listing.name,
               }))
-            : // Create Item
+            : // Parse Item
               {
                 id: listings[0]._id.toString(),
                 name: listings[0].name,
@@ -216,6 +209,34 @@ export default class ListingRepository implements IListingRepository {
         : await operation();
 
       return result as Promise<string>;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates new listing document(s) in collection
+   * @private
+   * @param payload data object
+   * @param session session transaction id
+   * @param options configuration options
+   */
+  private async create(
+    payload: Partial<IListing> | Partial<IListing>[],
+    session: ClientSession,
+    options?: { [key: string]: unknown }
+  ): Promise<IListing[]> {
+    try {
+      const isCollection = Array.isArray(payload);
+
+      const listings = await Listing.create(
+        isCollection ? payload : [payload],
+        {
+          session,
+        }
+      );
+
+      return listings;
     } catch (error: any) {
       throw error;
     }
@@ -362,10 +383,11 @@ export default class ListingRepository implements IListingRepository {
       const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
-        const product = await ProductRepository.Create().lease(payload, {
+        const product = await ProductRepository.Create().save(payload, {
           session: session,
           idempotent: null,
           retry: false,
+          type: "lease",
         });
 
         if (idempotent)
@@ -431,10 +453,11 @@ export default class ListingRepository implements IListingRepository {
       const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
-        const product = await ProductRepository.Create().reservation(payload, {
+        const product = await ProductRepository.Create().save(payload, {
           session: session,
           idempotent: null,
           retry: false,
+          type: "reservation",
         });
 
         if (idempotent)
@@ -500,10 +523,11 @@ export default class ListingRepository implements IListingRepository {
       const { session, idempotent, retry = true } = options;
 
       const operation = async () => {
-        const product = await ProductRepository.Create().sell(payload, {
+        const product = await ProductRepository.Create().save(payload, {
           session: session,
           idempotent: null,
           retry: false,
+          type: "sell",
         });
 
         if (idempotent)

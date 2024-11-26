@@ -26,7 +26,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     type: {
       type: String,
-      enum: ["lease", "reservation", "sell"],
+      enum: ["Lease", "Reservation", "Sell"],
       required: true,
     },
     media: {
@@ -45,8 +45,8 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     promotion: {
       type: String,
-      enum: ["platinum", "gold", "ruby", "silver"],
-      default: "silver",
+      enum: ["Platinum", "Gold", "Ruby", "Silver"],
+      default: "Silver",
     },
     status: {
       type: String,
@@ -60,11 +60,11 @@ const ProductSchema: Schema<IProduct> = new Schema(
       ],
       default: function (this: IProduct) {
         switch (this.type) {
-          case "lease":
+          case "Lease":
             return "now-letting";
-          case "reservation":
+          case "Reservation":
             return "now-booking";
-          case "sell":
+          case "Sell":
             return "now-selling";
           default:
             throw new Error("Invalid product type option");
@@ -81,13 +81,13 @@ const ProductSchema: Schema<IProduct> = new Schema(
       expiry: {
         type: Date,
         validate: {
-          validator: function (this: IProduct, value: Date) {
-            return this.type !== "reservation" || value == null;
+          validator: function (this: IProduct) {
+            return this.type !== "Reservation";
           },
           message: "expiry only applies for non-reservation products",
         },
         default: function (this: IProduct) {
-          return this.type !== "reservation"
+          return this.type !== "Reservation"
             ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString()
             : undefined;
         },

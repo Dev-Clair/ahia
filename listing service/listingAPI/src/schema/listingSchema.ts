@@ -30,15 +30,17 @@ const ListingSchema: Schema<IListing> = new Schema(
       type: {
         type: String,
         enum: ["Point"],
-        default: "Point",
+        default: function (this: IListing) {
+          if (this.type === "land" || this.type === "property") return "Point";
+        },
       },
       coordinates: {
         type: [Number],
         validate: {
-          validator: function (value: [number, number]) {
-            return Array.isArray(value) && value.length === 2;
+          validator: function (this: IListing) {
+            return this.type === "land" || this.type === "property";
           },
-          message: "coordinates must be an array tuple of two numbers",
+          message: "coordinates only applies for land or property listings",
         },
         required: false,
       },

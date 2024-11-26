@@ -14,7 +14,7 @@ ListingRouter.route("/").post(
   AppMiddleware.isContentType(["application/json"]),
   AppMiddleware.filterInsertion(["media", "product", "provider"]),
   IdempotencyMiddleware.isIdempotent,
-  ValidationMiddleware.validateListing,
+  // ValidationMiddleware.validateListing,
   ListingController.createListing
 );
 
@@ -88,7 +88,7 @@ ListingRouter.route("/:id/products")
     AppMiddleware.filterInsertion(["media", "verification"]),
     IdempotencyMiddleware.isIdempotent,
     ValidationMiddleware.validateID,
-    ValidationMiddleware.validateProduct,
+    // ValidationMiddleware.validateProduct,
     DocumentMiddleware("listing", "id"),
     ListingController.createListingProduct
   );

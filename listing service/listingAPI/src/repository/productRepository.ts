@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, Model } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import ILeaseProduct from "../interface/ILeaseproduct";
@@ -161,18 +161,19 @@ export default class ProductRepository implements IProductRepository {
     }
   }
 
-  /** Retrieves a collection of products by location (geo-coordinates)
+  /** Retrieves a collection of products by listing
+   * filter: location (geo-coordinates), provider, type (land, mobile, property)
    * @public
    * @param listingFilter listing filter
    * @param productFilter product filter
    */
-  async findProductsByLocation(
+  async findProductsByListing(
     listingFilter: Record<string, any>,
     productFilter: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const operation = async () => {
-        // Find listings by geo-coordinates
+        // Find listings by filter
         const listings = await ListingRepository.Create().findAll(
           listingFilter,
           {
@@ -199,82 +200,6 @@ export default class ProductRepository implements IProductRepository {
     }
   }
 
-  /** Retrieves a collection of products by provider
-   * @public
-   * @param listingFilter listing filter
-   * @param productFilter product filter
-   */
-  async findProductsByListingProvider(
-    listingFilter: Record<string, any>,
-    productFilter: Record<string, any>
-  ): Promise<IProduct[]> {
-    try {
-      const operation = async () => {
-        // Find listings by provider
-        const listings = await ListingRepository.Create().findAll(
-          listingFilter,
-          {
-            retry: false,
-          }
-        );
-
-        const listingIds = listings.map((listing) => listing._id);
-
-        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
-
-        // Find products that contain these listing IDs
-        const products = await this.findAll(
-          { listing: { in: listingIds }, ...productFilter },
-          { retry: false }
-        );
-
-        return products;
-      };
-
-      return await FailureRetry.LinearJitterBackoff(() => operation());
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a collection of products by listing type: land | mobile | property
-   * @public
-   * @param listingFilter listing filter
-   * @param productFilter product filter
-   */
-  async findProductsByListingType(
-    listingFilter: Record<string, any>,
-    productFilter: Record<string, any>
-  ): Promise<IProduct[]> {
-    try {
-      const operation = async () => {
-        // Find listings by type
-        const listings = await ListingRepository.Create().findAll(
-          listingFilter,
-          {
-            retry: false,
-          }
-        );
-
-        const listingIds = listings.map((listing) => listing._id);
-
-        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
-
-        // Find products that contain these listing IDs
-        const products = await this.findAll(
-          { listing: { in: listingIds }, ...productFilter },
-          { retry: false }
-        );
-
-        return products;
-      };
-
-      return await FailureRetry.LinearJitterBackoff(() => operation());
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   /**
    * Creates a new product in collection
    * @public
@@ -287,31 +212,25 @@ export default class ProductRepository implements IProductRepository {
       session: ClientSession;
       idempotent: Record<string, any> | null;
       retry: boolean;
+      type: "lease" | "product" | "reservation" | "sell";
     }
   ): Promise<string> {
-    const { session, idempotent, retry } = options;
+    const { session, idempotent, retry, type } = options;
 
     try {
       const operation = async () => {
-        const isCollection = Array.isArray(payload);
-
-        const products = await Product.create(
-          isCollection ? payload : [payload],
-          {
-            session,
-          }
-        );
+        const products = await this.create(payload, session, { type: type });
 
         if (idempotent) await Idempotency.create([idempotent], { session });
 
         const result =
           products.length > 1
-            ? // Create Many
+            ? // Parse Collection
               products.map((product) => ({
                 productId: product._id.toString(),
                 listingId: product.listing.toString(),
               }))
-            : // Create One
+            : // Parse Item
               {
                 productId: products[0]._id.toString(),
                 listingId: products[0].listing.toString(),
@@ -331,162 +250,36 @@ export default class ProductRepository implements IProductRepository {
   }
 
   /**
-   * Creates a new lease product in collection
-   * @public
-   * @param payload the data object (single or bulk)
+   * Creates new product document(s) in collection
+   * @private
+   * @param payload data object
+   * @param session transaction session
    * @param options configuration options
    */
-  async lease(
-    payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<string> {
-    const { session, idempotent, retry = true } = options;
-
+  private async create(
+    payload: Partial<IProduct> | Partial<IProduct>[],
+    session: ClientSession,
+    options: { type: string }
+  ): Promise<IProduct[]> {
     try {
-      const operation = async () => {
-        const isCollection = Array.isArray(payload);
+      const { type } = options;
 
-        const products = await Lease.create(
-          isCollection ? payload : [payload],
-          {
-            session,
-          }
-        );
-
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result =
-          products.length > 1
-            ? // Create Many
-              products.map((product) => ({
-                productId: product._id.toString(),
-                listingId: product.listing.toString(),
-              }))
-            : // Create One
-              {
-                productId: products[0]._id.toString(),
-                listingId: products[0].listing.toString(),
-              };
-
-        return JSON.stringify(result);
+      const factory: Record<string, any> = {
+        lease: Lease,
+        product: Product,
+        reservation: Reservation,
+        sell: Sell,
       };
 
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
+      const model = factory[type];
 
-      return result as Promise<string>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
+      const isCollection = Array.isArray(payload);
 
-  /**
-   * Creates a new reservation product in collection
-   * @public
-   * @param payload the data object
-   * @param options configuration options
-   */
-  async reservation(
-    payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<string> {
-    const { session, idempotent, retry = true } = options;
+      const products = await model.create(isCollection ? payload : [payload], {
+        session,
+      });
 
-    try {
-      const operation = async () => {
-        const isCollection = Array.isArray(payload);
-
-        const products = await Reservation.create(
-          isCollection ? payload : [payload],
-          {
-            session,
-          }
-        );
-
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result =
-          products.length > 1
-            ? // Create Many
-              products.map((product) => ({
-                productId: product._id.toString(),
-                listingId: product.listing.toString(),
-              }))
-            : // Create One
-              {
-                productId: products[0]._id.toString(),
-                listingId: products[0].listing.toString(),
-              };
-
-        return JSON.stringify(result);
-      };
-
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return result as Promise<string>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /**
-   * Creates a new sell product in collection
-   * @public
-   * @param payload the data object
-   * @param options configuration options
-   */
-  async sell(
-    payload: Partial<ISellProduct> | Partial<ISellProduct>[],
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<string> {
-    const { session, idempotent, retry = true } = options;
-
-    try {
-      const operation = async () => {
-        const isCollection = Array.isArray(payload);
-
-        const products = await Sell.create(isCollection ? payload : [payload], {
-          session,
-        });
-
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result =
-          products.length > 1
-            ? // Create Many
-              products.map((product) => ({
-                productId: product._id.toString(),
-                listingId: product.listing.toString(),
-              }))
-            : // Create One
-              {
-                productId: products[0]._id.toString(),
-                listingId: products[0].listing.toString(),
-              };
-
-        return JSON.stringify(result);
-      };
-
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return result as Promise<string>;
+      return products;
     } catch (error: any) {
       throw error;
     }
