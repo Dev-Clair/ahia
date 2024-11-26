@@ -3,6 +3,7 @@ import { z } from "zod";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 
+// Schemas
 const IdSchema = z.object({
   id: z.string({
     required_error: "ID is required",
@@ -34,12 +35,14 @@ const ListingSchema = z.object({
   type: z.enum(["land", "mobile", "property"]),
   location: z.object({
     coordinates: z.array(
-      z.number({
-        invalid_type_error: "location coordinates must be a number array",
-        required_error: "location coordinates are required",
-        message: "location coordinates must be of point type",
-        description: "location coordinates: [lng, lat]",
-      })
+      z
+        .number({
+          invalid_type_error: "location coordinates must be a number array",
+          required_error: "location coordinates are required",
+          message: "location coordinates must be of point type",
+          description: "location coordinates: [lng, lat]",
+        })
+        .optional()
     ),
     address: z.object({
       street: z.string({
@@ -75,12 +78,6 @@ const ProductSchema = z.object({
     required_error: "description is required",
     invalid_type_error: "description must be a string",
   }),
-  features: z.array(
-    z.string({
-      required_error: "features are required",
-      invalid_type_error: "features must be a string array",
-    })
-  ),
   lease: z
     .array(
       z.object({
@@ -220,6 +217,7 @@ const ProductSchema = z.object({
 
 const Product = z.union([ProductSchema, z.array(ProductSchema)]);
 
+// Validators
 const validateID =
   (schema: z.ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
@@ -232,10 +230,7 @@ const validateID =
         return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
           error: {
             name: HttpStatus.UNPROCESSABLE_ENTITY,
-            errors: err.errors.map((error) => ({
-              code: error.code,
-              message: error.message,
-            })),
+            errors: err.errors,
           },
         });
       }
@@ -255,10 +250,7 @@ const validateType =
         return res.status(HttpCode.NOT_FOUND).json({
           error: {
             name: HttpStatus.NOT_FOUND,
-            errors: err.errors.map((error) => ({
-              code: error.code,
-              message: error.message,
-            })),
+            errors: err.errors,
           },
         });
       }
@@ -278,10 +270,7 @@ const validateStatus =
         return res.status(HttpCode.NOT_FOUND).json({
           error: {
             name: HttpStatus.NOT_FOUND,
-            errors: err.errors.map((error) => ({
-              code: error.code,
-              message: error.message,
-            })),
+            errors: err.errors,
           },
         });
       }
@@ -301,10 +290,7 @@ const validateBody =
         return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
           error: {
             name: HttpStatus.UNPROCESSABLE_ENTITY,
-            errors: err.errors.map((error) => ({
-              code: error.code,
-              message: error.message,
-            })),
+            errors: err.errors,
           },
         });
       }
