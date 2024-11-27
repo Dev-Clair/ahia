@@ -12,7 +12,6 @@ PlaceRouter.route("/")
   .post(
     AuthMiddleware.isGranted(["Admin"]),
     AppMiddleware.isContentType(["application/json"]),
-    GeocodeMiddleware.getLocationGeoCoordinates,
     PlaceController.createPlace
   );
 
@@ -25,7 +24,6 @@ PlaceRouter.get(
 PlaceRouter.get(
   "/state/:state",
   AuthMiddleware.isGranted(["Admin"]),
-  GeocodeMiddleware.getLocationGeoCoordinates,
   PlaceController.retrievePlacesByState
 );
 

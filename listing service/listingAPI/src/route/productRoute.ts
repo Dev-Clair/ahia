@@ -37,7 +37,7 @@ ProductRouter.get(
   "/status/:status/place/:place",
   ValidationMiddleware.validateProductStatus,
   GeocodeMiddleware.getLocationGeoCoordinates,
-  ProductController.retrieveProductsByLocation
+  ProductController.retrieveProductsByPlace
 );
 
 ProductRouter.get(

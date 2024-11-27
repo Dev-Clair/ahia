@@ -212,7 +212,7 @@ export default class ProductRepository implements IProductRepository {
       session: ClientSession;
       idempotent: Record<string, any> | null;
       retry: boolean;
-      type: "lease" | "product" | "reservation" | "sell";
+      type: "lease" | "reservation" | "sell";
     }
   ): Promise<string> {
     const { session, idempotent, retry, type } = options;
@@ -266,7 +266,6 @@ export default class ProductRepository implements IProductRepository {
 
       const factory: Record<string, any> = {
         lease: Lease,
-        product: Product,
         reservation: Reservation,
         sell: Sell,
       };
