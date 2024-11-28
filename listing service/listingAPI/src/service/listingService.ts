@@ -211,7 +211,7 @@ export default class ListingService {
    * @param options configuration options
    */
   public async saveListingProduct(
-    payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
+    payload: Partial<IProduct> | Partial<IProduct>[],
     options: {
       idempotent: Record<string, any> | null;
       type: string;

@@ -267,7 +267,7 @@ const createListingProduct = async (
 
     const listing = req.listing as IListing;
 
-    let payload: Partial<unknown> | Partial<unknown>[];
+    let payload: Partial<IProduct> | Partial<IProduct>[];
 
     if (Array.isArray(req.body)) {
       payload = req.body.map((item) => ({

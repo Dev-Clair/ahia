@@ -368,7 +368,7 @@ export default class ListingRepository implements IListingRepository {
    * @param options configuration options
    */
   async saveListingProduct(
-    payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
+    payload: Partial<IProduct> | Partial<IProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
