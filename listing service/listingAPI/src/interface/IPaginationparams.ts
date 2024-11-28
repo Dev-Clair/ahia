@@ -5,5 +5,5 @@ export default interface IPaginationParams extends Record<string, any> {
   reservationLimit?: string;
   sellPage?: string;
   sellLimit?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }

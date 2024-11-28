@@ -1,6 +1,7 @@
+import IDocument from "./IDocument";
 import Offerings from "../constant/offerings";
 
-export default interface IOffering {
+export default interface IOffering extends IDocument {
   name: keyof typeof Offerings;
   category: "economy" | "premium" | "luxury";
   features: string[];
@@ -8,6 +9,5 @@ export default interface IOffering {
     size: number;
     unit: "sqm" | "sqft";
   };
-  quantity: number;
   type: (typeof Offerings)[IOffering["name"]][number];
 }

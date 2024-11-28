@@ -6,11 +6,10 @@ import IProduct from "../interface/IProduct";
 declare global {
   namespace Express {
     export interface Request {
-      address?: string;
       idempotent?: Record<string, any>;
+      geoCoordinates?: IGeoCoordinates;
       listing?: IListing;
       product?: IProduct;
-      geoCoordinates?: IGeoCoordinates;
     }
   }
 }

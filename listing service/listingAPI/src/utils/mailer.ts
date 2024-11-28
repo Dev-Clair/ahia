@@ -7,10 +7,6 @@ import {
 } from "@aws-sdk/client-ses";
 import Config from "../../config";
 
-/**
- * Mailer
- * @method SendMail
- */
 class Mailer {
   private client: SESClient;
 
@@ -25,8 +21,8 @@ class Mailer {
    * @param subject - The subject of the email.
    * @param text - The plain text content of the email.
    * @param html - The HTML content of the email (optional).
-   * @param cc - An array of CC email addresses (optional).
-   * @param bcc - An array of BCC email addresses (optional).
+   * @param cc - An array of Cc email addresses (optional).
+   * @param bcc - An array of Bcc email addresses (optional).
    */
   public async SendMail(
     sender: string,
@@ -70,7 +66,6 @@ class Mailer {
 
   /**
    * Creates and returns a new instance of the Mailer class
-   * @returns Mailer
    */
   public static Create(): Mailer {
     const configuration: SESClientConfig = {

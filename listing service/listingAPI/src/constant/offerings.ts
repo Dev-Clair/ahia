@@ -9,7 +9,7 @@ const Offerings = {
     "shortlets",
     "timeshare",
   ],
-  land: ["agricultural", "commercial", "mixed", "residential"],
+  land: ["agricultural", "commercial", "industrial", "mixed", "residential"],
   mixed: [
     "hospitality-commercial-complex",
     "lifestyle",

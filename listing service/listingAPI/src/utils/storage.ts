@@ -9,17 +9,11 @@ import {
 import { randomUUID } from "node:crypto";
 import Config from "../../config";
 
-/**
- * Storage Class
- * @method upload
- * @method download
- * @method remove
- * @method *retrieveCollection
- */
 class Storage {
   private s3: S3Client;
 
   private bucket: string;
+
   constructor(configuration: S3ClientConfig, bucketName: string) {
     this.s3 = new S3Client(configuration);
 
@@ -27,11 +21,16 @@ class Storage {
   }
 
   /**
-   * Uploads an object to the s3 storage bucket
-   * @param id
-   * @param body
+   * Uploads an object to the S3
+   * @param id unique identifier for the object
+   * @param body file buffer or stream
+   * @param contentType  optional content type for the file object
    */
-  public async upload(id: string, body: any): Promise<string | void> {
+  public async Upload(
+    id: string,
+    body: Buffer,
+    contentType?: string
+  ): Promise<string | void> {
     try {
       const key = `${id}/${randomUUID()}`;
 
@@ -39,6 +38,7 @@ class Storage {
         Bucket: this.bucket,
         Key: key,
         Body: body,
+        ContentType: contentType ?? "application/octet-stream",
         ContentEncoding: "UTF-8",
       };
 
@@ -46,23 +46,27 @@ class Storage {
 
       const response = await this.s3.send(command);
 
-      if (Object.keys(response).includes("VersionId")) {
-        return key;
-      }
+      if ("VersionId" in response) return key;
     } catch (err: any) {
-      throw err;
+      throw new Error(
+        `Failed to upload file object to S3: ${JSON.stringify({
+          name: err.name,
+          code: err.code,
+          message: err.message,
+        })}`
+      );
     }
   }
 
   /**
-   * Retrieves an object from the bucket
-   * @param key
-   * @param start
-   * @param end
+   * Downloads an object from S3
+   * @param key key of the object in S3
+   * @param start start byte for range retrieval (optional)
+   * @param end end byte for range retrieval (optional)
    */
-  public async download(key: string, start: string = "0", end: string = "9") {
+  public async Download(key: string, start?: string, end?: string) {
     try {
-      const streamRange = `bytes=${start}-${end}`;
+      const streamRange = start && end ? `bytes=${start}-${end}` : undefined;
 
       const input = {
         Bucket: this.bucket,
@@ -75,15 +79,21 @@ class Storage {
 
       return response.Body;
     } catch (err: any) {
-      throw err;
+      throw new Error(
+        `Failed to download file object from S3: ${JSON.stringify({
+          name: err.name,
+          code: err.code,
+          message: err.message,
+        })}`
+      );
     }
   }
 
   /**
-   * Removes an object from the bucket
-   * @param key
+   * Deletes an object from S3
+   * @param key key of the object to delete
    */
-  public async remove(key: string): Promise<boolean | undefined> {
+  public async Delete(key: string): Promise<boolean | undefined> {
     try {
       const input = {
         Bucket: this.bucket,
@@ -94,33 +104,43 @@ class Storage {
 
       const response = await this.s3.send(command);
 
-      return response.DeleteMarker;
+      return response.DeleteMarker ?? false;
     } catch (err: any) {
-      throw err;
+      throw new Error(
+        `Failed to delete file object from S3: ${JSON.stringify({
+          name: err.name,
+          code: err.code,
+          message: err.message,
+        })}`
+      );
     }
   }
 
   /**
-   * Retrieves a collection of object names from the storage bucket
-   * @param prefix
+   * Retrieves a paginated collection of objects from S3
+   * @param prefix prefix to filter objects (optional)
    */
-  public async *retrieveCollection(
+  public async *RetrieveCollection(
     prefix: string
   ): AsyncGenerator<string | undefined, any, unknown> {
-    const input = {
-      Bucket: this.bucket,
-      Prefix: prefix,
-    };
+    let continuationToken: string | undefined = undefined;
 
-    const command = new ListObjectsV2Command(input);
+    do {
+      const input = {
+        Bucket: this.bucket,
+        Prefix: prefix,
+      };
 
-    const response = await this.s3.send(command);
+      const command = new ListObjectsV2Command(input);
 
-    const keys = response.Contents?.map((item) => item.Key) ?? [];
+      const response = await this.s3.send(command);
 
-    for (const key of keys) {
-      yield key;
-    }
+      const keys = response.Contents?.map((item) => item.Key) ?? [];
+
+      for (const key of keys) {
+        yield key;
+      }
+    } while (continuationToken);
   }
 
   /**

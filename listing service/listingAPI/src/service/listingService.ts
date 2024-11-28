@@ -12,9 +12,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method update
  * @method delete
  * @method findListingsByProducts
- * @method findListingsByProductSearch
  * @method findListingProducts
- * @method findListingProductById
  * @method saveListingProduct
  * @method updateListingProduct
  * @method deleteListingProduct
@@ -23,12 +21,16 @@ export default class ListingService {
   /** Retrieves a collection of listings
    * @public
    * @param queryString query object
+   * @param options configuration options (optional)
    */
-  async findAll(queryString: Record<string, any>): Promise<IListing[]> {
+  async findAll(
+    queryString: Record<string, any>,
+    options?: { [key: string]: unknown }
+  ): Promise<IListing[]> {
     try {
-      const options = { retry: true };
-
-      return await ListingRepository.Create().findAll(queryString, options);
+      return await ListingRepository.Create().findAll(queryString, {
+        retry: true,
+      });
     } catch (error: any) {
       throw error;
     }
@@ -37,12 +39,14 @@ export default class ListingService {
   /** Retrieves a listing by id
    * @public
    * @param id listing id
+   * @param options configuration options (optional)
    */
-  async findById(id: string): Promise<IListing | null> {
+  async findById(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<IListing | null> {
     try {
-      const options = { retry: true };
-
-      return await ListingRepository.Create().findById(id, options);
+      return await ListingRepository.Create().findById(id, { retry: true });
     } catch (error: any) {
       throw error;
     }
@@ -51,21 +55,21 @@ export default class ListingService {
   /** Retrieves a listing by id and populates product subdocument
    * @public
    * @param id listing id
-   * @param type product type
-   * @param page the set to retrieve per query
-   * @param limit the number of subdocument to retrieve per query
+   * @param options configuration options
    */
   async findByIdAndPopulate(
     id: string,
     options: {
-      type: string;
       page: number;
       limit: number;
     }
   ): Promise<IListing | null> {
     try {
+      const { page, limit } = options;
+
       return await ListingRepository.Create().findByIdAndPopulate(id, {
-        ...options,
+        page: page,
+        limit: limit,
         retry: true,
       });
     } catch (error: any) {
@@ -74,22 +78,29 @@ export default class ListingService {
   }
 
   /**
-   * Creates a new listing collection
+   * Creates a new listing in collection
    * @public
-   * @param key operation idempotency key
-   * @param payload the data object
+   * @param payload data object
+   * @param options configuration options
    */
   async save(
-    key: Record<string, any>,
-    payload: Partial<IListing>
-  ): Promise<string> {
+    payload: Partial<IListing> | Partial<IListing>[],
+    options: { idempotent: Record<string, any> }
+  ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
       return await session.withTransaction(async () => {
-        const options = { session: session, idempotent: key, retry: true };
+        const { idempotent } = options;
 
-        const listing = await ListingRepository.Create().save(payload, options);
+        const listing = await ListingRepository.Create().save(
+          Array.isArray(payload) ? payload : [payload],
+          {
+            session: session,
+            idempotent: idempotent,
+            retry: true,
+          }
+        );
 
         return listing;
       });
@@ -103,26 +114,26 @@ export default class ListingService {
   /**
    * Updates a listing by id
    * @public
-   * @param id the listing string
-   * @param key operation idempotency key
-   * @param payload the data object
+   * @param id listing id
+   * @param payload data object
+   * @param options configuration options
    */
   async update(
     id: string,
-    key: Record<string, any>,
-    payload: Partial<IListing> | any
+    payload: Partial<IListing> | any,
+    options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const options = { session: session, idempotent: key, retry: true };
+      const { idempotent } = options;
 
-        const listing = await ListingRepository.Create().update(
-          id,
-          payload,
-          options
-        );
+      return await session.withTransaction(async () => {
+        const listing = await ListingRepository.Create().update(id, payload, {
+          session: session,
+          idempotent: idempotent,
+          retry: true,
+        });
 
         return listing;
       });
@@ -136,16 +147,21 @@ export default class ListingService {
   /**
    * Deletes a listing by id
    * @public
-   * @param id the listing string
+   * @param id listing id
+   * @param options configuration options (optional)
    */
-  async delete(id: string): Promise<string> {
+  async delete(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
       return await session.withTransaction(async () => {
-        const options = { session: session, retry: true };
-
-        const listing = await ListingRepository.Create().delete(id, options);
+        const listing = await ListingRepository.Create().delete(id, {
+          session: session,
+          retry: true,
+        });
 
         return listing;
       });
@@ -168,39 +184,15 @@ export default class ListingService {
     }
   }
 
-  /** Retrieves a collection of listings based on products
-   * that match search filter/criteria
-   * @public
-   * @param searchFilter query filter object
-   */
-  public async findListingsByProductSearch(searchFilter: {
-    offering: { name: string; category: string; type: string };
-    status: string;
-    type: string;
-    minArea?: number;
-    maxArea?: number;
-  }): Promise<IListing[]> {
-    try {
-      return await ListingRepository.Create().findListingsByProductSearch(
-        searchFilter
-      );
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   /** Retrieves a listing's collection of products
    * @public
-   * @param type product type
    * @param queryString query object
    */
   async findListingProducts(
-    type: string,
     queryString: Record<string, any>
   ): Promise<IProduct[]> {
     try {
       const products = await ListingRepository.Create().findListingProducts(
-        type,
         queryString
       );
 
@@ -210,47 +202,33 @@ export default class ListingService {
     }
   }
 
-  /** Retrieves a listing's product by id
-   * @public
-   * @param id product id
-   * @param type product type
-   */
-  async findListingProductById(
-    id: string,
-    type: string
-  ): Promise<IProduct | null> {
-    try {
-      return await ListingRepository.Create().findListingProductById(id, type);
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   /**
-   * Creates a new product on a listing
+   * Creates a new product (type: lease, reservation, sell) on a listing
    * @public
-   * @param type product type
-   * @param key operation idempotency key
-   * @param payload the data object
-   * @param listingId listing id
+   * @param payload data object
+   * @param options configuration options
    */
   public async saveListingProduct(
-    type: string,
-    key: Record<string, any>,
-    payload: Partial<IProduct>,
-    listingId: Partial<IListing> | any
-  ): Promise<string> {
+    payload: Partial<IProduct> | Partial<IProduct>[],
+    options: {
+      idempotent: Record<string, any> | null;
+      type: string;
+    }
+  ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const options = { session: session, idempotent: key, retry: true };
+      const { idempotent, type } = options;
 
+      return await session.withTransaction(async () => {
         const product = await ListingRepository.Create().saveListingProduct(
-          type,
-          payload,
-          listingId,
-          options
+          Array.isArray(payload) ? payload : [payload],
+          {
+            session: session,
+            idempotent: idempotent,
+            retry: true,
+            type: type,
+          }
         );
 
         return product;
@@ -266,27 +244,28 @@ export default class ListingService {
    * Updates a listing's product by id
    * @public
    * @param id product id
-   * @param type product type
-   * @param key the operation idempotency key
-   * @param payload the data object
+   * @param payload data object
+   * @param options configuration options
    */
   public async updateListingProduct(
     id: string,
-    type: string,
-    key: Record<string, any>,
-    payload: Partial<IProduct> | any
+    payload: Partial<IProduct> | any,
+    options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const options = { session: session, idempotent: key, retry: true };
+      const { idempotent } = options;
 
+      return await session.withTransaction(async () => {
         const product = await ListingRepository.Create().updateListingProduct(
           id,
-          type,
           payload,
-          options
+          {
+            session: session,
+            idempotent: idempotent,
+            retry: true,
+          }
         );
 
         return product;
@@ -301,26 +280,20 @@ export default class ListingService {
   /**
    * Deletes a listing's product by id
    * @public
-   * @param type product type
-   * @param productId product id
-   * @param listingId listing id
+   * @param id product id
+   * @param options configuration options (optional)
    */
   public async deleteListingProduct(
-    type: string,
-    productId: string,
-    listingId: string
+    id: string,
+    options?: { [key: string]: unknown }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
       return await session.withTransaction(async () => {
-        const options = { session: session, retry: true };
-
         const product = await ListingRepository.Create().deleteListingProduct(
-          type,
-          productId,
-          listingId,
-          options
+          id,
+          { session: session, retry: true }
         );
 
         return product;

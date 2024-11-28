@@ -1,15 +1,6 @@
 import { Query } from "mongoose";
 import IQueryString from "../interface/IQuerystring";
 
-/**
- * QueryBuilder
- * @method Exec - query execution
- * @method Filter - query filtering
- * @method GeoSpatial - geospatial (near or within queries)
- * @method Paginate - query pagination
- * @method Select - query projection
- * @method Sort - query sorting
- */
 export class QueryBuilder<T> {
   private query: Query<T[], T>;
 

@@ -26,72 +26,78 @@ const ListingSchema: Schema<IListing> = new Schema(
         required: false,
       },
     ],
-    address: {
-      street: {
-        type: String,
-        required: true,
-      },
-      city: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
-      zip: {
-        type: String,
-        required: false,
-      },
-    },
     location: {
       type: {
         type: String,
         enum: ["Point"],
-        default: "Point",
+        default: function (this: IListing) {
+          if (this.type === "land" || this.type === "property") return "Point";
+        },
       },
       coordinates: {
         type: [Number],
         validate: {
-          validator: function (value: [number, number]) {
-            return Array.isArray(value) && value.length === 2;
+          validator: function (this: IListing) {
+            return this.type === "land" || this.type === "property";
           },
-          message: "coordinates must be an array tuple of two numbers",
+          message: "coordinates only applies for land or property listings",
         },
         required: false,
       },
+      address: {
+        street: {
+          type: String,
+          required: true,
+        },
+        city: {
+          type: String,
+          required: true,
+        },
+        state: {
+          type: String,
+          required: true,
+        },
+        zip: {
+          type: String,
+          required: false,
+        },
+      },
     },
     provider: {
-      id: {
-        type: String,
-        required: true,
+      type: String,
+      validate: {
+        validator: (value: string) =>
+          /^[0-9a-fA-F]{24}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+            value
+          ),
+        message: "Invalid ID (must be either an ObjectId or a UUID)",
       },
-      slug: {
-        type: String,
-        required: true,
-      },
+      required: true,
     },
     media: {
-      image: {
-        type: String,
-        get: (value: string) => `${baseStoragePath}${value}`,
-        required: [true, "Kindly add an image (.png | .jpg) for this listing"],
+      images: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        required: false,
       },
-      video: {
-        type: String,
-        get: (value: string) => `${baseStoragePath}${value}`,
+      videos: {
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
         required: false,
       },
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
 
 // Listing Schema Search Query Index
 ListingSchema.index({
-  location: "2dsphere",
-  "provider.id": "text",
-  "provider.slug": "text",
+  "location.coordinates": "2dsphere",
+  "location.address.city": "text",
+  "location.address.state": "text",
+  provider: "text",
   type: "text",
 });
 

@@ -26,25 +26,51 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     type: {
       type: String,
-      enum: ["lease", "reservation", "sell"],
+      enum: ["Lease", "Reservation", "Sell"],
       required: true,
     },
     media: {
       images: {
-        type: String,
-        get: (value: string) => `${baseStoragePath}${value}`,
-        required: [true, "Kindly add an image (.png | .jpg) for this product"],
+        type: [String],
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
+        required: false,
       },
       videos: {
         type: [String],
-        get: (value: string) => `${baseStoragePath}${value}`,
+        get: (values: string[]) =>
+          values.map((value) => `${baseStoragePath}${value}`),
         required: false,
       },
     },
     promotion: {
       type: String,
-      enum: ["platinum", "gold", "ruby", "silver"],
-      default: "silver",
+      enum: ["Platinum", "Gold", "Ruby", "Silver"],
+      default: "Silver",
+    },
+    status: {
+      type: String,
+      enum: [
+        "now-letting",
+        "closed",
+        "now-booking",
+        "booked",
+        "now-selling",
+        "sold",
+      ],
+      default: function (this: IProduct) {
+        switch (this.type) {
+          case "Lease":
+            return "now-letting";
+          case "Reservation":
+            return "now-booking";
+          case "Sell":
+            return "now-selling";
+          default:
+            throw new Error("Invalid product type option");
+        }
+      },
+      required: true,
     },
     verification: {
       status: {
@@ -54,18 +80,29 @@ const ProductSchema: Schema<IProduct> = new Schema(
       },
       expiry: {
         type: Date,
-        default: () =>
-          new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString(),
+        validate: {
+          validator: function (this: IProduct) {
+            return this.type !== "Reservation";
+          },
+          message: "expiry only applies for non-reservation products",
+        },
+        default: function (this: IProduct) {
+          return this.type !== "Reservation"
+            ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString()
+            : undefined;
+        },
       },
     },
   },
   {
     discriminatorKey: "type",
     timestamps: true,
+    toJSON: { getters: true },
+    toObject: { getters: true },
   }
 );
 
-// Product Schema Search Query Index
+// Product Schema Search Index
 ProductSchema.index({
   "offering.name": "text",
   "offering.category": "text",

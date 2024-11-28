@@ -18,40 +18,25 @@ const createListing = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
-    const payload = req.body as Partial<IListing>;
+    let payload: Partial<IListing> | Partial<IListing>[];
 
-    payload.provider = {
-      id: req.headers["provider-id"] as string,
-      slug: req.headers["provider-slug"] as string,
-    };
+    if (Array.isArray(req.body)) {
+      payload = req.body.map((item) => ({
+        ...item,
+        provider: req.headers["provider"] as string,
+      }));
+    } else {
+      payload = {
+        ...req.body,
+        provider: req.headers["provider"] as string,
+      };
+    }
 
-    const listing = await ListingService.Create().save(key, payload);
+    const listing = await ListingService.Create().save(payload, { idempotent });
 
     return res.status(HttpCode.CREATED).json({ data: listing });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve listings
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveListings = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const queryString = req.query as Record<string, any>;
-
-    const listings = await ListingService.Create().findAll(queryString);
-
-    return res.status(HttpCode.OK).json({ data: listings });
   } catch (err: any) {
     return next(err);
   }
@@ -69,7 +54,7 @@ const retrieveListingsSearch = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const search = req.query.search as string;
+    const search = req.query.q as string;
 
     if (!search) throw new BadRequestError(`Kindly enter a text to search`);
 
@@ -95,9 +80,9 @@ const retrieveListingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const slug = req.params.slug as string;
+    const id = req.params.id as string;
 
-    const queryString = { provider: { slug: slug } };
+    const queryString = { provider: id };
 
     const listings = await ListingService.Create().findAll(queryString);
 
@@ -190,8 +175,6 @@ const retrieveListingByIdAndPopulate = async (
     const id = req.params.id as string;
 
     const options = {
-      type: req.params.type as string,
-
       page: parseInt((req.query.page as string) ?? "1", 10),
 
       limit: parseInt((req.query.limit as string) ?? "10", 10),
@@ -224,11 +207,13 @@ const updateListingById = async (
   try {
     const id = req.params.id as string;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IListing>;
 
-    const listing = await ListingService.Create().update(id, key, payload);
+    const listing = await ListingService.Create().update(id, payload, {
+      idempotent,
+    });
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -263,7 +248,7 @@ const deleteListingById = async (
 };
 
 /**
- * Creates a new listing product
+ * Creates a new listing product dynamically based on product type
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -274,24 +259,32 @@ const createListingProduct = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const type = req.query.type as string;
 
-    const type = req.params.type as string;
+    if (!type) throw new Error("Kindly indicate a product type");
 
-    const payload = req.body as Partial<IProduct>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const listing = req.listing as IListing;
 
-    const listingId = listing._id;
+    let payload: Partial<IProduct> | Partial<IProduct>[];
 
-    payload.listing = listingId;
+    if (Array.isArray(req.body)) {
+      payload = req.body.map((item) => ({
+        ...item,
+        listing: listing._id,
+      }));
+    } else {
+      payload = {
+        ...req.body,
+        listing: listing._id,
+      };
+    }
 
-    const product = await ListingService.Create().saveListingProduct(
+    const product = await ListingService.Create().saveListingProduct(payload, {
+      idempotent,
       type,
-      key,
-      payload,
-      listingId
-    );
+    });
 
     return res.status(HttpCode.CREATED).json({ data: product });
   } catch (err: any) {
@@ -311,8 +304,6 @@ const retrieveListingProducts = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const type = req.params.type as string;
-
     const queryString = req.query as Record<string, any>;
 
     const listing = req.listing as IListing;
@@ -322,7 +313,6 @@ const retrieveListingProducts = async (
     queryString.listing = listingId;
 
     const products = await ListingService.Create().findListingProducts(
-      type,
       queryString
     );
 
@@ -344,19 +334,16 @@ const updateListingProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const productId = req.params.productId as string;
+    const id = req.params.productId as string;
 
-    const key = req.idempotent as Record<string, any>;
-
-    const type = req.params.type as string;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IProduct>;
 
     const product = await ListingService.Create().updateListingProduct(
-      productId,
-      type,
-      key,
-      payload
+      id,
+      payload,
+      { idempotent }
     );
 
     return res.status(HttpCode.MODIFIED).json({ data: product });
@@ -377,19 +364,9 @@ const deleteListingProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const productId = req.params.productId as string;
+    const id = req.params.productId as string;
 
-    const type = req.params.type as string;
-
-    const listing = req.listing as IListing;
-
-    const listingId = listing._id.toString();
-
-    const product = await ListingService.Create().deleteListingProduct(
-      type,
-      productId,
-      listingId
-    );
+    const product = await ListingService.Create().deleteListingProduct(id);
 
     return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {
@@ -399,7 +376,6 @@ const deleteListingProductById = async (
 
 export default {
   createListing,
-  retrieveListings,
   retrieveListingsSearch,
   retrieveListingsByProvider,
   retrieveListingsByType,
