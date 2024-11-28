@@ -206,12 +206,12 @@ export default class ProductRepository implements IProductRepository {
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
-      retry: boolean;
+      retry?: boolean;
       type: string;
     }
   ): Promise<string[]> {
     try {
-      const { session, idempotent, retry, type } = options;
+      const { session, idempotent, retry = true, type } = options;
 
       const modelFactory: Record<string, any> = {
         lease: Lease,
@@ -263,9 +263,9 @@ export default class ProductRepository implements IProductRepository {
       retry?: boolean;
     }
   ): Promise<string> {
-    const { session, idempotent, retry = true } = options;
-
     try {
+      const { session, idempotent, retry = true } = options;
+
       const operation = async () => {
         const product = await Product.findByIdAndUpdate({ _id: id }, payload, {
           new: true,
@@ -302,9 +302,9 @@ export default class ProductRepository implements IProductRepository {
     id: string,
     options: { session: ClientSession; retry?: boolean }
   ): Promise<string> {
-    const { session, retry = true } = options;
-
     try {
+      const { session, retry = true } = options;
+
       const operation = async () => {
         const product = await Product.findByIdAndDelete({ _id: id }, session);
 

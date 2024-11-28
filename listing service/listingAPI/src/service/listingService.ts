@@ -13,9 +13,7 @@ import ListingRepository from "../repository/listingRepository";
  * @method delete
  * @method findListingsByProducts
  * @method findListingProducts
- * @method saveListingLeaseProduct
- * @method saveListingReservationProduct
- * @method saveListingSellProduct
+ * @method saveListingProduct
  * @method updateListingProduct
  * @method deleteListingProduct
  */
