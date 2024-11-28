@@ -9,6 +9,9 @@ import Product from "../model/productModel";
 import Reservation from "../model/reservationModel";
 import Sell from "../model/sellModel";
 import { QueryBuilder } from "../utils/queryBuilder";
+import ILeaseProduct from "../interface/ILeaseproduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 
 /**
  * Product Repository
@@ -199,62 +202,16 @@ export default class ProductRepository implements IProductRepository {
    * @param options configuration options
    */
   async save(
-    payload: Partial<IProduct> | Partial<IProduct>[],
+    payload: Partial<IProduct>[],
     options: {
       session: ClientSession;
       idempotent: Record<string, any> | null;
       retry: boolean;
       type: string;
     }
-  ): Promise<string> {
-    const { session, idempotent, retry, type } = options;
-
+  ): Promise<string[]> {
     try {
-      const operation = async () => {
-        const products = await this.create(payload, session, { type: type });
-
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result =
-          products.length > 1
-            ? // Parse Collection
-              products.map((product) => ({
-                productId: product._id.toString(),
-                listingId: product.listing.toString(),
-              }))
-            : // Parse Item
-              {
-                productId: products[0]._id.toString(),
-                listingId: products[0].listing.toString(),
-              };
-
-        return JSON.stringify(result);
-      };
-
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return result as Promise<string>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /**
-   * Creates new product document(s) in collection
-   * @private
-   * @param payload data object
-   * @param session transaction session
-   * @param options configuration options
-   */
-  private async create(
-    payload: Partial<IProduct> | Partial<IProduct>[],
-    session: ClientSession,
-    options: { type: string }
-  ): Promise<IProduct[]> {
-    try {
-      const { type } = options;
+      const { session, idempotent, retry, type } = options;
 
       const modelFactory: Record<string, any> = {
         lease: Lease,
@@ -264,13 +221,27 @@ export default class ProductRepository implements IProductRepository {
 
       const model = modelFactory[type];
 
-      const isCollection = Array.isArray(payload);
+      const operation = async () => {
+        const products:
+          | ILeaseProduct[]
+          | IReservationProduct[]
+          | ISellProduct[] = await model.create(payload, { session });
 
-      const products = await model.create(isCollection ? payload : [payload], {
-        session,
-      });
+        if (idempotent) await Idempotency.create([idempotent], { session });
 
-      return products;
+        const result = products.map((product) => ({
+          productId: product._id.toString(),
+          listingId: product.listing.toString(),
+        }));
+
+        return result;
+      };
+
+      const result = retry
+        ? await FailureRetry.ExponentialBackoff(() => operation())
+        : await operation();
+
+      return result as Promise<string[]>;
     } catch (error: any) {
       throw error;
     }

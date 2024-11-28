@@ -38,9 +38,9 @@ export default interface IListingRepository extends IRepository<IListing> {
    * @param options configuration options
    */
   save(
-    payload: Partial<IListing> | Partial<IListing>[],
+    payload: Partial<IListing>[],
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<string[]>;
 
   /**
    * Updates a listing by id

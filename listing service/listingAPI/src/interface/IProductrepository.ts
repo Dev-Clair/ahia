@@ -38,9 +38,9 @@ export default interface IProductRepository extends IRepository<IProduct> {
    * @param options configuration options
    */
   save(
-    payload: Partial<IProduct> | Partial<IProduct>[],
+    payload: Partial<IProduct>[],
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<string | string[]>;
 
   /**
    * Updates a product by id

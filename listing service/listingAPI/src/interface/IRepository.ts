@@ -24,7 +24,7 @@ export default interface IRepository<T> {
   save(
     payload: Partial<T> | Partial<T>[],
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<string | string[]>;
 
   /**
    * Updates a document by id

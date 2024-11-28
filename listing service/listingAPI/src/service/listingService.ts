@@ -1,9 +1,6 @@
 import mongoose from "mongoose";
 import IListing from "../interface/IListing";
 import IProduct from "../interface/IProduct";
-import ILeaseProduct from "../interface/ILeaseproduct";
-import IReservationProduct from "../interface/IReservationproduct";
-import ISellProduct from "../interface/ISellproduct";
 import ListingRepository from "../repository/listingRepository";
 
 /**
@@ -91,18 +88,21 @@ export default class ListingService {
   async save(
     payload: Partial<IListing> | Partial<IListing>[],
     options: { idempotent: Record<string, any> }
-  ): Promise<string | string[]> {
+  ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
-        const listing = await ListingRepository.Create().save(payload, {
-          session: session,
-          idempotent: idempotent,
-          retry: true,
-        });
+        const listing = await ListingRepository.Create().save(
+          Array.isArray(payload) ? payload : [payload],
+          {
+            session: session,
+            idempotent: idempotent,
+            retry: true,
+          }
+        );
 
         return listing;
       });
@@ -216,7 +216,7 @@ export default class ListingService {
       idempotent: Record<string, any> | null;
       type: string;
     }
-  ): Promise<string | string[]> {
+  ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
@@ -224,7 +224,7 @@ export default class ListingService {
 
       return await session.withTransaction(async () => {
         const product = await ListingRepository.Create().saveListingProduct(
-          payload,
+          Array.isArray(payload) ? payload : [payload],
           {
             session: session,
             idempotent: idempotent,
