@@ -3,7 +3,6 @@ import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
 import IListing from "../interface/IListing";
 import IListingRepository from "../interface/IListingrepository";
-import ILeaseProduct from "../interface/ILeaseproduct";
 import IProduct from "../interface/IProduct";
 import ProductRepository from "./productRepository";
 import Listing from "../model/listingModel";
