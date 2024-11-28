@@ -1,6 +1,9 @@
 import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
+import ILeaseProduct from "../interface/ILeaseproduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 import IProduct from "../interface/IProduct";
 import IProductRepository from "../interface/IProductrepository";
 import ListingRepository from "./listingRepository";
@@ -9,9 +12,6 @@ import Product from "../model/productModel";
 import Reservation from "../model/reservationModel";
 import Sell from "../model/sellModel";
 import { QueryBuilder } from "../utils/queryBuilder";
-import ILeaseProduct from "../interface/ILeaseproduct";
-import IReservationProduct from "../interface/IReservationproduct";
-import ISellProduct from "../interface/ISellproduct";
 
 /**
  * Product Repository
