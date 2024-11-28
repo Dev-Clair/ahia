@@ -104,7 +104,7 @@ const promiseServiceFactory = async ({
 
     promises.push(
       productService
-        .findProductsByLocation(locationFilter, leaseFilter)
+        .findProductsByListing(locationFilter, leaseFilter)
         .then((value) => {
           cache.set(leaseKey, value);
 
@@ -140,7 +140,7 @@ const promiseServiceFactory = async ({
 
     promises.push(
       productService
-        .findProductsByLocation(locationFilter, reservationFilter)
+        .findProductsByListing(locationFilter, reservationFilter)
         .then((value) => {
           cache.set(reservationKey, value);
 
@@ -173,7 +173,7 @@ const promiseServiceFactory = async ({
 
     promises.push(
       productService
-        .findProductsByLocation(locationFilter, sellFilter)
+        .findProductsByListing(locationFilter, sellFilter)
         .then((value) => {
           cache.set(sellKey, value);
 

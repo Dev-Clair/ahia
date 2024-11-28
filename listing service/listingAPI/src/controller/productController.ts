@@ -39,7 +39,7 @@ const retrieveProductsSearch = async (
     const searchQuery = { $text: { $search: search }, status: status };
 
     // Query
-    const products = await ProductService.Create().findProductsByLocation(
+    const products = await ProductService.Create().findProductsByListing(
       locationFilter,
       searchQuery
     );
@@ -75,7 +75,7 @@ const retrieveProductsByLocation = async (
     const productFilter: Record<string, any> = { status: status };
 
     // Query
-    const products = await ProductService.Create().findProductsByLocation(
+    const products = await ProductService.Create().findProductsByListing(
       locationFilter,
       productFilter
     );
@@ -113,7 +113,7 @@ const retrieveProductsNearBy = async (
     const productFilter: Record<string, any> = { status: status };
 
     // Query
-    const products = await ProductService.Create().findProductsByLocation(
+    const products = await ProductService.Create().findProductsByListing(
       locationFilter,
       productFilter
     );
@@ -175,7 +175,7 @@ const retrieveProductsByOffering = async (
     };
 
     // Query
-    const products = await ProductService.Create().findProductsByLocation(
+    const products = await ProductService.Create().findProductsByListing(
       locationFilter,
       productFilter
     );
@@ -213,7 +213,7 @@ const retrieveProductsByPlace = async (
     const productFilter: Record<string, any> = { status: status };
 
     // Query
-    const products = await ProductService.Create().findProductsByLocation(
+    const products = await ProductService.Create().findProductsByListing(
       locationFilter,
       productFilter
     );
@@ -247,11 +247,10 @@ const retrieveProductsByListingProvider = async (
     const productFilter: Record<string, any> = { status: status };
 
     // Query
-    const products =
-      await ProductService.Create().findProductsByListingProvider(
-        listingFilter,
-        productFilter
-      );
+    const products = await ProductService.Create().findProductsByListing(
+      listingFilter,
+      productFilter
+    );
 
     return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
@@ -290,7 +289,7 @@ const retrieveProductsByListingType = async (
     const productFilter: Record<string, any> = { status: status };
 
     // Query
-    const products = await ProductService.Create().findProductsByListingType(
+    const products = await ProductService.Create().findProductsByListing(
       listingFilter,
       productFilter
     );

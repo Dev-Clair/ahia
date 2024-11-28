@@ -1,11 +1,8 @@
-import { ClientSession, Model } from "mongoose";
+import { ClientSession } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import Idempotency from "../model/idempotencyModel";
-import ILeaseProduct from "../interface/ILeaseproduct";
 import IProduct from "../interface/IProduct";
 import IProductRepository from "../interface/IProductrepository";
-import IReservationProduct from "../interface/IReservationproduct";
-import ISellProduct from "../interface/ISellproduct";
 import ListingRepository from "./listingRepository";
 import Lease from "../model/leaseModel";
 import Product from "../model/productModel";
@@ -18,13 +15,8 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findAll
  * @method findById
  * @method findByIdAndPopulate
- * @method findProductsByLocation
- * @method findProductsByListingProvider
- * @method findProductsByListingType
+ * @method findProductsByListing
  * @method save
- * @method lease
- * @method reservation
- * @method sell
  * @method update
  * @method delete
  */
@@ -212,7 +204,7 @@ export default class ProductRepository implements IProductRepository {
       session: ClientSession;
       idempotent: Record<string, any> | null;
       retry: boolean;
-      type: "lease" | "reservation" | "sell";
+      type: string;
     }
   ): Promise<string> {
     const { session, idempotent, retry, type } = options;
@@ -264,13 +256,13 @@ export default class ProductRepository implements IProductRepository {
     try {
       const { type } = options;
 
-      const factory: Record<string, any> = {
+      const modelFactory: Record<string, any> = {
         lease: Lease,
         reservation: Reservation,
         sell: Sell,
       };
 
-      const model = factory[type];
+      const model = modelFactory[type];
 
       const isCollection = Array.isArray(payload);
 

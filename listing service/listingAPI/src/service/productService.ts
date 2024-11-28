@@ -4,9 +4,7 @@ import ProductRepository from "../repository/productRepository";
 /**
  * Product Service
  * @method findAll
- * @method findByLocation
- * @method findByListingProvider
- * @method findByListingType
+ * @method findByListing
  * @method findById
  * @method findByIdAndPopulate
  */
@@ -30,54 +28,13 @@ export default class ProductService {
     }
   }
 
-  /** Retrieves a collection of product offerings by location (geo-coordinates)
+  /** Retrieves a collection of product offerings by listing
+   * filter: location (geo-coordinates), provider, type (land | mobile | property)
    * @public
    * @param listingFilter listing filter
    * @param productFilter product filter
    */
-  async findProductsByLocation(
-    listingFilter: Record<string, any>,
-    productFilter: Record<string, any>
-  ): Promise<IProduct[]> {
-    try {
-      const products = await ProductRepository.Create().findProductsByListing(
-        listingFilter,
-        productFilter
-      );
-
-      return products;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a collection of products by listing provider
-   * @public
-   * @param listingFilter listing filter
-   * @param productFilter product filter
-   */
-  async findProductsByListingProvider(
-    listingFilter: Record<string, any>,
-    productFilter: Record<string, any>
-  ): Promise<IProduct[]> {
-    try {
-      const products = await ProductRepository.Create().findProductsByListing(
-        listingFilter,
-        productFilter
-      );
-
-      return products;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a collection of products by listing type: land | mobile | property
-   * @public
-   * @param listingFilter listing filter
-   * @param productFilter product filter
-   */
-  async findProductsByListingType(
+  async findProductsByListing(
     listingFilter: Record<string, any>,
     productFilter: Record<string, any>
   ): Promise<IProduct[]> {

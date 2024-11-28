@@ -267,22 +267,6 @@ const createListingProduct = async (
 
     const listing = req.listing as IListing;
 
-    const productTypeServiceFactory: Record<
-      string,
-      (
-        payload: Partial<unknown> | Partial<unknown>[],
-        options: any
-      ) => Promise<string | string[]>
-    > = {
-      lease: ListingService.Create().saveListingLeaseProduct,
-      reservation: ListingService.Create().saveListingReservationProduct,
-      sell: ListingService.Create().saveListingSellProduct,
-    };
-
-    const productService = productTypeServiceFactory[type];
-
-    if (!productService) throw new Error("Invalid product type option");
-
     let payload: Partial<unknown> | Partial<unknown>[];
 
     if (Array.isArray(req.body)) {
@@ -297,7 +281,10 @@ const createListingProduct = async (
       };
     }
 
-    const product = await productService(payload, { idempotent });
+    const product = await ListingService.Create().saveListingProduct(payload, {
+      idempotent,
+      type,
+    });
 
     return res.status(HttpCode.CREATED).json({ data: product });
   } catch (err: any) {
