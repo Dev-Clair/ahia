@@ -317,11 +317,11 @@ export default class ProductRepository implements IProductRepository {
         return JSON.stringify({ productId: productId, listingId: listingId });
       };
 
-      const productId = retry
+      const product = retry
         ? await FailureRetry.ExponentialBackoff(() => operation())
         : await operation();
 
-      return productId as Promise<string>;
+      return product as Promise<string>;
     } catch (error: any) {
       throw error;
     }
