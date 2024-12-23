@@ -24,6 +24,10 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: Schema.Types.ObjectId,
         ref: "Product",
         required: false,
+        validate: {
+          validator: mongoose.isValidObjectId,
+          message: "Invalid ObjectId",
+        },
       },
     ],
     location: {

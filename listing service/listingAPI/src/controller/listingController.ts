@@ -5,6 +5,7 @@ import IProduct from "../interface/IProduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
+import mongoose, { Schema } from "mongoose";
 
 /**
  * Creates a new listing in collection

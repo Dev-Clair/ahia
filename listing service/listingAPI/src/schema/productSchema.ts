@@ -11,6 +11,10 @@ const ProductSchema: Schema<IProduct> = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Listing",
       required: true,
+      validate: {
+        validator: mongoose.isValidObjectId,
+        message: "Invalid ObjectId",
+      },
     },
     name: {
       type: String,
