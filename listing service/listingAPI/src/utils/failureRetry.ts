@@ -14,7 +14,7 @@ class FailureRetry {
         retries: options.retries,
         factor: options.factor,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           console.error(
             `Exponential retry attempt no. ${attempt} failed.\nThere are ${
               options.retries - attempt
@@ -42,7 +42,7 @@ class FailureRetry {
         retries: options.retries,
         factor: options.factor,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           const jitter = Math.random() * (options as any).jitterFactor;
 
           const timeout =
@@ -71,7 +71,7 @@ class FailureRetry {
       {
         retries: options.retries,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           console.error(
             `Linear retry attempt no. ${attempt} failed.\nError: ${error.message}.\nNext retry in ${options.minTimeout}ms`
           );
@@ -96,7 +96,7 @@ class FailureRetry {
       {
         retries: options.retries,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           const jitter = Math.random() * (options as any).jitterFactor;
 
           console.error(
