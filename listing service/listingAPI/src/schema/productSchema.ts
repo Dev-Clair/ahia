@@ -43,11 +43,6 @@ const ProductSchema: Schema<IProduct> = new Schema(
         required: false,
       },
     },
-    promotion: {
-      type: String,
-      enum: ["Platinum", "Gold", "Ruby", "Silver"],
-      default: "Silver",
-    },
     status: {
       type: String,
       enum: [

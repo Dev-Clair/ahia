@@ -58,7 +58,10 @@ export default class ListingRepository implements IListingRepository {
       const operation = async () => {
         const query = Listing.find();
 
-        const filter = { ...queryString };
+        const filter = {
+          ...queryString,
+          // verification: { status: "approved" },
+        };
 
         const queryBuilder = QueryBuilder.Create(query, filter);
 

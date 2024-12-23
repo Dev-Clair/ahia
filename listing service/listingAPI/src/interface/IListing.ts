@@ -21,4 +21,12 @@ export default interface IListing extends IDocument {
     image: string[];
     video?: string[];
   };
+  verification: {
+    status?: "pending" | "approved" | "rejected";
+    document: {
+      id?: string;
+      type?: string;
+    };
+    issuedBy?: string;
+  };
 }

@@ -88,6 +88,28 @@ const ListingSchema: Schema<IListing> = new Schema(
         required: false,
       },
     },
+    verification: {
+      status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+        required: false,
+      },
+      document: {
+        id: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          required: false,
+        },
+      },
+      issuedBy: {
+        type: String,
+        required: false,
+      },
+    },
   },
   { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );

@@ -3,7 +3,7 @@ import Offerings from "../constant/offerings";
 
 export default interface IOffering extends IDocument {
   name: keyof typeof Offerings;
-  category: "economy" | "premium" | "luxury";
+  category: "economy" | "premium" | "luxury" | "exclusive";
   features: string[];
   area: {
     size: number;
