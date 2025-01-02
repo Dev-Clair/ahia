@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import IListing from "../interface/IListing";
+import ILeaseProduct from "../interface/ILeaseproduct";
 import IProduct from "../interface/IProduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 import ListingRepository from "../repository/listingRepository";
 
 /**
@@ -13,7 +16,9 @@ import ListingRepository from "../repository/listingRepository";
  * @method delete
  * @method findListingsByProducts
  * @method findListingProducts
- * @method saveListingProduct
+ * @method saveListingLeasegProduct
+ * @method saveListingReservationProduct
+ * @method saveListingSellProduct
  * @method updateListingProduct
  * @method deleteListingProduct
  */
@@ -126,9 +131,9 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const { idempotent } = options;
-
       return await session.withTransaction(async () => {
+        const { idempotent } = options;
+
         const listing = await ListingRepository.Create().update(id, payload, {
           session: session,
           idempotent: idempotent,
@@ -203,35 +208,102 @@ export default class ListingService {
   }
 
   /**
-   * Creates a new product (type: lease, reservation, sell) on a listing
+   * Creates a new product (type: lease) on a listing
    * @public
    * @param payload data object
    * @param options configuration options
    */
-  public async saveListingProduct(
-    payload: Partial<IProduct> | Partial<IProduct>[],
-    options: {
-      idempotent: Record<string, any> | null;
-      type: string;
-    }
+  public async saveListingLeaseProduct(
+    payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
+    options: { idempotent: Record<string, any> }
   ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
-      const { idempotent, type } = options;
-
       return await session.withTransaction(async () => {
-        const product = await ListingRepository.Create().saveListingProduct(
-          Array.isArray(payload) ? payload : [payload],
-          {
-            session: session,
-            idempotent: idempotent,
-            retry: true,
-            type: type,
-          }
-        );
+        const { idempotent } = options;
 
-        return product;
+        const products =
+          await ListingRepository.Create().saveListingLeaseProduct(
+            Array.isArray(payload) ? payload : [payload],
+            {
+              session: session,
+              idempotent: idempotent,
+              retry: true,
+            }
+          );
+
+        return products;
+      });
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Creates a new product (type: reservation) on a listing
+   * @public
+   * @param payload data object
+   * @param options configuration options
+   */
+  public async saveListingReservationProduct(
+    payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
+    options: { idempotent: Record<string, any> }
+  ): Promise<string[]> {
+    const session = await mongoose.startSession();
+
+    try {
+      return await session.withTransaction(async () => {
+        const { idempotent } = options;
+
+        const products =
+          await ListingRepository.Create().saveListingReservationProduct(
+            Array.isArray(payload) ? payload : [payload],
+            {
+              session: session,
+              idempotent: idempotent,
+              retry: true,
+            }
+          );
+
+        return products;
+      });
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Creates a new product (type: sell) on a listing
+   * @public
+   * @param payload data object
+   * @param options configuration options
+   */
+  public async saveListingSellProduct(
+    payload: Partial<ISellProduct> | Partial<ISellProduct>[],
+    options: { idempotent: Record<string, any> }
+  ): Promise<string[]> {
+    const session = await mongoose.startSession();
+
+    try {
+      return await session.withTransaction(async () => {
+        const { idempotent } = options;
+
+        const products =
+          await ListingRepository.Create().saveListingSellProduct(
+            Array.isArray(payload) ? payload : [payload],
+            {
+              session: session,
+              idempotent: idempotent,
+              retry: true,
+            }
+          );
+
+        return products;
       });
     } catch (error: any) {
       throw error;
@@ -247,7 +319,7 @@ export default class ListingService {
    * @param payload data object
    * @param options configuration options
    */
-  public async updateListingProduct(
+  async updateListingProduct(
     id: string,
     payload: Partial<IProduct> | any,
     options: { idempotent: Record<string, any> }
@@ -255,9 +327,9 @@ export default class ListingService {
     const session = await mongoose.startSession();
 
     try {
-      const { idempotent } = options;
-
       return await session.withTransaction(async () => {
+        const { idempotent } = options;
+
         const product = await ListingRepository.Create().updateListingProduct(
           id,
           payload,
@@ -283,7 +355,7 @@ export default class ListingService {
    * @param id product id
    * @param options configuration options (optional)
    */
-  public async deleteListingProduct(
+  async deleteListingProduct(
     id: string,
     options?: { [key: string]: unknown }
   ): Promise<string> {

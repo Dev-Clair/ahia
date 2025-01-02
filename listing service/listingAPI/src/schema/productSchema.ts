@@ -83,7 +83,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
           validator: function (this: IProduct) {
             return this.type !== "Reservation";
           },
-          message: "expiry only applies for non-reservation products",
+          message: "expiry is only required for non-reservation products",
         },
         default: function (this: IProduct) {
           return this.type !== "Reservation"

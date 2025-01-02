@@ -44,7 +44,7 @@ const ListingSchema: Schema<IListing> = new Schema(
           validator: function (this: IListing) {
             return this.type === "land" || this.type === "property";
           },
-          message: "coordinates only applies for land or property listings",
+          message: "coordinates is only required for land or property listings",
         },
         required: false,
       },
