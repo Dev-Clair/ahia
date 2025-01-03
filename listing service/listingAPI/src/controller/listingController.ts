@@ -214,7 +214,7 @@ const updateListingById = async (
 
     const payload = req.body as Partial<IListing>;
 
-    const listing = await ListingService.Create().update(id, payload, {
+    const listing = await ListingService.Create().updateById(id, payload, {
       idempotent,
     });
 
@@ -240,7 +240,7 @@ const deleteListingById = async (
   try {
     const id = req.params.id as string;
 
-    const listing = await ListingService.Create().delete(id);
+    const listing = await ListingService.Create().deleteById(id);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 

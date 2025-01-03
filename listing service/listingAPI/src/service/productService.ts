@@ -1,50 +1,40 @@
+import mongoose from "mongoose";
+import FailureRetry from "../utils/failureRetry";
 import IProduct from "../interface/IProduct";
+import IProductService from "../interface/IProductservice";
+import ListingRepository from "../repository/listingRepository";
 import ProductRepository from "../repository/productRepository";
+import IdempotencyRepository from "../repository/idempotencyRepository";
 
 /**
  * Product Service
  * @method findAll
- * @method findByListing
  * @method findById
  * @method findByIdAndPopulate
+ * @method save
+ * @method updateById
+ * @method deleteById
+ * @method findByListing
  */
-export default class ProductService {
+export default class ProductService implements IProductService {
   /** Retrieves a collection of products
    * @public
    * @param queryString query object
    */
   async findAll(queryString: Record<string, any>): Promise<IProduct[]> {
     try {
-      const options = { retry: true };
+      const operation = async (): Promise<IProduct[]> => {
+        const filter = {
+          ...queryString,
+          // verification: { status: true },
+        };
 
-      const products = await ProductRepository.Create().findAll(
-        queryString,
-        options
-      );
+        const listings = await ProductRepository.Create().findAll(filter);
 
-      return products;
-    } catch (error: any) {
-      throw error;
-    }
-  }
+        return listings;
+      };
 
-  /** Retrieves a collection of product offerings by listing
-   * filter: location (geo-coordinates), provider, type (land | mobile | property)
-   * @public
-   * @param listingFilter listing filter
-   * @param productFilter product filter
-   */
-  async findProductsByListing(
-    listingFilter: Record<string, any>,
-    productFilter: Record<string, any>
-  ): Promise<IProduct[]> {
-    try {
-      const products = await ProductRepository.Create().findProductsByListing(
-        listingFilter,
-        productFilter
-      );
-
-      return products;
+      return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
       throw error;
     }
@@ -56,11 +46,10 @@ export default class ProductService {
    */
   async findById(id: string): Promise<IProduct | null> {
     try {
-      const options = { retry: true };
+      const operation = async () =>
+        await ProductRepository.Create().findById(id);
 
-      const product = await ProductRepository.Create().findById(id, options);
-
-      return product;
+      return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
       throw error;
     }
@@ -70,19 +59,170 @@ export default class ProductService {
    * @public
    * @param id product id
    */
-  async findByIdAndPopulate(
-    id: string,
-    type?: string
-  ): Promise<IProduct | null> {
+  async findByIdAndPopulate(id: string): Promise<IProduct | null> {
     try {
-      const options = { retry: true };
+      const operation = async () =>
+        await ProductRepository.Create().findByIdAndPopulate(id);
 
-      const product = await ProductRepository.Create().findByIdAndPopulate(
-        id,
-        options
-      );
+      return await FailureRetry.LinearJitterBackoff(() => operation());
+    } catch (error: any) {
+      throw error;
+    }
+  }
 
-      return product;
+  /**
+   * Creates a new product in collection
+   * @param payload data object
+   * @param options configuration options
+   */
+  async save(
+    payload: Partial<IProduct> | Partial<IProduct>[],
+    options: { idempotent: Record<string, any> }
+  ): Promise<string[]> {
+    const session = await mongoose.startSession();
+
+    try {
+      return await session.withTransaction(async () => {
+        const { idempotent } = options;
+
+        const operation = async () => {
+          // Ensure operation idempotency
+          if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
+          // Create Product
+          const products = await ProductRepository.Create().save(
+            Array.isArray(payload) ? payload : [payload],
+            { session: session }
+          );
+
+          // Transform result
+          const result = products.map((product) => ({
+            id: product._id.toString(),
+            name: product.name,
+          }));
+
+          return result;
+        };
+
+        return await FailureRetry.ExponentialBackoff(() => operation());
+      });
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Updates a product by id
+   * @public
+   * @param id product id
+   * @param payload data object
+   * @param options configuration options
+   */
+  async updateById(
+    id: string,
+    payload: Partial<IProduct> | any,
+    options: { idempotent: Record<string, any> }
+  ): Promise<string | null> {
+    const session = await mongoose.startSession();
+
+    try {
+      return await session.withTransaction(async () => {
+        const { idempotent } = options;
+
+        const operation = async () => {
+          // Ensure operation idempotency
+          if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
+          // Update product
+          const product = await ProductRepository.Create().updateById(
+            id,
+            payload,
+            {
+              session: session,
+            }
+          );
+
+          // Transform result
+          const productId = product?._id.toString();
+
+          return productId;
+        };
+
+        return await FailureRetry.ExponentialBackoff(() => operation());
+      });
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Deletes a product by id
+   * @public
+   * @param id product id
+   * @param options configuration options (optional)
+   */
+  async deleteById(id: string): Promise<string | null> {
+    const session = await mongoose.startSession();
+
+    try {
+      return await session.withTransaction(async () => {
+        const operation = async () => {
+          // Delete product
+          const product = await ProductRepository.Create().deleteById(id, {
+            session: session,
+          });
+
+          // Transform result
+          const productId = product?._id.toString();
+
+          return productId;
+        };
+
+        return await FailureRetry.ExponentialBackoff(() => operation());
+      });
+    } catch (error: any) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Retrieves a collection of product offerings by listing
+   * filter: location (geo-coordinates), provider, type (land | mobile | property)
+   * @public
+   * @param listingFilter listing filter
+   * @param productFilter product filter
+   */
+  async findProductsByListing(
+    listingFilter: Record<string, any>,
+    productFilter: Record<string, any>
+  ): Promise<IProduct[]> {
+    try {
+      const operation = async () => {
+        // Find listings by filter
+        const listings = await ListingRepository.Create().findAll(
+          listingFilter
+        );
+
+        const listingIds = listings.map((listing) => listing._id);
+
+        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
+
+        // Find products that match the listing IDs and product filter
+        const products = await ProductRepository.Create().findAll({
+          listing: { in: listingIds },
+          ...productFilter,
+        });
+
+        return products;
+      };
+
+      return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
       throw error;
     }

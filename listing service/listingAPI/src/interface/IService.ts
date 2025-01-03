@@ -1,4 +1,4 @@
-export default interface IRepository<T> {
+export default interface IService<T> {
   /**
    * Retrieves a collection of documents
    * @param queryString query object
@@ -24,7 +24,7 @@ export default interface IRepository<T> {
   save(
     payload: Partial<T> | Partial<T>[],
     options?: { [key: string]: unknown }
-  ): Promise<T[]>;
+  ): Promise<string | string[]>;
 
   /**
    * Updates a document by id
@@ -36,7 +36,7 @@ export default interface IRepository<T> {
     id: string,
     payload: Partial<T> | any,
     options?: { [key: string]: unknown }
-  ): Promise<T | null>;
+  ): Promise<string | null>;
 
   /**
    * Deletes a document by id
@@ -46,5 +46,5 @@ export default interface IRepository<T> {
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<T | null>;
+  ): Promise<string | null>;
 }

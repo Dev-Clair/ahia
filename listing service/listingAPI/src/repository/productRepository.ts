@@ -1,12 +1,9 @@
-import { ClientSession, Model, Models } from "mongoose";
-import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotencyModel";
+import { ClientSession } from "mongoose";
 import ILeaseProduct from "../interface/ILeaseproduct";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import IProduct from "../interface/IProduct";
 import IProductRepository from "../interface/IProductrepository";
-import ListingRepository from "./listingRepository";
 import Lease from "../model/leaseModel";
 import Product from "../model/productModel";
 import Reservation from "../model/reservationModel";
@@ -47,41 +44,27 @@ export default class ProductRepository implements IProductRepository {
   /** Retrieves a collection of products
    * @public
    * @param queryString query object
-   * @param options configuration options
    */
-  async findAll(
-    queryString: Record<string, any>,
-    options: { retry?: boolean }
-  ): Promise<IProduct[]> {
+  async findAll(queryString: Record<string, any>): Promise<IProduct[]> {
     try {
-      const { retry = true } = options;
+      const query = Product.find();
 
-      const operation = async () => {
-        const query = Product.find();
-
-        const filter = {
-          ...queryString,
-          // verification: { status: true },
-        };
-
-        const queryBuilder = QueryBuilder.Create(query, filter);
-
-        const products = (
-          await queryBuilder
-            .Filter()
-            .Sort(ProductRepository.SORT_PRODUCTS)
-            .Select(ProductRepository.PRODUCT_PROJECTION)
-            .Paginate()
-        ).Exec();
-
-        return products;
+      const filter = {
+        ...queryString,
+        // verification: { status: true },
       };
 
-      const products = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
+      const queryBuilder = QueryBuilder.Create<IProduct>(query, filter);
 
-      return products as Promise<IProduct[]>;
+      const products = (
+        await queryBuilder
+          .Filter()
+          .Sort(ProductRepository.SORT_PRODUCTS)
+          .Select(ProductRepository.PRODUCT_PROJECTION)
+          .Paginate()
+      ).Exec();
+
+      return products;
     } catch (error: any) {
       throw error;
     }
@@ -90,29 +73,15 @@ export default class ProductRepository implements IProductRepository {
   /** Retrieves a product by id
    * @public
    * @param id product id
-   * @param options configuration options
    */
-  async findById(
-    id: string,
-    options: { retry?: boolean }
-  ): Promise<IProduct | null> {
+  async findById(id: string): Promise<IProduct | null> {
     try {
-      const { retry = true } = options;
+      const product = await Product.findById(
+        { _id: id },
+        ProductRepository.PRODUCT_PROJECTION
+      ).exec();
 
-      const operation = async () => {
-        const product = await Product.findById(
-          { _id: id },
-          ProductRepository.PRODUCT_PROJECTION
-        ).exec();
-
-        return product;
-      };
-
-      const product = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return product as Promise<IProduct | null>;
+      return product;
     } catch (error: any) {
       throw error;
     }
@@ -121,75 +90,22 @@ export default class ProductRepository implements IProductRepository {
   /** Retrieves a product by id and populates its subdocument(s)
    * @public
    * @param id product id
-   * @param options configuration options
    */
-  async findByIdAndPopulate(
-    id: string,
-    options: { retry?: boolean }
-  ): Promise<IProduct | null> {
+  async findByIdAndPopulate(id: string): Promise<IProduct | null> {
     try {
-      const { retry = true } = options;
+      const product = await Product.findById(
+        { _id: id },
+        ProductRepository.PRODUCT_PROJECTION
+      )
+        .populate({
+          path: "listing",
+          model: "Listing",
+          select: ProductRepository.LISTING_PROJECTION_PLUS,
+          options: { sort: ProductRepository.SORT_LISTINGS },
+        })
+        .exec();
 
-      const operation = async () => {
-        const product = await Product.findById(
-          { _id: id },
-          ProductRepository.PRODUCT_PROJECTION
-        )
-          .populate({
-            path: "listing",
-            model: "Listing",
-            select: ProductRepository.LISTING_PROJECTION_PLUS,
-            options: { sort: ProductRepository.SORT_LISTINGS },
-          })
-          .exec();
-
-        return product;
-      };
-
-      const product = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return product as Promise<IProduct | null>;
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  /** Retrieves a collection of products by listing
-   * filter: location (geo-coordinates), provider, type (land, mobile, property)
-   * @public
-   * @param listingFilter listing filter
-   * @param productFilter product filter
-   */
-  async findProductsByListing(
-    listingFilter: Record<string, any>,
-    productFilter: Record<string, any>
-  ): Promise<IProduct[]> {
-    try {
-      const operation = async () => {
-        // Find listings by filter
-        const listings = await ListingRepository.Create().findAll(
-          listingFilter,
-          {
-            retry: false,
-          }
-        );
-
-        const listingIds = listings.map((listing) => listing._id);
-
-        if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
-
-        // Find products that match the listing IDs and product filter
-        const products = await this.findAll(
-          { listing: { in: listingIds }, ...productFilter },
-          { retry: false }
-        );
-
-        return products;
-      };
-
-      return await FailureRetry.LinearJitterBackoff(() => operation());
+      return product;
     } catch (error: any) {
       throw error;
     }
@@ -203,33 +119,14 @@ export default class ProductRepository implements IProductRepository {
    */
   async save(
     payload: Partial<IProduct>[],
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<string[]> {
+    options: { session: ClientSession }
+  ): Promise<IProduct[]> {
     try {
-      const { session, idempotent, retry = false } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const products = await Product.create(payload, { session });
+      const products = await Product.create(payload, { session });
 
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result = products.map((product) => ({
-          productId: product._id.toString(),
-          listingId: product.listing.toString(),
-        }));
-
-        return result;
-      };
-
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return result as Promise<string[]>;
+      return products;
     } catch (error: any) {
       throw error;
     }
@@ -243,33 +140,14 @@ export default class ProductRepository implements IProductRepository {
    */
   async lease(
     payload: Partial<ILeaseProduct>[],
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<{ productId: string; listingId: string }[]> {
+    options: { session: ClientSession }
+  ): Promise<ILeaseProduct[]> {
     try {
-      const { session, idempotent, retry = true } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const products = await Lease.create(payload, { session });
+      const products = await Lease.create(payload, { session });
 
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result = products.map((product) => ({
-          productId: product._id.toString(),
-          listingId: product.listing.toString(),
-        }));
-
-        return result;
-      };
-
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return result as Promise<{ productId: string; listingId: string }[]>;
+      return products;
     } catch (error: any) {
       throw error;
     }
@@ -283,33 +161,14 @@ export default class ProductRepository implements IProductRepository {
    */
   async reservation(
     payload: Partial<IReservationProduct>[],
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<{ productId: string; listingId: string }[]> {
+    options: { session: ClientSession }
+  ): Promise<IReservationProduct[]> {
     try {
-      const { session, idempotent, retry = true } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const products = await Reservation.create(payload, { session });
+      const products = await Reservation.create(payload, { session });
 
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result = products.map((product) => ({
-          productId: product._id.toString(),
-          listingId: product.listing.toString(),
-        }));
-
-        return result;
-      };
-
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return result as Promise<{ productId: string; listingId: string }[]>;
+      return products;
     } catch (error: any) {
       throw error;
     }
@@ -323,33 +182,14 @@ export default class ProductRepository implements IProductRepository {
    */
   async sell(
     payload: Partial<ISellProduct>[],
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<{ productId: string; listingId: string }[]> {
+    options: { session: ClientSession }
+  ): Promise<ISellProduct[]> {
     try {
-      const { session, idempotent, retry = true } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const products = await Sell.create(payload, { session });
+      const products = await Sell.create(payload, { session });
 
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        const result = products.map((product) => ({
-          productId: product._id.toString(),
-          listingId: product.listing.toString(),
-        }));
-
-        return result;
-      };
-
-      const result = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return result as Promise<{ productId: string; listingId: string }[]>;
+      return products;
     } catch (error: any) {
       throw error;
     }
@@ -362,38 +202,20 @@ export default class ProductRepository implements IProductRepository {
    * @param payload the data object
    * @param options configuration options
    */
-  async update(
+  async updateById(
     id: string,
     payload: Partial<IProduct> | any,
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any> | null;
-      retry?: boolean;
-    }
-  ): Promise<string> {
+    options: { session: ClientSession }
+  ): Promise<IProduct | null> {
     try {
-      const { session, idempotent, retry = true } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const product = await Product.findByIdAndUpdate({ _id: id }, payload, {
-          new: true,
-          session,
-        });
+      const product = await Product.findByIdAndUpdate({ _id: id }, payload, {
+        new: true,
+        session,
+      });
 
-        if (idempotent) await Idempotency.create([idempotent], { session });
-
-        if (!product) throw new Error("product not found");
-
-        const productId = product._id;
-
-        return productId.toString();
-      };
-
-      const productId = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return productId as Promise<string>;
+      return product;
     } catch (error: any) {
       throw error;
     }
@@ -405,30 +227,16 @@ export default class ProductRepository implements IProductRepository {
    * @param id product id
    * @param options configuration options
    */
-  async delete(
+  async deleteById(
     id: string,
-    options: { session: ClientSession; retry?: boolean }
-  ): Promise<string> {
+    options: { session: ClientSession }
+  ): Promise<IProduct | null> {
     try {
-      const { session, retry = true } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const product = await Product.findByIdAndDelete({ _id: id }, session);
+      const product = await Product.findByIdAndDelete({ _id: id }, session);
 
-        if (!product) throw new Error("product not found");
-
-        const productId = product._id.toString();
-
-        const listingId = product.listing.toString();
-
-        return JSON.stringify({ productId: productId, listingId: listingId });
-      };
-
-      const product = retry
-        ? await FailureRetry.ExponentialBackoff(() => operation())
-        : await operation();
-
-      return product as Promise<string>;
+      return product;
     } catch (error: any) {
       throw error;
     }

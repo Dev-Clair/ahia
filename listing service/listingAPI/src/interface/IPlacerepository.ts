@@ -28,9 +28,9 @@ export default interface IPlaceRepository extends IRepository<IPlace> {
    * @param options configuration options
    */
   save(
-    payload: Partial<IPlace>,
+    payload: Partial<IPlace>[],
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<IPlace[]>;
 
   /**
    * Updates a place by id
@@ -38,16 +38,19 @@ export default interface IPlaceRepository extends IRepository<IPlace> {
    * @param payload data object
    * @param options configuration options
    */
-  update(
+  updateById(
     id: string,
     payload: Partial<IPlace> | any,
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<IPlace | null>;
 
   /**
    * Deletes a place by id
    * @param id place id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
+  deleteById(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<IPlace | null>;
 }
