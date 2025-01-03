@@ -34,6 +34,6 @@ export default class IdempotencyRepository {
 
     if (verifyKey) throw new Error("Duplicate operation detected");
 
-    await Idempotency.create([payload.key], { session });
+    await Idempotency.create([payload], { session });
   }
 }
