@@ -78,14 +78,14 @@ export default class PlaceService {
         const { idempotent } = options;
 
         const operation = async () => {
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
-
           // Create place
           const places = await PlaceRepository.Create().save(
             Array.isArray(payload) ? payload : [payload],
             { session: session }
           );
+
+          // Ensure operation idempotency
+          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           // Transform result
           const result = places.map((place) => ({
@@ -124,13 +124,13 @@ export default class PlaceService {
         const { idempotent } = options;
 
         const operation = async () => {
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
-
           // Update place
           const place = await PlaceRepository.Create().updateById(id, payload, {
             session: session,
           });
+
+          // Ensure operation idempotency
+          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           // Transform result
           const placeId = place?._id.toString();
