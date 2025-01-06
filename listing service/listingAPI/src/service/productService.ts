@@ -85,15 +85,15 @@ export default class ProductService implements IProductService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Create Product
           const products = await ProductRepository.Create().save(
             Array.isArray(payload) ? payload : [payload],
             { session: session }
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           // Transform result
           const result = products.map((product) => ({
@@ -131,6 +131,9 @@ export default class ProductService implements IProductService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Update product
           const product = await ProductRepository.Create().updateById(
@@ -140,9 +143,6 @@ export default class ProductService implements IProductService {
               session: session,
             }
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           // Transform result
           const productId = product?._id.toString();

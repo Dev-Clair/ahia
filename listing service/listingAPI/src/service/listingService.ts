@@ -111,15 +111,15 @@ export default class ListingService implements IListingService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Create listing
           const listings = await ListingRepository.Create().save(
             Array.isArray(payload) ? payload : [payload],
             { session: session }
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           // Transform result
           const result = listings.map((listing) => ({
@@ -157,6 +157,9 @@ export default class ListingService implements IListingService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Update listing
           const listing = await ListingRepository.Create().updateById(
@@ -166,9 +169,6 @@ export default class ListingService implements IListingService {
               session: session,
             }
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           // Transform result
           const listingId = listing?._id.toString();
@@ -271,6 +271,9 @@ export default class ListingService implements IListingService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Create product
           const products = await ProductRepository.Create().lease(
@@ -291,9 +294,6 @@ export default class ListingService implements IListingService {
             updateOperations,
             session
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           return products.map(({ id, listing }) => ({ id, listing }));
         };
@@ -323,6 +323,9 @@ export default class ListingService implements IListingService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Create product
           const products = await ProductRepository.Create().reservation(
@@ -343,9 +346,6 @@ export default class ListingService implements IListingService {
             updateOperations,
             session
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           return products.map(({ id, listing }) => ({ id, listing }));
         };
@@ -375,6 +375,9 @@ export default class ListingService implements IListingService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Create product
           const products = await ProductRepository.Create().sell(
@@ -395,9 +398,6 @@ export default class ListingService implements IListingService {
             updateOperations,
             session
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           return products.map(({ id, listing }) => ({ id, listing }));
         };
@@ -429,6 +429,9 @@ export default class ListingService implements IListingService {
       return await session.withTransaction(async () => {
         const { idempotent } = options;
 
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Update product
           const product = await ProductRepository.Create().updateById(
@@ -436,9 +439,6 @@ export default class ListingService implements IListingService {
             payload,
             { session: session }
           );
-
-          // Ensure operation idempotency
-          if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
           // Transform result
           const productId = product?._id.toString();
