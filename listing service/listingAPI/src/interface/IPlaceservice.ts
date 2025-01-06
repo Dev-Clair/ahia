@@ -1,50 +1,56 @@
-export default interface IRepository<T> {
+import IPlace from "./IPlace";
+import IService from "./IService";
+
+export default interface IPlaceService extends IService<IPlace> {
   /**
-   * Retrieves a collection of documents
+   * Retrieves a collection of place documents
    * @param queryString query object
    * @param options configuration options
    */
   findAll(
     queryString: Record<string, any>,
     options?: { [key: string]: unknown }
-  ): Promise<T[]>;
+  ): Promise<IPlace[]>;
 
   /**
-   * Retrieves a document by id
-   * @param id document id
+   * Retrieves a place by id
+   * @param id place id
    * @param options configuration options
    */
-  findById(id: string, options?: { [key: string]: unknown }): Promise<T | null>;
+  findById(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<IPlace | null>;
 
   /**
-   * Creates a new document in collection
+   * Creates a new place in collection
    * @param payload data object
    * @param options configuration options
    */
   save(
-    payload: Partial<T> | Partial<T>[],
+    payload: Partial<IPlace>,
     options?: { [key: string]: unknown }
-  ): Promise<T[]>;
+  ): Promise<string[]>;
 
   /**
-   * Updates a document by id
-   * @param id document id
+   * Updates a place by id
+   * @param id place id
    * @param payload data object
    * @param options configuration options
    */
   updateById(
     id: string,
-    payload: Partial<T> | any,
+    payload: Partial<IPlace> | any,
     options?: { [key: string]: unknown }
-  ): Promise<T | null>;
+  ): Promise<string | null>;
 
   /**
-   * Deletes a document by id
-   * @param id document id
+   * Deletes a place by id
+   * @param id place id
    * @param options configuration options
    */
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<T | null>;
+  ): Promise<string | null>;
 }

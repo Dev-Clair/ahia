@@ -40,7 +40,7 @@ export default interface IProductRepository extends IRepository<IProduct> {
   save(
     payload: Partial<IProduct>[],
     options?: { [key: string]: unknown }
-  ): Promise<string | string[]>;
+  ): Promise<IProduct[]>;
 
   /**
    * Updates a product by id
@@ -48,16 +48,19 @@ export default interface IProductRepository extends IRepository<IProduct> {
    * @param payload data object
    * @param options configuration options
    */
-  update(
+  updateById(
     id: string,
     payload: Partial<IProduct> | any,
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<IProduct | null>;
 
   /**
    * Deletes a product by id
    * @param id product id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
+  deleteById(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<IProduct | null>;
 }

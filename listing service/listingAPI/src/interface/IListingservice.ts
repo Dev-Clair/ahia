@@ -1,7 +1,7 @@
 import IListing from "./IListing";
-import IRepository from "./IRepository";
+import IService from "./IService";
 
-export default interface IListingRepository extends IRepository<IListing> {
+export default interface IListingService extends IService<IListing> {
   /**
    * Retrieves a collection of listings
    * @param queryString query object
@@ -40,7 +40,7 @@ export default interface IListingRepository extends IRepository<IListing> {
   save(
     payload: Partial<IListing>[],
     options?: { [key: string]: unknown }
-  ): Promise<IListing[]>;
+  ): Promise<string[]>;
 
   /**
    * Updates a listing by id
@@ -52,7 +52,7 @@ export default interface IListingRepository extends IRepository<IListing> {
     id: string,
     payload: Partial<IListing> | any,
     options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  ): Promise<string | null>;
 
   /**
    * Deletes a listing by id
@@ -62,5 +62,5 @@ export default interface IListingRepository extends IRepository<IListing> {
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  ): Promise<string | null>;
 }

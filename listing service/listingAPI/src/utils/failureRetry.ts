@@ -4,7 +4,7 @@ import IRetryOptions from "../interface/IRetryoptions";
 class FailureRetry {
   static async ExponentialBackoff(
     operation: any,
-    options: IRetryOptions = { retries: 3, factor: 2, minTimeout: 5000 }
+    options: IRetryOptions = { retries: 3, factor: 2, minTimeout: 2500 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -14,7 +14,7 @@ class FailureRetry {
         retries: options.retries,
         factor: options.factor,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           console.error(
             `Exponential retry attempt no. ${attempt} failed.\nThere are ${
               options.retries - attempt
@@ -42,7 +42,7 @@ class FailureRetry {
         retries: options.retries,
         factor: options.factor,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           const jitter = Math.random() * (options as any).jitterFactor;
 
           const timeout =
@@ -71,7 +71,7 @@ class FailureRetry {
       {
         retries: options.retries,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           console.error(
             `Linear retry attempt no. ${attempt} failed.\nError: ${error.message}.\nNext retry in ${options.minTimeout}ms`
           );
@@ -85,7 +85,7 @@ class FailureRetry {
     operation: any,
     options: IRetryOptions = {
       retries: 5,
-      minTimeout: 5000,
+      minTimeout: 2500,
       jitterFactor: 1000,
     }
   ): Promise<any> {
@@ -96,13 +96,15 @@ class FailureRetry {
       {
         retries: options.retries,
         minTimeout: options.minTimeout,
-        onRetry: (error, attempt) => {
+        onRetry: (error: any, attempt: number) => {
           const jitter = Math.random() * (options as any).jitterFactor;
 
           console.error(
             `Linear jitter retry attempt no. ${attempt} failed.\nError: ${
               error.message
-            }.\nNext retry in ${options.minTimeout + jitter}ms`
+            }.\nStack: ${error.stack}.\nNext retry in ${
+              options.minTimeout + jitter
+            }ms`
           );
 
           return options.minTimeout + jitter;

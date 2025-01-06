@@ -11,6 +11,10 @@ const ProductSchema: Schema<IProduct> = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Listing",
       required: true,
+      validate: {
+        validator: mongoose.isValidObjectId,
+        message: "Invalid ObjectId",
+      },
     },
     name: {
       type: String,
@@ -33,20 +37,19 @@ const ProductSchema: Schema<IProduct> = new Schema(
       images: {
         type: [String],
         get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+          ),
         required: false,
       },
       videos: {
         type: [String],
         get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+          ),
         required: false,
       },
-    },
-    promotion: {
-      type: String,
-      enum: ["Platinum", "Gold", "Ruby", "Silver"],
-      default: "Silver",
     },
     status: {
       type: String,
@@ -84,7 +87,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
           validator: function (this: IProduct) {
             return this.type !== "Reservation";
           },
-          message: "expiry only applies for non-reservation products",
+          message: "expiry is only required for non-reservation products",
         },
         default: function (this: IProduct) {
           return this.type !== "Reservation"

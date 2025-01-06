@@ -11,7 +11,7 @@ const OfferingSchema: Schema<IOffering> = new Schema(
     },
     category: {
       type: String,
-      enum: ["economy", "premium", "luxury"],
+      enum: ["economy", "premium", "luxury", "exclusive"],
       required: true,
     },
     features: {

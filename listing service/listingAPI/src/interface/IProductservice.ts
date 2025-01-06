@@ -1,66 +1,66 @@
-import IListing from "./IListing";
-import IRepository from "./IRepository";
+import IProduct from "./IProduct";
+import IService from "./IService";
 
-export default interface IListingRepository extends IRepository<IListing> {
+export default interface IProductService extends IService<IProduct> {
   /**
-   * Retrieves a collection of listings
+   * Retrieves a collection of products
    * @param queryString query object
    * @param options configuration options
    */
   findAll(
     queryString: Record<string, any>,
     options?: { [key: string]: unknown }
-  ): Promise<IListing[]>;
+  ): Promise<IProduct[]>;
 
   /**
-   * Retrieves a listing by id
-   * @param id listing id
+   * Retrieves a product by id
+   * @param id product id
    * @param options configuration options
    */
   findById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  ): Promise<IProduct | null>;
 
   /**
-   * Retrieves a listing by id and populate its subdocument
-   * @param id listing id
+   * Retrieves a product by id and populate its subdocument
+   * @param id product id
    * @param options configuration options
    */
   findByIdAndPopulate(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  ): Promise<IProduct | null>;
 
   /**
-   * Creates a new listing in collection
+   * Creates a new product in collection
    * @param payload data object
    * @param options configuration options
    */
   save(
-    payload: Partial<IListing>[],
+    payload: Partial<IProduct>[],
     options?: { [key: string]: unknown }
-  ): Promise<IListing[]>;
+  ): Promise<string[]>;
 
   /**
-   * Updates a listing by id
-   * @param id listing id
+   * Updates a product by id
+   * @param id product id
    * @param payload data object
    * @param options configuration options
    */
   updateById(
     id: string,
-    payload: Partial<IListing> | any,
+    payload: Partial<IProduct> | any,
     options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  ): Promise<string | null>;
 
   /**
-   * Deletes a listing by id
-   * @param id listing id
+   * Deletes a product by id
+   * @param id product id
    * @param options configuration options
    */
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  ): Promise<string | null>;
 }

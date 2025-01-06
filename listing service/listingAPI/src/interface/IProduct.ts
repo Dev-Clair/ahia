@@ -12,7 +12,6 @@ export default interface IProduct extends IDocument {
     images: string[];
     videos?: string[];
   };
-  promotion: "Platinum" | "Gold" | "Ruby" | "Silver";
   verification: {
     status: boolean;
     expiry?: Date;

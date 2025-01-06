@@ -5,6 +5,9 @@ import IProduct from "../interface/IProduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
 import NotFoundError from "../error/notfoundError";
+import ILeaseProduct from "../interface/ILeaseproduct";
+import IReservationProduct from "../interface/IReservationproduct";
+import ISellProduct from "../interface/ISellproduct";
 
 /**
  * Creates a new listing in collection
@@ -211,7 +214,7 @@ const updateListingById = async (
 
     const payload = req.body as Partial<IListing>;
 
-    const listing = await ListingService.Create().update(id, payload, {
+    const listing = await ListingService.Create().updateById(id, payload, {
       idempotent,
     });
 
@@ -237,7 +240,7 @@ const deleteListingById = async (
   try {
     const id = req.params.id as string;
 
-    const listing = await ListingService.Create().delete(id);
+    const listing = await ListingService.Create().deleteById(id);
 
     if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
@@ -261,13 +264,16 @@ const createListingProduct = async (
   try {
     const type = req.query.type as string;
 
-    if (!type) throw new Error("Kindly indicate a product type");
+    if (!type)
+      throw new Error(
+        "Kindly specify a product type: lease, reservation, sell"
+      );
 
     const idempotent = req.idempotent as Record<string, any>;
 
     const listing = req.listing as IListing;
 
-    let payload: Partial<IProduct> | Partial<IProduct>[];
+    let payload, product: string[];
 
     if (Array.isArray(req.body)) {
       payload = req.body.map((item) => ({
@@ -281,12 +287,42 @@ const createListingProduct = async (
       };
     }
 
-    const product = await ListingService.Create().saveListingProduct(payload, {
-      idempotent,
-      type,
-    });
+    switch (type) {
+      case "lease":
+        payload as Partial<ILeaseProduct> | Partial<ILeaseProduct>[];
 
-    return res.status(HttpCode.CREATED).json({ data: product });
+        product = await ListingService.Create().saveListingLeaseProduct(
+          payload,
+          { idempotent }
+        );
+
+        return res.status(HttpCode.CREATED).json({ data: product });
+
+      case "reservation":
+        payload as
+          | Partial<IReservationProduct>
+          | Partial<IReservationProduct>[];
+
+        product = await ListingService.Create().saveListingReservationProduct(
+          payload,
+          { idempotent }
+        );
+
+        return res.status(HttpCode.CREATED).json({ data: product });
+
+      case "sell":
+        payload as Partial<ISellProduct> | Partial<ISellProduct>[];
+
+        product = await ListingService.Create().saveListingSellProduct(
+          payload,
+          { idempotent }
+        );
+
+        return res.status(HttpCode.CREATED).json({ data: product });
+
+      default:
+        throw new Error("Invalid product type");
+    }
   } catch (err: any) {
     return next(err);
   }

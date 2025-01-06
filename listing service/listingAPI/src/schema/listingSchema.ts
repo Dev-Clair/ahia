@@ -24,6 +24,10 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: Schema.Types.ObjectId,
         ref: "Product",
         required: false,
+        validate: {
+          validator: mongoose.isValidObjectId,
+          message: "Invalid ObjectId",
+        },
       },
     ],
     location: {
@@ -40,7 +44,7 @@ const ListingSchema: Schema<IListing> = new Schema(
           validator: function (this: IListing) {
             return this.type === "land" || this.type === "property";
           },
-          message: "coordinates only applies for land or property listings",
+          message: "coordinates is only required for land or property listings",
         },
         required: false,
       },
@@ -78,13 +82,39 @@ const ListingSchema: Schema<IListing> = new Schema(
       images: {
         type: [String],
         get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+          ),
         required: false,
       },
       videos: {
         type: [String],
         get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+          ),
+        required: false,
+      },
+    },
+    verification: {
+      status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+        required: false,
+      },
+      document: {
+        id: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          required: false,
+        },
+      },
+      issuedBy: {
+        type: String,
         required: false,
       },
     },

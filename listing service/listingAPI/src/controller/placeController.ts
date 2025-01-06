@@ -17,7 +17,7 @@ const createPlace = async (
   try {
     const idempotent = req.idempotent as Record<string, any>;
 
-    const payload: Partial<IPlace> = req.body;
+    const payload: Partial<IPlace> | Partial<IPlace>[] = req.body;
 
     const place = await PlaceService.Create().save(payload, { idempotent });
 
