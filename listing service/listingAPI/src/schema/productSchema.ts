@@ -37,13 +37,17 @@ const ProductSchema: Schema<IProduct> = new Schema(
       images: {
         type: [String],
         get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+          ),
         required: false,
       },
       videos: {
         type: [String],
         get: (values: string[]) =>
-          values.map((value) => `${baseStoragePath}${value}`),
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+          ),
         required: false,
       },
     },

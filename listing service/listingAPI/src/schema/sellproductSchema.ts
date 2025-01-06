@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 import InstalmentSchema from "./instalmentSchema";
-import OutrightSchema from "./instalmentSchema";
+import OutrightSchema from "./outrightSchema";
 import ISellProduct from "../interface/ISellproduct";
 
 const SellProductSchema: Schema<ISellProduct> = new Schema({
