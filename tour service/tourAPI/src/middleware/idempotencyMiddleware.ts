@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { NextFunction, Request, Response } from "express";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
-import Idempotency from "../model/idempotencyModel";
+import IdempotencyRepository from "../repository/idempotencyRepository";
 
 /**
  * Verifies operation idempotency
@@ -30,7 +30,7 @@ const isIdempotent = async (
     });
   }
 
-  if ((await Idempotency.findOne({ key: key })) as boolean)
+  if ((await IdempotencyRepository.find(key, null)) as boolean)
     return res.status(HttpCode.CONFLICT).json({
       error: {
         name: HttpStatus.CONFLICT,

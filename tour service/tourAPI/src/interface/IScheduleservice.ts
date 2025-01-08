@@ -1,66 +1,66 @@
-import IRepository from "./IRepository";
-import IRealtor from "./IRealtor";
+import IService from "./IService";
+import ISchedule from "./ISchedule";
 
-export default interface IRealtorRepository extends IRepository<IRealtor> {
+export default interface IScheduleService extends IService<ISchedule> {
   /**
-   * Retrieves a collection of realtors
+   * Retrieves a collection of schedules
    * @param queryString query object
    * @param options configuration options
    */
   findAll(
     queryString: Record<string, unknown>,
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor[]>;
+  ): Promise<ISchedule[]>;
 
   /**
-   * Retrieves a realtor by id
-   * @param id realtor id
+   * Retrieves a schedule by id
+   * @param id schedule id
    * @param options configuration options
    */
   findById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor | null>;
+  ): Promise<ISchedule | null>;
 
   /**
-   * Retrieves a realtor by tour
+   * Retrieves a schedule by tour
    * @param tour tour id
    * @param options configuration options
    */
   findByTour(
     tour: string,
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor | null>;
+  ): Promise<ISchedule | null>;
 
   /**
-   * Creates a new realtor in collection
+   * Creates a new schedule in collection
    * @param payload the data object
    * @param options  configuration options
    */
   save(
-    payload: Partial<IRealtor>[],
+    payload: Partial<ISchedule> | Partial<ISchedule>[],
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor[]>;
+  ): Promise<string[]>;
 
   /**
-   * Updates a realtor by id
-   * @param id realtor id
+   * Updates a schedule by id
+   * @param id schedule id
    * @param payload the data object
    * @param options  configuration options
    */
   updateById(
     id: string,
-    payload: Partial<IRealtor> | any,
+    payload: Partial<ISchedule> | any,
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor | null>;
+  ): Promise<string | null>;
 
   /**
-   * Deletes a realtor by id
-   * @param id realtor id
+   * Deletes a schedule by id
+   * @param id schedule id
    * @param options configuration options
    */
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor | null>;
+  ): Promise<string | null>;
 }

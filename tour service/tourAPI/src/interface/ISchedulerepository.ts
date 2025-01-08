@@ -38,9 +38,9 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
    * @param options  configuration options
    */
   save(
-    payload: Partial<ISchedule>,
+    payload: Partial<ISchedule>[],
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<ISchedule[]>;
 
   /**
    * Updates a schedule by id
@@ -48,16 +48,19 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
    * @param payload the data object
    * @param options  configuration options
    */
-  update(
+  updateById(
     id: string,
-    payload: Partial<ISchedule> | unknown,
+    payload: Partial<ISchedule> | any,
     options?: { [key: string]: unknown }
-  ): Promise<string>;
+  ): Promise<ISchedule | null>;
 
   /**
    * Deletes a schedule by id
    * @param id schedule id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: unknown }): Promise<string>;
+  deleteById(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<ISchedule | null>;
 }

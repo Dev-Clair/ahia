@@ -21,11 +21,11 @@ const createTour = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<ITour>;
 
-    const tour = await TourService.Create().save(key, payload);
+    const tour = await TourService.Create().save(payload, { idempotent });
 
     return res.status(HttpCode.CREATED).json({ data: tour });
   } catch (error: any) {
@@ -169,13 +169,15 @@ const updateTourById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const id = req.params.id as string;
 
     const payload = req.body as Partial<ITour>;
 
-    const tour = await TourService.Create().update(id, key, payload);
+    const tour = await TourService.Create().updateById(id, payload, {
+      idempotent,
+    });
 
     if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
@@ -200,7 +202,7 @@ const deleteTourById = async (
   try {
     const id = req.params.id as string;
 
-    const tour = await TourService.Create().delete(id);
+    const tour = await TourService.Create().deleteById(id);
 
     if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
@@ -225,7 +227,7 @@ const addTourRealtor = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IRealtor>;
 
@@ -233,7 +235,7 @@ const addTourRealtor = async (
 
     payload.tour = tourId;
 
-    const realtor = await RealtorService.Create().save(key, payload);
+    const realtor = await RealtorService.Create().save(payload, { idempotent });
 
     return res.status(HttpCode.CREATED).json({ data: realtor });
   } catch (error: any) {
@@ -262,11 +264,9 @@ const acceptTourRealtorRequest = async (
 
     const payload = {} as Partial<ITour> | any;
 
-    const realtor = await TourService.Create().acceptRealtor(
-      tourId,
+    const realtor = await TourService.Create().acceptRealtor(tourId, payload, {
       idempotent,
-      payload
-    );
+    });
 
     if (!realtor)
       throw new NotFoundError(`No record found for realtor: ${realtor}`);
@@ -317,13 +317,15 @@ const removeTourRealtor = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const idempotent = req.idempotent as Record<string, any>;
 
     const tourId = JSON.stringify(tour._id);
 
     const payload = tour.$set("realtor", "");
 
-    const realtor = await TourService.Create().update(tourId, key, payload);
+    const realtor = await TourService.Create().updateById(tourId, payload, {
+      idempotent,
+    });
 
     return res.status(HttpCode.MODIFIED).json({ data: realtor });
   } catch (error: any) {
@@ -346,7 +348,7 @@ const rescheduleTour = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<ISchedule>;
 
@@ -354,7 +356,9 @@ const rescheduleTour = async (
 
     payload.tour = tourId;
 
-    const schedule = await ScheduleService.Create().save(key, payload);
+    const schedule = await ScheduleService.Create().save(payload, {
+      idempotent,
+    });
 
     return res.status(HttpCode.CREATED).json({ data: schedule });
   } catch (error: any) {
@@ -377,7 +381,7 @@ const acceptTourReschedule = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const tourId = JSON.stringify(tour._id);
 
@@ -385,8 +389,8 @@ const acceptTourReschedule = async (
 
     const schedule = await TourService.Create().acceptReschedule(
       tourId,
-      key,
-      payload
+      payload,
+      { idempotent }
     );
 
     if (!schedule)

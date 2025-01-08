@@ -1,6 +1,4 @@
 import { ClientSession } from "mongoose";
-import FailureRetry from "../utils/failureRetry";
-import Idempotency from "../model/idempotencyModel";
 import ITour from "../interface/ITour";
 import ITourRepository from "../interface/ITourrepository";
 import Tour from "../model/tourModel";
@@ -17,34 +15,23 @@ export default class TourRepository implements ITourRepository {
    * @param queryString query object
    * @param options configuration options
    */
-  async findAll(
-    queryString: Record<string, any>,
-    options: { retry: boolean }
-  ): Promise<ITour[]> {
+  async findAll(queryString: Record<string, any>): Promise<ITour[]> {
     try {
-      const { retry } = options;
+      const query = Tour.find();
 
-      const operation = async () => {
-        const query = Tour.find();
+      const filter = { ...queryString };
 
-        const filter = { ...queryString };
+      const queryBuilder = QueryBuilder.Create<ITour>(query, filter);
 
-        const queryBuilder = QueryBuilder.Create(query, filter);
+      const tours = (
+        await queryBuilder
+          .Filter()
+          .Sort(TourRepository.SORT_TOURS)
+          .Select(TourRepository.TOUR_PROJECTION)
+          .Paginate()
+      ).Exec();
 
-        return (
-          await queryBuilder
-            .Filter()
-            .Sort(TourRepository.SORT_TOURS)
-            .Select(TourRepository.TOUR_PROJECTION)
-            .Paginate()
-        ).Exec();
-      };
-
-      const tours = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return tours as Promise<ITour[]>;
+      return tours;
     } catch (error: any) {
       throw error;
     }
@@ -54,23 +41,15 @@ export default class TourRepository implements ITourRepository {
    * Retrieves a tour by id
    * @public
    * @param id tour id
-   * @param options configuration options
    */
-  async findById(
-    id: string,
-    options: { retry: boolean }
-  ): Promise<ITour | null> {
+  async findById(id: string): Promise<ITour | null> {
     try {
-      const { retry } = options;
+      const tour = await Tour.findById(
+        id,
+        TourRepository.TOUR_PROJECTION
+      ).exec();
 
-      const operation = async () =>
-        await Tour.findById(id, TourRepository.TOUR_PROJECTION).exec();
-
-      const tour = retry
-        ? await FailureRetry.LinearJitterBackoff(() => operation())
-        : await operation();
-
-      return tour as Promise<ITour | null>;
+      return tour;
     } catch (error: any) {
       throw error;
     }
@@ -80,37 +59,18 @@ export default class TourRepository implements ITourRepository {
    * Creates a new tour in collection
    * @public
    * @param payload the data object
-   * @param options configurations object
+   * @param options configuration options
    */
   async save(
-    payload: Partial<ITour>,
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any>;
-      retry: boolean;
-    }
-  ): Promise<string> {
+    payload: Partial<ITour>[],
+    options: { session: ClientSession }
+  ): Promise<ITour[]> {
     try {
-      const { session, idempotent, retry } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const tours = await Tour.create([payload], { session: session });
+      const tours = await Tour.create([payload], { session: session });
 
-        if (idempotent)
-          await Idempotency.create([idempotent], { session: session });
-
-        const tour = tours[0];
-
-        const tourId = tour._id.toString();
-
-        return tourId;
-      };
-
-      const tour = retry
-        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
-        : await operation();
-
-      return tour as Promise<string>;
+      return tours;
     } catch (error: any) {
       throw error;
     }
@@ -121,40 +81,21 @@ export default class TourRepository implements ITourRepository {
    * @public
    * @param id tour id
    * @param payload the data object
-   * @param options configurations object
+   * @param options configuration options
    */
-  async update(
+  async updateById(
     id: string,
     payload: Partial<ITour>,
-    options: {
-      session: ClientSession;
-      idempotent: Record<string, any>;
-      retry: boolean;
-    }
-  ): Promise<string> {
+    options: { session: ClientSession }
+  ): Promise<ITour | null> {
     try {
-      const { session, idempotent, retry } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const tour = await Tour.findByIdAndUpdate({ _id: id }, payload, {
-          session: session,
-        });
+      const tour = await Tour.findByIdAndUpdate({ _id: id }, payload, {
+        session: session,
+      });
 
-        if (idempotent)
-          await Idempotency.create([idempotent], { session: session });
-
-        if (!tour) throw new Error("tour not found");
-
-        const tourId = tour._id.toString();
-
-        return tourId;
-      };
-
-      const tour = retry
-        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
-        : await operation();
-
-      return tour as Promise<string>;
+      return tour;
     } catch (error: any) {
       throw error;
     }
@@ -164,38 +105,23 @@ export default class TourRepository implements ITourRepository {
    * Deletes a tour by id
    * @public
    * @param id tour id
-   * @param options configurations object
+   * @param options configuration options
    */
-  async delete(
+  async deleteById(
     id: string,
-    options: {
-      session: ClientSession;
-      retry: boolean;
-    }
-  ): Promise<string> {
+    options: { session: ClientSession }
+  ): Promise<ITour | null> {
     try {
-      const { session, retry } = options;
+      const { session } = options;
 
-      const operation = async () => {
-        const tour = await Tour.findByIdAndDelete(
-          { _id: id },
-          {
-            session: session,
-          }
-        );
+      const tour = await Tour.findByIdAndDelete(
+        { _id: id },
+        {
+          session: session,
+        }
+      );
 
-        if (!tour) throw new Error("tour not found");
-
-        const tourId = tour._id.toString();
-
-        return tourId;
-      };
-
-      const tour = retry
-        ? await FailureRetry.ExponentialJitterBackoff(() => operation())
-        : await operation();
-
-      return tour as Promise<string>;
+      return tour;
     } catch (error: any) {
       throw error;
     }
