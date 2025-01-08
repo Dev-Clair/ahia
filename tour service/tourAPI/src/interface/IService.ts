@@ -1,11 +1,11 @@
-export default interface IRepository<T> {
+export default interface IService<T> {
   /**
    * Retrieves a collection of documents
    * @param queryString query object
    * @param options configuration options
    */
   findAll(
-    queryString: Record<string, unknown>,
+    queryString: Record<string, any>,
     options?: { [key: string]: unknown }
   ): Promise<T[]>;
 
@@ -18,25 +18,25 @@ export default interface IRepository<T> {
 
   /**
    * Creates a new document in collection
-   * @param payload the data object
-   * @param options  configuration options
+   * @param payload data object
+   * @param options configuration options
    */
   save(
     payload: Partial<T> | Partial<T>[],
     options?: { [key: string]: unknown }
-  ): Promise<T[]>;
+  ): Promise<string | string[]>;
 
   /**
    * Updates a document by id
    * @param id document id
-   * @param payload the data object
-   * @param options  configuration options
+   * @param payload data object
+   * @param options configuration options
    */
   updateById(
     id: string,
     payload: Partial<T> | any,
     options?: { [key: string]: unknown }
-  ): Promise<T | null>;
+  ): Promise<string | null>;
 
   /**
    * Deletes a document by id
@@ -46,5 +46,5 @@ export default interface IRepository<T> {
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<T | null>;
+  ): Promise<string | null>;
 }

@@ -3,5 +3,5 @@ export default interface IQueryString {
   sort?: string;
   limit?: string;
   fields?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }

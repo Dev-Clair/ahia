@@ -8,8 +8,8 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
    * @param options configuration options
    */
   findAll(
-    queryString: Record<string, any>,
-    options?: { [key: string]: any }
+    queryString: Record<string, unknown>,
+    options?: { [key: string]: unknown }
   ): Promise<ISchedule[]>;
 
   /**
@@ -19,17 +19,17 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
    */
   findById(
     id: string,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<ISchedule | null>;
 
   /**
    * Retrieves a schedule by tour
-   * @param tour schedule tour
+   * @param tour tour id
    * @param options configuration options
    */
   findByTour(
     tour: string,
-    options?: { [key: string]: any }
+    options?: { [key: string]: unknown }
   ): Promise<ISchedule | null>;
 
   /**
@@ -38,9 +38,9 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
    * @param options  configuration options
    */
   save(
-    payload: Partial<ISchedule>,
-    options?: { [key: string]: any }
-  ): Promise<string>;
+    payload: Partial<ISchedule>[],
+    options?: { [key: string]: unknown }
+  ): Promise<ISchedule[]>;
 
   /**
    * Updates a schedule by id
@@ -48,16 +48,19 @@ export default interface IScheduleRepository extends IRepository<ISchedule> {
    * @param payload the data object
    * @param options  configuration options
    */
-  update(
+  updateById(
     id: string,
     payload: Partial<ISchedule> | any,
-    options?: { [key: string]: any }
-  ): Promise<string>;
+    options?: { [key: string]: unknown }
+  ): Promise<ISchedule | null>;
 
   /**
    * Deletes a schedule by id
    * @param id schedule id
    * @param options configuration options
    */
-  delete(id: string, options?: { [key: string]: any }): Promise<string>;
+  deleteById(
+    id: string,
+    options?: { [key: string]: unknown }
+  ): Promise<ISchedule | null>;
 }

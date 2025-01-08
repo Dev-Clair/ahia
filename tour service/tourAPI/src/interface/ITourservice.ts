@@ -1,7 +1,7 @@
-import IRepository from "./IRepository";
+import IService from "./IService";
 import ITour from "./ITour";
 
-export default interface ITourRepository extends IRepository<ITour> {
+export default interface ITourService extends IService<ITour> {
   /**
    * Retrieves a collection of tours
    * @param queryString query object
@@ -28,9 +28,9 @@ export default interface ITourRepository extends IRepository<ITour> {
    * @param options  configuration options
    */
   save(
-    payload: Partial<ITour>[],
+    payload: Partial<ITour> | Partial<ITour>[],
     options?: { [key: string]: unknown }
-  ): Promise<ITour[]>;
+  ): Promise<string[]>;
 
   /**
    * Updates a tour by id
@@ -42,7 +42,7 @@ export default interface ITourRepository extends IRepository<ITour> {
     id: string,
     payload: Partial<ITour> | any,
     options?: { [key: string]: unknown }
-  ): Promise<ITour | null>;
+  ): Promise<string | null>;
 
   /**
    * Deletes a tour by id
@@ -52,5 +52,5 @@ export default interface ITourRepository extends IRepository<ITour> {
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<ITour | null>;
+  ): Promise<string | null>;
 }

@@ -4,6 +4,7 @@ import {
   DatabaseEventsListener,
   GlobalProcessEventsListener,
 } from "./bootstrap";
+import Database from "./database";
 import Server from "./server";
 
 // Initialize Sentry
@@ -16,4 +17,4 @@ GlobalProcessEventsListener();
 DatabaseEventsListener();
 
 // Start Application
-Boot(Server);
+Boot(Server, Database);

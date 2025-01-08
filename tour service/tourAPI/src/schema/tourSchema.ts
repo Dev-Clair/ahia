@@ -5,10 +5,6 @@ import ScheduleSchema from "./scheduleSchema";
 
 const TourSchema: Schema<ITour> = new Schema(
   {
-    name: {
-      type: String,
-      required: false,
-    },
     customer: {
       type: String,
       required: true,
@@ -17,7 +13,7 @@ const TourSchema: Schema<ITour> = new Schema(
           /^[0-9a-fA-F]{24}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
             value
           ),
-        message: "Invalid ID (must be either an ObjectId or a UUID)",
+        message: "Invalid ID (must be either an ObjectID or a UUID)",
       },
     },
     realtor: {
@@ -28,7 +24,7 @@ const TourSchema: Schema<ITour> = new Schema(
           /^[0-9a-fA-F]{24}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
             value
           ),
-        message: "Invalid ID (must be either an ObjectId or a UUID)",
+        message: "Invalid ID (must be either an ObjectID or a UUID)",
       },
     },
     products: [
@@ -68,13 +64,7 @@ const TourSchema: Schema<ITour> = new Schema(
   { timestamps: true }
 );
 
-TourSchema.pre("save", function (next) {
-  if (!this.isModified("name")) {
-    this.name = `Tour_${this.customer}`;
-  }
-
-  next();
-});
+TourSchema.index({ products: "text" });
 
 TourSchema.pre("findOneAndDelete", async function (next) {
   const session = await mongoose.startSession();

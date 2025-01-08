@@ -2,32 +2,35 @@ import * as Sentry from "@sentry/node";
 import process from "node:process";
 import mongoose from "mongoose";
 import Config from "./config";
-import ConnectionService from "./src/service/connectionService";
-import ConnectionServiceError from "./src/error/connectionserviceError";
+import Connection from "./src/utils/connection";
+import ConnectionError from "./src/error/connectionError";
 import HttpServer from "./src/utils/httpServer";
 import HttpServerError from "./src/error/httpserverError";
 import Logger from "./src/utils/logger";
 
 /**
  * Bootstraps the entire application
- * @returns Promise<void>
+ * @param Server Application Server
+ * @param Database Application Database
  */
-export async function Boot(Server: HttpServer): Promise<void> {
+export async function Boot(
+  Server: HttpServer,
+  Database: Connection
+): Promise<void> {
   try {
-    // Start and initialize server on http(s) port
+    // Initialize server on http(s) port
     await Server.Init(Config.PORT)
       .then(() => Logger.info(`Listening on http port ${Config.PORT}`))
       .catch((reason: any) => {
         throw new HttpServerError("HTTP Server Initialization Error", reason);
       });
 
-    // Create and initialize database with connection string
-    await ConnectionService.Create(Config.MONGO_URI).getConnection();
+    //Initialize database with connection string
+    await Database.Init();
   } catch (err: any) {
     if (err instanceof HttpServerError) ServerErrorHandler(err, Server);
 
-    if (err instanceof ConnectionServiceError)
-      DatabaseErrorHandler(err, Server);
+    if (err instanceof ConnectionError) DatabaseErrorHandler(err, Server);
   }
 }
 
@@ -92,7 +95,7 @@ export function ServerErrorHandler(
  * @returns void
  */
 export function DatabaseErrorHandler(
-  err: ConnectionServiceError,
+  err: ConnectionError,
   Server: HttpServer
 ): void {
   const error = {
@@ -101,7 +104,7 @@ export function DatabaseErrorHandler(
     stack: err.stack,
   };
 
-  if (err instanceof ConnectionServiceError)
+  if (err instanceof ConnectionError)
     Sentry.withScope((scope) => {
       scope.setTag("Database Connection Error", "Critical");
 

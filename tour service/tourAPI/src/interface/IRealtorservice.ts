@@ -1,7 +1,7 @@
-import IRepository from "./IRepository";
+import IService from "./IService";
 import IRealtor from "./IRealtor";
 
-export default interface IRealtorRepository extends IRepository<IRealtor> {
+export default interface IRealtorservice extends IService<IRealtor> {
   /**
    * Retrieves a collection of realtors
    * @param queryString query object
@@ -38,9 +38,9 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
    * @param options  configuration options
    */
   save(
-    payload: Partial<IRealtor>[],
+    payload: Partial<IRealtor> | Partial<IRealtor>[],
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor[]>;
+  ): Promise<string[]>;
 
   /**
    * Updates a realtor by id
@@ -52,7 +52,7 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
     id: string,
     payload: Partial<IRealtor> | any,
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor | null>;
+  ): Promise<string | null>;
 
   /**
    * Deletes a realtor by id
@@ -62,5 +62,5 @@ export default interface IRealtorRepository extends IRepository<IRealtor> {
   deleteById(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IRealtor | null>;
+  ): Promise<string | null>;
 }

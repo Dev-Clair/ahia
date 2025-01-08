@@ -40,8 +40,8 @@ class HttpClient {
   /**
    * Http request handler
    * @private
-   * @param options
-   * @param payload
+   * @param method http request method: GET | POST | PUT | PATCH | DELETE
+   * @param payload request payload (optional)
    */
   private async call(
     options: IHttpRequestOptions,
@@ -58,7 +58,7 @@ class HttpClient {
         res.on("end", () => {
           try {
             const parsedData =
-              res.headers["Content-Type"] === "application/json"
+              res.headers["content-type"] === "application/json"
                 ? JSON.parse(data)
                 : data;
 
@@ -91,18 +91,18 @@ class HttpClient {
   /**
    * Handles various http request operations
    * @private
-   * @param method
-   * @param payload
+   * @param method http request method: GET | POST | PUT | PATCH | DELETE
+   * @param payload request payload (optional)
    */
   private async request(method: string, payload?: any): Promise<IHttpResponse> {
     try {
       const headers = { ...this.httpHeaders };
 
-      if (!headers["Content-Type"])
-        headers["Content-Type"] = "application/json";
+      if (!headers["content-type"])
+        headers["content-type"] = "application/json";
 
       if (method.toUpperCase() === "POST" || method.toUpperCase() === "PATCH")
-        headers["Idempotency-Key"] = await this.generateIdempotencyKey();
+        headers["idempotency-key"] = await this.generateIdempotencyKey();
 
       const options = { ...this.httpOptions, method, headers };
 
@@ -118,7 +118,7 @@ class HttpClient {
    * Carries out a get request
    * @public
    */
-  public Get(): Promise<IHttpResponse> {
+  Get(): Promise<IHttpResponse> {
     return this.request("GET");
   }
 
@@ -127,7 +127,7 @@ class HttpClient {
    * @public
    * @param payload
    */
-  public Post(payload: any): Promise<IHttpResponse> {
+  Post(payload: any): Promise<IHttpResponse> {
     return this.request("POST", payload);
   }
 
@@ -136,7 +136,7 @@ class HttpClient {
    * @public
    * @param payload
    */
-  public Put(payload: any): Promise<IHttpResponse> {
+  Put(payload: any): Promise<IHttpResponse> {
     return this.request("PUT", payload);
   }
 
@@ -145,7 +145,7 @@ class HttpClient {
    * @public
    * @param payload
    */
-  public Patch(payload: any): Promise<IHttpResponse> {
+  Patch(payload: any): Promise<IHttpResponse> {
     return this.request("PATCH", payload);
   }
 
@@ -153,14 +153,14 @@ class HttpClient {
    * Carries out a delete request
    * @public
    */
-  public Delete(): Promise<IHttpResponse> {
+  Delete(): Promise<IHttpResponse> {
     return this.request("DELETE");
   }
 
   /**
    * Creates and returns a new instance of the HttpClient class
-   * @param url
-   * @param httpHeaders
+   * @param url request url
+   * @param httpHeaders request headers
    */
   static Create(url: string, httpHeaders: Record<string, string>): HttpClient {
     return new HttpClient(url, httpHeaders);

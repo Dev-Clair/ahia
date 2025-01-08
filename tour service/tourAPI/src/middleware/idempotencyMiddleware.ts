@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { NextFunction, Request, Response } from "express";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
-import Idempotency from "../model/idempotencyModel";
+import IdempotencyRepository from "../repository/idempotencyRepository";
 
 /**
  * Verifies operation idempotency
@@ -19,7 +19,7 @@ const isIdempotent = async (
   const isProduction =
     Config.NODE_ENV !== "production" ? randomUUID() : undefined;
 
-  const key = (req.headers["Idempotency-Key"] as string) ?? isProduction;
+  const key = (req.headers["idempotency-key"] as string) ?? isProduction;
 
   if (!key) {
     return res.status(HttpCode.BAD_REQUEST).json({
@@ -30,7 +30,7 @@ const isIdempotent = async (
     });
   }
 
-  if ((await Idempotency.findOne({ key: key })) as boolean)
+  if ((await IdempotencyRepository.find(key, null)) as boolean)
     return res.status(HttpCode.CONFLICT).json({
       error: {
         name: HttpStatus.CONFLICT,

@@ -21,11 +21,11 @@ const createTour = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<ITour>;
 
-    const tour = await TourService.Create().save(key, payload);
+    const tour = await TourService.Create().save(payload, { idempotent });
 
     return res.status(HttpCode.CREATED).json({ data: tour });
   } catch (error: any) {
@@ -107,6 +107,35 @@ const retrieveToursByRealtor = async (
 };
 
 /**
+ * Retrieves tours by product
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ * @returns Promise<Response | void>
+ */
+const retrieveToursByProducts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const id = req.params.id as string;
+
+    const queryString = {
+      products: id,
+      status: new RegExp(/^[pending|ongoing]$/),
+      isClosed: false,
+    };
+
+    const tours = await TourService.Create().findAll(queryString);
+
+    return res.status(HttpCode.OK).json({ data: tours });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+/**
  * Retrieves a tour by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -140,13 +169,15 @@ const updateTourById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const id = req.params.id as string;
 
-    const payload = req.body as Partial<ITour> | any;
+    const payload = req.body as Partial<ITour>;
 
-    const tour = await TourService.Create().update(id, key, payload);
+    const tour = await TourService.Create().updateById(id, payload, {
+      idempotent,
+    });
 
     if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
@@ -171,7 +202,7 @@ const deleteTourById = async (
   try {
     const id = req.params.id as string;
 
-    const tour = await TourService.Create().delete(id);
+    const tour = await TourService.Create().deleteById(id);
 
     if (!tour) throw new NotFoundError(`No record found for tour: ${id}`);
 
@@ -196,7 +227,7 @@ const addTourRealtor = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IRealtor>;
 
@@ -204,7 +235,7 @@ const addTourRealtor = async (
 
     payload.tour = tourId;
 
-    const realtor = await RealtorService.Create().save(key, payload);
+    const realtor = await RealtorService.Create().save(payload, { idempotent });
 
     return res.status(HttpCode.CREATED).json({ data: realtor });
   } catch (error: any) {
@@ -227,17 +258,15 @@ const acceptTourRealtorRequest = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     const payload = {} as Partial<ITour> | any;
 
-    const realtor = await TourService.Create().acceptRealtor(
-      tourId,
-      key,
-      payload
-    );
+    const realtor = await TourService.Create().acceptRealtor(tourId, payload, {
+      idempotent,
+    });
 
     if (!realtor)
       throw new NotFoundError(`No record found for realtor: ${realtor}`);
@@ -263,7 +292,7 @@ const rejectTourRealtorRequest = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     await TourService.Create().rejectRealtor(tourId);
 
@@ -288,13 +317,15 @@ const removeTourRealtor = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = { key: req.headers["Idempotency-Key"] as string };
+    const idempotent = req.idempotent as Record<string, any>;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     const payload = tour.$set("realtor", "");
 
-    const realtor = await TourService.Create().update(tourId, key, payload);
+    const realtor = await TourService.Create().updateById(tourId, payload, {
+      idempotent,
+    });
 
     return res.status(HttpCode.MODIFIED).json({ data: realtor });
   } catch (error: any) {
@@ -317,7 +348,7 @@ const rescheduleTour = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<ISchedule>;
 
@@ -325,7 +356,9 @@ const rescheduleTour = async (
 
     payload.tour = tourId;
 
-    const schedule = await ScheduleService.Create().save(key, payload);
+    const schedule = await ScheduleService.Create().save(payload, {
+      idempotent,
+    });
 
     return res.status(HttpCode.CREATED).json({ data: schedule });
   } catch (error: any) {
@@ -348,16 +381,16 @@ const acceptTourReschedule = async (
   try {
     const tour = req.tour as ITour;
 
-    const key = req.idempotent as Record<string, any>;
+    const idempotent = req.idempotent as Record<string, any>;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
-    const payload = {} as Partial<ITour> | any;
+    const payload = {} as Partial<ITour>;
 
     const schedule = await TourService.Create().acceptReschedule(
       tourId,
-      key,
-      payload
+      payload,
+      { idempotent }
     );
 
     if (!schedule)
@@ -384,7 +417,7 @@ const rejectTourReschedule = async (
   try {
     const tour = req.tour as ITour;
 
-    const tourId = tour.id();
+    const tourId = JSON.stringify(tour._id);
 
     await TourService.Create().rejectReschedule(tourId);
 
@@ -399,6 +432,7 @@ export default {
   retrieveTours,
   retrieveToursByCustomer,
   retrieveToursByRealtor,
+  retrieveToursByProducts,
   retrieveTourById,
   updateTourById,
   deleteTourById,

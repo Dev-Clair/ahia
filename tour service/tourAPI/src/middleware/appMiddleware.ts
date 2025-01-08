@@ -9,14 +9,14 @@ import HttpStatus from "../enum/httpStatus";
 const isContentType =
   (contentTypes: string[]) =>
   (req: Request, res: Response, next: NextFunction): Response | void => {
-    const getContentType = req.headers["Content-Type"] as string;
+    const getContentType = req.headers["content-type"] as string;
 
     if (!contentTypes.includes(getContentType)) {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
           message: {
-            expected: contentTypes.join(", "),
+            expected: contentTypes.join(),
             received: `${getContentType}`,
           },
         },
@@ -69,7 +69,6 @@ const isSecure = (
 
   next();
 };
-
 /**
  * Verifies request body contains creatable fields
  * @param fields List of fields that cannot be inserted
@@ -79,19 +78,22 @@ const filterInsertion =
   (req: Request, res: Response, next: NextFunction): Response | void => {
     const { body } = req;
 
-    const creatable = Object.keys(body);
+    const errorCache: string[] = Array.isArray(body)
+      ? body.flatMap((obj) =>
+          Object.keys(obj).filter((key) => fields.includes(key))
+        )
+      : Object.keys(body).filter((key) => fields.includes(key));
 
-    const errorCache: string[] = creatable.filter((element) =>
-      fields.includes(element)
-    );
-
-    if (errorCache.length !== 0)
+    if (errorCache.length !== 0) {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Insertions are not allowed on fields: ${errorCache.join()}`,
+          message: `Insertions are not allowed on fields: ${errorCache.join(
+            ", "
+          )}`,
         },
       });
+    }
 
     next();
   };
@@ -105,19 +107,22 @@ const filterUpdate =
   (req: Request, res: Response, next: NextFunction): Response | void => {
     const { body } = req;
 
-    const updatable = Object.keys(body);
+    const errorCache: string[] = Array.isArray(body)
+      ? body.flatMap((obj) =>
+          Object.keys(obj).filter((key) => fields.includes(key))
+        )
+      : Object.keys(body).filter((key) => fields.includes(key));
 
-    const errorCache: string[] = updatable.filter((element) =>
-      fields.includes(element)
-    );
-
-    if (errorCache.length !== 0)
+    if (errorCache.length !== 0) {
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Updates are not allowed on fields: ${errorCache.join()}}`,
+          message: `Updates are not allowed on fields: ${errorCache.join(
+            ", "
+          )}`,
         },
       });
+    }
 
     next();
   };

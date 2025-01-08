@@ -2,7 +2,7 @@ import AppError from "./appError";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
 
-class ConnectionServiceError extends AppError {
+class ConnectionError extends AppError {
   constructor(name: string, message: string) {
     super(
       (name = HttpStatus.SERVICE_UNAVAILABLE),
@@ -13,4 +13,4 @@ class ConnectionServiceError extends AppError {
   }
 }
 
-export default ConnectionServiceError;
+export default ConnectionError;
