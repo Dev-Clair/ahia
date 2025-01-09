@@ -85,6 +85,10 @@ const ListingSchema: Schema<IListing> = new Schema(
           values.map((value) =>
             value.startsWith("http") ? value : `${baseStoragePath}${value}`
           ),
+        validate: {
+          validator: (values: string[]) => values.length <= 10,
+          message: "You can upload up to 10 images only.",
+        },
         required: false,
       },
       videos: {
@@ -93,6 +97,10 @@ const ListingSchema: Schema<IListing> = new Schema(
           values.map((value) =>
             value.startsWith("http") ? value : `${baseStoragePath}${value}`
           ),
+        validate: {
+          validator: (values: string[]) => values.length <= 5,
+          message: "You can upload up to 5 videos only.",
+        },
         required: false,
       },
     },

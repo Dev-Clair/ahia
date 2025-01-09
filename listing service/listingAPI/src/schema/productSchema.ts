@@ -35,20 +35,30 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     media: {
       images: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) =>
-            value.startsWith("http") ? value : `${baseStoragePath}${value}`
-          ),
-        required: false,
-      },
-      videos: {
-        type: [String],
-        get: (values: string[]) =>
-          values.map((value) =>
-            value.startsWith("http") ? value : `${baseStoragePath}${value}`
-          ),
-        required: false,
+        images: {
+          type: [String],
+          get: (values: string[]) =>
+            values.map((value) =>
+              value.startsWith("http") ? value : `${baseStoragePath}${value}`
+            ),
+          validate: {
+            validator: (values: string[]) => values.length <= 5,
+            message: "You can upload up to 5 images only.",
+          },
+          required: false,
+        },
+        videos: {
+          type: [String],
+          get: (values: string[]) =>
+            values.map((value) =>
+              value.startsWith("http") ? value : `${baseStoragePath}${value}`
+            ),
+          validate: {
+            validator: (values: string[]) => values.length <= 2,
+            message: "You can upload up to 2 videos only.",
+          },
+          required: false,
+        },
       },
     },
     status: {
