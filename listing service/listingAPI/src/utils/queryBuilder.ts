@@ -66,7 +66,7 @@ export class QueryBuilder<T> {
           $near: {
             $geometry: {
               type: "Point",
-              coordinates: [parsedLng, parsedLat],
+              location: { coordinates: [parsedLng, parsedLat] },
             },
             $maxDistance: parsedDistance,
           },
