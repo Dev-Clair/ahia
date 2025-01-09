@@ -63,6 +63,8 @@ export default class ListingService implements IListingService {
         // Validate listing
         if (!listing)
           throw new NotFoundError(`No document found for listing: ${id}`);
+
+        return listing;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());

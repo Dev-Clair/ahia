@@ -53,6 +53,8 @@ export default class ProductService implements IProductService {
         // Validate product
         if (!product)
           throw new NotFoundError(`No document found for product: ${id}`);
+
+        return product;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
@@ -75,6 +77,8 @@ export default class ProductService implements IProductService {
         // Validate product
         if (!product)
           throw new NotFoundError(`No document found for product: ${id}`);
+
+        return product;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());

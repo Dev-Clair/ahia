@@ -45,6 +45,8 @@ export default class PlaceService {
         // Validate place
         if (!place)
           throw new NotFoundError(`No document found for place: ${id}`);
+
+        return place;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
@@ -65,6 +67,8 @@ export default class PlaceService {
         // Validate place
         if (!place)
           throw new NotFoundError(`No document found for place: ${field}`);
+
+        return place;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
