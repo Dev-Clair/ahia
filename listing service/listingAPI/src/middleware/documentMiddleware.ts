@@ -5,7 +5,6 @@ import ListingService from "../service/listingService";
 import PlaceService from "../service/placeService";
 import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
-import NotFoundError from "../error/notfoundError";
 
 /**
  * Resolves a document by its id and
@@ -29,11 +28,6 @@ const DocumentMiddleware = (
 
         const listing = await service.findById(paramValue);
 
-        if (!listing)
-          throw new NotFoundError(
-            `No document found for listing: ${paramValue}`
-          );
-
         (req as Request).listing = listing as IListing;
       }
 
@@ -43,11 +37,6 @@ const DocumentMiddleware = (
 
         const product = await service.findById(paramValue);
 
-        if (!product)
-          throw new NotFoundError(
-            `No document found for product: ${paramValue}`
-          );
-
         (req as Request).product = product as IProduct;
       }
 
@@ -56,9 +45,6 @@ const DocumentMiddleware = (
       //   service = PlaceService.Create();
 
       //   const place = await service.findById(paramValue);
-
-      //   if (!place)
-      //     throw new NotFoundError(`No document found for place: ${paramValue}`);
 
       //   (req as Request).place = place as IPlace;
       // }

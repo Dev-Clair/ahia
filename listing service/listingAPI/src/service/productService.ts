@@ -5,6 +5,7 @@ import IProductService from "../interface/IProductservice";
 import ListingRepository from "../repository/listingRepository";
 import ProductRepository from "../repository/productRepository";
 import IdempotencyRepository from "../repository/idempotencyRepository";
+import NotFoundError from "../error/notfoundError";
 
 /**
  * Product Service
@@ -44,10 +45,15 @@ export default class ProductService implements IProductService {
    * @public
    * @param id product id
    */
-  async findById(id: string): Promise<IProduct | null> {
+  async findById(id: string): Promise<IProduct> {
     try {
-      const operation = async () =>
-        await ProductRepository.Create().findById(id);
+      const operation = async () => {
+        const product = await ProductRepository.Create().findById(id);
+
+        // Validate product
+        if (!product)
+          throw new NotFoundError(`No document found for product: ${id}`);
+      };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
@@ -59,10 +65,17 @@ export default class ProductService implements IProductService {
    * @public
    * @param id product id
    */
-  async findByIdAndPopulate(id: string): Promise<IProduct | null> {
+  async findByIdAndPopulate(id: string): Promise<IProduct> {
     try {
-      const operation = async () =>
-        await ProductRepository.Create().findByIdAndPopulate(id);
+      const operation = async () => {
+        const product = await ProductRepository.Create().findByIdAndPopulate(
+          id
+        );
+
+        // Validate product
+        if (!product)
+          throw new NotFoundError(`No document found for product: ${id}`);
+      };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
@@ -124,7 +137,7 @@ export default class ProductService implements IProductService {
     id: string,
     payload: Partial<IProduct> | any,
     options: { idempotent: Record<string, any> }
-  ): Promise<string | null> {
+  ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
@@ -143,9 +156,12 @@ export default class ProductService implements IProductService {
               session: session,
             }
           );
+          // Validate product
+          if (!product)
+            throw new NotFoundError(`No document found for product: ${id}`);
 
           // Transform result
-          const productId = product?._id.toString();
+          const productId = product._id.toString();
 
           return productId;
         };
@@ -165,7 +181,7 @@ export default class ProductService implements IProductService {
    * @param id product id
    * @param options configuration options (optional)
    */
-  async deleteById(id: string): Promise<string | null> {
+  async deleteById(id: string): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
@@ -175,6 +191,10 @@ export default class ProductService implements IProductService {
           const product = await ProductRepository.Create().deleteById(id, {
             session: session,
           });
+
+          // Validate product
+          if (!product)
+            throw new NotFoundError(`No document found for product: ${id}`);
 
           // Transform result
           const productId = product?._id.toString();

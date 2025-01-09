@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
+import ILeaseProduct from "../interface/ILeaseproduct";
 import IListing from "../interface/IListing";
 import IListingService from "../interface/IListingservice";
-import ILeaseProduct from "../interface/ILeaseproduct";
 import IProduct from "../interface/IProduct";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import IdempotencyRepository from "../repository/idempotencyRepository";
+import NotFoundError from "../error/notfoundError";
 import ListingRepository from "../repository/listingRepository";
 import ProductRepository from "../repository/productRepository";
 
@@ -54,10 +55,15 @@ export default class ListingService implements IListingService {
    * @public
    * @param id listing id
    */
-  async findById(id: string): Promise<IListing | null> {
+  async findById(id: string): Promise<IListing> {
     try {
-      const operation = async () =>
-        await ListingRepository.Create().findById(id);
+      const operation = async () => {
+        const listing = await ListingRepository.Create().findById(id);
+
+        // Validate listing
+        if (!listing)
+          throw new NotFoundError(`No document found for listing: ${id}`);
+      };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
@@ -76,7 +82,7 @@ export default class ListingService implements IListingService {
       page: number;
       limit: number;
     }
-  ): Promise<IListing | null> {
+  ): Promise<IListing> {
     try {
       const operation = async () => {
         const { page, limit } = options;
@@ -85,6 +91,10 @@ export default class ListingService implements IListingService {
           id,
           { page: page, limit: limit }
         );
+
+        // Validate listing
+        if (!listing)
+          throw new NotFoundError(`No document found for listing: ${id}`);
 
         return listing;
       };
@@ -150,7 +160,7 @@ export default class ListingService implements IListingService {
     id: string,
     payload: Partial<IListing> | any,
     options: { idempotent: Record<string, any> }
-  ): Promise<string | null> {
+  ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
@@ -170,8 +180,12 @@ export default class ListingService implements IListingService {
             }
           );
 
+          // Validate listing
+          if (!listing)
+            throw new NotFoundError(`No document found for listing: ${id}`);
+
           // Transform result
-          const listingId = listing?._id.toString();
+          const listingId = listing._id.toString();
 
           return listingId;
         };
@@ -191,7 +205,7 @@ export default class ListingService implements IListingService {
    * @param id listing id
    * @param options configuration options (optional)
    */
-  async deleteById(id: string): Promise<string | null> {
+  async deleteById(id: string): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
@@ -202,8 +216,12 @@ export default class ListingService implements IListingService {
             session: session,
           });
 
+          // Validate listing
+          if (!listing)
+            throw new NotFoundError(`No document found for listing: ${id}`);
+
           // Transform result
-          const listingId = listing?._id.toString();
+          const listingId = listing._id.toString();
 
           return listingId;
         };
@@ -422,7 +440,7 @@ export default class ListingService implements IListingService {
     id: string,
     payload: Partial<IProduct> | any,
     options: { idempotent: Record<string, any> }
-  ): Promise<string | null> {
+  ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
@@ -440,8 +458,12 @@ export default class ListingService implements IListingService {
             { session: session }
           );
 
+          // Validate product
+          if (!product)
+            throw new NotFoundError(`No document found for product: ${id}`);
+
           // Transform result
-          const productId = product?._id.toString();
+          const productId = product._id.toString();
 
           return productId;
         };
@@ -464,7 +486,7 @@ export default class ListingService implements IListingService {
   async deleteListingProduct(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<string | null> {
+  ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
@@ -475,8 +497,12 @@ export default class ListingService implements IListingService {
             session: session,
           });
 
+          // Validate product
+          if (!product)
+            throw new NotFoundError(`No document found for product: ${id}`);
+
           // Transform result
-          const productId = product?._id.toString();
+          const productId = product._id.toString();
 
           return productId;
         };

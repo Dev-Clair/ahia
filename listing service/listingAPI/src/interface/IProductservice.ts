@@ -17,10 +17,7 @@ export default interface IProductService extends IService<IProduct> {
    * @param id product id
    * @param options configuration options
    */
-  findById(
-    id: string,
-    options?: { [key: string]: unknown }
-  ): Promise<IProduct | null>;
+  findById(id: string, options?: { [key: string]: unknown }): Promise<IProduct>;
 
   /**
    * Retrieves a product by id and populate its subdocument
@@ -30,7 +27,7 @@ export default interface IProductService extends IService<IProduct> {
   findByIdAndPopulate(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IProduct | null>;
+  ): Promise<IProduct>;
 
   /**
    * Creates a new product in collection
@@ -52,15 +49,12 @@ export default interface IProductService extends IService<IProduct> {
     id: string,
     payload: Partial<IProduct> | any,
     options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  ): Promise<string>;
 
   /**
    * Deletes a product by id
    * @param id product id
    * @param options configuration options
    */
-  deleteById(
-    id: string,
-    options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  deleteById(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }
