@@ -43,7 +43,7 @@ const getLocationGeoCoordinates = async (
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
-        radius: parseInt(req.query?.radius as string, 10) ?? 10,
+        radius: parseInt((req.query?.radius as string) ?? "5", 10),
       };
 
       delete req.query.location;
@@ -64,8 +64,10 @@ const getLocationGeoCoordinates = async (
       // Set coordinates in cache for future requests
       cache.set(cacheKey, req.geoCoordinates);
 
-      req.geoCoordinates.radius =
-        parseInt(req.query?.radius as string, 10) ?? 10;
+      req.geoCoordinates.radius = parseInt(
+        (req.query?.radius as string) ?? "5",
+        10
+      );
 
       delete req.query.location;
 
@@ -112,7 +114,10 @@ const getLocationGeoCoordinates = async (
     // Set coordinates in cache for future requests
     cache.set(cacheKey, req.geoCoordinates);
 
-    req.geoCoordinates.radius = parseInt(req.query?.radius as string, 10) ?? 10;
+    req.geoCoordinates.radius = parseInt(
+      (req.query?.radius as string) ?? "5",
+      10
+    );
 
     delete req.query.location;
 
@@ -231,8 +236,8 @@ const parseUserGeoCoordinates = async (
   req.geoCoordinates = {
     lat: parsedLat,
     lng: parsedLng,
-    distance: parseInt(req.query?.distance as string, 10) ?? 5000,
-    radius: parseInt(req.query?.radius as string, 10) ?? 10,
+    distance: parseInt((req.query?.distance as string) ?? "1000", 10),
+    radius: parseInt((req.query?.radius as string) ?? "1", 10),
   };
 
   delete req.query.lat;
