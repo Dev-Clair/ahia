@@ -86,8 +86,8 @@ const ListingSchema: Schema<IListing> = new Schema(
             value.startsWith("http") ? value : `${baseStoragePath}${value}`
           ),
         validate: {
-          validator: (values: string[]) => values.length <= 10,
-          message: "You can upload up to 10 images only.",
+          validator: (values: string[]) => values.length <= 5,
+          message: "You can upload up to 5 images per request.",
         },
         required: false,
       },
@@ -98,8 +98,8 @@ const ListingSchema: Schema<IListing> = new Schema(
             value.startsWith("http") ? value : `${baseStoragePath}${value}`
           ),
         validate: {
-          validator: (values: string[]) => values.length <= 5,
-          message: "You can upload up to 5 videos only.",
+          validator: (values: string[]) => values.length <= 3,
+          message: "You can upload up to 3 videos per request.",
         },
         required: false,
       },

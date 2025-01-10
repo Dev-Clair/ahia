@@ -43,7 +43,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
             ),
           validate: {
             validator: (values: string[]) => values.length <= 5,
-            message: "You can upload up to 5 images only.",
+            message: "You can upload up to 5 images per request.",
           },
           required: false,
         },
@@ -54,8 +54,8 @@ const ProductSchema: Schema<IProduct> = new Schema(
               value.startsWith("http") ? value : `${baseStoragePath}${value}`
             ),
           validate: {
-            validator: (values: string[]) => values.length <= 2,
-            message: "You can upload up to 2 videos only.",
+            validator: (values: string[]) => values.length <= 3,
+            message: "You can upload up to 3 videos per request.",
           },
           required: false,
         },
