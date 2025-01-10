@@ -32,8 +32,6 @@ export default class IdempotencyRepository {
   ): Promise<void> {
     const verifyKey = await this.find(payload.key, session);
 
-    if (verifyKey) throw new Error("Duplicate operation detected");
-
-    await Idempotency.create([payload], { session });
+    if (!verifyKey) await Idempotency.create([payload], { session });
   }
 }
