@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { randomUUID } from "node:crypto";
-import Cache from "../utils/cache";
+import Cache from "../../cache";
 import Geocode from "../utils/geocode";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
@@ -34,9 +34,7 @@ const getLocationGeoCoordinates = async (
     // Search and retrieve coordinates from cache if available
     const cacheKey = place.trim().toLowerCase();
 
-    const cache = Cache.LruCache;
-
-    let location = cache.get(cacheKey);
+    let location = Cache.get(cacheKey);
 
     if (location) {
       // Attach cached coordinates to the req object for downstream use
@@ -62,7 +60,7 @@ const getLocationGeoCoordinates = async (
       };
 
       // Set coordinates in cache for future requests
-      cache.set(cacheKey, req.geoCoordinates);
+      Cache.set(cacheKey, req.geoCoordinates);
 
       req.geoCoordinates.radius = parseInt(
         (req.query?.radius as string) ?? "5",
@@ -112,7 +110,7 @@ const getLocationGeoCoordinates = async (
     };
 
     // Set coordinates in cache for future requests
-    cache.set(cacheKey, req.geoCoordinates);
+    Cache.set(cacheKey, req.geoCoordinates);
 
     req.geoCoordinates.radius = parseInt(
       (req.query?.radius as string) ?? "5",
