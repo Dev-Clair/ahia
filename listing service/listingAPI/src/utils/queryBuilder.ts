@@ -63,10 +63,10 @@ export class QueryBuilder<T> {
 
       if (parsedDistance !== undefined) {
         const nearQueryFilter = {
-          $near: {
+          $nearSphere: {
             $geometry: {
               type: "Point",
-              location: { coordinates: [parsedLng, parsedLat] },
+              coordinates: [parsedLng, parsedLat],
             },
             $maxDistance: parsedDistance,
           },
