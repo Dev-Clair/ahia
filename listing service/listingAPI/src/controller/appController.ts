@@ -1,5 +1,5 @@
 import HttpCode from "../enum/httpCode";
-import Cache from "../utils/cache";
+import Cache from "../../cache";
 import IGeoCoordinates from "../interface/IGeocoordinates";
 import IPaginationParams from "../interface/IPaginationparams";
 import { NextFunction, Request, Response } from "express";
@@ -62,8 +62,6 @@ const promiseServiceFactory = async ({
 
   const promises: Promise<any>[] = [];
 
-  const cache = Cache.LruCache;
-
   // Fixed search radius (kilometers)
   const radius = 10;
 
@@ -88,9 +86,9 @@ const promiseServiceFactory = async ({
     zoneKey,
   });
 
-  if (cache.has(leaseKey)) {
+  if (Cache.has(leaseKey)) {
     promises.push(
-      Promise.resolve({ status: "fulfilled", value: cache.get(leaseKey) })
+      Promise.resolve({ status: "fulfilled", value: Cache.get(leaseKey) })
     );
   } else {
     // Lease filter
@@ -106,7 +104,7 @@ const promiseServiceFactory = async ({
       productService
         .findProductsByListing(locationFilter, leaseFilter)
         .then((value) => {
-          cache.set(leaseKey, value);
+          Cache.set(leaseKey, value);
 
           return { status: "fulfilled", value };
         })
@@ -121,11 +119,11 @@ const promiseServiceFactory = async ({
     zoneKey,
   });
 
-  if (cache.has(reservationKey)) {
+  if (Cache.has(reservationKey)) {
     promises.push(
       Promise.resolve({
         status: "fulfilled",
-        value: cache.get(reservationKey),
+        value: Cache.get(reservationKey),
       })
     );
   } else {
@@ -142,7 +140,7 @@ const promiseServiceFactory = async ({
       productService
         .findProductsByListing(locationFilter, reservationFilter)
         .then((value) => {
-          cache.set(reservationKey, value);
+          Cache.set(reservationKey, value);
 
           return { status: "fulfilled", value };
         })
@@ -157,9 +155,9 @@ const promiseServiceFactory = async ({
     zoneKey,
   });
 
-  if (cache.has(sellKey)) {
+  if (Cache.has(sellKey)) {
     promises.push(
-      Promise.resolve({ status: "fulfilled", value: cache.get(sellKey) })
+      Promise.resolve({ status: "fulfilled", value: Cache.get(sellKey) })
     );
   } else {
     // Sell filter
@@ -175,7 +173,7 @@ const promiseServiceFactory = async ({
       productService
         .findProductsByListing(locationFilter, sellFilter)
         .then((value) => {
-          cache.set(sellKey, value);
+          Cache.set(sellKey, value);
 
           return { status: "fulfilled", value };
         })
