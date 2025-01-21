@@ -1,4 +1,4 @@
-const Offerings = {
+const Offerings: Record<string, string[]> = {
   commercial: ["factory", "office", "showroom", "storefront", "warehouse"],
   hospitality: [
     "event-hall",
@@ -31,12 +31,12 @@ const Offerings = {
     "villa",
   ],
   outdoor: [
-    "event-tents",
-    "camping-tents",
-    "glamping-tents",
-    "emergency-shelters",
-    "field-tents",
-    "exhibition-tents",
+    "event-tent",
+    "camping-tent",
+    "glamping-tent",
+    "emergency-shelter",
+    "field-tent",
+    "exhibition-tent",
   ],
 };
 
