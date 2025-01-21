@@ -87,6 +87,7 @@ ListingRouter.route("/:id/products")
 ListingRouter.patch(
   "/:id/products/:product",
   AuthMiddleware.isGranted(["Admin", "Provider"]),
+  IdempotencyMiddleware.isIdempotent,
   DocumentMiddleware("listing", "id"),
   ListingController.deleteListingProductById
 );
