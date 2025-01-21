@@ -12,8 +12,8 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method save
  * @method updateById
  * @method deleteById
- * @method updateOne
- * @method updateMany
+ * @method updateItem
+ * @method updateCollection
  */
 export default class ListingRepository implements IListingRepository {
   static LISTING_PROJECTION_BASIC = [
@@ -189,13 +189,13 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing by id (updateOne Query)
+   * Updates a listing item by id (updateOne Query)
    * @public
    * @param filter listing id
    * @param update product id
    * @param session
    */
-  async updateOne(
+  async updateItem(
     filter: string | ObjectId,
     update: string | ObjectId,
     session: ClientSession
@@ -212,12 +212,12 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing (bulkwrite)
+   * Updates a listing collection (bulkwrite)
    * @public
    * @param payload any bulkwrite operation
    * @param session database session
    */
-  async updateMany(
+  async updateCollection(
     payload: AnyBulkWriteOperation<any>[],
     session: ClientSession
   ): Promise<void> {
