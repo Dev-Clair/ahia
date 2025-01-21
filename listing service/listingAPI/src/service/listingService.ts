@@ -24,7 +24,6 @@ import ProductRepository from "../repository/productRepository";
  * @method saveListingLeaseProduct
  * @method saveListingReservationProduct
  * @method saveListingSellProduct
- * @method updateListingProduct
  * @method deleteListingProduct
  */
 export default class ListingService implements IListingService {
@@ -420,54 +419,6 @@ export default class ListingService implements IListingService {
           );
 
           return products.map(({ id, listing }) => ({ id, listing }));
-        };
-
-        return await FailureRetry.ExponentialBackoff(() => operation());
-      });
-    } catch (error: any) {
-      throw error;
-    } finally {
-      await session.endSession();
-    }
-  }
-
-  /**
-   * Updates a listing's product by id
-   * @public
-   * @param id product id
-   * @param payload data object
-   * @param options configuration options
-   */
-  async updateListingProduct(
-    id: string,
-    payload: Partial<IProduct> | any,
-    options: { idempotent: Record<string, any> }
-  ): Promise<string> {
-    const session = await mongoose.startSession();
-
-    try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
-
-        // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
-
-        const operation = async () => {
-          // Update product
-          const product = await ProductRepository.Create().updateById(
-            id,
-            payload,
-            { session: session }
-          );
-
-          // Validate product
-          if (!product)
-            throw new NotFoundError(`No document found for product: ${id}`);
-
-          // Transform result
-          const productId = product._id.toString();
-
-          return productId;
         };
 
         return await FailureRetry.ExponentialBackoff(() => operation());

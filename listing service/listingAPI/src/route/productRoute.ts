@@ -1,7 +1,11 @@
 import { Router } from "express";
 import AppController from "../controller/appController";
+import AppMiddleware from "../middleware/appMiddleware";
+import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
+import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
+import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ProductController from "../controller/productController";
 
 const ProductRouter = Router();
@@ -41,7 +45,7 @@ ProductRouter.get(
 );
 
 ProductRouter.get(
-  "/status/:status/search?q=",
+  "/status/:status/search",
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsSearch
 );
@@ -51,14 +55,24 @@ ProductRouter.get(
   ProductController.retrieveProductsByListingType
 );
 
-ProductRouter.get(
-  "/:id",
-  DocumentMiddleware("product", "id"),
-  ProductController.retrieveProductById
-);
+ProductRouter.route("/:id")
+  .get(
+    DocumentMiddleware("product", "id"),
+    ProductController.retrieveProductById
+  )
+  .patch(
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    AppMiddleware.isContentType(["application/json"]),
+    AppMiddleware.filterUpdate(["media", "type", "verification"]),
+    IdempotencyMiddleware.isIdempotent,
+    DocumentMiddleware("product", "id"),
+    PaymentverificationMiddleware.isVerified,
+    ProductController.updateProductById
+  );
 
 ProductRouter.get(
   "/:id/listing",
+  AuthMiddleware.isGranted(["Admin", "Provider"]),
   ProductController.retrieveProductByIdAndPopulate
 );
 

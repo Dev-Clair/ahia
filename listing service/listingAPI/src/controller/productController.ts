@@ -1,7 +1,6 @@
 import HttpCode from "../enum/httpCode";
 import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
-import NotFoundError from "../error/notfoundError";
 import IGeoCoordinates from "../interface/IGeocoordinates";
 import IProduct from "../interface/IProduct";
 import ProductService from "../service/productService";
@@ -301,6 +300,34 @@ const retrieveProductById = async (
 };
 
 /**
+ * Updates a product by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const updateProductById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const id = req.params.id as string;
+
+    const idempotent = req.idempotent as Record<string, any>;
+
+    const payload = req.body as Partial<IProduct>;
+
+    const product = await ProductService.Create().updateById(id, payload, {
+      idempotent,
+    });
+
+    return res.status(HttpCode.MODIFIED).json({ data: product });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
  * Retrieve a product by id and populates its subdocument
  * @param req Express Request Object
  * @param res Express Response Object
@@ -315,8 +342,6 @@ const retrieveProductByIdAndPopulate = async (
     const id = req.params.id as string;
 
     const product = await ProductService.Create().findByIdAndPopulate(id);
-
-    if (!product) throw new NotFoundError(`No record found for product: ${id}`);
 
     return res.status(HttpCode.OK).json({ data: { product } });
   } catch (err: any) {
@@ -333,5 +358,6 @@ export default {
   retrieveProductsByListingProvider,
   retrieveProductsByListingType,
   retrieveProductById,
+  updateProductById,
   retrieveProductByIdAndPopulate,
 };

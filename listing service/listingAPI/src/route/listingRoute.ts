@@ -3,7 +3,6 @@ import AppMiddleware from "../middleware/appMiddleware";
 import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
-import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ListingController from "../controller/listingController";
 
 const ListingRouter = Router();
@@ -35,7 +34,7 @@ ListingRouter.get(
 );
 
 ListingRouter.get(
-  "/search?q=",
+  "/search",
   AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsSearch
 );
@@ -85,20 +84,11 @@ ListingRouter.route("/:id/products")
     ListingController.createListingProduct
   );
 
-ListingRouter.route("/:id/products/:productId")
-  .patch(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
-    AppMiddleware.isContentType(["application/json"]),
-    AppMiddleware.filterUpdate(["media", "type", "verification"]),
-    IdempotencyMiddleware.isIdempotent,
-    DocumentMiddleware("listing", "id"),
-    PaymentverificationMiddleware.verifyProductPaymentStatus,
-    ListingController.updateListingProductById
-  )
-  .patch(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
-    DocumentMiddleware("listing", "id"),
-    ListingController.deleteListingProductById
-  );
+ListingRouter.patch(
+  "/:id/products/:product",
+  AuthMiddleware.isGranted(["Admin", "Provider"]),
+  DocumentMiddleware("listing", "id"),
+  ListingController.deleteListingProductById
+);
 
 export default ListingRouter;
