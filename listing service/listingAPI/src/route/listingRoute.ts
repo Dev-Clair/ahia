@@ -104,7 +104,7 @@ ListingRouter.route("/:id/products/:productId")
     PaymentverificationMiddleware.verifyProductPaymentStatus,
     ListingController.updateListingProductById
   )
-  .delete(
+  .patch(
     AuthMiddleware.isGranted(["Admin", "Provider"]),
     ValidationMiddleware.validateID,
     DocumentMiddleware("listing", "id"),

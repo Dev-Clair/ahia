@@ -57,7 +57,6 @@ ProductRouter.get(
   "/status/:status/type/:type",
   ValidationMiddleware.validateProductStatus,
   ValidationMiddleware.validateListingType,
-  GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsByListingType
 );
 
