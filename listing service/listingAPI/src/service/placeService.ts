@@ -94,7 +94,7 @@ export default class PlaceService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create place
@@ -140,7 +140,7 @@ export default class PlaceService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Update place

@@ -124,7 +124,7 @@ export default class ListingService implements IListingService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create listing
@@ -170,7 +170,7 @@ export default class ListingService implements IListingService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Update listing
@@ -292,7 +292,7 @@ export default class ListingService implements IListingService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create product
@@ -310,7 +310,7 @@ export default class ListingService implements IListingService {
           }));
 
           // Update listing
-          await ListingRepository.Create().updateMany(
+          await ListingRepository.Create().updateCollection(
             updateOperations,
             session
           );
@@ -344,7 +344,7 @@ export default class ListingService implements IListingService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create product
@@ -362,7 +362,7 @@ export default class ListingService implements IListingService {
           }));
 
           // Update listing
-          await ListingRepository.Create().updateMany(
+          await ListingRepository.Create().updateCollection(
             updateOperations,
             session
           );
@@ -396,7 +396,7 @@ export default class ListingService implements IListingService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create product
@@ -414,7 +414,7 @@ export default class ListingService implements IListingService {
           }));
 
           // Update listing
-          await ListingRepository.Create().updateMany(
+          await ListingRepository.Create().updateCollection(
             updateOperations,
             session
           );
@@ -450,7 +450,7 @@ export default class ListingService implements IListingService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Update product
@@ -483,16 +483,21 @@ export default class ListingService implements IListingService {
    * Deletes a listing's product by id
    * @public
    * @param id product id
-   * @param options configuration options (optional)
+   * @param options configuration options
    */
   async deleteListingProduct(
     id: string,
-    options?: { [key: string]: unknown }
+    options: { idempotent: Record<string, any> }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
       return await session.withTransaction(async () => {
+        const { idempotent } = options;
+
+        // Ensure operation idempotency
+        await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Delete product
           const product = await ProductRepository.Create().deleteById(id, {
@@ -505,6 +510,9 @@ export default class ListingService implements IListingService {
 
           // Transform result
           const productId = product._id.toString();
+
+          // Update listing
+          await ListingRepository.Create().updateItem(id, productId, session);
 
           return productId;
         };

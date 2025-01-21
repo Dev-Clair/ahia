@@ -103,7 +103,7 @@ export default class ProductService implements IProductService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create Product
@@ -149,7 +149,7 @@ export default class ProductService implements IProductService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Update product
@@ -160,6 +160,7 @@ export default class ProductService implements IProductService {
               session: session,
             }
           );
+
           // Validate product
           if (!product)
             throw new NotFoundError(`No document found for product: ${id}`);
@@ -201,7 +202,7 @@ export default class ProductService implements IProductService {
             throw new NotFoundError(`No document found for product: ${id}`);
 
           // Transform result
-          const productId = product?._id.toString();
+          const productId = product._id.toString();
 
           return productId;
         };
