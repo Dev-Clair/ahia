@@ -37,25 +37,25 @@ const ProductSchema: Schema<IProduct> = new Schema(
       images: {
         images: {
           type: [String],
-          get: (values: string[]) =>
+          get: (values: string[] = []) =>
             values.map((value) =>
               value.startsWith("http") ? value : `${baseStoragePath}${value}`
             ),
           validate: {
             validator: (values: string[]) => values.length <= 5,
-            message: "You can upload up to 5 images per request.",
+            message: "You can only upload up to 5 images per request.",
           },
           required: false,
         },
         videos: {
           type: [String],
-          get: (values: string[]) =>
+          get: (values: string[] = []) =>
             values.map((value) =>
               value.startsWith("http") ? value : `${baseStoragePath}${value}`
             ),
           validate: {
             validator: (values: string[]) => values.length <= 3,
-            message: "You can upload up to 3 videos per request.",
+            message: "You can only upload up to 3 videos per request.",
           },
           required: false,
         },
@@ -115,14 +115,11 @@ const ProductSchema: Schema<IProduct> = new Schema(
   }
 );
 
-// Product Schema Search Index
-ProductSchema.index({
-  "offering.name": "text",
-  "offering.category": "text",
-  "offering.area.size": 1,
-  "offering.type": "text",
-  status: "text",
-});
+// Product Schema Text Search Index
+ProductSchema.index({ "offering.name": "text" });
+ProductSchema.index({ "offering.area.size": 1 });
+ProductSchema.index({ "offering.type": "text" });
+ProductSchema.index({ status: "text" });
 
 // Product Schema Middleware
 ProductSchema.pre("findOneAndDelete", async function (next) {
@@ -133,7 +130,7 @@ ProductSchema.pre("findOneAndDelete", async function (next) {
       .findOne(this.getFilter())
       .session(session)) as IProduct;
 
-    if (!product) next();
+    if (!product) next(new Error("Product not found"));
 
     await session.withTransaction(async () => {
       // Unlink listing reference to product
