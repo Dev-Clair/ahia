@@ -6,16 +6,16 @@ const ReservationSchema: Schema<IReservation> = new Schema(
     plan: {
       type: String,
       enum: ["daily", "extended"],
-      required: true,
+      required: [true, "invalid reservation plan"],
     },
     price: {
       amount: {
         type: Number,
-        required: true,
+        required: [true, "price is required"],
       },
       currency: {
         type: String,
-        required: true,
+        required: [true, "currency is required"],
       },
     },
     termsAndConditions: {

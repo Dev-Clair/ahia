@@ -14,7 +14,7 @@ export default interface IService<T> {
    * @param id document id
    * @param options configuration options
    */
-  findById(id: string, options?: { [key: string]: unknown }): Promise<T | null>;
+  findById(id: string, options?: { [key: string]: unknown }): Promise<T>;
 
   /**
    * Creates a new document in collection
@@ -36,15 +36,12 @@ export default interface IService<T> {
     id: string,
     payload: Partial<T> | any,
     options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  ): Promise<string>;
 
   /**
    * Deletes a document by id
    * @param id document id
    * @param options configuration options
    */
-  deleteById(
-    id: string,
-    options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  deleteById(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }

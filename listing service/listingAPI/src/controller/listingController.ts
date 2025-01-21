@@ -1,10 +1,8 @@
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import IListing from "../interface/IListing";
-import IProduct from "../interface/IProduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
-import NotFoundError from "../error/notfoundError";
 import ILeaseProduct from "../interface/ILeaseproduct";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
@@ -188,8 +186,6 @@ const retrieveListingByIdAndPopulate = async (
       options
     );
 
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
-
     return res.status(HttpCode.OK).json({ data: { listing } });
   } catch (err: any) {
     return next(err);
@@ -218,8 +214,6 @@ const updateListingById = async (
       idempotent,
     });
 
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
-
     return res.status(HttpCode.MODIFIED).json({ data: listing });
   } catch (err: any) {
     return next(err);
@@ -241,8 +235,6 @@ const deleteListingById = async (
     const id = req.params.id as string;
 
     const listing = await ListingService.Create().deleteById(id);
-
-    if (!listing) throw new NotFoundError(`No record found for listing: ${id}`);
 
     return res.status(HttpCode.MODIFIED).json({ data: listing });
   } catch (err: any) {
@@ -359,36 +351,6 @@ const retrieveListingProducts = async (
 };
 
 /**
- * Updates a listing's product by id
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const updateListingProductById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const id = req.params.productId as string;
-
-    const idempotent = req.idempotent as Record<string, any>;
-
-    const payload = req.body as Partial<IProduct>;
-
-    const product = await ListingService.Create().updateListingProduct(
-      id,
-      payload,
-      { idempotent }
-    );
-
-    return res.status(HttpCode.MODIFIED).json({ data: product });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
  * Deletes a listing's product by id
  * @param req Express Request Object
  * @param res Express Response Object
@@ -400,9 +362,13 @@ const deleteListingProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.productId as string;
+    const id = req.params.product as string;
 
-    const product = await ListingService.Create().deleteListingProduct(id);
+    const idempotent = req.idempotent as Record<string, any>;
+
+    const product = await ListingService.Create().deleteListingProduct(id, {
+      idempotent,
+    });
 
     return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {
@@ -422,6 +388,5 @@ export default {
   deleteListingById,
   createListingProduct,
   retrieveListingProducts,
-  updateListingProductById,
   deleteListingProductById,
 };

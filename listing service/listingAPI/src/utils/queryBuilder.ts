@@ -59,11 +59,11 @@ export class QueryBuilder<T> {
         ? parseFloat(this.queryString.radius as string)
         : undefined;
 
-      let locationFilter;
+      let locationFilter: Record<string, any> = {};
 
       if (parsedDistance !== undefined) {
-        const nearQueryFilter = {
-          $near: {
+        locationFilter["location.coordinates"] = {
+          $nearSphere: {
             $geometry: {
               type: "Point",
               coordinates: [parsedLng, parsedLat],
@@ -71,21 +71,17 @@ export class QueryBuilder<T> {
             $maxDistance: parsedDistance,
           },
         };
-
-        locationFilter = nearQueryFilter;
       }
 
       if (parsedRadius !== undefined) {
-        const withinQueryFilter = {
+        locationFilter["location.coordinates"] = {
           $geoWithin: {
             $centerSphere: [[parsedLng, parsedLat], parsedRadius / 6378.1],
           },
         };
-
-        locationFilter = withinQueryFilter;
       }
 
-      this.query = this.query.find({ location: locationFilter });
+      this.query = this.query.find(locationFilter);
     }
 
     return this;

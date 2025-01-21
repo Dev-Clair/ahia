@@ -1,17 +1,17 @@
 import { LRUCache } from "lru-cache";
 
-class MapCache {
+export class MapCache {
   private map: Map<any, { value: any; expiry: number }>;
 
   private ttl: number;
 
-  constructor(ttl: number = 10800000) {
+  constructor(ttl: number = 14400000) {
     this.map = new Map();
 
     this.ttl = ttl;
   }
 
-  set(key: any, value: any): void {
+  public set(key: any, value: any): void {
     const expiry = Date.now() + this.ttl;
 
     this.map.set(key, { value, expiry });
@@ -19,7 +19,7 @@ class MapCache {
     this.cleanup();
   }
 
-  get(key: any): any | undefined {
+  public get(key: any): any | undefined {
     const entry = this.map.get(key);
 
     if (entry) {
@@ -33,23 +33,23 @@ class MapCache {
     return undefined;
   }
 
-  has(key: any): boolean {
+  public has(key: any): boolean {
     return this.map.has(key);
   }
 
-  delete(key: any): boolean {
+  public delete(key: any): boolean {
     return this.map.delete(key);
   }
 
-  size(): number {
+  public size(): number {
     return this.map.size;
   }
 
-  entries(): IterableIterator<[any, { value: any; expiry: any }]> {
+  public entries(): IterableIterator<[any, { value: any; expiry: any }]> {
     return this.map.entries();
   }
 
-  clear(): void {
+  public clear(): void {
     this.map.clear();
   }
 
@@ -68,30 +68,30 @@ class MapCache {
   }
 }
 
-class LruCache {
+export class LruCache {
   private cache: LRUCache<string, any>;
 
-  constructor(maxSize: number = 500, ttl: number = 10800000) {
+  constructor(maxSize: number = 50000, ttl: number = 14400000) {
     this.cache = new LRUCache({ max: maxSize, ttl, allowStale: false });
   }
 
-  set(key: string, value: any): void {
+  public set(key: string, value: any): void {
     this.cache.set(key, value);
   }
 
-  get(key: string): any | undefined {
+  public get(key: string): any | undefined {
     return this.cache.get(key);
   }
 
-  has(key: string): boolean {
+  public has(key: string): boolean {
     return this.cache.has(key);
   }
 
-  delete(key: string): boolean {
+  public delete(key: string): boolean {
     return this.cache.delete(key);
   }
 
-  clear(): void {
+  public clear(): void {
     this.cache.clear();
   }
 
@@ -99,5 +99,3 @@ class LruCache {
     return new LruCache();
   }
 }
-
-export default { MapCache: MapCache.Create(), LruCache: LruCache.Create() };

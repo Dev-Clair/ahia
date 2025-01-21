@@ -10,30 +10,30 @@ const InstalmentSchema: Schema<IInstalment> = new Schema(
     plan: {
       type: String,
       enum: ["short", "medium", "long"],
-      required: true,
+      required: [true, "invalid instalment plan"],
     },
     duration: {
       type: Number,
-      required: true,
+      required: [true, "duration is required"],
     },
     downPayment: {
       amount: {
         type: Number,
-        required: true,
+        required: [true, "downPayment is required"],
       },
       currency: {
         type: String,
-        required: true,
+        required: [true, "currency is required"],
       },
     },
     instalmentPayment: {
       amount: {
         type: Number,
-        required: true,
+        required: [true, "instalmentPayment is required"],
       },
       currency: {
         type: String,
-        required: true,
+        required: [true, "currency is required"],
       },
     },
     termsAndConditions: {

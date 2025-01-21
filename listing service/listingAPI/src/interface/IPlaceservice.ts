@@ -17,10 +17,7 @@ export default interface IPlaceService extends IService<IPlace> {
    * @param id place id
    * @param options configuration options
    */
-  findById(
-    id: string,
-    options?: { [key: string]: unknown }
-  ): Promise<IPlace | null>;
+  findById(id: string, options?: { [key: string]: unknown }): Promise<IPlace>;
 
   /**
    * Creates a new place in collection
@@ -42,15 +39,12 @@ export default interface IPlaceService extends IService<IPlace> {
     id: string,
     payload: Partial<IPlace> | any,
     options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  ): Promise<string>;
 
   /**
    * Deletes a place by id
    * @param id place id
    * @param options configuration options
    */
-  deleteById(
-    id: string,
-    options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  deleteById(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }

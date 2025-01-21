@@ -4,7 +4,7 @@ import IIdempotency from "../interface/IIdempotency";
 const IdempotencySchema: Schema<IIdempotency> = new Schema({
   key: {
     type: String,
-    required: true,
+    required: [true, "idempotency key is required"],
     unique: true,
   },
   createdAt: {

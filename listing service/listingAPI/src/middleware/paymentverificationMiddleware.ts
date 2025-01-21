@@ -1,6 +1,5 @@
 import Config from "../../config";
 import HttpCode from "../enum/httpCode";
-import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
 
 /**
@@ -9,15 +8,13 @@ import { NextFunction, Request, Response } from "express";
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const verifyProductPaymentStatus = async (
+const isVerified = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const productId = req.params.productId as string;
-
-    const product = await ProductService.Create().findById(productId);
+    const product = req.product;
 
     if (!product?.verification.status)
       return res.status(HttpCode.PAYMENT_REQUIRED).json({
@@ -33,4 +30,4 @@ const verifyProductPaymentStatus = async (
   }
 };
 
-export default { verifyProductPaymentStatus };
+export default { isVerified };

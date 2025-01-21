@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IdempotencyRepository from "../repository/idempotencyRepository";
 import IPlace from "../interface/IPlace";
+import NotFoundError from "../error/notfoundError";
 import PlaceRepository from "../repository/placeRepository";
 
 /**
@@ -36,9 +37,17 @@ export default class PlaceService {
    * @public
    * @param id place id
    */
-  async findById(id: string): Promise<IPlace | null> {
+  async findById(id: string): Promise<IPlace> {
     try {
-      const operation = async () => await PlaceRepository.Create().findById(id);
+      const operation = async () => {
+        const place = await PlaceRepository.Create().findById(id);
+
+        // Validate place
+        if (!place)
+          throw new NotFoundError(`No document found for place: ${id}`);
+
+        return place;
+      };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
@@ -50,10 +59,17 @@ export default class PlaceService {
    * @public
    * @param field field name
    */
-  async findByField(field: string): Promise<IPlace | null> {
+  async findByField(field: string): Promise<IPlace> {
     try {
-      const operation = async () =>
-        await PlaceRepository.Create().findByField(field);
+      const operation = async () => {
+        const place = await PlaceRepository.Create().findByField(field);
+
+        // Validate place
+        if (!place)
+          throw new NotFoundError(`No document found for place: ${field}`);
+
+        return place;
+      };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
@@ -78,7 +94,7 @@ export default class PlaceService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create place
@@ -116,7 +132,7 @@ export default class PlaceService {
     id: string,
     payload: Partial<IPlace> | any,
     options: { idempotent: Record<string, any> }
-  ): Promise<string | null> {
+  ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
@@ -124,7 +140,7 @@ export default class PlaceService {
         const { idempotent } = options;
 
         // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+        await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Update place
@@ -132,8 +148,12 @@ export default class PlaceService {
             session: session,
           });
 
+          // Validate place
+          if (!place)
+            throw new NotFoundError(`No document found for place: ${id}`);
+
           // Transform result
-          const placeId = place?._id.toString();
+          const placeId = place._id.toString();
 
           return placeId;
         };
@@ -163,8 +183,12 @@ export default class PlaceService {
             session: session,
           });
 
+          // Validate place
+          if (!place)
+            throw new NotFoundError(`No document found for place: ${id}`);
+
           // Transform result
-          const placeId = place?._id.toString();
+          const placeId = place._id.toString();
 
           return placeId;
         };

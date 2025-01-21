@@ -17,10 +17,7 @@ export default interface IListingService extends IService<IListing> {
    * @param id listing id
    * @param options configuration options
    */
-  findById(
-    id: string,
-    options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  findById(id: string, options?: { [key: string]: unknown }): Promise<IListing>;
 
   /**
    * Retrieves a listing by id and populate its subdocument
@@ -30,7 +27,7 @@ export default interface IListingService extends IService<IListing> {
   findByIdAndPopulate(
     id: string,
     options?: { [key: string]: unknown }
-  ): Promise<IListing | null>;
+  ): Promise<IListing>;
 
   /**
    * Creates a new listing in collection
@@ -52,15 +49,12 @@ export default interface IListingService extends IService<IListing> {
     id: string,
     payload: Partial<IListing> | any,
     options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  ): Promise<string>;
 
   /**
    * Deletes a listing by id
    * @param id listing id
    * @param options configuration options
    */
-  deleteById(
-    id: string,
-    options?: { [key: string]: unknown }
-  ): Promise<string | null>;
+  deleteById(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }

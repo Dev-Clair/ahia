@@ -16,6 +16,10 @@ const OfferingSchema: Schema<IOffering> = new Schema(
     },
     features: {
       type: [String],
+      validate: {
+        validator: (values: string[]) => values.length <= 12,
+        message: "You can only add 12 features for a product offering",
+      },
       required: true,
     },
     area: {

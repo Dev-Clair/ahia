@@ -8,10 +8,12 @@ const ListingSchema: Schema<IListing> = new Schema(
   {
     name: {
       type: String,
-      required: false,
+      maxlength: 100,
+      required: true,
     },
     description: {
       type: String,
+      maxlength: 255,
       required: true,
     },
     type: {
@@ -51,18 +53,22 @@ const ListingSchema: Schema<IListing> = new Schema(
       address: {
         street: {
           type: String,
+          maxlength: 125,
           required: true,
         },
         city: {
           type: String,
+          maxlength: 50,
           required: true,
         },
         state: {
           type: String,
+          maxlength: 50,
           required: true,
         },
         zip: {
           type: String,
+          maxlength: 20,
           required: false,
         },
       },
@@ -81,18 +87,26 @@ const ListingSchema: Schema<IListing> = new Schema(
     media: {
       images: {
         type: [String],
-        get: (values: string[]) =>
+        get: (values: string[] = []) =>
           values.map((value) =>
             value.startsWith("http") ? value : `${baseStoragePath}${value}`
           ),
+        validate: {
+          validator: (values: string[]) => values.length <= 5,
+          message: "You can only upload up to 5 images per request.",
+        },
         required: false,
       },
       videos: {
         type: [String],
-        get: (values: string[]) =>
+        get: (values: string[] = []) =>
           values.map((value) =>
             value.startsWith("http") ? value : `${baseStoragePath}${value}`
           ),
+        validate: {
+          validator: (values: string[]) => values.length <= 3,
+          message: "You can only upload up to 3 videos per request.",
+        },
         required: false,
       },
     },
@@ -106,15 +120,18 @@ const ListingSchema: Schema<IListing> = new Schema(
       document: {
         id: {
           type: String,
+          maxlength: 100,
           required: true,
         },
         type: {
           type: String,
+          maxlength: 100,
           required: false,
         },
       },
       issuedBy: {
         type: String,
+        maxlength: 255,
         required: false,
       },
     },
@@ -122,14 +139,14 @@ const ListingSchema: Schema<IListing> = new Schema(
   { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
 
-// Listing Schema Search Query Index
-ListingSchema.index({
-  "location.coordinates": "2dsphere",
-  "location.address.city": "text",
-  "location.address.state": "text",
-  provider: "text",
-  type: "text",
-});
+// Listing Schema Location and Text Search Index
+ListingSchema.index({ "location.coordinates": "2dsphere" }, { sparse: true });
+
+// Listing Schema Text Search Index
+ListingSchema.index({ "location.address.city": "text" });
+ListingSchema.index({ "location.address.state": "text" });
+ListingSchema.index({ provider: "text" });
+ListingSchema.index({ type: "text" });
 
 // Listing Schema Middleware
 ListingSchema.pre("findOneAndDelete", async function (next) {
@@ -140,7 +157,7 @@ ListingSchema.pre("findOneAndDelete", async function (next) {
       .findOne(this.getFilter())
       .session(session)) as IListing;
 
-    if (!listing) next();
+    if (!listing) next(new Error("Listing not found"));
 
     await session.withTransaction(async () => {
       // Delete all product document records referenced to listing

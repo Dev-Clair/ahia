@@ -40,7 +40,7 @@ App.use(
         });
       } else if (err.name === "CastError") {
         return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
-          error: { name: err.name, message: "Invalid ID format" },
+          error: { name: err.name, message: "Invalid ID" },
         });
       } else {
         return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
