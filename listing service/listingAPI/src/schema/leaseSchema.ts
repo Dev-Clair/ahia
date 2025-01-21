@@ -10,16 +10,16 @@ const LeaseSchema: Schema<ILease> = new Schema(
     plan: {
       type: String,
       enum: ["monthly", "quarterly", "annually"],
-      required: true,
+      required: [true, "invalid lease plan"],
     },
     price: {
       amount: {
         type: Number,
-        required: true,
+        required: [true, "price is required"],
       },
       currency: {
         type: String,
-        required: true,
+        required: [true, "currency is required"],
       },
     },
     termsAndConditions: {

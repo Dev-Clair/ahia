@@ -8,10 +8,12 @@ const ListingSchema: Schema<IListing> = new Schema(
   {
     name: {
       type: String,
+      maxlength: 100,
       required: true,
     },
     description: {
       type: String,
+      maxlength: 255,
       required: true,
     },
     type: {
@@ -51,18 +53,22 @@ const ListingSchema: Schema<IListing> = new Schema(
       address: {
         street: {
           type: String,
+          maxlength: 125,
           required: true,
         },
         city: {
           type: String,
+          maxlength: 50,
           required: true,
         },
         state: {
           type: String,
+          maxlength: 50,
           required: true,
         },
         zip: {
           type: String,
+          maxlength: 20,
           required: false,
         },
       },
@@ -114,15 +120,18 @@ const ListingSchema: Schema<IListing> = new Schema(
       document: {
         id: {
           type: String,
+          maxlength: 100,
           required: true,
         },
         type: {
           type: String,
+          maxlength: 100,
           required: false,
         },
       },
       issuedBy: {
         type: String,
+        maxlength: 255,
         required: false,
       },
     },

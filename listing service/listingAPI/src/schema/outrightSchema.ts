@@ -10,15 +10,16 @@ const OutrightSchema: Schema<IOutright> = new Schema(
     price: {
       amount: {
         type: Number,
-        required: true,
+        required: [true, "price is required"],
       },
       currency: {
         type: String,
-        required: true,
+        required: [true, "currency is required"],
       },
     },
     discount: {
       type: Number,
+      set: (value: number) => value / 100,
       required: false,
     },
     termsAndConditions: {

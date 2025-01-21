@@ -18,10 +18,12 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     name: {
       type: String,
+      maxlength: 100,
       required: true,
     },
     description: {
       type: String,
+      maxlength: 255,
       required: true,
     },
     offering: {
@@ -110,8 +112,8 @@ const ProductSchema: Schema<IProduct> = new Schema(
   {
     discriminatorKey: "type",
     timestamps: true,
-    toJSON: { getters: true },
-    toObject: { getters: true },
+    toJSON: { getters: true, setters: true },
+    toObject: { getters: true, setters: true },
   }
 );
 
