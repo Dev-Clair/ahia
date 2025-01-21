@@ -36,11 +36,11 @@ App.use(
     if (GlobalErrorHandler.isSafeError(err)) {
       if (err.name === "ValidationError") {
         return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
-          error: { name: err.name, message: JSON.parse(err.message) },
+          error: { name: err.name, message: err.message },
         });
       } else if (err.name === "CastError") {
         return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
-          error: { name: err.name, message: JSON.parse(err.message) },
+          error: { name: err.name, message: "Invalid ID" },
         });
       } else {
         return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
