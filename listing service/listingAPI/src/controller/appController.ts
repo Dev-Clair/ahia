@@ -63,14 +63,12 @@ const promiseServiceFactory = async ({
   const promises: Promise<any>[] = [];
 
   // Fixed search radius (kilometers)
-  const radius = 10;
+  const radius = 5;
 
   // Map the user's position to predefined zone to determine if a cached response can be used
   let zoneKey: string | null = null;
 
-  if (lat && lng) {
-    zoneKey = getZoneCacheKey(lat, lng, radius);
-  }
+  if (lat && lng) zoneKey = getZoneCacheKey(lat, lng, radius);
 
   // Listing location filter
   const locationFilter = {
@@ -92,7 +90,7 @@ const promiseServiceFactory = async ({
     );
   } else {
     // Lease filter
-    const leaseFilter = {} as Record<string, any>;
+    const leaseFilter: Record<string, any> = {};
 
     leaseFilter.leasePage = leasePage;
 
@@ -128,7 +126,7 @@ const promiseServiceFactory = async ({
     );
   } else {
     // Reservation filter
-    const reservationFilter = {} as Record<string, any>;
+    const reservationFilter: Record<string, any> = {};
 
     reservationFilter.reservationPage = reservationPage;
 
@@ -161,7 +159,7 @@ const promiseServiceFactory = async ({
     );
   } else {
     // Sell filter
-    const sellFilter = {} as Record<string, any>;
+    const sellFilter: Record<string, any> = {};
 
     sellFilter.sellPage = sellPage;
 

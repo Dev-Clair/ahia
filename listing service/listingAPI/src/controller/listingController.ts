@@ -395,7 +395,11 @@ const deleteListingProductById = async (
   try {
     const id = req.params.productId as string;
 
-    const product = await ListingService.Create().deleteListingProduct(id);
+    const idempotent = req.idempotent as Record<string, any>;
+
+    const product = await ListingService.Create().deleteListingProduct(id, {
+      idempotent,
+    });
 
     return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {

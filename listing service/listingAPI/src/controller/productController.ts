@@ -18,19 +18,8 @@ const retrieveProductsSearch = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
-    const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
-
-    const locationFilter = {
-      lat: lat,
-      lng: lng,
-      radius: radius,
-    };
-
     // Product filter
-    const status =
-      (req.params.status as string) ??
-      new RegExp(/^(now-letting, now-booking, now-selling)$/, "i");
+    const status = req.params.status as string;
 
     const search = req.query.q as string;
 
@@ -39,10 +28,7 @@ const retrieveProductsSearch = async (
     const searchQuery = { $text: { $search: search }, status: status };
 
     // Query
-    const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
-      searchQuery
-    );
+    const products = await ProductService.Create().findAll(searchQuery);
 
     return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
@@ -63,7 +49,9 @@ const retrieveProductsByLocation = async (
 ): Promise<Response | void> => {
   try {
     // Location filter
-    const { city, state } = req.query as Record<string, any>;
+    const city = req.params.city as string;
+
+    const state = req.params.state as string;
 
     const locationFilter = {
       location: { address: { city: city, state: state } },
@@ -270,18 +258,10 @@ const retrieveProductsByListingType = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
-    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
-
-    const locationFilter = {
-      lat: lat,
-      lng: lng,
-      distance: distance,
-    };
-
+    // Listing filter
     const type = req.params.type as string;
 
-    const listingFilter = { type: type, ...locationFilter };
+    const listingFilter = { type: type };
 
     // Product filter
     const status = req.params.status as string;
