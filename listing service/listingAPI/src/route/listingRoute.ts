@@ -35,7 +35,7 @@ ListingRouter.get(
 );
 
 ListingRouter.get(
-  "/search/q?",
+  "/search?q=",
   AuthMiddleware.isGranted(["Admin"]),
   ListingController.retrieveListingsSearch
 );
