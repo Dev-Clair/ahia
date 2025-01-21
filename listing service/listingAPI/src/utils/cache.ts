@@ -5,7 +5,7 @@ export class MapCache {
 
   private ttl: number;
 
-  constructor(ttl: number = 10800000) {
+  constructor(ttl: number = 14400000) {
     this.map = new Map();
 
     this.ttl = ttl;
@@ -71,7 +71,7 @@ export class MapCache {
 export class LruCache {
   private cache: LRUCache<string, any>;
 
-  constructor(maxSize: number = 5000, ttl: number = 10800000) {
+  constructor(maxSize: number = 50000, ttl: number = 14400000) {
     this.cache = new LRUCache({ max: maxSize, ttl, allowStale: false });
   }
 

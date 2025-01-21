@@ -4,7 +4,7 @@ import IRetryOptions from "../interface/IRetryoptions";
 class FailureRetry {
   static async ExponentialBackoff(
     operation: any,
-    options: IRetryOptions = { retries: 3, factor: 2, minTimeout: 2500 }
+    options: IRetryOptions = { retries: 3, factor: 2, minTimeout: 2000 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -30,8 +30,8 @@ class FailureRetry {
     options: IRetryOptions = {
       retries: 3,
       factor: 2,
-      minTimeout: 2500,
-      jitterFactor: 1000,
+      minTimeout: 2000,
+      jitterFactor: 500,
     }
   ): Promise<any> {
     return AsyncRetry(
@@ -62,7 +62,7 @@ class FailureRetry {
 
   static async LinearBackoff(
     operation: any,
-    options: IRetryOptions = { retries: 5, minTimeout: 2500 }
+    options: IRetryOptions = { retries: 3, minTimeout: 2000 }
   ): Promise<any> {
     return AsyncRetry(
       async (bail, attempt) => {
@@ -84,9 +84,9 @@ class FailureRetry {
   static async LinearJitterBackoff(
     operation: any,
     options: IRetryOptions = {
-      retries: 5,
-      minTimeout: 2500,
-      jitterFactor: 1000,
+      retries: 3,
+      minTimeout: 2000,
+      jitterFactor: 500,
     }
   ): Promise<any> {
     return AsyncRetry(
