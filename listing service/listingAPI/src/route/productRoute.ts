@@ -11,7 +11,7 @@ import ProductController from "../controller/productController";
 const ProductRouter = Router();
 
 ProductRouter.get(
-  "/",
+  "/home",
   GeocodeMiddleware.parseUserGeoCoordinates,
   AppController
 );
