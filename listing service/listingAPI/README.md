@@ -95,7 +95,7 @@ Authorization and authentication is enabled by an identity server which manages 
 
 2.  Specialized Listing CRUD Endpoints
 
-    2.1 Retrieve a Listing by ID with Populated Products Details
+    2.1 Retrieve a Listing by ID with Populated Product Details
 
     ```
     GET /api/v1/listings/:id/product
@@ -113,16 +113,10 @@ Authorization and authentication is enabled by an identity server which manages 
     POST /api/v1/listings/:id/products
     ```
 
-    2.4 Update a Listing's Product by ID
+    2.4 Delete a Listing's Product by ID
 
     ```
-    PATCH /api/v1/listings/:id/products/:productId
-    ```
-
-    2.5 Delete a Listing's Product by ID
-
-    ```
-    DELETE /api/v1/listings/:id/products/:productId
+    DELETE /api/v1/listings/:id/products/:product
     ```
 
 3.  Product Endpoints (Geospatial queries: requires geo-coordinates (lat, lng) as query parameters)
@@ -130,7 +124,7 @@ Authorization and authentication is enabled by an identity server which manages 
     3.1 Retrieve All Products Types
 
     ```
-    GET /api/v1/listings/products/
+    GET /api/v1/listings/products/home
     ```
 
     3.2 Retrieve Products by Location
@@ -154,7 +148,7 @@ Authorization and authentication is enabled by an identity server which manages 
     3.5 Retrieves Products by Search
 
     ```
-    GET /api/v1/listings/products/status/:status/search/q?
+    GET /api/v1/listings/products/status/:status/search
     ```
 
     3.6 Retrieves Products by Place
@@ -181,7 +175,13 @@ Authorization and authentication is enabled by an identity server which manages 
     GET /api/v1/listings/products/:id
     ```
 
-    3.10 Retrieves a Product by ID with Populated Listing Details
+    3.10 Updates a Product by ID
+
+    ```
+    PATCH /api/v1/listings/products/:id
+    ```
+
+    3.11 Retrieves a Product by ID with Populated Listing Details
 
     ```
     GET /api/v1/listings/products/:id/listing
