@@ -6,6 +6,7 @@ import {
 } from "./bootstrap";
 import Database from "./database";
 import Server from "./server";
+import { ListingsJob, ProductsJob } from "./cron";
 
 // Initialize Sentry
 InitializeSentry();
@@ -18,3 +19,8 @@ DatabaseEventsListener();
 
 // Start Application
 Boot(Server, Database);
+
+// Run Jobs
+ListingsJob.start();
+
+ProductsJob.start();
