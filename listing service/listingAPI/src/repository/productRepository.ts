@@ -17,8 +17,8 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findByIdAndPopulate
  * @method findProductsByListing
  * @method save
- * @method update
- * @method delete
+ * @method updateById
+ * @method deleteById
  */
 export default class ProductRepository implements IProductRepository {
   static PRODUCT_PROJECTION = [
