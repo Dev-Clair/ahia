@@ -6,7 +6,7 @@ import ListingService from "../../src/service/listingService";
 export const ProductsCollectionCleanUp = async () => {
   try {
     Log.Cron.info(
-      `Products collection cleanup job started successfuly: ${new Date().toLocaleDateString()}`
+      `Products collection cleanup job started successfuly: ${new Date().toUTCString()}`
     );
 
     const productGenerator = ProductGenerator();

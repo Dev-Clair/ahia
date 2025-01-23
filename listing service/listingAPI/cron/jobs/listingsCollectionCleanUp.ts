@@ -6,7 +6,7 @@ import ListingService from "../../src/service/listingService";
 export const ListingsCollectionCleanUp = async () => {
   try {
     Log.Cron.info(
-      `Listings collection cleanup job started successfuly: ${new Date().toLocaleDateString()}`
+      `Listings collection cleanup job started successfuly: ${new Date().toUTCString()}`
     );
 
     const listingGenerator = ListingGenerator();
@@ -14,7 +14,9 @@ export const ListingsCollectionCleanUp = async () => {
     for await (const listing of listingGenerator) {
       const id = listing._id.toString();
 
-      await ListingService.Create().deleteById(id, { retry: false });
+      await ListingService.Create().deleteById(id, {
+        retry: false,
+      });
     }
 
     Log.Cron.info(`Listings collection cleanup job completed successfuly`);
