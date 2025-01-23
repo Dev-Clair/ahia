@@ -106,6 +106,7 @@ const ProductSchema: Schema<IProduct> = new Schema(
             ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toDateString()
             : undefined;
         },
+        required: false,
       },
     },
   },
@@ -118,10 +119,12 @@ const ProductSchema: Schema<IProduct> = new Schema(
 );
 
 // Product Schema Text Search Index
-ProductSchema.index({ "offering.name": "text" });
-ProductSchema.index({ "offering.area.size": 1 });
-ProductSchema.index({ "offering.type": "text" });
-ProductSchema.index({ status: "text" });
+ProductSchema.index({
+  "offering.area.size": 1,
+  "offering.name": "text",
+  "offering.type": "text",
+  status: "text",
+});
 
 // Product Schema Middleware
 ProductSchema.pre("findOneAndDelete", async function (next) {

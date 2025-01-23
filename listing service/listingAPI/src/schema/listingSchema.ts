@@ -143,10 +143,12 @@ const ListingSchema: Schema<IListing> = new Schema(
 ListingSchema.index({ "location.coordinates": "2dsphere" }, { sparse: true });
 
 // Listing Schema Text Search Index
-ListingSchema.index({ "location.address.city": "text" });
-ListingSchema.index({ "location.address.state": "text" });
-ListingSchema.index({ provider: "text" });
-ListingSchema.index({ type: "text" });
+ListingSchema.index({
+  "location.address.city": "text",
+  "location.address.state": "text",
+  provider: "text",
+  type: "text",
+});
 
 // Listing Schema Middleware
 ListingSchema.pre("findOneAndDelete", async function (next) {
