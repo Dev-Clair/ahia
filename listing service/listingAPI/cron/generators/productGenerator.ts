@@ -34,7 +34,7 @@ const ProductGenerator = async function* () {
 
       const dateDifference = currentDate - creationDate;
 
-      if (dateDifference > 2 * 24 * 60 * 60 * 1000) yield product;
+      if (dateDifference > 3 * 24 * 60 * 60 * 1000) yield product;
     }
 
     totalRetrieved += products.length;
