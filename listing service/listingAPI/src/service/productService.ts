@@ -21,21 +21,31 @@ export default class ProductService implements IProductService {
   /** Retrieves a collection of products
    * @public
    * @param queryString query object
+   * @param options configuration options
    */
-  async findAll(queryString: Record<string, any>): Promise<IProduct[]> {
+  async findAll(
+    queryString: Record<string, any>,
+    options: { retry?: boolean }
+  ): Promise<IProduct[]> {
     try {
+      const { retry = true } = options;
+
       const operation = async (): Promise<IProduct[]> => {
         const filter = {
           ...queryString,
           // verification: { status: true },
         };
 
-        const listings = await ProductRepository.Create().findAll(filter);
+        const products = await ProductRepository.Create().findAll(filter);
 
-        return listings;
+        return products;
       };
 
-      return await FailureRetry.LinearJitterBackoff(() => operation());
+      const products = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      return products;
     } catch (error: any) {
       throw error;
     }
@@ -44,9 +54,12 @@ export default class ProductService implements IProductService {
   /** Retrieves a product by id
    * @public
    * @param id product id
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IProduct> {
+  async findById(id: string, options: { retry?: boolean }): Promise<IProduct> {
     try {
+      const { retry = true } = options;
+
       const operation = async () => {
         const product = await ProductRepository.Create().findById(id);
 
@@ -57,7 +70,11 @@ export default class ProductService implements IProductService {
         return product;
       };
 
-      return await FailureRetry.LinearJitterBackoff(() => operation());
+      const product = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      return product;
     } catch (error: any) {
       throw error;
     }
@@ -66,9 +83,15 @@ export default class ProductService implements IProductService {
   /** Retrieves a product by id and populate its subdocument(s)
    * @public
    * @param id product id
+   * @param options configuration options
    */
-  async findByIdAndPopulate(id: string): Promise<IProduct> {
+  async findByIdAndPopulate(
+    id: string,
+    options: { retry?: boolean }
+  ): Promise<IProduct> {
     try {
+      const { retry = true } = options;
+
       const operation = async () => {
         const product = await ProductRepository.Create().findByIdAndPopulate(
           id
@@ -81,7 +104,11 @@ export default class ProductService implements IProductService {
         return product;
       };
 
-      return await FailureRetry.LinearJitterBackoff(() => operation());
+      const product = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      return product;
     } catch (error: any) {
       throw error;
     }
@@ -94,16 +121,16 @@ export default class ProductService implements IProductService {
    */
   async save(
     payload: Partial<IProduct> | Partial<IProduct>[],
-    options: { idempotent: Record<string, any> }
+    options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
+      const { idempotent, retry = true } = options;
 
+      return await session.withTransaction(async () => {
         // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create Product
@@ -121,7 +148,11 @@ export default class ProductService implements IProductService {
           return result;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const products = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return products;
       });
     } catch (error: any) {
       throw error;
@@ -140,16 +171,16 @@ export default class ProductService implements IProductService {
   async updateById(
     id: string,
     payload: Partial<IProduct> | any,
-    options: { idempotent: Record<string, any> }
+    options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
+      const { idempotent, retry = true } = options;
 
+      return await session.withTransaction(async () => {
         // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Update product
@@ -171,7 +202,11 @@ export default class ProductService implements IProductService {
           return productId;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const product = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return product;
       });
     } catch (error: any) {
       throw error;
@@ -184,12 +219,14 @@ export default class ProductService implements IProductService {
    * Deletes a product by id
    * @public
    * @param id product id
-   * @param options configuration options (optional)
+   * @param options configuration options
    */
-  async deleteById(id: string): Promise<string> {
+  async deleteById(id: string, options: { retry?: boolean }): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
+      const { retry = true } = options;
+
       return await session.withTransaction(async () => {
         const operation = async () => {
           // Delete product
@@ -207,7 +244,11 @@ export default class ProductService implements IProductService {
           return productId;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const product = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return product;
       });
     } catch (error: any) {
       throw error;
