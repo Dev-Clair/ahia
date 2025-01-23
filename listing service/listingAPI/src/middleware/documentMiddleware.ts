@@ -26,7 +26,7 @@ const DocumentMiddleware = (
       if (resourceName === "listing") {
         service = ListingService.Create();
 
-        const listing = await service.findById(paramValue);
+        const listing = await service.findById(paramValue, { retry: true });
 
         (req as Request).listing = listing as IListing;
       }
@@ -35,7 +35,7 @@ const DocumentMiddleware = (
       if (resourceName === "product") {
         service = ProductService.Create();
 
-        const product = await service.findById(paramValue);
+        const product = await service.findById(paramValue, { retry: true });
 
         (req as Request).product = product as IProduct;
       }
