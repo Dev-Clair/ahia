@@ -1,37 +1,36 @@
-import mongoose from "mongoose";
-import Listing from "../../src/model/listingModel";
+import * as Sentry from "@sentry/node";
 import Log from "../../src/utils/logger";
+import ListingGenerator from "../generators/listingGenerator";
+import ListingService from "../../src/service/listingService";
 
 export const ListingsCollectionCleanUp = async () => {
-  const session = await mongoose.startSession();
-
   try {
-    await session.withTransaction(async () => {
-      Log.Cron.info(
-        `Listings collection cleanup job started successfuly: ${new Date().toLocaleDateString()}`
-      );
+    Log.Cron.info(
+      `Listings collection cleanup job started successfuly: ${new Date().toLocaleDateString()}`
+    );
 
-      const output = await Listing.deleteMany(
-        {
-          "verification.status": { $eq: "rejected" },
-          createdAt: {
-            $gt: new Date().getMilliseconds() * 30 * 24 * 60 * 60 * 1000,
-          },
-        },
-        session
-      );
+    const listingGenerator = ListingGenerator();
 
-      Log.Cron.info(`Deleted ${output.deletedCount} unverified listings`);
-    });
+    for await (const listing of listingGenerator) {
+      const id = listing._id.toString();
+
+      await ListingService.Create().deleteById(id, { retry: false });
+    }
+
+    Log.Cron.info(`Listings collection cleanup job completed successfuly`);
   } catch (error: any) {
-    await session.abortTransaction();
+    Sentry.withScope((scope) => {
+      scope.setTag("Listing Collection Cleanup Error", "Warn");
+
+      scope.setContext("Error", error);
+
+      Sentry.captureException(error);
+    });
 
     Log.Cron.error(
       `Listings collection cleanup job failed with error: ${error.message}`
     );
 
-    throw error;
-  } finally {
-    await session.endSession();
+    // throw error;
   }
 };
