@@ -46,7 +46,6 @@ ProductRouter.get(
 
 ProductRouter.get(
   "/status/:status/search",
-  GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsSearch
 );
 
