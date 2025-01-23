@@ -21,6 +21,6 @@ DatabaseEventsListener();
 Boot(Server, Database);
 
 // Run Jobs
-ListingsJob.start();
+(() => new Promise((resolve, reject) => resolve(ListingsJob.start())))();
 
-ProductsJob.start();
+(() => new Promise((resolve, reject) => resolve(ProductsJob.start())))();
