@@ -35,7 +35,10 @@ const createListing = async (
       };
     }
 
-    const listing = await ListingService.Create().save(payload, { idempotent });
+    const listing = await ListingService.Create().save(payload, {
+      idempotent,
+      retry: true,
+    });
 
     return res.status(HttpCode.CREATED).json({ data: listing });
   } catch (err: any) {
@@ -61,7 +64,9 @@ const retrieveListingsSearch = async (
 
     const searchQuery = { $text: { $search: search } };
 
-    const listings = await ListingService.Create().findAll(searchQuery);
+    const listings = await ListingService.Create().findAll(searchQuery, {
+      retry: true,
+    });
 
     return res.status(HttpCode.OK).json({ data: listings });
   } catch (err: any) {
@@ -85,7 +90,9 @@ const retrieveListingsByProvider = async (
 
     const queryString = { provider: id };
 
-    const listings = await ListingService.Create().findAll(queryString);
+    const listings = await ListingService.Create().findAll(queryString, {
+      retry: true,
+    });
 
     return res.status(HttpCode.OK).json({ data: listings });
   } catch (err: any) {
@@ -109,7 +116,9 @@ const retrieveListingsByType = async (
 
     const queryString = { type: type };
 
-    const listings = await ListingService.Create().findAll(queryString);
+    const listings = await ListingService.Create().findAll(queryString, {
+      retry: true,
+    });
 
     return res.status(HttpCode.OK).json({ data: listings });
   } catch (err: any) {
@@ -212,6 +221,7 @@ const updateListingById = async (
 
     const listing = await ListingService.Create().updateById(id, payload, {
       idempotent,
+      retry: true,
     });
 
     return res.status(HttpCode.MODIFIED).json({ data: listing });
@@ -234,7 +244,9 @@ const deleteListingById = async (
   try {
     const id = req.params.id as string;
 
-    const listing = await ListingService.Create().deleteById(id);
+    const listing = await ListingService.Create().deleteById(id, {
+      retry: true,
+    });
 
     return res.status(HttpCode.MODIFIED).json({ data: listing });
   } catch (err: any) {
@@ -285,7 +297,7 @@ const createListingProduct = async (
 
         product = await ListingService.Create().saveListingLeaseProduct(
           payload,
-          { idempotent }
+          { idempotent, retry: true }
         );
 
         return res.status(HttpCode.CREATED).json({ data: product });
@@ -297,7 +309,7 @@ const createListingProduct = async (
 
         product = await ListingService.Create().saveListingReservationProduct(
           payload,
-          { idempotent }
+          { idempotent, retry: true }
         );
 
         return res.status(HttpCode.CREATED).json({ data: product });
@@ -307,7 +319,7 @@ const createListingProduct = async (
 
         product = await ListingService.Create().saveListingSellProduct(
           payload,
-          { idempotent }
+          { idempotent, retry: true }
         );
 
         return res.status(HttpCode.CREATED).json({ data: product });
@@ -368,6 +380,7 @@ const deleteListingProductById = async (
 
     const product = await ListingService.Create().deleteListingProduct(id, {
       idempotent,
+      retry: true,
     });
 
     return res.status(HttpCode.MODIFIED).json({ data: product });

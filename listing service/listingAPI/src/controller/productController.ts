@@ -27,7 +27,9 @@ const retrieveProductsSearch = async (
     const searchQuery = { $text: { $search: search }, status: status };
 
     // Query
-    const products = await ProductService.Create().findAll(searchQuery);
+    const products = await ProductService.Create().findAll(searchQuery, {
+      retry: true,
+    });
 
     return res.status(HttpCode.OK).json({ data: products });
   } catch (err: any) {
@@ -341,7 +343,9 @@ const retrieveProductByIdAndPopulate = async (
   try {
     const id = req.params.id as string;
 
-    const product = await ProductService.Create().findByIdAndPopulate(id);
+    const product = await ProductService.Create().findByIdAndPopulate(id, {
+      retry: true,
+    });
 
     return res.status(HttpCode.OK).json({ data: { product } });
   } catch (err: any) {
