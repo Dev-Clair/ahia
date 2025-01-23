@@ -37,7 +37,7 @@ const App = createLogger({
           }),
         ]),
   ],
-  defaultMeta: { service: Config.LISTING.SERVICE.NAME },
+  defaultMeta: { domain: "Application" },
 });
 
 const Cron = createLogger({
@@ -63,7 +63,7 @@ const Cron = createLogger({
           }),
         ]),
   ],
-  defaultMeta: { service: "Cron-Jobs" },
+  defaultMeta: { domain: "Cron" },
 });
 
 const Log = { App, Cron };
