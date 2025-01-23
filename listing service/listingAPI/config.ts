@@ -31,6 +31,10 @@ const Config = {
       SENTRY_DSN: process.env.SENTRY_DSN || "",
     },
   },
+  LOG: {
+    APP: process.env.APP_LOG_DIR || "",
+    CRON: process.env.CRON_LOG_DIR || "",
+  },
   MONGO_URI: process.env.MONGO_URI || "",
   NODE_ENV: process.env.NODE_ENV || "test",
   PAYMENT_SERVICE_URL: process.env.PAYMENT_SERVICE_URL || "",

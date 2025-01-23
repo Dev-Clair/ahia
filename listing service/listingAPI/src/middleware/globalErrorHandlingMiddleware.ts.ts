@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/node";
 import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
-import Logger from "../utils/logger";
+import Log from "../utils/logger";
 
 class GlobalErrorHandlingMiddleware {
   /**
@@ -9,7 +9,7 @@ class GlobalErrorHandlingMiddleware {
    * @param err error object
    */
   public static async handleError(err: Error): Promise<void> {
-    Logger.error(
+    Log.App.error(
       `name: ${err.name}\nmessage: ${err.message}\nstack: ${err.stack}`
     );
 
