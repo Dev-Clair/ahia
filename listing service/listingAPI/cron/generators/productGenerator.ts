@@ -17,9 +17,12 @@ const ProductGenerator = async function* () {
         type: { in: ["Lease", "Sell"] },
         page: page,
         limit: limit,
+        fields: "name verification createdAt",
       },
       { retry: false }
     );
+
+    console.log("products: ", products);
 
     if (products.length === 0 || !products) {
       Log.Cron.info("No products are unverified at the moment");
@@ -27,12 +30,32 @@ const ProductGenerator = async function* () {
       break;
     }
 
-    const currentDate = new Date(Date.now()).getTime();
+    const currentDate = Date.now();
+
+    console.log("products, current date: ", currentDate);
 
     for (const product of products) {
-      const creationDate = new Date(product.verification.expiry).getTime();
+      if (!product.verification.expiry) {
+        Log.Cron.warn(`Product ${product._id} is missing 'expiry'. Skipping.`);
 
-      const dateDifference = currentDate - creationDate;
+        continue;
+      }
+
+      const expiryDate = new Date(product.verification.expiry).getTime();
+
+      console.log("products, expiry date: ", expiryDate);
+
+      if (isNaN(expiryDate)) {
+        Log.Cron.warn(
+          `Invalid 'expiry' for product ${product._id}: ${product.verification.expiry}. Skipping.`
+        );
+
+        continue;
+      }
+
+      const dateDifference = currentDate - expiryDate;
+
+      console.log("products, date difference: ", dateDifference);
 
       if (dateDifference > 3 * 24 * 60 * 60 * 1000) yield product;
     }

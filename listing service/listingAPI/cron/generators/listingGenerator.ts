@@ -13,12 +13,15 @@ const ListingGenerator = async function* () {
   while (true) {
     const listings = await ListingService.Create().findAll(
       {
-        "verification.status": { eq: "rejected" },
+        "verification.status": { eq: "pending" },
         page: page,
         limit: limit,
+        fields: "name verification createdAt",
       },
       { retry: false }
     );
+
+    console.log("listings: ", listings);
 
     if (listings.length === 0 || !listings) {
       Log.Cron.info("No listings are unapproved at the moment");
@@ -26,12 +29,34 @@ const ListingGenerator = async function* () {
       break;
     }
 
-    const currentDate = new Date(Date.now()).getTime();
+    const currentDate = Date.now();
+
+    console.log("listings, current date: ", currentDate);
 
     for (const listing of listings) {
+      if (!listing.createdAt) {
+        Log.Cron.warn(
+          `Listing ${listing._id} is missing 'createdAt'. Skipping.`
+        );
+
+        continue;
+      }
+
       const creationDate = new Date(listing.createdAt).getTime();
 
+      console.log("listings, creation date: ", creationDate);
+
+      if (isNaN(creationDate)) {
+        Log.Cron.warn(
+          `Invalid 'createdAt' format for listing ${listing._id}: ${listing.createdAt}. Skipping.`
+        );
+
+        continue;
+      }
+
       const dateDifference = currentDate - creationDate;
+
+      console.log("listings, date difference: ", dateDifference);
 
       if (dateDifference > 28 * 24 * 60 * 60 * 1000) yield listing;
     }

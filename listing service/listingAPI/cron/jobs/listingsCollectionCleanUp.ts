@@ -14,6 +14,8 @@ export const ListingsCollectionCleanUp = async () => {
     for await (const listing of listingGenerator) {
       const id = listing._id.toString();
 
+      console.log("listingGenerator yielded: ", id);
+
       await ListingService.Create().deleteById(id, {
         retry: false,
       });

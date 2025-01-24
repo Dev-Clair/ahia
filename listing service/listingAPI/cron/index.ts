@@ -1,15 +1,10 @@
-import cron from "node-cron";
-import { ListingsCollectionCleanUp } from "./jobs/listingsCollectionCleanUp";
-import { ProductsCollectionCleanUp } from "./jobs/productsCollectionCleanUp";
+import {
+  // ListingsJob,
+  ProductsJob,
+} from "./scheduler";
 
-export const ListingsJob = cron.schedule(
-  "0 23 28 * *",
-  ListingsCollectionCleanUp,
-  { runOnInit: true }
-);
-
-export const ProductsJob = cron.schedule(
-  "0 */3 * * *",
-  ProductsCollectionCleanUp,
-  { runOnInit: true }
-);
+export const Cron = async () =>
+  Promise.allSettled([
+    // ListingsJob.start(),
+    ProductsJob.start(),
+  ]);

@@ -14,6 +14,8 @@ export const ProductsCollectionCleanUp = async () => {
     for await (const product of productGenerator) {
       const id = product._id.toString();
 
+      console.log("productGenerator yielded: ", id);
+
       await ListingService.Create().deleteListingProduct(id, {
         idempotent: null,
         retry: false,
