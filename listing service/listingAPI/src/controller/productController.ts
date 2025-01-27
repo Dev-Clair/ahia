@@ -18,16 +18,22 @@ const retrieveProductsSearch = async (
 ): Promise<Response | void> => {
   try {
     // Product filter
-    const status = req.params.status as string;
-
     const search = req.query.q as string;
 
     if (!search) throw new BadRequestError(`Kindly enter a text to search`);
 
-    const searchQuery = { $text: { $search: search }, status: status };
+    const searchQuery = { $text: { $search: search } };
 
-    // Query
-    const products = await ProductService.Create().findAll(searchQuery, {
+    const status = req.params.status as string;
+
+    const productFilter = {
+      status: status,
+      ...searchQuery,
+      ...req.paginate,
+    };
+
+    // Find query
+    const products = await ProductService.Create().findAll(productFilter, {
       retry: true,
     });
 
@@ -49,23 +55,24 @@ const retrieveProductsByLocation = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
+    // Listing filter
     const city = req.params.city as string;
 
     const state = req.params.state as string;
 
-    const locationFilter = {
+    const listingFilter = {
       location: { address: { city: city, state: state } },
+      ...req.paginate,
     };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter: Record<string, any> = { status: status };
+    const productFilter = { status: status, ...req.paginate };
 
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
+      listingFilter,
       productFilter
     );
 
@@ -87,23 +94,24 @@ const retrieveProductsNearBy = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
+    // Listing filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
-    const locationFilter = {
+    const listingFilter = {
       lat: lat,
       lng: lng,
       distance: distance,
+      ...req.paginate,
     };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter: Record<string, any> = { status: status };
+    const productFilter = { status: status, ...req.paginate };
 
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
+      listingFilter,
       productFilter
     );
 
@@ -125,13 +133,14 @@ const retrieveProductsByOffering = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
+    // Listing filter
     const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
 
-    const locationFilter = {
+    const listingFilter = {
       lat: lat,
       lng: lng,
       distance: distance,
+      ...req.paginate,
     };
 
     // Product filter
@@ -161,11 +170,12 @@ const retrieveProductsByOffering = async (
         ...(type && { type }),
         ...area,
       },
+      ...req.paginate,
     };
 
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
+      listingFilter,
       productFilter
     );
 
@@ -187,23 +197,24 @@ const retrieveProductsByPlace = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
+    // Listing filter
     const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
 
-    const locationFilter = {
+    const listingFilter = {
       lat: lat,
       lng: lng,
       radius: radius,
+      ...req.paginate,
     };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter: Record<string, any> = { status: status };
+    const productFilter = { status: status, ...req.paginate };
 
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
+      listingFilter,
       productFilter
     );
 
@@ -226,16 +237,16 @@ const retrieveProductsByListingProvider = async (
 ): Promise<Response | void> => {
   try {
     // Listing filter
-    const id = req.params.id as string;
+    const provider = req.params.provider as string;
 
-    const listingFilter = { provider: id };
+    const listingFilter = { provider: provider, ...req.paginate };
 
-    // Product Filter
+    // Product filter
     const status = req.params.status as string;
 
-    const productFilter: Record<string, any> = { status: status };
+    const productFilter = { status: status, ...req.paginate };
 
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
       productFilter
@@ -262,14 +273,13 @@ const retrieveProductsByListingType = async (
     // Listing filter
     const type = req.params.type as string;
 
-    const listingFilter = { type: type };
+    const listingFilter = { type: type, ...req.paginate };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter: Record<string, any> = { status: status };
-
-    // Query
+    const productFilter = { status: status, ...req.paginate };
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
       productFilter
@@ -313,12 +323,14 @@ const updateProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
+    // Update filter
     const id = req.params.id as string;
 
     const idempotent = req.idempotent as Record<string, any>;
 
     const payload = req.body as Partial<IProduct>;
 
+    // Update query
     const product = await ProductService.Create().updateById(id, payload, {
       idempotent,
     });
@@ -343,6 +355,7 @@ const retrieveProductByIdAndPopulate = async (
   try {
     const id = req.params.id as string;
 
+    // Find query
     const product = await ProductService.Create().findByIdAndPopulate(id, {
       retry: true,
     });

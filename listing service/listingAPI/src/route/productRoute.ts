@@ -5,6 +5,7 @@ import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
+import PaginationMiddleware from "../middleware/paginationMiddleware";
 import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ProductController from "../controller/productController";
 
@@ -18,39 +19,46 @@ ProductRouter.get(
 
 ProductRouter.get(
   "/status/:status/location/:city/:state",
+  PaginationMiddleware.paginate,
   ProductController.retrieveProductsByLocation
 );
 
 ProductRouter.get(
   "/status/:status/nearby",
   GeocodeMiddleware.parseUserGeoCoordinates,
+  PaginationMiddleware.paginate,
   ProductController.retrieveProductsNearBy
 );
 
 ProductRouter.get(
   "/status/:status/offering",
   GeocodeMiddleware.parseUserGeoCoordinates,
+  PaginationMiddleware.paginate,
   ProductController.retrieveProductsByOffering
 );
 
 ProductRouter.get(
   "/status/:status/place/:place",
   GeocodeMiddleware.getLocationGeoCoordinates,
+  PaginationMiddleware.paginate,
   ProductController.retrieveProductsByPlace
 );
 
 ProductRouter.get(
-  "/status/:status/provider/:id",
+  "/status/:status/provider/:provider",
+  PaginationMiddleware.paginate,
   ProductController.retrieveProductsByListingProvider
 );
 
 ProductRouter.get(
   "/status/:status/search",
+  PaginationMiddleware.paginate,
   ProductController.retrieveProductsSearch
 );
 
 ProductRouter.get(
   "/status/:status/type/:type",
+  PaginationMiddleware.paginate,
   ProductController.retrieveProductsByListingType
 );
 
