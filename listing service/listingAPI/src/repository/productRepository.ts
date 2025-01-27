@@ -8,6 +8,8 @@ import Lease from "../model/leaseModel";
 import Product from "../model/productModel";
 import Reservation from "../model/reservationModel";
 import Sell from "../model/sellModel";
+import LISTING from "../constant/listings";
+import PRODUCT from "../constant/products";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
@@ -21,25 +23,13 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteById
  */
 export default class ProductRepository implements IProductRepository {
-  static PRODUCT_PROJECTION = [
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-    "-verification",
-  ];
+  static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
 
-  static SORT_PRODUCTS = ["-createdAt"];
+  static PRODUCT_SORT = PRODUCT.SORT;
 
-  static LISTING_PROJECTION_BASIC = [
-    "-location",
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-  ];
+  static LISTING_PROJECTION = LISTING.PROJECTION;
 
-  static LISTING_PROJECTION_PLUS = ["-createdAt", "-updatedAt", "-__v"];
-
-  static SORT_LISTINGS = ["-createdAt"];
+  static LISTING_SORT = LISTING.SORT;
 
   /** Retrieves a collection of products
    * @public
@@ -59,7 +49,7 @@ export default class ProductRepository implements IProductRepository {
       const products = (
         await queryBuilder
           .Filter()
-          .Sort(ProductRepository.SORT_PRODUCTS)
+          .Sort(ProductRepository.PRODUCT_SORT)
           .Select(ProductRepository.PRODUCT_PROJECTION)
           .Paginate()
       ).Exec();
@@ -100,8 +90,8 @@ export default class ProductRepository implements IProductRepository {
         .populate({
           path: "listing",
           model: "Listing",
-          select: ProductRepository.LISTING_PROJECTION_PLUS,
-          options: { sort: ProductRepository.SORT_LISTINGS },
+          select: ProductRepository.LISTING_PROJECTION,
+          options: { sort: ProductRepository.LISTING_SORT },
         })
         .exec();
 

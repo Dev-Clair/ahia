@@ -2,6 +2,8 @@ import { AnyBulkWriteOperation, ClientSession, ObjectId } from "mongoose";
 import IListing from "../interface/IListing";
 import IListingRepository from "../interface/IListingrepository";
 import Listing from "../model/listingModel";
+import LISTING from "../constant/listings";
+import PRODUCT from "../constant/products";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
@@ -16,25 +18,13 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method updateCollection
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTING_PROJECTION_BASIC = [
-    "-location",
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-  ];
+  static LISTING_PROJECTION = LISTING.PROJECTION;
 
-  static LISTING_PROJECTION_PLUS = ["-createdAt", "-updatedAt", "-__v"];
+  static LISTING_SORT = LISTING.SORT;
 
-  static SORT_LISTINGS = ["-createdAt"];
+  static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
 
-  static PRODUCT_PROJECTION = [
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-    "-verification",
-  ];
-
-  static SORT_PRODUCTS = ["-createdAt"];
+  static PRODUCT_SORT = PRODUCT.SORT;
 
   /** Retrieves a collection of listings
    * @public
@@ -50,8 +40,8 @@ export default class ListingRepository implements IListingRepository {
         await queryBuilder
           .GeoSpatial()
           .Filter()
-          .Sort(ListingRepository.SORT_LISTINGS)
-          .Select(ListingRepository.LISTING_PROJECTION_BASIC)
+          .Sort(ListingRepository.LISTING_SORT)
+          .Select(ListingRepository.LISTING_PROJECTION)
           .Paginate()
       ).Exec();
 
@@ -69,7 +59,7 @@ export default class ListingRepository implements IListingRepository {
     try {
       const listing = await Listing.findById(
         { _id: id },
-        ListingRepository.LISTING_PROJECTION_BASIC
+        ListingRepository.LISTING_PROJECTION
       ).exec();
 
       return listing;
@@ -95,7 +85,7 @@ export default class ListingRepository implements IListingRepository {
 
       const listing = await Listing.findById(
         { _id: id },
-        ListingRepository.LISTING_PROJECTION_PLUS
+        ListingRepository.LISTING_PROJECTION
       )
         .populate({
           path: "products",
@@ -104,7 +94,7 @@ export default class ListingRepository implements IListingRepository {
           options: {
             skip: (page - 1) * limit,
             limit: limit,
-            sort: ListingRepository.SORT_PRODUCTS,
+            sort: ListingRepository.PRODUCT_SORT,
           },
         })
         .exec();
