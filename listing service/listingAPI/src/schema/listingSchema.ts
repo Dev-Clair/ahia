@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import IListing from "../interface/IListing";
-import ProductSchema from "./productSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -135,6 +134,10 @@ const ListingSchema: Schema<IListing> = new Schema(
         required: false,
       },
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
@@ -146,39 +149,6 @@ ListingSchema.index({ "location.coordinates": "2dsphere" }, { sparse: true });
 ListingSchema.index({
   "location.address.city": "text",
   "location.address.state": "text",
-  provider: "text",
-  type: "text",
-});
-
-// Listing Schema Middleware
-ListingSchema.pre("findOneAndDelete", async function (next) {
-  const session = await mongoose.startSession();
-
-  try {
-    const listing = (await this.model
-      .findOne(this.getFilter())
-      .session(session)) as IListing;
-
-    if (!listing) next(new Error("Listing not found"));
-
-    await session.withTransaction(async () => {
-      // Delete all product document records referenced to listing
-      await mongoose.model("Product", ProductSchema).bulkWrite(
-        [
-          {
-            deleteMany: { filter: { listing: listing._id } },
-          },
-        ],
-        { session }
-      );
-    });
-
-    next();
-  } catch (err: any) {
-    next(err);
-  } finally {
-    await session.endSession();
-  }
 });
 
 export default ListingSchema;

@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import IProduct from "../interface/IProduct";
-import ListingSchema from "./listingSchema";
 import OfferingSchema from "./offeringSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/products`;
@@ -120,40 +119,8 @@ const ProductSchema: Schema<IProduct> = new Schema(
 
 // Product Schema Text Search Index
 ProductSchema.index({
-  "offering.area.size": 1,
   "offering.name": "text",
   "offering.type": "text",
-  status: "text",
-});
-
-// Product Schema Middleware
-ProductSchema.pre("findOneAndDelete", async function (next) {
-  const session = await mongoose.startSession();
-
-  try {
-    const product = (await this.model
-      .findOne(this.getFilter())
-      .session(session)) as IProduct;
-
-    if (!product) next(new Error("Product not found"));
-
-    await session.withTransaction(async () => {
-      // Unlink listing reference to product
-      await mongoose
-        .model("Listing", ListingSchema)
-        .updateOne(
-          { id: product.listing },
-          { $pull: { products: product._id } },
-          { session: session }
-        );
-    });
-
-    next();
-  } catch (err: any) {
-    next(err);
-  } finally {
-    await session.endSession();
-  }
 });
 
 export default ProductSchema;
