@@ -6,10 +6,10 @@ const PROJECTION: string[] = [
   "type",
   " media",
   "status",
-  "-verification",
-  // "-createdAt",
-  "-updatedAt",
-  "-__v",
+  // "-verification",
+  // "createdAt",
+  // "-updatedAt",
+  // "-__v",
 ];
 
 const SORT: string[] = ["-createdAt"];

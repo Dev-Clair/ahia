@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import ILeaseProduct from "../interface/ILeaseproduct";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
@@ -21,6 +21,7 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method save
  * @method updateById
  * @method deleteById
+ * @method deleteCollection
  */
 export default class ProductRepository implements IProductRepository {
   static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
@@ -50,7 +51,7 @@ export default class ProductRepository implements IProductRepository {
         await queryBuilder
           .Filter()
           .Sort(ProductRepository.PRODUCT_SORT)
-          .Select(ProductRepository.PRODUCT_PROJECTION)
+          // .Select(ProductRepository.PRODUCT_PROJECTION)
           .Paginate()
       ).Exec();
 
@@ -186,7 +187,7 @@ export default class ProductRepository implements IProductRepository {
   }
 
   /**
-   * Updates a product by id
+   * Updates a product by id (findOneAndUpdate Query)
    * @public
    * @param id product id
    * @param payload the data object
@@ -212,7 +213,7 @@ export default class ProductRepository implements IProductRepository {
   }
 
   /**
-   * Deletes a product by id
+   * Deletes a product by id (findOneAndDelete Query)
    * @public
    * @param id product id
    * @param options configuration options
@@ -227,6 +228,30 @@ export default class ProductRepository implements IProductRepository {
       const product = await Product.findByIdAndDelete({ _id: id }, session);
 
       return product;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Deletes multiple product reference by id (bulkwrite Query)
+   * @public
+   * @param id listing id
+   * @param session database session
+   */
+  async deleteCollection(
+    id: string | ObjectId,
+    session: ClientSession
+  ): Promise<void> {
+    try {
+      await Product.bulkWrite(
+        [
+          {
+            deleteMany: { filter: { listing: id } },
+          },
+        ],
+        { session }
+      );
     } catch (error: any) {
       throw error;
     }

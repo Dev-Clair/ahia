@@ -41,7 +41,7 @@ export default class ListingRepository implements IListingRepository {
           .GeoSpatial()
           .Filter()
           .Sort(ListingRepository.LISTING_SORT)
-          .Select(ListingRepository.LISTING_PROJECTION)
+          // .Select(ListingRepository.LISTING_PROJECTION)
           .Paginate()
       ).Exec();
 
@@ -127,7 +127,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing by id (findOneAndUpdateOne Query)
+   * Updates a listing by id (findOneAndUpdate Query)
    * @public
    * @param id listing id
    * @param payload data object
@@ -155,7 +155,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Deletes a listing by id
+   * Deletes a listing by id (findOneAndDelete Query)
    * @public
    * @param id listing id
    * @param options configuration options
@@ -179,7 +179,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing item by id (updateOne Query)
+   * Updates a listing reference by id (updateOne Query)
    * @public
    * @param filter listing id
    * @param update product id
@@ -202,7 +202,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing collection (bulkwrite)
+   * Updates multiple listing reference by id (bulkwrite Query)
    * @public
    * @param payload any bulkwrite operation
    * @param session database session
