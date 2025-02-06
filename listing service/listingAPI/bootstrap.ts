@@ -71,16 +71,14 @@ export function ServerErrorHandler(
 
   if (err instanceof HttpServerError)
     Sentry.withScope((scope) => {
-      scope.setTag("Server Initialization Error", "Fatal");
+      scope.setTag("Http Server", "Fatal");
 
-      scope.setContext("Error", error);
+      scope.setContext("Initialization Error", error);
 
       Sentry.captureException(err);
     });
 
   Log.App.error(error);
-
-  Sentry.captureException(err);
 
   ShutdownHandler(Server);
 }
@@ -102,16 +100,14 @@ export function DatabaseErrorHandler(
 
   if (err instanceof ConnectionError)
     Sentry.withScope((scope) => {
-      scope.setTag("Database Connection Error", "Critical");
+      scope.setTag("Database", "Critical");
 
-      scope.setContext("Error", error);
+      scope.setContext("Connection Error", error);
 
       Sentry.captureException(err);
     });
 
   Log.App.error(error);
-
-  Sentry.captureException(err);
 
   ShutdownHandler(Server);
 }
