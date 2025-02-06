@@ -69,12 +69,14 @@ const isSecure = (
 
   next();
 };
+
 /**
- * Verifies request body contains creatable fields
- * @param fields List of fields that cannot be inserted
+ * Filters request body fields for insertion or update operations
+ * @param fields List of fields that are not allowed
+ * @param operationType The type of operation (insert or update)
  */
-const filterInsertion =
-  (fields: string[]) =>
+const filterFields =
+  (fields: string[], operationType: "insert" | "update") =>
   (req: Request, res: Response, next: NextFunction): Response | void => {
     const { body } = req;
 
@@ -88,38 +90,9 @@ const filterInsertion =
       return res.status(HttpCode.BAD_REQUEST).json({
         error: {
           name: HttpStatus.BAD_REQUEST,
-          message: `Insertions are not allowed on fields: ${errorCache.join(
-            ", "
-          )}`,
-        },
-      });
-    }
-
-    next();
-  };
-
-/**
- * Verifies request body contains updatable fields
- * @param fields List of fields that cannot be updated
- */
-const filterUpdate =
-  (fields: string[]) =>
-  (req: Request, res: Response, next: NextFunction): Response | void => {
-    const { body } = req;
-
-    const errorCache: string[] = Array.isArray(body)
-      ? body.flatMap((obj) =>
-          Object.keys(obj).filter((key) => fields.includes(key))
-        )
-      : Object.keys(body).filter((key) => fields.includes(key));
-
-    if (errorCache.length !== 0) {
-      return res.status(HttpCode.BAD_REQUEST).json({
-        error: {
-          name: HttpStatus.BAD_REQUEST,
-          message: `Updates are not allowed on fields: ${errorCache.join(
-            ", "
-          )}`,
+          message: `${
+            operationType === "insert" ? "Insertions" : "Updates"
+          } are not allowed on fields: ${errorCache.join(", ")}`,
         },
       });
     }
@@ -131,6 +104,6 @@ export default {
   isContentType,
   isNotAllowed,
   isSecure,
-  filterInsertion,
-  filterUpdate,
+  filterInsertion: (fields: string[]) => filterFields(fields, "insert"),
+  filterUpdate: (fields: string[]) => filterFields(fields, "update"),
 };

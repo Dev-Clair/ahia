@@ -14,15 +14,13 @@ class GlobalErrorHandlingMiddleware {
     );
 
     Sentry.withScope((scope) => {
-      scope.setTag("Error", "Listing API");
+      scope.setTag("API", "Request");
 
-      scope.setContext("API", {
+      scope.setContext("Non-Operational Error", {
         name: err.name,
         message: err.message,
         stack: err.stack,
       });
-
-      Sentry.captureException(err);
     });
 
     process.exitCode = 1;
@@ -45,7 +43,7 @@ class GlobalErrorHandlingMiddleware {
   }
 
   /**
-   * VErifies if error is a syntax operational error
+   * Verifies if error is a syntax operational error
    * @param err error object
    */
   public static isSyntaxError(err: Error): boolean {
