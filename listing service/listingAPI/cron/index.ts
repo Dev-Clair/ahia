@@ -1,10 +1,4 @@
-import {
-  // ListingsJob,
-  ProductsJob,
-} from "./scheduler";
+import { ListingsJob, ProductsJob } from "./scheduler";
 
 export const Cron = async () =>
-  Promise.allSettled([
-    // ListingsJob.start(),
-    ProductsJob.start(),
-  ]);
+  await Promise.allSettled([ListingsJob.start(), ProductsJob.start()]);

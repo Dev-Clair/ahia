@@ -4,38 +4,34 @@ import ProductGenerator from "../generators/productGenerator";
 import ListingService from "../../src/service/listingService";
 
 export const ProductsCollectionCleanUp = async () => {
-  try {
-    Log.Cron.info(
-      `Products collection cleanup job started successfuly: ${new Date().toUTCString()}`
-    );
+  Log.Cron.info(
+    `Products collection cleanup job started: ${new Date().toUTCString()}`
+  );
 
+  try {
     const productGenerator = ProductGenerator();
 
     for await (const product of productGenerator) {
       const id = product._id.toString();
 
-      console.log("productGenerator yielded: ", id);
+      try {
+        await ListingService.Create().deleteListingProduct(id, {
+          idempotent: null,
+          retry: false,
+        });
 
-      await ListingService.Create().deleteListingProduct(id, {
-        idempotent: null,
-        retry: false,
-      });
+        Log.Cron.info(`Deleted expired product: ${id}`);
+      } catch (error: any) {
+        Log.Cron.error(`Failed to delete product ${id}: ${error.message}`);
+
+        Sentry.captureException(error);
+      }
     }
 
-    Log.Cron.info(`Products collection cleanup job completed successfuly`);
+    Log.Cron.info(`Products collection cleanup job completed successfully.`);
   } catch (error: any) {
-    Sentry.withScope((scope) => {
-      scope.setTag("Products Collection Cleanup Error", "Warn");
+    Sentry.captureException(error);
 
-      scope.setContext("Error", error);
-
-      Sentry.captureException(error);
-    });
-
-    Log.Cron.error(
-      `Products collection cleanup job failed with error: ${error.message}`
-    );
-
-    // throw error;
+    Log.Cron.error(`Products cleanup job failed: ${error.message}`);
   }
 };
