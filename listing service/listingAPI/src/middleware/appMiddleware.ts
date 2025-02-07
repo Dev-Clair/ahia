@@ -73,10 +73,10 @@ const isSecure = (
 /**
  * Filters request body fields for insertion or update operations
  * @param fields List of fields that are not allowed
- * @param operationType The type of operation (insert or update)
+ * @param operation The type of operation (insert or update)
  */
 const filterFields =
-  (fields: string[], operationType: "insert" | "update") =>
+  (fields: string[], operation: "insert" | "update") =>
   (req: Request, res: Response, next: NextFunction): Response | void => {
     const { body } = req;
 
@@ -91,7 +91,7 @@ const filterFields =
         error: {
           name: HttpStatus.BAD_REQUEST,
           message: `${
-            operationType === "insert" ? "Insertions" : "Updates"
+            operation === "insert" ? "Insertions" : "Updates"
           } are not allowed on fields: ${errorCache.join(", ")}`,
         },
       });
