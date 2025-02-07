@@ -29,7 +29,7 @@ const retrieveProductsSearch = async (
     const productFilter = {
       status: status,
       ...searchQuery,
-      ...req.paginate,
+      ...req.queryString,
     };
 
     // Find query
@@ -62,13 +62,13 @@ const retrieveProductsByLocation = async (
 
     const listingFilter = {
       location: { address: { city: city, state: state } },
-      ...req.paginate,
+      ...req.queryString,
     };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter = { status: status, ...req.paginate };
+    const productFilter = { status: status, ...req.queryString };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -101,13 +101,13 @@ const retrieveProductsNearBy = async (
       lat: lat,
       lng: lng,
       distance: distance,
-      ...req.paginate,
+      ...req.queryString,
     };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter = { status: status, ...req.paginate };
+    const productFilter = { status: status, ...req.queryString };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -140,7 +140,7 @@ const retrieveProductsByOffering = async (
       lat: lat,
       lng: lng,
       distance: distance,
-      ...req.paginate,
+      ...req.queryString,
     };
 
     // Product filter
@@ -155,11 +155,11 @@ const retrieveProductsByOffering = async (
     const area =
       minArea || maxArea
         ? {
-            size: {
-              ...(minArea && { gte: minArea }),
-              ...(maxArea && { lte: maxArea }),
-            },
-          }
+          size: {
+            ...(minArea && { gte: minArea }),
+            ...(maxArea && { lte: maxArea }),
+          },
+        }
         : {};
 
     const productFilter: Record<string, any> = {
@@ -170,7 +170,7 @@ const retrieveProductsByOffering = async (
         ...(type && { type }),
         ...area,
       },
-      ...req.paginate,
+      ...req.queryString,
     };
 
     // Find query
@@ -204,13 +204,13 @@ const retrieveProductsByPlace = async (
       lat: lat,
       lng: lng,
       radius: radius,
-      ...req.paginate,
+      ...req.queryString,
     };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter = { status: status, ...req.paginate };
+    const productFilter = { status: status, ...req.queryString };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -239,12 +239,12 @@ const retrieveProductsByListingProvider = async (
     // Listing filter
     const provider = req.params.provider as string;
 
-    const listingFilter = { provider: provider, ...req.paginate };
+    const listingFilter = { provider: provider, ...req.queryString };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter = { status: status, ...req.paginate };
+    const productFilter = { status: status, ...req.queryString };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -273,12 +273,12 @@ const retrieveProductsByListingType = async (
     // Listing filter
     const type = req.params.type as string;
 
-    const listingFilter = { type: type, ...req.paginate };
+    const listingFilter = { type: type, ...req.queryString };
 
     // Product filter
     const status = req.params.status as string;
 
-    const productFilter = { status: status, ...req.paginate };
+    const productFilter = { status: status, ...req.queryString };
     // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
@@ -306,6 +306,31 @@ const retrieveProductById = async (
     const product = req.product as IProduct;
 
     return res.status(HttpCode.OK).json({ data: product });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Retrieve a product by id and populates its subdocument
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const retrieveProductByIdAndPopulate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    const id = req.params.id as string;
+
+    // Find query
+    const product = await ProductService.Create().findByIdAndPopulate(id, {
+      retry: true,
+    });
+
+    return res.status(HttpCode.OK).json({ data: { product } });
   } catch (err: any) {
     return next(err);
   }
@@ -342,25 +367,29 @@ const updateProductById = async (
 };
 
 /**
- * Retrieve a product by id and populates its subdocument
+ * Deletes a product by id
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveProductByIdAndPopulate = async (
+const deleteProductById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
+    // Delete filter
+    const id = req.params.product as string;
 
-    // Find query
-    const product = await ProductService.Create().findByIdAndPopulate(id, {
+    const idempotent = req.idempotent as Record<string, any>;
+
+    // Delete query
+    const product = await ProductService.Create().deleteById(id, {
+      idempotent,
       retry: true,
     });
 
-    return res.status(HttpCode.OK).json({ data: { product } });
+    return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -375,6 +404,7 @@ export default {
   retrieveProductsByListingProvider,
   retrieveProductsByListingType,
   retrieveProductById,
-  updateProductById,
   retrieveProductByIdAndPopulate,
+  updateProductById,
+  deleteProductById,
 };

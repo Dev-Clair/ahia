@@ -5,7 +5,7 @@ import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
-import PaginationMiddleware from "../middleware/paginationMiddleware";
+import QueryStringMiddleware from "../middleware/queryStringMiddleware";
 import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ProductController from "../controller/productController";
 
@@ -19,46 +19,46 @@ ProductRouter.get(
 
 ProductRouter.get(
   "/status/:status/location/:city/:state",
-  PaginationMiddleware.paginate,
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByLocation
 );
 
 ProductRouter.get(
   "/status/:status/nearby",
   GeocodeMiddleware.parseUserGeoCoordinates,
-  PaginationMiddleware.paginate,
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsNearBy
 );
 
 ProductRouter.get(
   "/status/:status/offering",
   GeocodeMiddleware.parseUserGeoCoordinates,
-  PaginationMiddleware.paginate,
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByOffering
 );
 
 ProductRouter.get(
   "/status/:status/place/:place",
   GeocodeMiddleware.getLocationGeoCoordinates,
-  PaginationMiddleware.paginate,
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByPlace
 );
 
 ProductRouter.get(
   "/status/:status/provider/:provider",
-  PaginationMiddleware.paginate,
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByListingProvider
 );
 
 ProductRouter.get(
   "/status/:status/search",
-  PaginationMiddleware.paginate,
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsSearch
 );
 
 ProductRouter.get(
   "/status/:status/type/:type",
-  PaginationMiddleware.paginate,
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByListingType
 );
 
@@ -72,9 +72,13 @@ ProductRouter.route("/:id")
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterUpdate(["media", "type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
-    DocumentMiddleware("product", "id"),
-    PaymentverificationMiddleware.isVerified,
+    // DocumentMiddleware("product", "id"),
+    // PaymentverificationMiddleware.isVerified,
     ProductController.updateProductById
+  ).delete(
+    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    IdempotencyMiddleware.isIdempotent,
+    ProductController.deleteProductById
   );
 
 ProductRouter.get(

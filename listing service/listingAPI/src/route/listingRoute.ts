@@ -3,6 +3,7 @@ import AppMiddleware from "../middleware/appMiddleware";
 import AuthMiddleware from "../middleware/authMiddleware";
 import DocumentMiddleware from "../middleware/documentMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
+import QueryStringMiddleware from "../middleware/queryStringMiddleware";
 import ListingController from "../controller/listingController";
 
 const ListingRouter = Router();
@@ -16,26 +17,30 @@ ListingRouter.route("/").post(
 );
 
 ListingRouter.get(
-  "/provider/:id",
+  "/provider/:provider",
   AuthMiddleware.isGranted(["Provider"]),
+  QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsByProvider
 );
 
 ListingRouter.get(
   ["/tours", "/bookings"],
   AuthMiddleware.isGranted(["Customer"]),
+  QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsByProducts
 );
 
 ListingRouter.get(
   "/type/:type",
   AuthMiddleware.isGranted(["Admin", "Provider"]),
+  QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsByType
 );
 
 ListingRouter.get(
   "/search",
   AuthMiddleware.isGranted(["Admin"]),
+  QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsSearch
 );
 

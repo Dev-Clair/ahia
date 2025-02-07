@@ -62,11 +62,9 @@ const retrieveListingsSearch = async (
 
     if (!search) throw new BadRequestError(`Kindly enter a text to search`);
 
-    const searchQuery = { $text: { $search: search } };
-
-    const listings = await ListingService.Create().findAll(searchQuery, {
-      retry: true,
-    });
+    const listings = await ListingService.Create().findAll(
+      { $text: { $search: search }, ...req.queryString },
+      { retry: true });
 
     return res.status(HttpCode.OK).json({ data: listings });
   } catch (err: any) {
@@ -86,11 +84,11 @@ const retrieveListingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
+    const provider = req.params.provider as string;
 
-    const queryString = { provider: id };
+    if (!provider) throw new Error(`Kindly indicate a provider id`);
 
-    const listings = await ListingService.Create().findAll(queryString, {
+    const listings = await ListingService.Create().findAll({ provider: provider, ...req.queryString }, {
       retry: true,
     });
 
@@ -114,9 +112,9 @@ const retrieveListingsByType = async (
   try {
     const type = req.params.type as string;
 
-    const queryString = { type: type };
+    if (!type) throw new Error(`Kindly indicate a listing type`);
 
-    const listings = await ListingService.Create().findAll(queryString, {
+    const listings = await ListingService.Create().findAll({ type: type, ...req.queryString }, {
       retry: true,
     });
 
@@ -184,16 +182,10 @@ const retrieveListingByIdAndPopulate = async (
   try {
     const id = req.params.id as string;
 
-    const options = {
+    const listing = await ListingService.Create().findByIdAndPopulate(id, {
       page: parseInt((req.query.page as string) ?? "1", 10),
-
       limit: parseInt((req.query.limit as string) ?? "10", 10),
-    };
-
-    const listing = await ListingService.Create().findByIdAndPopulate(
-      id,
-      options
-    );
+    });
 
     return res.status(HttpCode.OK).json({ data: { listing } });
   } catch (err: any) {
@@ -244,7 +236,10 @@ const deleteListingById = async (
   try {
     const id = req.params.id as string;
 
+    const idempotent = req.idempotent as Record<string, any>;
+
     const listing = await ListingService.Create().deleteById(id, {
+      idempotent,
       retry: true,
     });
 
@@ -344,16 +339,12 @@ const retrieveListingProducts = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query as Record<string, any>;
-
     const listing = req.listing as IListing;
 
-    const listingId = listing._id.toString();
-
-    queryString.listing = listingId;
+    const id = listing._id.toString();
 
     const products = await ListingService.Create().findListingProducts(
-      queryString
+      { listing: id, ...req.queryString }
     );
 
     return res.status(HttpCode.OK).json({ data: products });
