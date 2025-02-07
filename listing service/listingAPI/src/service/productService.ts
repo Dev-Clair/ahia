@@ -6,6 +6,7 @@ import ListingRepository from "../repository/listingRepository";
 import ProductRepository from "../repository/productRepository";
 import IdempotencyRepository from "../repository/idempotencyRepository";
 import NotFoundError from "../error/notfoundError";
+import PaymentRequiredError from "../error/paymentrequiredError";
 
 /**
  * Product Service
@@ -195,6 +196,10 @@ export default class ProductService implements IProductService {
           // Validate product
           if (!product)
             throw new NotFoundError(`No document found for product: ${id}`);
+
+          // Verify verification
+          if (!product.verification.status)
+            throw new PaymentRequiredError(`${product.name} has not been verified for listing`);
 
           // Transform result
           const productId = product._id.toString();

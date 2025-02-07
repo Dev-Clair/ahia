@@ -6,7 +6,6 @@ import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
 import QueryStringMiddleware from "../middleware/queryStringMiddleware";
-import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ProductController from "../controller/productController";
 
 const ProductRouter = Router();
@@ -72,8 +71,6 @@ ProductRouter.route("/:id")
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterUpdate(["media", "type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
-    // DocumentMiddleware("product", "id"),
-    // PaymentverificationMiddleware.isVerified,
     ProductController.updateProductById
   ).delete(
     AuthMiddleware.isGranted(["Admin", "Provider"]),
