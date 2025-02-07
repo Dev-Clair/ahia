@@ -89,12 +89,4 @@ ListingRouter.route("/:id/products")
     ListingController.createListingProduct
   );
 
-ListingRouter.patch(
-  "/:id/products/:product",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
-  IdempotencyMiddleware.isIdempotent,
-  DocumentMiddleware("listing", "id"),
-  ListingController.deleteListingProductById
-);
-
 export default ListingRouter;
