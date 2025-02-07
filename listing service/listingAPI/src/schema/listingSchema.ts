@@ -142,7 +142,7 @@ const ListingSchema: Schema<IListing> = new Schema(
   { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
 
-// Listing Schema Location and Text Search Index
+// Listing Schema Location Index
 ListingSchema.index({ "location.coordinates": "2dsphere" }, { sparse: true });
 
 // Listing Schema Text Search Index
