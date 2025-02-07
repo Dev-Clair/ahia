@@ -291,6 +291,7 @@ const createListingProduct = async (
         payload as Partial<ILeaseProduct> | Partial<ILeaseProduct>[];
 
         product = await ListingService.Create().saveListingLeaseProduct(
+          listing._id,
           payload,
           { idempotent, retry: true }
         );
@@ -303,6 +304,7 @@ const createListingProduct = async (
           | Partial<IReservationProduct>[];
 
         product = await ListingService.Create().saveListingReservationProduct(
+          listing._id,
           payload,
           { idempotent, retry: true }
         );
@@ -313,6 +315,7 @@ const createListingProduct = async (
         payload as Partial<ISellProduct> | Partial<ISellProduct>[];
 
         product = await ListingService.Create().saveListingSellProduct(
+          listing._id,
           payload,
           { idempotent, retry: true }
         );
@@ -341,40 +344,11 @@ const retrieveListingProducts = async (
   try {
     const listing = req.listing as IListing;
 
-    const id = listing._id.toString();
-
     const products = await ListingService.Create().findListingProducts(
-      { listing: id, ...req.queryString }
+      { listing: listing._id.toString(), ...req.queryString }
     );
 
     return res.status(HttpCode.OK).json({ data: products });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Deletes a listing's product by id
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const deleteListingProductById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const id = req.params.product as string;
-
-    const idempotent = req.idempotent as Record<string, any>;
-
-    const product = await ListingService.Create().deleteListingProduct(id, {
-      idempotent,
-      retry: true,
-    });
-
-    return res.status(HttpCode.MODIFIED).json({ data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -392,5 +366,4 @@ export default {
   deleteListingById,
   createListingProduct,
   retrieveListingProducts,
-  deleteListingProductById,
 };

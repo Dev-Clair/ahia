@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import ILeaseProduct from "../interface/ILeaseproduct";
 import IListing from "../interface/IListing";
@@ -324,7 +324,7 @@ export default class ListingService implements IListingService {
    * @param options configuration options
    */
   public async saveListingLeaseProduct(
-    listing: string,
+    listing: string | ObjectId,
     payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
     options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
@@ -374,7 +374,7 @@ export default class ListingService implements IListingService {
    * @param options configuration options
    */
   public async saveListingReservationProduct(
-    listing: string,
+    listing: string | ObjectId,
     payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
     options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
@@ -424,7 +424,7 @@ export default class ListingService implements IListingService {
    * @param options configuration options
    */
   public async saveListingSellProduct(
-    listing: string,
+    listing: string | ObjectId,
     payload: Partial<ISellProduct> | Partial<ISellProduct>[],
     options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
