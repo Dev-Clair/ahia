@@ -134,10 +134,6 @@ const ListingSchema: Schema<IListing> = new Schema(
         required: false,
       },
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
   { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
