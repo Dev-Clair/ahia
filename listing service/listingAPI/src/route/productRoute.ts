@@ -17,7 +17,7 @@ ProductRouter.get(
 );
 
 ProductRouter.get(
-  "/status/:status/location/:city/:state",
+  "/status/:status/location/:city?/:state?",
   QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByLocation
 );
@@ -27,20 +27,6 @@ ProductRouter.get(
   GeocodeMiddleware.parseUserGeoCoordinates,
   QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsNearBy
-);
-
-ProductRouter.get(
-  "/status/:status/offering",
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  QueryStringMiddleware.parseQueryString,
-  ProductController.retrieveProductsByOffering
-);
-
-ProductRouter.get(
-  "/status/:status/place/:place",
-  GeocodeMiddleware.getLocationGeoCoordinates,
-  QueryStringMiddleware.parseQueryString,
-  ProductController.retrieveProductsByPlace
 );
 
 ProductRouter.get(

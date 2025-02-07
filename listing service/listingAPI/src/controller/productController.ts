@@ -1,7 +1,6 @@
 import HttpCode from "../enum/httpCode";
 import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
-import IGeoCoordinates from "../interface/IGeocoordinates";
 import IProduct from "../interface/IProduct";
 import ProductService from "../service/productService";
 
@@ -17,6 +16,8 @@ const retrieveProductsSearch = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
+    const { status } = req.params;
+
     // Product filter
     const search = req.query.q as string;
 
@@ -24,9 +25,7 @@ const retrieveProductsSearch = async (
 
     const searchQuery = { $text: { $search: search } };
 
-    const status = req.params.status as string;
-
-    const productFilter = {
+    const productFilter: Record<string, any> = {
       status: status,
       ...searchQuery,
       ...req.queryString,
@@ -55,113 +54,32 @@ const retrieveProductsByLocation = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
-    const city = req.params.city as string;
+    const { status, city, state } = req.params;
 
-    const state = req.params.state as string;
+    const address = {
+      ...(city && { city }),
+      ...(state && { state }),
+    }
 
-    const listingFilter = {
-      location: { address: { city: city, state: state } },
-      ...req.queryString,
-    };
-
-    // Product filter
-    const status = req.params.status as string;
-
-    const productFilter = { status: status, ...req.queryString };
-
-    // Find query
-    const products = await ProductService.Create().findProductsByListing(
-      listingFilter,
-      productFilter
-    );
-
-    return res.status(HttpCode.OK).json({ data: products });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve products near user's location
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveProductsNearBy = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    // Listing filter
-    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
-
-    const listingFilter = {
-      lat: lat,
-      lng: lng,
-      distance: distance,
-      ...req.queryString,
-    };
-
-    // Product filter
-    const status = req.params.status as string;
-
-    const productFilter = { status: status, ...req.queryString };
-
-    // Find query
-    const products = await ProductService.Create().findProductsByListing(
-      listingFilter,
-      productFilter
-    );
-
-    return res.status(HttpCode.OK).json({ data: products });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve products by status and offering (filter: name, category, area, type)
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveProductsByOffering = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    // Listing filter
-    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
-
-    const listingFilter = {
-      lat: lat,
-      lng: lng,
-      distance: distance,
-      ...req.queryString,
-    };
-
-    // Product filter
-    const status = req.params.status as string;
-
-    const { name, category, type } = req.query as Record<string, any>;
-
-    const minArea = parseInt(req.query?.minArea as string, 10);
-
-    const maxArea = parseInt(req.query?.maxArea as string, 10);
+    const { name, category, type, minArea, maxArea } = req.query;
 
     const area =
       minArea || maxArea
         ? {
           size: {
-            ...(minArea && { gte: minArea }),
-            ...(maxArea && { lte: maxArea }),
+            ...(minArea && { gte: parseInt(minArea as string, 10) }),
+            ...(maxArea && { lte: parseInt(maxArea as string, 10) }),
           },
         }
         : {};
 
+    // Listing filter
+    const listingFilter: Record<string, any> = {
+      location: { ...(address && { address }) },
+      ...req.queryString,
+    };
+
+    // Product filter
     const productFilter: Record<string, any> = {
       status: status,
       offering: {
@@ -186,31 +104,48 @@ const retrieveProductsByOffering = async (
 };
 
 /**
- * Retrieve products by place (geo-coordinates)
+ * Retrieve products near user
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const retrieveProductsByPlace = async (
+const retrieveProductsNearBy = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
-    const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
+    const { status } = req.params;
 
-    const listingFilter = {
-      lat: lat,
-      lng: lng,
-      radius: radius,
+    const { name, category, type, minArea, maxArea } = req.query;
+
+    const area =
+      minArea || maxArea
+        ? {
+          size: {
+            ...(minArea && { gte: parseInt(minArea as string, 10) }),
+            ...(maxArea && { lte: parseInt(maxArea as string, 10) }),
+          },
+        }
+        : {};
+
+    // Listing filter
+    const listingFilter: Record<string, any> = {
+      ...req.geoCoordinates,
       ...req.queryString,
     };
 
     // Product filter
-    const status = req.params.status as string;
-
-    const productFilter = { status: status, ...req.queryString };
+    const productFilter: Record<string, any> = {
+      status: status,
+      offering: {
+        ...(name && { name }),
+        ...(category && { category }),
+        ...(type && { type }),
+        ...area,
+      },
+      ...req.queryString,
+    };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -236,15 +171,13 @@ const retrieveProductsByListingProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
-    const provider = req.params.provider as string;
+    const { provider, status } = req.params;
 
-    const listingFilter = { provider: provider, ...req.queryString };
+    // Listing filter
+    const listingFilter: Record<string, any> = { provider: provider, ...req.queryString };
 
     // Product filter
-    const status = req.params.status as string;
-
-    const productFilter = { status: status, ...req.queryString };
+    const productFilter: Record<string, any> = { status: status, ...req.queryString };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -270,15 +203,14 @@ const retrieveProductsByListingType = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
-    const type = req.params.type as string;
+    const { type, status } = req.params;
 
-    const listingFilter = { type: type, ...req.queryString };
+    // Listing filter
+    const listingFilter: Record<string, any> = { type: type, ...req.queryString };
 
     // Product filter
-    const status = req.params.status as string;
+    const productFilter: Record<string, any> = { status: status, ...req.queryString };
 
-    const productFilter = { status: status, ...req.queryString };
     // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
@@ -303,7 +235,7 @@ const retrieveProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const product = req.product as IProduct;
+    const product = req.product;
 
     return res.status(HttpCode.OK).json({ data: product });
   } catch (err: any) {
@@ -399,8 +331,6 @@ export default {
   retrieveProductsSearch,
   retrieveProductsByLocation,
   retrieveProductsNearBy,
-  retrieveProductsByOffering,
-  retrieveProductsByPlace,
   retrieveProductsByListingProvider,
   retrieveProductsByListingType,
   retrieveProductById,

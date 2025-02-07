@@ -4,6 +4,7 @@ import Cache from "../../cache";
 import Geocode from "../utils/geocode";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
+import IGeoCoordinates from "../interface/IGeocoordinates";
 import InternalServerError from "../error/internalserverError";
 import { NextFunction, Request, Response } from "express";
 import PlaceService from "../service/placeService";
@@ -157,11 +158,11 @@ const getLocationAddress = async (
     }
 
     // Attach address to the req object for downstream use
-    req.geoCoordinates = {
+    (req as Request).geoCoordinates = {
       lat: lat,
       lng: lng,
       address: body.data.results[0].formatted_address,
-    };
+    } as IGeoCoordinates;
 
     delete req.query.lat;
 
@@ -231,12 +232,12 @@ const parseUserGeoCoordinates = async (
   }
 
   // Attach parsed coordinates to the request object for downstream handler use
-  req.geoCoordinates = {
+  (req as Request).geoCoordinates = {
     lat: parsedLat,
     lng: parsedLng,
     distance: parseInt((req.query?.distance as string) ?? "1000", 10),
     radius: parseInt((req.query?.radius as string) ?? "1", 10),
-  };
+  } as IGeoCoordinates;
 
   delete req.query.lat;
 
