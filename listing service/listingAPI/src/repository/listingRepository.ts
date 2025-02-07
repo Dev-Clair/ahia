@@ -1,4 +1,4 @@
-import { AnyBulkWriteOperation, ClientSession, ObjectId } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import IListing from "../interface/IListing";
 import IListingRepository from "../interface/IListingrepository";
 import Listing from "../model/listingModel";
@@ -179,7 +179,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing reference by id (updateOne Query)
+   * Updates a listing product reference (updateOne Query)
    * @public
    * @param filter listing id
    * @param update product id
@@ -202,17 +202,23 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates multiple listing reference by id (bulkwrite Query)
+   * Updates a listing's product references (updateMany Query)
    * @public
-   * @param payload any bulkwrite operation
+   * @param filter listing id
+   * @param updates product ids
    * @param session database session
    */
   async updateCollection(
-    payload: AnyBulkWriteOperation<any>[],
+    filter: string | ObjectId,
+    updates: string[] | ObjectId[],
     session: ClientSession
   ): Promise<void> {
     try {
-      await Listing.bulkWrite(payload, { session });
+      await Listing.updateMany(
+        { _id: filter },
+        { $addToSet: { products: { $each: updates } } },
+        { session }
+      );
     } catch (error: any) {
       throw error;
     }

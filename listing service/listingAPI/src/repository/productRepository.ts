@@ -234,24 +234,17 @@ export default class ProductRepository implements IProductRepository {
   }
 
   /**
-   * Deletes multiple product reference by id (bulkwrite Query)
+   * Deletes product references to a listing (deleteMany Query)
    * @public
-   * @param id listing id
+   * @param filter listing id
    * @param session database session
    */
   async deleteCollection(
-    id: string | ObjectId,
+    filter: string | ObjectId,
     session: ClientSession
   ): Promise<void> {
     try {
-      await Product.bulkWrite(
-        [
-          {
-            deleteMany: { filter: { listing: id } },
-          },
-        ],
-        { session }
-      );
+      await Product.deleteMany({ listing: filter }, { session });
     } catch (error: any) {
       throw error;
     }

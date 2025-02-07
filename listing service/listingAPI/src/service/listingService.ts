@@ -319,10 +319,12 @@ export default class ListingService implements IListingService {
   /**
    * Creates a new product (type: lease) on a listing
    * @public
+   * @param listing listing id
    * @param payload data object
    * @param options configuration options
    */
   public async saveListingLeaseProduct(
+    listing: string,
     payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
     options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
@@ -343,20 +345,12 @@ export default class ListingService implements IListingService {
           );
 
           // Transform result
-          const updateOperations = products.map(({ id, listing }) => ({
-            updateOne: {
-              filter: { _id: listing },
-              update: { $addToSet: { products: id } },
-            },
-          }));
+          const productIds = products.map(({ id }) => id);
 
           // Update listing
-          await ListingRepository.Create().updateCollection(
-            updateOperations,
-            session
-          );
+          await ListingRepository.Create().updateCollection(listing, productIds, session);
 
-          return products.map(({ id, listing }) => ({ id, listing }));
+          return productIds;
         };
 
         const products = retry
@@ -375,10 +369,12 @@ export default class ListingService implements IListingService {
   /**
    * Creates a new product (type: reservation) on a listing
    * @public
+   * @param listing listing id
    * @param payload data object
    * @param options configuration options
    */
   public async saveListingReservationProduct(
+    listing: string,
     payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
     options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
@@ -399,20 +395,12 @@ export default class ListingService implements IListingService {
           );
 
           // Transform result
-          const updateOperations = products.map(({ id, listing }) => ({
-            updateOne: {
-              filter: { _id: listing },
-              update: { $addToSet: { products: id } },
-            },
-          }));
+          const productIds = products.map(({ id }) => id);
 
           // Update listing
-          await ListingRepository.Create().updateCollection(
-            updateOperations,
-            session
-          );
+          await ListingRepository.Create().updateCollection(listing, productIds, session);
 
-          return products.map(({ id, listing }) => ({ id, listing }));
+          return productIds;
         };
 
         const products = retry
@@ -431,10 +419,12 @@ export default class ListingService implements IListingService {
   /**
    * Creates a new product (type: sell) on a listing
    * @public
+   * @param listing listing id
    * @param payload data object
    * @param options configuration options
    */
   public async saveListingSellProduct(
+    listing: string,
     payload: Partial<ISellProduct> | Partial<ISellProduct>[],
     options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
@@ -455,20 +445,12 @@ export default class ListingService implements IListingService {
           );
 
           // Transform result
-          const updateOperations = products.map(({ id, listing }) => ({
-            updateOne: {
-              filter: { _id: listing },
-              update: { $addToSet: { products: id } },
-            },
-          }));
+          const productIds = products.map(({ id }) => id);
 
           // Update listing
-          await ListingRepository.Create().updateCollection(
-            updateOperations,
-            session
-          );
+          await ListingRepository.Create().updateCollection(listing, productIds, session);
 
-          return products.map(({ id, listing }) => ({ id, listing }));
+          return productIds;
         };
 
         const products = retry
@@ -484,56 +466,56 @@ export default class ListingService implements IListingService {
     }
   }
 
-  /**
-   * Deletes a listing's product by id
-   * @public
-   * @param id product id
-   * @param options configuration options
-   */
-  async deleteListingProduct(
-    id: string,
-    options: { idempotent: Record<string, any> | null; retry?: boolean }
-  ): Promise<string> {
-    const session = await mongoose.startSession();
+  // /**
+  //  * Deletes a listing's product by id
+  //  * @public
+  //  * @param id product id
+  //  * @param options configuration options
+  //  */
+  // async deleteListingProduct(
+  //   id: string,
+  //   options: { idempotent: Record<string, any> | null; retry?: boolean }
+  // ): Promise<string> {
+  //   const session = await mongoose.startSession();
 
-    try {
-      const { idempotent, retry = true } = options;
+  //   try {
+  //     const { idempotent, retry = true } = options;
 
-      return await session.withTransaction(async () => {
-        // Ensure operation idempotency
-        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+  //     return await session.withTransaction(async () => {
+  //       // Ensure operation idempotency
+  //       if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
-        const operation = async () => {
-          // Delete product
-          const product = await ProductRepository.Create().deleteById(id, {
-            session: session,
-          });
+  //       const operation = async () => {
+  //         // Delete product
+  //         const product = await ProductRepository.Create().deleteById(id, {
+  //           session: session,
+  //         });
 
-          // Validate product
-          if (!product)
-            throw new NotFoundError(`No document found for product: ${id}`);
+  //         // Validate product
+  //         if (!product)
+  //           throw new NotFoundError(`No document found for product: ${id}`);
 
-          // Transform result
-          const productId = product._id.toString();
+  //         // Transform result
+  //         const productId = product._id.toString();
 
-          // Delete product reference to listing
-          await ListingRepository.Create().updateItem(id, productId, session);
+  //         // Delete product reference to listing
+  //         await ListingRepository.Create().updateItem(id, productId, session);
 
-          return productId;
-        };
+  //         return productId;
+  //       };
 
-        const product = retry
-          ? await FailureRetry.ExponentialBackoff(() => operation())
-          : await operation();
+  //       const product = retry
+  //         ? await FailureRetry.ExponentialBackoff(() => operation())
+  //         : await operation();
 
-        return product;
-      });
-    } catch (error: any) {
-      throw error;
-    } finally {
-      await session.endSession();
-    }
-  }
+  //       return product;
+  //     });
+  //   } catch (error: any) {
+  //     throw error;
+  //   } finally {
+  //     await session.endSession();
+  //   }
+  // }
 
   /**
    * Creates and returns a new instance of the ListingService class
