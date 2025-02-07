@@ -25,8 +25,7 @@ const isGranted =
     return res.status(HttpCode.FORBIDDEN).json({
       error: {
         name: HttpStatus.FORBIDDEN,
-        message:
-          "Forbidden! You do not have the permissions to access this resource",
+        message: "Forbidden! You do not have the required permissions",
       },
     });
   };
