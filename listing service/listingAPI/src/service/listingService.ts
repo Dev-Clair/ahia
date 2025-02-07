@@ -236,13 +236,16 @@ export default class ListingService implements IListingService {
    * @param id listing id
    * @param options configuration options
    */
-  async deleteById(id: string, options: { retry?: boolean }): Promise<string> {
+  async deleteById(id: string, options: { idempotent: Record<string, any> | null; retry?: boolean }): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      const { retry = true } = options;
+      const { idempotent, retry = true } = options;
 
       return await session.withTransaction(async () => {
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Delete listing
           const listing = await ListingRepository.Create().deleteById(id, {
@@ -255,6 +258,9 @@ export default class ListingService implements IListingService {
 
           // Transform result
           const listingId = listing._id.toString();
+
+          // Delete products referenced to listing
+          await ProductRepository.Create().deleteCollection(listingId, session);
 
           return listingId;
         };
@@ -510,7 +516,7 @@ export default class ListingService implements IListingService {
           // Transform result
           const productId = product._id.toString();
 
-          // Update listing
+          // Delete product reference to listing
           await ListingRepository.Create().updateItem(id, productId, session);
 
           return productId;

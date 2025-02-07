@@ -221,13 +221,16 @@ export default class ProductService implements IProductService {
    * @param id product id
    * @param options configuration options
    */
-  async deleteById(id: string, options: { retry?: boolean }): Promise<string> {
+  async deleteById(id: string, options: { idempotent: Record<string, any> | null; retry?: boolean }): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      const { retry = true } = options;
+      const { idempotent, retry = true } = options;
 
       return await session.withTransaction(async () => {
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Delete product
           const product = await ProductRepository.Create().deleteById(id, {
@@ -240,6 +243,9 @@ export default class ProductService implements IProductService {
 
           // Transform result
           const productId = product._id.toString();
+
+          // Delete product reference to listing
+          await ListingRepository.Create().updateItem(product.listing, productId, session);
 
           return productId;
         };

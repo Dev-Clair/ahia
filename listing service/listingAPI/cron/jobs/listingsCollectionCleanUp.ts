@@ -15,7 +15,7 @@ export const ListingsCollectionCleanUp = async () => {
       const id = listing._id.toString();
 
       try {
-        await ListingService.Create().deleteById(id, { retry: false });
+        await ListingService.Create().deleteById(id, { idempotent: null, retry: false });
 
         Log.Cron.info(`Deleted expired listing: ${id}`);
       } catch (error: any) {

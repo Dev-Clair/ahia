@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/node";
 import Log from "../../src/utils/logger";
 import ProductGenerator from "../generators/productGenerator";
-import ListingService from "../../src/service/listingService";
+import ProductService from "../../src/service/productService";
 
 export const ProductsCollectionCleanUp = async () => {
   Log.Cron.info(
@@ -15,7 +15,7 @@ export const ProductsCollectionCleanUp = async () => {
       const id = product._id.toString();
 
       try {
-        await ListingService.Create().deleteListingProduct(id, {
+        await ProductService.Create().deleteById(id, {
           idempotent: null,
           retry: false,
         });
