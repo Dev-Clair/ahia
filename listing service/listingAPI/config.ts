@@ -32,11 +32,11 @@ const Config = {
     },
   },
   LOG: {
-    APP: process.env.APP_LOG_DIR || "",
-    CRON: process.env.CRON_LOG_DIR || "",
+    APP: process.env.LOG_DIR_APP || "",
+    CRON: process.env.LOG_DIR_CRON || "",
   },
   MONGO_URI: process.env.MONGO_URI || "",
-  NODE_ENV: process.env.NODE_ENV || "test",
+  NODE_ENV: process.env.NODE_ENV || "development",
   PAYMENT_SERVICE_URL: process.env.PAYMENT_SERVICE_URL || "",
   PORT: process.env.PORT || 4999,
   SSL: {
