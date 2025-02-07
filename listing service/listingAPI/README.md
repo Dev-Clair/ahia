@@ -60,7 +60,7 @@ Authorization and authentication is enabled by an identity server which manages 
     1.2 Retrieve Listings by Provider
 
     ```
-    GET /api/v1/listings/provider/:id
+    GET /api/v1/listings/provider/:rpovider
     ```
 
     1.3 Retrieves Listings by Type
@@ -160,7 +160,7 @@ Authorization and authentication is enabled by an identity server which manages 
     3.7 Retrieves Products by Listing Provider
 
     ```
-    GET /api/v1/listings/products/status/:status/provider/:id
+    GET /api/v1/listings/products/status/:status/provider/:provider
     ```
 
     3.8 Retrieves Products by Listing Type
@@ -181,7 +181,13 @@ Authorization and authentication is enabled by an identity server which manages 
     PATCH /api/v1/listings/products/:id
     ```
 
-    3.11 Retrieves a Product by ID with Populated Listing Details
+    3.11 Deletes a Product by ID
+
+    ```
+    DELETE /api/v1/listings/products/:id
+    ```
+
+    3.12 Retrieves a Product by ID with Populated Listing Details
 
     ```
     GET /api/v1/listings/products/:id/listing
