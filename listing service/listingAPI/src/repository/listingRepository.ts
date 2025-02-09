@@ -41,7 +41,7 @@ export default class ListingRepository implements IListingRepository {
           .GeoSpatial()
           .Filter()
           .Sort(ListingRepository.LISTING_SORT)
-          // .Select(ListingRepository.LISTING_PROJECTION)
+          .Select(ListingRepository.LISTING_PROJECTION)
           .Paginate()
       ).Exec();
 

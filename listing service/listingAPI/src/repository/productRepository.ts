@@ -51,7 +51,7 @@ export default class ProductRepository implements IProductRepository {
         await queryBuilder
           .Filter()
           .Sort(ProductRepository.PRODUCT_SORT)
-          // .Select(ProductRepository.PRODUCT_PROJECTION)
+          .Select(ProductRepository.PRODUCT_PROJECTION)
           .Paginate()
       ).Exec();
 
