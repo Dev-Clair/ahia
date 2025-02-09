@@ -255,7 +255,7 @@ const retrieveProductByIdAndPopulate = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
+    const id = req.params.id;
 
     // Find query
     const product = await ProductService.Create().findByIdAndPopulate(id, {
@@ -281,7 +281,7 @@ const updateProductById = async (
 ): Promise<Response | void> => {
   try {
     // Update filter
-    const id = req.params.id as string;
+    const id = req.params.id;
 
     const idempotent = req.idempotent as Record<string, any>;
 
@@ -311,7 +311,7 @@ const deleteProductById = async (
 ): Promise<Response | void> => {
   try {
     // Delete filter
-    const id = req.params.product as string;
+    const id = req.params.product;
 
     const idempotent = req.idempotent as Record<string, any>;
 
