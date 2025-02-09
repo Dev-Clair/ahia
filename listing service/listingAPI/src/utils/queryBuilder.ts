@@ -104,28 +104,38 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query projection
-   * @param selectFields A key-value pair of fields to select
+   * @param selectFields An array fields to select
    */
   public Select(selectFields: string[]): this {
-    const fields = Array.from(
-      new Set([this.queryString.fields, selectFields])
-    ).join();
+    const fields = [this.queryString.fields ?? "", ...selectFields];
 
-    this.query = this.query.select(fields);
+    const parsedFields = fields.filter((element, index) => fields.indexOf(element) === index);
+
+    this.query = this.query.select(parsedFields);
 
     return this;
   }
 
   /**
    * Handles query sorting
-   * @param sortFields A key-value pair of fields to sort
+   * @param sortFields An array fields to sort
    */
   public Sort(sortFields: string[]): this {
-    const sortBy = Array.from(
-      new Set([this.queryString.sort, sortFields])
-    ).join();
+    const sort = [this.queryString.sort ?? "", ...sortFields];
 
-    this.query = this.query.sort(sortBy);
+    const parsedFields = sort.filter((element, index) => sort.indexOf(element) === index);
+
+    const sortObject: { [key: string]: 1 | -1 } = {};
+
+    parsedFields.forEach(field => {
+      const order = field.startsWith('-') ? -1 : 1;
+
+      const fieldName = field.startsWith('-') ? field.substring(1) : field;
+
+      sortObject[fieldName] = order;
+    });
+
+    this.query = this.query.sort(sortObject);
 
     return this;
   }
