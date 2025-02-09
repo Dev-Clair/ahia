@@ -3,6 +3,7 @@ import IGeoCoordinates from "../interface/IGeocoordinates";
 import IListing from "../interface/IListing";
 import IProduct from "../interface/IProduct";
 import IQueryString from "../interface/IQuerystring";
+import IUser from "../interface/IUser";
 
 declare global {
   namespace Express {
@@ -12,6 +13,7 @@ declare global {
       queryString?: IQueryString;
       listing?: IListing;
       product?: IProduct;
+      user?: IUser;
     }
   }
 }
