@@ -38,7 +38,7 @@ const isIdempotent = async (
       },
     });
 
-  (req as Request).idempotent = { key: key };
+  (req as Request).idempotent = { key: key } // Attach idempotency key to request;
 
   next();
 };
