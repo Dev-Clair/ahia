@@ -5,6 +5,7 @@ import helmet from "helmet";
 import hpp from "hpp";
 import APIError from "./src/error/apiError";
 import GlobalErrorHandler from "./src/middleware/globalErrorHandlingMiddleware.ts";
+import ResponseMiddleware from "./src/middleware/responseMiddleware.ts";
 import HttpCode from "./src/enum/httpCode";
 import HttpStatus from "./src/enum/httpStatus";
 import Routes from "./src/route";
@@ -22,6 +23,8 @@ App.use(helmet());
 App.use(hpp());
 
 App.use(express_mongo_sanitize());
+
+App.use(ResponseMiddleware.responseParser);
 
 App.use("/api/v1", Routes);
 
