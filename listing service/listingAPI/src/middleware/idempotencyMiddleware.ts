@@ -22,7 +22,7 @@ const isIdempotent = async (
   const key = (req.headers["idempotency-key"] as string) ?? isProduction;
 
   if (!key) {
-    return res.status(HttpCode.BAD_REQUEST).json({
+    return res.sendResponse(HttpCode.BAD_REQUEST, null, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message: "Idempotency key is required",
@@ -31,7 +31,7 @@ const isIdempotent = async (
   }
 
   if ((await IdempotencyRepository.find(key, null)) as boolean)
-    return res.status(HttpCode.CONFLICT).json({
+    return res.sendResponse(HttpCode.CONFLICT, null, {
       error: {
         name: HttpStatus.CONFLICT,
         message: "Duplicate request detected",

@@ -50,8 +50,8 @@ const DocumentMiddleware = (
       // }
 
       next();
-    } catch (err: any) {
-      next(err);
+    } catch (error: any) {
+      next(error);
     }
   };
 };

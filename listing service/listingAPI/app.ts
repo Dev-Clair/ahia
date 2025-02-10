@@ -38,15 +38,21 @@ App.use(
 
     if (GlobalErrorHandler.isSafeError(err)) {
       if (err.name === "ValidationError") {
-        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
-          error: { name: err.name, message: err.message },
+        return res.sendResponse(HttpCode.BAD_REQUEST, null, {
+          error: {
+            name: err.name,
+            message: err.message
+          }
         });
       } else if (err.name === "CastError") {
-        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
-          error: { name: err.name, message: "Invalid ID" },
+        return res.sendResponse(HttpCode.UNPROCESSABLE_ENTITY, null, {
+          error: {
+            name: err.name,
+            message: "Invalid ID"
+          },
         });
       } else {
-        return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
+        return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, null, {
           error: {
             name: err.name,
             message:
@@ -57,15 +63,18 @@ App.use(
     }
 
     if (GlobalErrorHandler.isTrustedError(err as APIError)) {
-      return res
-        .status((err as APIError).code)
-        .json({ error: { name: err.name, message: err.message } });
+      return res.sendResponse((err as APIError).code, null, {
+        error: {
+          name: err.name,
+          message: err.message
+        }
+      });
     }
 
     GlobalErrorHandler.handleError(err);
 
     if (!res.headersSent) {
-      return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
+      return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, null, {
         error: {
           name: HttpStatus.INTERNAL_SERVER_ERROR,
           message:
@@ -77,7 +86,7 @@ App.use(
 );
 
 App.all("*", (req: Request, res: Response, next: NextFunction) => {
-  return res.status(HttpCode.NOT_FOUND).json({
+  return res.sendResponse(HttpCode.NOT_FOUND, null, {
     error: {
       name: HttpStatus.NOT_FOUND,
       message: `No resource or route defined for ${req.originalUrl}`,

@@ -19,12 +19,12 @@ const getLocationGeoCoordinates = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void | Response<any, Record<string, any>>> => {
+): Promise<Response | void> => {
   try {
     const place = req.params.place as string;
 
     if (!place.trim()) {
-      return res.status(HttpCode.BAD_REQUEST).json({
+      return res.sendResponse(HttpCode.BAD_REQUEST, null, {
         error: {
           name: HttpStatus.BAD_REQUEST,
           message: "Place is required",
@@ -38,7 +38,7 @@ const getLocationGeoCoordinates = async (
     let location = Cache.get(cacheKey);
 
     if (location) {
-      // Attach cached coordinates to the req object for downstream use
+      // Attach cached coordinates to the req object
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -54,7 +54,7 @@ const getLocationGeoCoordinates = async (
     location = await PlaceService.Create().findByField(place.trim());
 
     if (location) {
-      // Attach retrieved coordinates to the req object for downstream use
+      // Attach retrieved coordinates to the req object
       req.geoCoordinates = {
         lat: location.coordinates.lat,
         lng: location.coordinates.lng,
@@ -104,7 +104,7 @@ const getLocationGeoCoordinates = async (
       { idempotent: { idempotent: randomUUID() } }
     );
 
-    // Attach coordinates to the req object for downstream use
+    // Attach coordinates to the req object
     req.geoCoordinates = {
       lat: coordinates.lat,
       lng: coordinates.lng,
@@ -157,7 +157,7 @@ const getLocationAddress = async (
       );
     }
 
-    // Attach address to the req object for downstream use
+    // Attach address to the req object
     req.geoCoordinates = {
       lat: lat,
       lng: lng,
@@ -186,12 +186,12 @@ const parseUserGeoCoordinates = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<Response<any, Record<string, any>> | undefined> => {
+): Promise<Response | void> => {
   const { lat, lng } = req.query as Record<string, any>;
 
   // Check if coordinates (latitude and longitude) are present
   if (!lat || !lng) {
-    return res.status(HttpCode.BAD_REQUEST).json({
+    return res.sendResponse(HttpCode.BAD_REQUEST, null, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message:
@@ -207,7 +207,7 @@ const parseUserGeoCoordinates = async (
 
   // Validate the parsed coordinates
   if (isNaN(parsedLat) || isNaN(parsedLng)) {
-    return res.status(HttpCode.BAD_REQUEST).json({
+    return res.sendResponse(HttpCode.BAD_REQUEST, null, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message:
@@ -223,7 +223,7 @@ const parseUserGeoCoordinates = async (
   ]);
 
   if (!verifyGeoCoordinates) {
-    return res.status(HttpCode.BAD_REQUEST).json({
+    return res.sendResponse(HttpCode.BAD_REQUEST, null, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message: "Provided geocoordinates are out of the valid range",
@@ -231,7 +231,7 @@ const parseUserGeoCoordinates = async (
     });
   }
 
-  // Attach parsed coordinates to the request object for downstream handler use
+  // Attach parsed coordinates to the request object
   req.geoCoordinates = {
     lat: parsedLat,
     lng: parsedLng,
