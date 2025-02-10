@@ -19,15 +19,13 @@ const retrieveProductsSearch = async (
     const { status } = req.params;
 
     // Product filter
-    const search = req.query.q as string;
+    const { q } = req.query;
 
-    if (!search) throw new BadRequestError(`Kindly enter a text to search`);
-
-    const searchQuery = { $text: { $search: search } };
+    if (!q) throw new BadRequestError(`Kindly enter a text to search`);
 
     const productFilter: Record<string, any> = {
+      $text: { $search: q },
       status: status,
-      ...searchQuery,
       ...req.queryString,
     };
 
@@ -36,7 +34,18 @@ const retrieveProductsSearch = async (
       retry: true,
     });
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination to response
+    res.meta!.pagination = {
+      total: products.length,
+
+      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
+
+      page: parseInt(req.queryString?.page as string, 10) ?? 1,
+
+      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
+    }
+
+    return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
     return next(err);
   }
@@ -56,12 +65,12 @@ const retrieveProductsByLocation = async (
   try {
     const { status, city, state } = req.params;
 
+    const { name, category, type, minArea, maxArea } = req.query;
+
     const address = {
       ...(city && { city }),
       ...(state && { state }),
     }
-
-    const { name, category, type, minArea, maxArea } = req.query;
 
     const area =
       minArea || maxArea
@@ -79,6 +88,8 @@ const retrieveProductsByLocation = async (
       ...req.queryString,
     };
 
+    console.log(listingFilter);
+
     // Product filter
     const productFilter: Record<string, any> = {
       status: status,
@@ -91,13 +102,26 @@ const retrieveProductsByLocation = async (
       ...req.queryString,
     };
 
+    console.log(productFilter);
+
     // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination to response
+    res.meta!.pagination = {
+      total: products.length,
+
+      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
+
+      page: parseInt(req.queryString?.page as string, 10) ?? 1,
+
+      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
+    }
+
+    return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
     return next(err);
   }
@@ -135,6 +159,8 @@ const retrieveProductsNearBy = async (
       ...req.queryString,
     };
 
+    console.log(listingFilter);
+
     // Product filter
     const productFilter: Record<string, any> = {
       status: status,
@@ -147,13 +173,26 @@ const retrieveProductsNearBy = async (
       ...req.queryString,
     };
 
+    console.log(productFilter);
+
     // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination to response
+    res.meta!.pagination = {
+      total: products.length,
+
+      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
+
+      page: parseInt(req.queryString?.page as string, 10) ?? 1,
+
+      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
+    }
+
+    return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
     return next(err);
   }
@@ -171,7 +210,7 @@ const retrieveProductsByListingProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { provider, status } = req.params;
+    const { status, provider } = req.params;
 
     // Listing filter
     const listingFilter: Record<string, any> = { provider: provider, ...req.queryString };
@@ -185,7 +224,18 @@ const retrieveProductsByListingProvider = async (
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination to response
+    res.meta!.pagination = {
+      total: products.length,
+
+      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
+
+      page: parseInt(req.queryString?.page as string, 10) ?? 1,
+
+      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
+    }
+
+    return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
     return next(err);
   }
@@ -203,7 +253,7 @@ const retrieveProductsByListingType = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { type, status } = req.params;
+    const { status, type } = req.params;
 
     // Listing filter
     const listingFilter: Record<string, any> = { type: type, ...req.queryString };
@@ -217,7 +267,18 @@ const retrieveProductsByListingType = async (
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination to response
+    res.meta!.pagination = {
+      total: products.length,
+
+      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
+
+      page: parseInt(req.queryString?.page as string, 10) ?? 1,
+
+      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
+    }
+
+    return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
     return next(err);
   }
@@ -235,9 +296,10 @@ const retrieveProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const product = req.product;
+    // Retrieve product from request object
+    const product = req.product as IProduct;
 
-    return res.status(HttpCode.OK).json({ data: product });
+    return res.sendResponse(HttpCode.OK, product);
   } catch (err: any) {
     return next(err);
   }
@@ -255,14 +317,14 @@ const retrieveProductByIdAndPopulate = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
 
     // Find query
     const product = await ProductService.Create().findByIdAndPopulate(id, {
       retry: true,
     });
 
-    return res.status(HttpCode.OK).json({ data: { product } });
+    return res.sendResponse(HttpCode.OK, product);
   } catch (err: any) {
     return next(err);
   }
@@ -281,18 +343,18 @@ const updateProductById = async (
 ): Promise<Response | void> => {
   try {
     // Update filter
-    const id = req.params.id;
+    const { id } = req.params;
+
+    const payload: Partial<IProduct> = req.body;
 
     const idempotent = req.idempotent as Record<string, any>;
-
-    const payload = req.body as Partial<IProduct>;
 
     // Update query
     const product = await ProductService.Create().updateById(id, payload, {
       idempotent,
     });
 
-    return res.status(HttpCode.MODIFIED).json({ data: product });
+    return res.sendResponse(HttpCode.OK, product);
   } catch (err: any) {
     return next(err);
   }
@@ -311,7 +373,7 @@ const deleteProductById = async (
 ): Promise<Response | void> => {
   try {
     // Delete filter
-    const id = req.params.product;
+    const { id } = req.params;
 
     const idempotent = req.idempotent as Record<string, any>;
 
@@ -321,7 +383,7 @@ const deleteProductById = async (
       retry: true,
     });
 
-    return res.status(HttpCode.MODIFIED).json({ data: product });
+    return res.sendResponse(HttpCode.OK, product);
   } catch (err: any) {
     return next(err);
   }
