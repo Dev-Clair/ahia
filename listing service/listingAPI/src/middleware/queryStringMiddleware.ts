@@ -12,7 +12,7 @@ const parseQueryString = async (
   res: Response,
   next: NextFunction
 ): Promise<Response | void> => {
-  (req as Request).queryString = {
+  req.queryString = {
     page: parseInt((req.query.page as string) ?? "1", 10),
     limit: parseInt((req.query.limit as string) ?? "10", 10),
     fields: req.query.fields as string ?? "",

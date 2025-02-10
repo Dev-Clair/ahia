@@ -28,7 +28,7 @@ const DocumentMiddleware = (
 
         const listing = await service.findById(paramValue, { retry: true });
 
-        (req as Request).listing = listing as IListing;
+        req.listing = listing as IListing;
       }
 
       // Product document resolver
@@ -37,7 +37,7 @@ const DocumentMiddleware = (
 
         const product = await service.findById(paramValue, { retry: true });
 
-        (req as Request).product = product as IProduct;
+        req.product = product as IProduct;
       }
 
       // Place document resolver
@@ -46,7 +46,7 @@ const DocumentMiddleware = (
 
       //   const place = await service.findById(paramValue);
 
-      //   (req as Request).place = place as IPlace;
+      //   req.place = place as IPlace;
       // }
 
       next();

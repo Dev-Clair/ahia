@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import Config from "../../config";
 import HttpCode from "../enum/httpCode";
 import HttpStatus from "../enum/httpStatus";
-import Config from "../../config";
 import IUser from "../interface/IUser";
 
 /**
  * Ensures role-based access to a resource using JWT
- * @param roles Allowed roles
+ * @param roles List of allowed roles
  */
 const isGranted =
   (roles: string[]) =>
@@ -26,7 +26,7 @@ const isGranted =
       const token = authHeader.split(" ")[1];
 
       try {
-        const decoded = jwt.verify(token, Config.JWT_SECRET) as { user: IUser };
+        const decoded: JwtPayload = jwt.verify(token, Config.JWT_SECRET) as { user: IUser };
 
         if (!roles.some(role => decoded.user.roles.includes(role))) {
           return res.status(HttpCode.FORBIDDEN).json({
@@ -37,10 +37,10 @@ const isGranted =
           });
         }
 
-        (req as Request).user = decoded.user as IUser; // Attach user info to request
+        req.user = decoded.user; // Attach user info to request object
 
         next();
-      } catch (error) {
+      } catch (error: any) {
         return res.status(HttpCode.UNAUTHORIZED).json({
           error: {
             name: HttpStatus.UNAUTHORIZED,
@@ -50,4 +50,41 @@ const isGranted =
       }
     };
 
-export default { isGranted };
+/**
+ * Checks if an authenticated user has the required permissions.
+ * @param permissions List of required permissions.
+ */
+export const isPermitted =
+  (permissions: string[]) =>
+    (req: Request, res: Response, next: NextFunction) => {
+      // Retrieve user info from request object
+      const user = req.user as IUser;
+
+      // Check if user is authenticated
+      if (!user)
+        return res.status(HttpCode.UNAUTHORIZED).json({
+          error: {
+            name: HttpStatus.UNAUTHORIZED,
+            message: "Unauthorized! User not authenticated.",
+          },
+        });
+
+
+      // Verify user permissions
+      const hasPermissions = permissions.every(permission =>
+        user.permissions.includes(permission)
+      );
+
+      if (!hasPermissions) {
+        return res.status(HttpCode.FORBIDDEN).json({
+          error: {
+            name: HttpStatus.FORBIDDEN,
+            message: "Forbidden! You lack the required permissions.",
+          },
+        });
+      }
+
+      next();
+    };
+
+export default { isGranted, isPermitted };

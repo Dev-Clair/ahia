@@ -158,7 +158,7 @@ const getLocationAddress = async (
     }
 
     // Attach address to the req object for downstream use
-    (req as Request).geoCoordinates = {
+    req.geoCoordinates = {
       lat: lat,
       lng: lng,
       address: body.data.results[0].formatted_address,
@@ -232,11 +232,11 @@ const parseUserGeoCoordinates = async (
   }
 
   // Attach parsed coordinates to the request object for downstream handler use
-  (req as Request).geoCoordinates = {
+  req.geoCoordinates = {
     lat: parsedLat,
     lng: parsedLng,
     distance: parseInt((req.query?.distance as string) ?? "1000", 10),
-    radius: parseInt((req.query?.radius as string) ?? "1", 10),
+    // radius: parseInt((req.query?.radius as string) ?? "1", 10),
   } as IGeoCoordinates;
 
   delete req.query.lat;
@@ -245,7 +245,7 @@ const parseUserGeoCoordinates = async (
 
   delete req.query?.distance;
 
-  delete req.query?.radius;
+  // delete req.query?.radius;
 
   next();
 };
