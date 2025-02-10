@@ -6,12 +6,12 @@ declare module "express-serve-static-core" {
             timestamp: string;
             requestId?: string;
             pagination?: {
-                page: number;
-                limit: number;
                 total: number;
+                limit: number;
+                page: number;
                 pages: number;
             }
         };
-        sendResponse: (statusCode: number, data?: any, message?: string) => void;
+        sendResponse: (statusCode: number, data?: any, error?: any) => void;
     }
 }
