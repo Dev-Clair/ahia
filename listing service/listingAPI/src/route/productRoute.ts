@@ -18,12 +18,16 @@ ProductRouter.get(
 
 ProductRouter.get(
   "/status/:status/location/:city?/:state?",
+  // AuthMiddleware.isGranted(["Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:products:plus"]),
   QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByLocation
 );
 
 ProductRouter.get(
   "/status/:status/nearby",
+  // AuthMiddleware.isGranted(["Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:products:plus"]),
   GeocodeMiddleware.parseUserGeoCoordinates,
   QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsNearBy
@@ -53,20 +57,23 @@ ProductRouter.route("/:id")
     ProductController.retrieveProductById
   )
   .patch(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["update:listing:products"]),
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterUpdate(["media", "type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
     ProductController.updateProductById
   ).delete(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["delete:listing:products"]),
     IdempotencyMiddleware.isIdempotent,
     ProductController.deleteProductById
   );
 
 ProductRouter.get(
   "/:id/listing",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isGranted(["Admin", "Provider", "Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:products:plus"]),
   ProductController.retrieveProductByIdAndPopulate
 );
 

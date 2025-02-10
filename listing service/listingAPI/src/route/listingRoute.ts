@@ -9,7 +9,8 @@ import ListingController from "../controller/listingController";
 const ListingRouter = Router();
 
 ListingRouter.route("/").post(
-  AuthMiddleware.isGranted(["Provider"]),
+  // AuthMiddleware.isGranted(["Provider"]),
+  // AuthMiddleware.isPermitted(["create:listings"]),
   AppMiddleware.isContentType(["application/json"]),
   AppMiddleware.filterInsertion(["media", "product", "provider"]),
   IdempotencyMiddleware.isIdempotent,
@@ -18,45 +19,50 @@ ListingRouter.route("/").post(
 
 ListingRouter.get(
   "/provider/:provider",
-  AuthMiddleware.isGranted(["Provider"]),
+  // AuthMiddleware.isGranted(["Provider"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
   QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsByProvider
 );
 
 ListingRouter.get(
   ["/tours", "/bookings"],
-  AuthMiddleware.isGranted(["Customer"]),
+  // AuthMiddleware.isGranted(["Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
   QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsByProducts
 );
 
 ListingRouter.get(
   "/type/:type",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
   QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsByType
 );
 
 ListingRouter.get(
   "/search",
-  AuthMiddleware.isGranted(["Admin"]),
+  // AuthMiddleware.isGranted(["Admin"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
   QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsSearch
 );
 
 ListingRouter.route("/:id")
   .get(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["retrieve:listing"]),
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingById
   )
   .patch(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["update:listing"]),
     AppMiddleware.filterUpdate([
-      "address",
       "location",
       "media",
-      "product",
+      "products",
       "provider",
       "type",
     ]),
@@ -64,24 +70,28 @@ ListingRouter.route("/:id")
     ListingController.updateListingById
   )
   .delete(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["delete:listing"]),
     ListingController.deleteListingById
   );
 
 ListingRouter.get(
   "/:id/product",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isPermitted(["retrieve:listing"]),
   ListingController.retrieveListingByIdAndPopulate
 );
 
 ListingRouter.route("/:id/products")
   .get(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["retrieve:listing:products"]),
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingProducts
   )
   .post(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["create:listing:products"]),
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterInsertion(["media", "verification"]),
     IdempotencyMiddleware.isIdempotent,
