@@ -3,6 +3,7 @@ const PROJECTION: string[] = [
   "description",
   "type",
   "products",
+  "location",
   "provider",
   "media",
   "verification",

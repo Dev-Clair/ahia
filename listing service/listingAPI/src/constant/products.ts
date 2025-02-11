@@ -6,6 +6,7 @@ const PROJECTION: string[] = [
   "type",
   " media",
   "status",
+  "lease|reservation|sell",
   // "-verification",
   // "createdAt",
   // "-updatedAt",
