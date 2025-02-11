@@ -32,27 +32,31 @@ App.use(
   (err: APIError | Error, req: Request, res: Response, next: NextFunction) => {
     if (GlobalErrorHandler.isSyntaxError(err)) {
       return res
-        .status(HttpCode.BAD_REQUEST)
-        .json({ error: { name: err.name, message: "Bad or Malformed JSON" } });
+        .sendResponse(HttpCode.BAD_REQUEST, {
+          error: {
+            name: err.name,
+            message: "Bad or Malformed JSON"
+          }
+        });
     }
 
     if (GlobalErrorHandler.isSafeError(err)) {
       if (err.name === "ValidationError") {
-        return res.sendResponse(HttpCode.BAD_REQUEST, null, {
+        return res.sendResponse(HttpCode.BAD_REQUEST, {
           error: {
             name: err.name,
             message: err.message
           }
         });
       } else if (err.name === "CastError") {
-        return res.sendResponse(HttpCode.UNPROCESSABLE_ENTITY, null, {
+        return res.sendResponse(HttpCode.UNPROCESSABLE_ENTITY, {
           error: {
             name: err.name,
             message: "Invalid ID"
           },
         });
       } else {
-        return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, null, {
+        return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, {
           error: {
             name: err.name,
             message:
@@ -63,7 +67,7 @@ App.use(
     }
 
     if (GlobalErrorHandler.isTrustedError(err as APIError)) {
-      return res.sendResponse((err as APIError).code, null, {
+      return res.sendResponse((err as APIError).code, {
         error: {
           name: err.name,
           message: err.message
@@ -74,7 +78,7 @@ App.use(
     GlobalErrorHandler.handleError(err);
 
     if (!res.headersSent) {
-      return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, null, {
+      return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, {
         error: {
           name: HttpStatus.INTERNAL_SERVER_ERROR,
           message:
@@ -86,7 +90,7 @@ App.use(
 );
 
 App.all("*", (req: Request, res: Response, next: NextFunction) => {
-  return res.sendResponse(HttpCode.NOT_FOUND, null, {
+  return res.sendResponse(HttpCode.NOT_FOUND, {
     error: {
       name: HttpStatus.NOT_FOUND,
       message: `No resource or route defined for ${req.originalUrl}`,
