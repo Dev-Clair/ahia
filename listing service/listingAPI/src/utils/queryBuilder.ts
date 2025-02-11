@@ -107,11 +107,15 @@ export class QueryBuilder<T> {
    * @param selectFields An array fields to select
    */
   public Select(selectFields: string[]): this {
-    const fields = [this.queryString.fields ?? "", ...selectFields];
+    if (this.queryString.fields !== undefined) {
+      const fields = [this.queryString.fields, ...selectFields];
 
-    const parsedFields = fields.filter((element, index) => fields.indexOf(element) === index);
+      const parsedFields = fields.filter((element, index) => fields.indexOf(element) === index);
 
-    this.query = this.query.select(parsedFields);
+      this.query = this.query.select(parsedFields.join(' '));
+    }
+
+    this.query = this.query.select(selectFields.join(' '));
 
     return this;
   }
@@ -121,13 +125,27 @@ export class QueryBuilder<T> {
    * @param sortFields An array fields to sort
    */
   public Sort(sortFields: string[]): this {
-    const sort = [this.queryString.sort ?? "", ...sortFields];
+    if (this.queryString.sort !== undefined) {
+      const sort = [this.queryString.sort, ...sortFields];
 
-    const parsedFields = sort.filter((element, index) => sort.indexOf(element) === index);
+      const parsedFields = sort.filter((element, index) => sort.indexOf(element) === index);
+
+      const sortObject: { [key: string]: 1 | -1 } = {};
+
+      parsedFields.forEach(field => {
+        const order = field.startsWith('-') ? -1 : 1;
+
+        const fieldName = field.startsWith('-') ? field.substring(1) : field;
+
+        sortObject[fieldName] = order;
+      });
+
+      this.query = this.query.sort(sortObject);
+    }
 
     const sortObject: { [key: string]: 1 | -1 } = {};
 
-    parsedFields.forEach(field => {
+    sortFields.forEach(field => {
       const order = field.startsWith('-') ? -1 : 1;
 
       const fieldName = field.startsWith('-') ? field.substring(1) : field;
