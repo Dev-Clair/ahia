@@ -18,7 +18,7 @@ ListingRouter.route("/").post(
 );
 
 ListingRouter.get(
-  "/provider/:provider",
+  "/provider",
   // AuthMiddleware.isGranted(["Provider"]),
   // AuthMiddleware.isPermitted(["retrieve:listings"]),
   QueryStringMiddleware.parseQueryString,
@@ -26,19 +26,11 @@ ListingRouter.get(
 );
 
 ListingRouter.get(
-  ["/tours", "/bookings"],
+  ["/bookings", "/tours"],
   // AuthMiddleware.isGranted(["Customer"]),
   // AuthMiddleware.isPermitted(["retrieve:listings"]),
   QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsByProducts
-);
-
-ListingRouter.get(
-  "/type/:type",
-  // AuthMiddleware.isGranted(["Admin", "Provider"]),
-  // AuthMiddleware.isPermitted(["retrieve:listings"]),
-  QueryStringMiddleware.parseQueryString,
-  ListingController.retrieveListingsByType
 );
 
 ListingRouter.get(
@@ -47,6 +39,14 @@ ListingRouter.get(
   // AuthMiddleware.isPermitted(["retrieve:listings"]),
   QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingsSearch
+);
+
+ListingRouter.get(
+  "/type/:type",
+  // AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
+  QueryStringMiddleware.parseQueryString,
+  ListingController.retrieveListingsByType
 );
 
 ListingRouter.route("/:id")

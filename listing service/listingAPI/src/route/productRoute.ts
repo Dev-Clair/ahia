@@ -19,7 +19,7 @@ ProductRouter.get(
 ProductRouter.get(
   "/status/:status/location/:city?/:state?",
   // AuthMiddleware.isGranted(["Customer"]),
-  // AuthMiddleware.isPermitted(["retrieve:products:plus"]),
+  // AuthMiddleware.isPermitted(["retrieve:products"]),
   QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByLocation
 );
@@ -27,7 +27,7 @@ ProductRouter.get(
 ProductRouter.get(
   "/status/:status/nearby",
   // AuthMiddleware.isGranted(["Customer"]),
-  // AuthMiddleware.isPermitted(["retrieve:products:plus"]),
+  // AuthMiddleware.isPermitted(["retrieve:products"]),
   GeocodeMiddleware.parseUserGeoCoordinates,
   QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsNearBy
@@ -73,7 +73,7 @@ ProductRouter.route("/:id")
 ProductRouter.get(
   "/:id/listing",
   // AuthMiddleware.isGranted(["Admin", "Provider", "Customer"]),
-  // AuthMiddleware.isPermitted(["retrieve:products:plus"]),
+  // AuthMiddleware.isPermitted(["retrieve:products"]),
   ProductController.retrieveProductByIdAndPopulate
 );
 

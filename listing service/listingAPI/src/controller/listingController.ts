@@ -6,6 +6,8 @@ import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
+import Paginator from "../utils/paginator";
+import UnauthorizedError from "../error/unauthorizedError";
 
 /**
  * Creates a new listing in collection
@@ -72,16 +74,8 @@ const retrieveListingsSearch = async (
       },
       { retry: true });
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: listings.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(listings.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, listings);
   } catch (err: any) {
@@ -101,9 +95,9 @@ const retrieveListingsByProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { provider } = req.params;
+    const provider = req.user?.id as string ?? req.headers["provider"] as string;
 
-    if (!provider) throw new Error(`Kindly indicate a provider id`);
+    if (!provider) throw new UnauthorizedError("Unauthorized! User not authenticated.");
 
     // Find query
     const listings = await ListingService.Create().findAll({
@@ -113,16 +107,8 @@ const retrieveListingsByProvider = async (
       retry: true,
     });
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: listings.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(listings.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, listings);
   } catch (err: any) {
@@ -154,16 +140,8 @@ const retrieveListingsByType = async (
       retry: true,
     });
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: listings.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(listings.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, listings);
   } catch (err: any) {
@@ -190,16 +168,8 @@ const retrieveListingsByProducts = async (
       queryString
     );
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: listings.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(listings.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, listings);
   } catch (err: any) {

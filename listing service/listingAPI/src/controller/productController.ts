@@ -2,6 +2,7 @@ import HttpCode from "../enum/httpCode";
 import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import IProduct from "../interface/IProduct";
+import Paginator from "../utils/paginator";
 import ProductService from "../service/productService";
 
 /**
@@ -34,16 +35,8 @@ const retrieveProductsSearch = async (
       retry: true,
     });
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: products.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
@@ -110,16 +103,8 @@ const retrieveProductsByLocation = async (
       productFilter
     );
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: products.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
@@ -181,16 +166,8 @@ const retrieveProductsNearBy = async (
       productFilter
     );
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: products.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
@@ -224,16 +201,8 @@ const retrieveProductsByListingProvider = async (
       productFilter
     );
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: products.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
@@ -267,16 +236,8 @@ const retrieveProductsByListingType = async (
       productFilter
     );
 
-    // Add pagination to response
-    res.meta!.pagination = {
-      total: products.length,
-
-      limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
-
-      page: parseInt(req.queryString?.page as string, 10) ?? 1,
-
-      pages: Math.ceil(products.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
-    }
+    // Add pagination metadata to response
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, products);
   } catch (err: any) {
