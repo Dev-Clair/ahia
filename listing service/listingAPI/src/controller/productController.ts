@@ -81,8 +81,6 @@ const retrieveProductsByLocation = async (
       ...req.queryString,
     };
 
-    console.log(listingFilter);
-
     // Product filter
     const productFilter: Record<string, any> = {
       status: status,
@@ -94,8 +92,6 @@ const retrieveProductsByLocation = async (
       },
       ...req.queryString,
     };
-
-    console.log(productFilter);
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -144,8 +140,6 @@ const retrieveProductsNearBy = async (
       ...req.queryString,
     };
 
-    console.log(listingFilter);
-
     // Product filter
     const productFilter: Record<string, any> = {
       status: status,
@@ -157,8 +151,6 @@ const retrieveProductsNearBy = async (
       },
       ...req.queryString,
     };
-
-    console.log(productFilter);
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
