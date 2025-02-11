@@ -12,6 +12,6 @@ declare module "express-serve-static-core" {
                 pages: number;
             }
         };
-        sendResponse: (statusCode: number, data?: any, error?: any) => void;
+        sendResponse: (statusCode: number, body?: any) => void;
     }
 }
