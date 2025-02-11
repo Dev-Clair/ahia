@@ -15,8 +15,8 @@ const parseQueryString = async (
   req.queryString = {
     page: parseInt((req.query.page as string) ?? "1", 10),
     limit: parseInt((req.query.limit as string) ?? "10", 10),
-    fields: req.query.fields as string ?? "",
-    sort: req.query.sort as string ?? "",
+    fields: req.query?.fields as string,
+    sort: req.query?.sort as string,
   } as IQueryString;
 
   next();

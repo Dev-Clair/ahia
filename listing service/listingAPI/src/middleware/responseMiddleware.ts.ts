@@ -13,11 +13,10 @@ const responseParser = (req: Request, res: Response, next: NextFunction): void =
         requestId: randomUUID(),
     }
 
-    res.sendResponse = (statusCode, data, error) => {
+    res.sendResponse = (statusCode, body) => {
         res.status(statusCode).json({
             meta: res.meta,
-            data: data ?? null,
-            error: error ?? null
+            ...body ?? null,
         });
     }
 

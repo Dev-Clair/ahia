@@ -24,7 +24,7 @@ const getLocationGeoCoordinates = async (
     const place = req.params.place as string;
 
     if (!place.trim()) {
-      return res.sendResponse(HttpCode.BAD_REQUEST, null, {
+      return res.sendResponse(HttpCode.BAD_REQUEST, {
         error: {
           name: HttpStatus.BAD_REQUEST,
           message: "Place is required",
@@ -191,7 +191,7 @@ const parseUserGeoCoordinates = async (
 
   // Check if coordinates (latitude and longitude) are present
   if (!lat || !lng) {
-    return res.sendResponse(HttpCode.BAD_REQUEST, null, {
+    return res.sendResponse(HttpCode.BAD_REQUEST, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message:
@@ -207,7 +207,7 @@ const parseUserGeoCoordinates = async (
 
   // Validate the parsed coordinates
   if (isNaN(parsedLat) || isNaN(parsedLng)) {
-    return res.sendResponse(HttpCode.BAD_REQUEST, null, {
+    return res.sendResponse(HttpCode.BAD_REQUEST, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message:
@@ -223,7 +223,7 @@ const parseUserGeoCoordinates = async (
   ]);
 
   if (!verifyGeoCoordinates) {
-    return res.sendResponse(HttpCode.BAD_REQUEST, null, {
+    return res.sendResponse(HttpCode.BAD_REQUEST, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message: "Provided geocoordinates are out of the valid range",

@@ -15,7 +15,7 @@ const isGranted =
       const authHeader = req.headers.authorization;
 
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.sendResponse(HttpCode.UNAUTHORIZED, null, {
+        return res.sendResponse(HttpCode.UNAUTHORIZED, {
           error: {
             name: HttpStatus.UNAUTHORIZED,
             message: "Unauthorized! No token provided.",
@@ -29,7 +29,7 @@ const isGranted =
         const decoded: JwtPayload = jwt.verify(token, Config.JWT_SECRET) as { user: IUser };
 
         if (!roles.some(role => decoded.user.roles.includes(role))) {
-          return res.sendResponse(HttpCode.FORBIDDEN, null, {
+          return res.sendResponse(HttpCode.FORBIDDEN, {
             error: {
               name: HttpStatus.FORBIDDEN,
               message: "Forbidden! You do not have the required permissions.",
@@ -41,7 +41,7 @@ const isGranted =
 
         next();
       } catch (error: any) {
-        return res.sendResponse(HttpCode.UNAUTHORIZED, null, {
+        return res.sendResponse(HttpCode.UNAUTHORIZED, {
           error: {
             name: HttpStatus.UNAUTHORIZED,
             message: "Invalid or expired token.",
@@ -62,7 +62,7 @@ export const isPermitted =
 
       // Check if user is authenticated
       if (!user)
-        return res.sendResponse(HttpCode.UNAUTHORIZED, null, {
+        return res.sendResponse(HttpCode.UNAUTHORIZED, {
           error: {
             name: HttpStatus.UNAUTHORIZED,
             message: "Unauthorized! User not authenticated.",
@@ -76,7 +76,7 @@ export const isPermitted =
       );
 
       if (!hasPermissions) {
-        return res.sendResponse(HttpCode.FORBIDDEN, null, {
+        return res.sendResponse(HttpCode.FORBIDDEN, {
           error: {
             name: HttpStatus.FORBIDDEN,
             message: "Forbidden! You lack the required permissions.",
