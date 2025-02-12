@@ -64,13 +64,19 @@ export default class ProductRepository implements IProductRepository {
   /** Retrieves a product by id
    * @public
    * @param id product id
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IProduct | null> {
+  async findById(id: string, options: Record<string, any>): Promise<IProduct | null> {
     try {
-      const product = await Product.findById(
-        { _id: id },
-        ProductRepository.PRODUCT_PROJECTION
-      ).exec();
+      const { fields } = options;
+
+      // Projection
+      let projection = ProductRepository.PRODUCT_PROJECTION;
+
+      if (fields !== undefined) projection.push(fields);
+
+      // Query
+      const product = await Product.findById({ _id: id }, projection).exec();
 
       return product;
     } catch (error: any) {
@@ -81,18 +87,27 @@ export default class ProductRepository implements IProductRepository {
   /** Retrieves a product by id and populates its subdocument(s)
    * @public
    * @param id product id
+   * @param options configuration options
    */
-  async findByIdAndPopulate(id: string): Promise<IProduct | null> {
+  async findByIdAndPopulate(id: string, options: Record<string, any>): Promise<IProduct | null> {
     try {
-      const product = await Product.findById(
-        { _id: id },
-        ProductRepository.PRODUCT_PROJECTION
-      )
+      const { fields } = options;
+
+      // Projection
+      let projection = ProductRepository.PRODUCT_PROJECTION;
+
+      if (fields !== undefined) projection.push(fields);
+
+      // Sorting
+      const sort = { sort: ProductRepository.LISTING_SORT };
+
+      // Query
+      const product = await Product.findById({ _id: id }, projection)
         .populate({
           path: "listing",
           model: "Listing",
-          select: ProductRepository.LISTING_PROJECTION,
-          options: { sort: ProductRepository.LISTING_SORT },
+          select: projection,
+          options: sort,
         })
         .exec();
 

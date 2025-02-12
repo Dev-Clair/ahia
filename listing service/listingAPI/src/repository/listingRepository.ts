@@ -36,14 +36,14 @@ export default class ListingRepository implements IListingRepository {
 
       const queryBuilder = QueryBuilder.Create<IListing>(query, queryString);
 
-      const listings = (
-        await queryBuilder
-          .GeoSpatial()
+      const listings =
+        (await queryBuilder
+          // .GeoSpatial()
           .Filter()
           .Sort(ListingRepository.LISTING_SORT)
           .Select(ListingRepository.LISTING_PROJECTION)
           .Paginate()
-      ).Exec();
+        ).Exec();
 
       return listings;
     } catch (error: any) {
@@ -54,13 +54,17 @@ export default class ListingRepository implements IListingRepository {
   /** Retrieves a listing by id
    * @public
    * @param id listing id
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IListing | null> {
+  async findById(id: string, options: Record<string, any>): Promise<IListing | null> {
     try {
-      const listing = await Listing.findById(
-        { _id: id },
-        ListingRepository.LISTING_PROJECTION
-      ).exec();
+      const { fields } = options;
+
+      let projection = ListingRepository.LISTING_PROJECTION;
+
+      if (fields !== undefined) projection.push(fields);
+
+      const listing = await Listing.findById({ _id: id }, projection).exec();
 
       return listing;
     } catch (error: any) {
@@ -75,26 +79,26 @@ export default class ListingRepository implements IListingRepository {
    */
   async findByIdAndPopulate(
     id: string,
-    options: {
-      page?: number;
-      limit?: number;
-    }
+    options: Record<string, any>
   ): Promise<IListing | null> {
     try {
-      const { page = 1, limit = 10 } = options;
+      const { page, limit, fields } = options;
 
-      const listing = await Listing.findById(
-        { _id: id },
-        ListingRepository.LISTING_PROJECTION
-      )
+      let projection = ListingRepository.LISTING_PROJECTION;
+
+      if (fields !== undefined) projection.push(fields);
+
+      const sort = { sort: ListingRepository.PRODUCT_SORT }
+
+      const listing = await Listing.findById({ _id: id }, projection)
         .populate({
           path: "products",
           model: "Product",
-          select: ListingRepository.PRODUCT_PROJECTION,
+          select: projection,
           options: {
             skip: (page - 1) * limit,
             limit: limit,
-            sort: ListingRepository.PRODUCT_SORT,
+            options: sort,
           },
         })
         .exec();

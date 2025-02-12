@@ -274,6 +274,7 @@ const retrieveProductByIdAndPopulate = async (
 
     // Find query
     const product = await ProductService.Create().findByIdAndPopulate(id, {
+      ...req.queryString,
       retry: true,
     });
 

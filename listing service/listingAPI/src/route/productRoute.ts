@@ -53,6 +53,7 @@ ProductRouter.get(
 
 ProductRouter.route("/:id")
   .get(
+    QueryStringMiddleware.parseQueryString,
     DocumentMiddleware("product", "id"),
     ProductController.retrieveProductById
   )
@@ -74,6 +75,7 @@ ProductRouter.get(
   "/:id/listing",
   // AuthMiddleware.isGranted(["Admin", "Provider", "Customer"]),
   // AuthMiddleware.isPermitted(["retrieve:products"]),
+  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductByIdAndPopulate
 );
 

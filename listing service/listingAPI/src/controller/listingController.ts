@@ -212,14 +212,8 @@ const retrieveListingByIdAndPopulate = async (
   try {
     const { id } = req.params;
 
-    const { page, limit } = req.query;
-
     // Find query
-    const listing = await ListingService.Create().findByIdAndPopulate(id, {
-      page: parseInt((page as string) ?? "1", 10),
-
-      limit: parseInt((limit as string) ?? "10", 10),
-    });
+    const listing = await ListingService.Create().findByIdAndPopulate(id, { ...req.queryString });
 
     return res.sendResponse(HttpCode.OK, listing);
   } catch (err: any) {

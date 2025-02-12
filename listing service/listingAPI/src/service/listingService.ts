@@ -34,7 +34,7 @@ export default class ListingService implements IListingService {
    */
   async findAll(
     queryString: Record<string, any>,
-    options: { retry?: boolean }
+    options: Record<string, any>
   ): Promise<IListing[]> {
     try {
       const { retry = true } = options;
@@ -65,12 +65,12 @@ export default class ListingService implements IListingService {
    * @param id listing id
    * @param options configuration options
    */
-  async findById(id: string, options: { retry?: boolean }): Promise<IListing> {
+  async findById(id: string, options: Record<string, any>): Promise<IListing> {
     try {
-      const { retry = true } = options;
+      const { fields, retry = true } = options;
 
       const operation = async () => {
-        const listing = await ListingRepository.Create().findById(id);
+        const listing = await ListingRepository.Create().findById(id, { fields: fields });
 
         // Validate listing
         if (!listing)
@@ -96,19 +96,15 @@ export default class ListingService implements IListingService {
    */
   async findByIdAndPopulate(
     id: string,
-    options: {
-      page: number;
-      limit: number;
-      retry?: boolean;
-    }
+    options: Record<string, any>
   ): Promise<IListing> {
     try {
-      const { page, limit, retry = true } = options;
+      const { page, limit, fields, retry = true } = options;
 
       const operation = async () => {
         const listing = await ListingRepository.Create().findByIdAndPopulate(
           id,
-          { page: page, limit: limit }
+          { page: page, limit: limit, fields: fields }
         );
 
         // Validate listing

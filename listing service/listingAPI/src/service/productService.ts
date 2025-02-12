@@ -25,9 +25,7 @@ export default class ProductService implements IProductService {
    * @param options configuration options
    */
   async findAll(
-    queryString: Record<string, any>,
-    options: { retry?: boolean }
-  ): Promise<IProduct[]> {
+    queryString: Record<string, any>, options: Record<string, any>): Promise<IProduct[]> {
     try {
       const { retry = true } = options;
 
@@ -57,12 +55,12 @@ export default class ProductService implements IProductService {
    * @param id product id
    * @param options configuration options
    */
-  async findById(id: string, options: { retry?: boolean }): Promise<IProduct> {
+  async findById(id: string, options: Record<string, any>): Promise<IProduct> {
     try {
-      const { retry = true } = options;
+      const { fields, retry = true } = options;
 
       const operation = async () => {
-        const product = await ProductRepository.Create().findById(id);
+        const product = await ProductRepository.Create().findById(id, { fields: fields });
 
         // Validate product
         if (!product)
@@ -86,16 +84,14 @@ export default class ProductService implements IProductService {
    * @param id product id
    * @param options configuration options
    */
-  async findByIdAndPopulate(
-    id: string,
-    options: { retry?: boolean }
-  ): Promise<IProduct> {
+  async findByIdAndPopulate(id: string, options: Record<string, any>): Promise<IProduct> {
     try {
-      const { retry = true } = options;
+      const { fields, retry = true } = options;
 
       const operation = async () => {
         const product = await ProductRepository.Create().findByIdAndPopulate(
-          id
+          id,
+          { fields: fields }
         );
 
         // Validate product

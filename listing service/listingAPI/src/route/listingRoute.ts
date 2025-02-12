@@ -53,6 +53,7 @@ ListingRouter.route("/:id")
   .get(
     // AuthMiddleware.isGranted(["Admin", "Provider"]),
     // AuthMiddleware.isPermitted(["retrieve:listing"]),
+    QueryStringMiddleware.parseQueryString,
     DocumentMiddleware("listing", "id"),
     ListingController.retrieveListingById
   )
@@ -79,6 +80,7 @@ ListingRouter.get(
   "/:id/product",
   // AuthMiddleware.isGranted(["Admin", "Provider"]),
   // AuthMiddleware.isPermitted(["retrieve:listing"]),
+  QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingByIdAndPopulate
 );
 
