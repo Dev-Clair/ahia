@@ -20,29 +20,26 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Handles query filtering
+   * Handles default and geospatial query filtering
    */
   public Filter(): this {
-    const { page, sort, limit, fields, ...filters } = this.queryString;
+    // Apply default filters
+    let queryFilter: string
 
-    let queryString = JSON.stringify(filters);
+    const { page, limit, sort, fields, ...filters } = this.queryString;
 
-    queryString = queryString.replace(
+    queryFilter = JSON.stringify(filters);
+
+    queryFilter = queryFilter.replace(
       /\b(eq|ne|gte|gt|lte|lt|in|nin)\b/g,
       (match) => `$${match}`
     );
 
-    const parsedQuery = JSON.parse(queryString);
+    const defaultFilter: Record<string, any> = JSON.parse(queryFilter);
 
-    this.query = this.query.find(parsedQuery);
+    // Apply geospatial filters
+    let locationFilter: Record<string, any> = {};
 
-    return this;
-  }
-
-  /**
-   * Handles geospatial queries: Near | Within
-   */
-  public GeoSpatial(): this {
     if (this.queryString.lng && this.queryString.lat) {
       const parsedLng = parseFloat(this.queryString.lng as string);
 
@@ -58,8 +55,6 @@ export class QueryBuilder<T> {
       const parsedRadius = this.queryString?.radius
         ? parseFloat(this.queryString.radius as string)
         : undefined;
-
-      let locationFilter: Record<string, any> = {};
 
       if (parsedDistance !== undefined) {
         locationFilter["location.coordinates"] = {
@@ -80,9 +75,57 @@ export class QueryBuilder<T> {
           },
         };
       }
-
-      this.query = this.query.find(locationFilter);
     }
+
+    this.query = this.query.find({ ...defaultFilter, ...locationFilter });
+
+    return this;
+  }
+
+  /**
+   * Handles geospatial queries: Near | Within
+   */
+  public GeoSpatial(): this {
+    //   if (this.queryString.lng && this.queryString.lat) {
+    //     const parsedLng = parseFloat(this.queryString.lng as string);
+
+    //     const parsedLat = parseFloat(this.queryString.lat as string);
+
+    //     if (isNaN(parsedLng) || isNaN(parsedLat))
+    //       throw new Error("Invalid coordinates provided for geospatial query.");
+
+    //     const parsedDistance = this.queryString?.distance
+    //       ? parseFloat(this.queryString.distance as string)
+    //       : undefined;
+
+    //     const parsedRadius = this.queryString?.radius
+    //       ? parseFloat(this.queryString.radius as string)
+    //       : undefined;
+
+    //     let locationFilter: Record<string, any> = {};
+
+    //     if (parsedDistance !== undefined) {
+    //       locationFilter["location.coordinates"] = {
+    //         $nearSphere: {
+    //           $geometry: {
+    //             type: "Point",
+    //             coordinates: [parsedLng, parsedLat],
+    //           },
+    //           $maxDistance: parsedDistance,
+    //         },
+    //       };
+    //     }
+
+    //     if (parsedRadius !== undefined) {
+    //       locationFilter["location.coordinates"] = {
+    //         $geoWithin: {
+    //           $centerSphere: [[parsedLng, parsedLat], parsedRadius / 6378.1],
+    //         },
+    //       };
+    //     }
+
+    //     this.query = this.query.find({ ...locationFilter });
+    //   }
 
     return this;
   }
@@ -113,9 +156,9 @@ export class QueryBuilder<T> {
       const parsedFields = fields.filter((element, index) => fields.indexOf(element) === index);
 
       this.query = this.query.select(parsedFields.join(' '));
+    } else {
+      this.query = this.query.select(selectFields.join(' '));
     }
-
-    this.query = this.query.select(selectFields.join(' '));
 
     return this;
   }
@@ -141,19 +184,19 @@ export class QueryBuilder<T> {
       });
 
       this.query = this.query.sort(sortObject);
+    } else {
+      const sortObject: { [key: string]: 1 | -1 } = {};
+
+      sortFields.forEach(field => {
+        const order = field.startsWith('-') ? -1 : 1;
+
+        const fieldName = field.startsWith('-') ? field.substring(1) : field;
+
+        sortObject[fieldName] = order;
+      });
+
+      this.query = this.query.sort(sortObject);
     }
-
-    const sortObject: { [key: string]: 1 | -1 } = {};
-
-    sortFields.forEach(field => {
-      const order = field.startsWith('-') ? -1 : 1;
-
-      const fieldName = field.startsWith('-') ? field.substring(1) : field;
-
-      sortObject[fieldName] = order;
-    });
-
-    this.query = this.query.sort(sortObject);
 
     return this;
   }
