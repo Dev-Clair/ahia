@@ -1,8 +1,6 @@
 import IListing from "../interface/IListing";
-import IPlace from "../interface/IPlace";
 import IProduct from "../interface/IProduct";
 import ListingService from "../service/listingService";
-import PlaceService from "../service/placeService";
 import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
 
@@ -13,7 +11,7 @@ import { NextFunction, Request, Response } from "express";
  * @param paramName - The name of the route parameter (e.g., 'id')
  */
 const DocumentMiddleware = (
-  resourceName: "listing" | "product" | "place",
+  resourceName: "listing" | "product",
   paramName: string
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -26,7 +24,7 @@ const DocumentMiddleware = (
       if (resourceName === "listing") {
         service = ListingService.Create();
 
-        const listing = await service.findById(paramValue, { retry: true });
+        const listing = await service.findById(paramValue, { ...req.queryString, retry: true });
 
         req.listing = listing as IListing;
       }
@@ -35,19 +33,10 @@ const DocumentMiddleware = (
       if (resourceName === "product") {
         service = ProductService.Create();
 
-        const product = await service.findById(paramValue, { retry: true });
+        const product = await service.findById(paramValue, { ...req.queryString, retry: true });
 
         req.product = product as IProduct;
       }
-
-      // Place document resolver
-      // if (resourceName === "place") {
-      //   service = PlaceService.Create();
-
-      //   const place = await service.findById(paramValue);
-
-      //   req.place = place as IPlace;
-      // }
 
       next();
     } catch (error: any) {
