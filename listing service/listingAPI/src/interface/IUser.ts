@@ -6,7 +6,7 @@ export default interface IUser {
     permissions: string[];
     token: string;
     refreshToken?: string;
-    createdAt: Date;
-    updatedAt: Date;
+    iat: Date;
+    exp: Date;
     [key: string]: unknown;
 }
