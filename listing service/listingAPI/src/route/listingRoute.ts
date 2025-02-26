@@ -12,7 +12,7 @@ ListingRouter.route("/").post(
   // AuthMiddleware.isGranted(["Provider"]),
   // AuthMiddleware.isPermitted(["create:listings"]),
   AppMiddleware.isContentType(["application/json"]),
-  AppMiddleware.filterInsertion(["media", "product", "provider"]),
+  AppMiddleware.filterInsertion(["media", "products", "provider"]),
   IdempotencyMiddleware.isIdempotent,
   ListingController.createListing
 );
@@ -60,13 +60,7 @@ ListingRouter.route("/:id")
   .patch(
     // AuthMiddleware.isGranted(["Admin", "Provider"]),
     // AuthMiddleware.isPermitted(["update:listing"]),
-    AppMiddleware.filterUpdate([
-      "location",
-      "media",
-      "products",
-      "provider",
-      "type",
-    ]),
+    AppMiddleware.filterUpdate(["media", "products", "provider", "type"]),
     IdempotencyMiddleware.isIdempotent,
     ListingController.updateListingById
   )
@@ -80,7 +74,6 @@ ListingRouter.get(
   "/:id/product",
   // AuthMiddleware.isGranted(["Admin", "Provider"]),
   // AuthMiddleware.isPermitted(["retrieve:listing"]),
-  QueryStringMiddleware.parseQueryString,
   ListingController.retrieveListingByIdAndPopulate
 );
 

@@ -165,7 +165,7 @@ const retrieveListingsByProducts = async (
 
     // Find query
     const listings = await ListingService.Create().findListingsByProducts(
-      queryString
+      queryString, { ...req.queryString }
     );
 
     // Add pagination metadata to response

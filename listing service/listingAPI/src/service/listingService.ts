@@ -277,15 +277,17 @@ export default class ListingService implements IListingService {
   /** Retrieves a collection of listings based on products
    * @public
    * @param products array of product ids
+   * @param options configuration options
    */
-  async findListingsByProducts(products: string[]): Promise<IListing[]> {
+  async findListingsByProducts(products: string[],
+    options: Record<string, any>) {
     try {
       const operation = async () => {
         if (!Array.isArray(products) || products.length === 0)
           throw new Error(`Invalid Argument Type Error`);
 
         return await ListingRepository.Create().findAll({
-          products: { in: products },
+          products: { in: products }, ...options
         });
       };
 
@@ -461,57 +463,6 @@ export default class ListingService implements IListingService {
       await session.endSession();
     }
   }
-
-  // /**
-  //  * Deletes a listing's product by id
-  //  * @public
-  //  * @param id product id
-  //  * @param options configuration options
-  //  */
-  // async deleteListingProduct(
-  //   id: string,
-  //   options: { idempotent: Record<string, any> | null; retry?: boolean }
-  // ): Promise<string> {
-  //   const session = await mongoose.startSession();
-
-  //   try {
-  //     const { idempotent, retry = true } = options;
-
-  //     return await session.withTransaction(async () => {
-  //       // Ensure operation idempotency
-  //       if (idempotent) await IdempotencyRepository.save(idempotent, session);
-
-  //       const operation = async () => {
-  //         // Delete product
-  //         const product = await ProductRepository.Create().deleteById(id, {
-  //           session: session,
-  //         });
-
-  //         // Validate product
-  //         if (!product)
-  //           throw new NotFoundError(`No document found for product: ${id}`);
-
-  //         // Transform result
-  //         const productId = product._id.toString();
-
-  //         // Delete product reference to listing
-  //         await ListingRepository.Create().updateItem(id, productId, session);
-
-  //         return productId;
-  //       };
-
-  //       const product = retry
-  //         ? await FailureRetry.ExponentialBackoff(() => operation())
-  //         : await operation();
-
-  //       return product;
-  //     });
-  //   } catch (error: any) {
-  //     throw error;
-  //   } finally {
-  //     await session.endSession();
-  //   }
-  // }
 
   /**
    * Creates and returns a new instance of the ListingService class

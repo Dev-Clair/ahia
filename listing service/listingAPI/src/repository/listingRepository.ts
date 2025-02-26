@@ -60,11 +60,11 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { fields } = options;
 
-      let projection = ListingRepository.LISTING_PROJECTION;
+      let listingProjection = ListingRepository.LISTING_PROJECTION;
 
-      if (fields !== undefined) projection.push(fields);
+      if (fields !== undefined) [...listingProjection, fields];
 
-      const listing = await Listing.findById({ _id: id }, projection).exec();
+      const listing = await Listing.findById({ _id: id }, listingProjection).exec();
 
       return listing;
     } catch (error: any) {
@@ -84,21 +84,23 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { page, limit, fields } = options;
 
-      let projection = ListingRepository.LISTING_PROJECTION;
+      let listingProjection = ListingRepository.LISTING_PROJECTION;
 
-      if (fields !== undefined) projection.push(fields);
+      let productProjection = ListingRepository.PRODUCT_PROJECTION;
 
-      const sort = { sort: ListingRepository.PRODUCT_SORT }
+      if (fields !== undefined) [...listingProjection, fields];
 
-      const listing = await Listing.findById({ _id: id }, projection)
+      const productSort = { sort: ListingRepository.PRODUCT_SORT }
+
+      const listing = await Listing.findById({ _id: id }, listingProjection)
         .populate({
           path: "products",
           model: "Product",
-          select: projection,
+          select: productProjection,
           options: {
             skip: (page - 1) * limit,
             limit: limit,
-            options: sort,
+            options: productSort,
           },
         })
         .exec();
