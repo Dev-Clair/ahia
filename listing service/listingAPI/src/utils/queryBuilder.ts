@@ -26,7 +26,7 @@ export class QueryBuilder<T> {
     // Apply default filters
     let queryFilter: string
 
-    const { page, limit, sort, fields, ...filters } = this.queryString;
+    const { page, limit, sort, fields, lat, lng, distance, radius, ...filters } = this.queryString;
 
     queryFilter = JSON.stringify(filters);
 
@@ -77,7 +77,11 @@ export class QueryBuilder<T> {
       }
     }
 
-    this.query = this.query.find({ ...defaultFilter, ...locationFilter });
+    const requestflter = { ...defaultFilter, ...locationFilter };
+
+    console.log("requestFilter", requestflter)
+
+    this.query = this.query.find(requestflter);
 
     return this;
   }
