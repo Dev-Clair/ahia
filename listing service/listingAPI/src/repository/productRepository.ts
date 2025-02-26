@@ -71,12 +71,12 @@ export default class ProductRepository implements IProductRepository {
       const { fields } = options;
 
       // Projection
-      let projection = ProductRepository.PRODUCT_PROJECTION;
+      let productProjection = ProductRepository.PRODUCT_PROJECTION;
 
-      if (fields !== undefined) projection.push(fields);
+      if (fields !== undefined) [...productProjection, fields];
 
       // Query
-      const product = await Product.findById({ _id: id }, projection).exec();
+      const product = await Product.findById({ _id: id }, productProjection).exec();
 
       return product;
     } catch (error: any) {
@@ -94,20 +94,22 @@ export default class ProductRepository implements IProductRepository {
       const { fields } = options;
 
       // Projection
-      let projection = ProductRepository.PRODUCT_PROJECTION;
+      let productProjection = ProductRepository.PRODUCT_PROJECTION;
 
-      if (fields !== undefined) projection.push(fields);
+      let listingProjection = ProductRepository.LISTING_PROJECTION;
+
+      if (fields !== undefined) [...productProjection, fields];
 
       // Sorting
-      const sort = { sort: ProductRepository.LISTING_SORT };
+      const listingSort = { sort: ProductRepository.LISTING_SORT };
 
       // Query
-      const product = await Product.findById({ _id: id }, projection)
+      const product = await Product.findById({ _id: id }, productProjection)
         .populate({
           path: "listing",
           model: "Listing",
-          select: projection,
-          options: sort,
+          select: listingProjection,
+          options: listingSort,
         })
         .exec();
 
