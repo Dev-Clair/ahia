@@ -3,23 +3,6 @@ import IService from "./IService";
 
 export default interface IProductService extends IService<IProduct> {
   /**
-   * Retrieves a collection of products
-   * @param queryString query object
-   * @param options configuration options
-   */
-  findAll(
-    queryString: Record<string, any>,
-    options?: { [key: string]: unknown }
-  ): Promise<IProduct[]>;
-
-  /**
-   * Retrieves a product by id
-   * @param id product id
-   * @param options configuration options
-   */
-  findById(id: string, options?: { [key: string]: unknown }): Promise<IProduct>;
-
-  /**
    * Retrieves a product by id and populate its subdocument
    * @param id product id
    * @param options configuration options
@@ -28,33 +11,4 @@ export default interface IProductService extends IService<IProduct> {
     id: string,
     options?: { [key: string]: unknown }
   ): Promise<IProduct>;
-
-  /**
-   * Creates a new product in collection
-   * @param payload data object
-   * @param options configuration options
-   */
-  save(
-    payload: Partial<IProduct>[],
-    options?: { [key: string]: unknown }
-  ): Promise<string[]>;
-
-  /**
-   * Updates a product by id
-   * @param id product id
-   * @param payload data object
-   * @param options configuration options
-   */
-  updateById(
-    id: string,
-    payload: Partial<IProduct> | any,
-    options?: { [key: string]: unknown }
-  ): Promise<string>;
-
-  /**
-   * Deletes a product by id
-   * @param id product id
-   * @param options configuration options
-   */
-  deleteById(id: string, options?: { [key: string]: unknown }): Promise<string>;
 }

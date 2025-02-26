@@ -22,7 +22,7 @@ export default interface IRepository<T> {
    * @param options configuration options
    */
   save(
-    payload: Partial<T> | Partial<T>[],
+    payload: Partial<T>[],
     options?: { [key: string]: unknown }
   ): Promise<T[]>;
 
