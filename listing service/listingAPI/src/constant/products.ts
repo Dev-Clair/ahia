@@ -4,7 +4,7 @@ const PROJECTION: string[] = [
   "description",
   "offering",
   "type",
-  " media",
+  "media",
   "status",
   "lease",
   "reservation",
