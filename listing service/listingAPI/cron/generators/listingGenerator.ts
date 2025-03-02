@@ -16,17 +16,16 @@ const ListingGenerator = async function* () {
 
       const listings = await ListingService.Create().findAll(
         {
-          "verification.status": { eq: "pending" },
+          "verification.status": { eq: "rejected" },
           createdAt: { lte: new Date(currentDate - EXPIRY_THRESHOLD) },
           page,
           limit,
-          fields: "name verification",
         },
         { retry: false }
       );
 
       if (!listings || listings.length === 0) {
-        Log.Cron.info("No expired pending listings found.");
+        Log.Cron.info("No rejected listings found.");
 
         break;
       }

@@ -23,7 +23,6 @@ const ProductGenerator = async function* () {
           type: { in: ["Lease", "Sell"] },
           page,
           limit,
-          fields: "name verification",
         },
         { retry: false }
       );
