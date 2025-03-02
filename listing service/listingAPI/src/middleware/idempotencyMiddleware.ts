@@ -19,7 +19,7 @@ const isIdempotent = async (
   const isProduction =
     Config.NODE_ENV !== "production" ? randomUUID() : undefined;
 
-  const key = (req.headers["idempotency-key"] as string) ?? isProduction;
+  const key = (req.get("idempotency-key") as string) ?? isProduction;
 
   if (!key) {
     return res.sendResponse(HttpCode.BAD_REQUEST, {

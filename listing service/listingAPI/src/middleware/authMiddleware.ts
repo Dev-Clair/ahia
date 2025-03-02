@@ -12,7 +12,7 @@ import IUser from "../interface/IUser";
 const isGranted =
   (roles: string[]) =>
     (req: Request, res: Response, next: NextFunction): Response | void => {
-      const authHeader = req.headers.authorization;
+      const authHeader = req.get("authorization");
 
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.sendResponse(HttpCode.UNAUTHORIZED, {

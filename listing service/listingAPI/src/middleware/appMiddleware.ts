@@ -8,23 +8,23 @@ import HttpStatus from "../enum/httpStatus";
  */
 const isContentType =
   (contentTypes: string[]) =>
-  (req: Request, res: Response, next: NextFunction): Response | void => {
-    const getContentType = req.headers["content-type"] as string;
+    (req: Request, res: Response, next: NextFunction): Response | void => {
+      const getContentType = req.get("content-type") as string;
 
-    if (!contentTypes.includes(getContentType)) {
-      return res.status(HttpCode.BAD_REQUEST).json({
-        error: {
-          name: HttpStatus.BAD_REQUEST,
-          message: {
-            expected: contentTypes.join(),
-            received: `${getContentType}`,
+      if (!contentTypes.includes(getContentType)) {
+        return res.status(HttpCode.BAD_REQUEST).json({
+          error: {
+            name: HttpStatus.BAD_REQUEST,
+            message: {
+              expected: contentTypes.join(),
+              received: `${getContentType}`,
+            },
           },
-        },
-      });
-    }
+        });
+      }
 
-    next();
-  };
+      next();
+    };
 
 /**
  * Handles not allowed operations
@@ -77,28 +77,27 @@ const isSecure = (
  */
 const filterFields =
   (fields: string[], operation: "insert" | "update") =>
-  (req: Request, res: Response, next: NextFunction): Response | void => {
-    const { body } = req;
+    (req: Request, res: Response, next: NextFunction): Response | void => {
+      const { body } = req;
 
-    const errorCache: string[] = Array.isArray(body)
-      ? body.flatMap((obj) =>
+      const errorCache: string[] = Array.isArray(body)
+        ? body.flatMap((obj) =>
           Object.keys(obj).filter((key) => fields.includes(key))
         )
-      : Object.keys(body).filter((key) => fields.includes(key));
+        : Object.keys(body).filter((key) => fields.includes(key));
 
-    if (errorCache.length !== 0) {
-      return res.status(HttpCode.BAD_REQUEST).json({
-        error: {
-          name: HttpStatus.BAD_REQUEST,
-          message: `${
-            operation === "insert" ? "Insertions" : "Updates"
-          } are not allowed on fields: ${errorCache.join(", ")}`,
-        },
-      });
-    }
+      if (errorCache.length !== 0) {
+        return res.status(HttpCode.BAD_REQUEST).json({
+          error: {
+            name: HttpStatus.BAD_REQUEST,
+            message: `${operation === "insert" ? "Insertions" : "Updates"
+              } are not allowed on fields: ${errorCache.join(", ")}`,
+          },
+        });
+      }
 
-    next();
-  };
+      next();
+    };
 
 export default {
   isContentType,

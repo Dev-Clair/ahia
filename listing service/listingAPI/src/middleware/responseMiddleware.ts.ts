@@ -7,10 +7,13 @@ import { NextFunction, Request, Response } from "express";
  * @param res Express Response Object
  * @param next Express NextFunction Object
  */
-const responseParser = (req: Request, res: Response, next: NextFunction): void => {
+const ParseResponseMiddleware = (req: Request, res: Response, next: NextFunction): void => {
     res.meta = {
-        timestamp: new Date().toISOString(),
-        requestId: randomUUID(),
+        request: {
+            id: randomUUID(),
+            timestamp: new Date().toISOString(),
+            idempotent: req.get("idempotency-key") ? true : false
+        },
     }
 
     res.sendResponse = (statusCode, body) => {
@@ -23,4 +26,4 @@ const responseParser = (req: Request, res: Response, next: NextFunction): void =
     next();
 }
 
-export default { responseParser }
+export default { ParseResponseMiddleware };
