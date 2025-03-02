@@ -60,11 +60,15 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { fields } = options;
 
+      console.log(fields);
+
       let listingProjection = ListingRepository.LISTING_PROJECTION;
 
-      if (fields !== undefined) [...listingProjection, fields];
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
-      const listing = await Listing.findById({ _id: id }, listingProjection).exec();
+      console.log(listingProjection, listingProjection.join(" "));
+
+      const listing = await Listing.findById(id).select(listingProjection.join(" ")).exec();
 
       return listing;
     } catch (error: any) {
@@ -84,23 +88,28 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { page, limit, fields } = options;
 
+      console.log(fields);
+
       let listingProjection = ListingRepository.LISTING_PROJECTION;
 
       let productProjection = ListingRepository.PRODUCT_PROJECTION;
 
-      if (fields !== undefined) [...listingProjection, fields];
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
-      const productSort = { sort: ListingRepository.PRODUCT_SORT }
+      const productSort = { sort: ListingRepository.PRODUCT_SORT.join(" ") }
 
-      const listing = await Listing.findById({ _id: id }, listingProjection)
+      console.log(`listing: ${listingProjection}\n, ${listingProjection.join(" ")}`, `product: ${productProjection}\n, ${productProjection.join(" ")}`);
+
+      const listing = await Listing.findById(id)
+        .select(listingProjection.join(" "))
         .populate({
           path: "products",
           model: "Product",
-          select: productProjection,
+          select: productProjection.join(" "),
           options: {
             skip: (page - 1) * limit,
             limit: limit,
-            options: productSort,
+            ...productSort,
           },
         })
         .exec();

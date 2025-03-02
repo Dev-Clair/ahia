@@ -278,9 +278,7 @@ export default class ProductService implements IProductService {
     try {
       const operation = async () => {
         // Find listings by filter
-        const listings = await ListingRepository.Create().findAll(
-          listingFilter
-        );
+        const listings = await ListingRepository.Create().findAll(listingFilter);
 
         const listingIds = listings.map((listing) => listing._id);
 

@@ -42,7 +42,7 @@ export default class ListingService implements IListingService {
       const operation = async (): Promise<IListing[]> => {
         const filter = {
           ...queryString,
-          // verification: { status: "approved" },
+          verification: { status: { in: ["pending", "approved"] } },
         };
 
         const listings = await ListingRepository.Create().findAll(filter);

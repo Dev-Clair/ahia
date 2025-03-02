@@ -73,10 +73,10 @@ export default class ProductRepository implements IProductRepository {
       // Projection
       let productProjection = ProductRepository.PRODUCT_PROJECTION;
 
-      if (fields !== undefined) [...productProjection, fields];
+      if (fields !== undefined) productProjection = [...productProjection, fields];
 
       // Query
-      const product = await Product.findById({ _id: id }, productProjection).exec();
+      const product = await Product.findById(id).select(productProjection.join(" ")).exec();
 
       return product;
     } catch (error: any) {
@@ -98,18 +98,15 @@ export default class ProductRepository implements IProductRepository {
 
       let listingProjection = ProductRepository.LISTING_PROJECTION;
 
-      if (fields !== undefined) [...productProjection, fields];
-
-      // Sorting
-      const listingSort = { sort: ProductRepository.LISTING_SORT };
+      if (fields !== undefined) productProjection = [...productProjection, fields];
 
       // Query
-      const product = await Product.findById({ _id: id }, productProjection)
+      const product = await Product.findById(id)
+        .select(productProjection.join(" "))
         .populate({
           path: "listing",
           model: "Listing",
-          select: listingProjection,
-          options: listingSort,
+          select: listingProjection.join(" "),
         })
         .exec();
 
