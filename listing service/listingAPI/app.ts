@@ -24,7 +24,7 @@ App.use(hpp());
 
 App.use(express_mongo_sanitize());
 
-App.use(ResponseMiddleware.responseParser);
+App.use(ResponseMiddleware.ParseResponseMiddleware);
 
 App.use("/api/v1", Routes);
 
