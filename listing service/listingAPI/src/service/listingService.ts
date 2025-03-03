@@ -95,11 +95,17 @@ export default class ListingService implements IListingService {
 
       if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
-      const projection = listingProjection.join(" ");
+      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
 
       // Retrieve listing
       const operation = async () => {
-        const listing = await ListingRepository.Create().findById(id, { projection: projection });
+        const listing = await ListingRepository.Create().findById(id, { projection: listingProjectionObject });
 
         // Validate listing
         if (!listing)
@@ -133,13 +139,29 @@ export default class ListingService implements IListingService {
       // Query projection
       let listingProjection = ListingService.LISTING_PROJECTION;
 
-      let productProjection = ListingService.PRODUCT_PROJECTION;
-
       if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
+      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
+
+      let productProjection = ListingService.PRODUCT_PROJECTION;
+
+      const productProjectionObject = Object.fromEntries(productProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
+
       const projection = {
-        listing: listingProjection.join(" "),
-        product: productProjection.join(" ")
+        listing: listingProjectionObject,
+        product: productProjectionObject
       };
 
       // Query sorting
@@ -335,7 +357,7 @@ export default class ListingService implements IListingService {
         if (!Array.isArray(products) || products.length === 0)
           throw new Error(`Invalid Argument Type Error`);
 
-        return await ListingService.Create().findAll(
+        return await this.findAll(
           { products: { in: products }, ...options },
           { retry: true });
       };

@@ -83,11 +83,17 @@ export default class ProductService implements IProductService {
 
       if (fields !== undefined) productProjection = [...productProjection, fields];
 
-      const projection = productProjection.join(" ");
+      const productProjectionObject = Object.fromEntries(productProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
 
       // Retrieve product
       const operation = async () => {
-        const product = await ProductRepository.Create().findById(id, { projection: projection });
+        const product = await ProductRepository.Create().findById(id, { projection: productProjectionObject });
 
         // Validate product
         if (!product)
@@ -118,13 +124,29 @@ export default class ProductService implements IProductService {
       // Query projection
       let listingProjection = ProductService.LISTING_PROJECTION;
 
-      let productProjection = ProductService.PRODUCT_PROJECTION;
-
       if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
+      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
+
+      let productProjection = ProductService.PRODUCT_PROJECTION;
+
+      const productProjectionObject = Object.fromEntries(productProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
+
       const projection = {
-        listing: listingProjection.join(" "),
-        product: productProjection.join(" ")
+        listing: listingProjectionObject,
+        product: productProjectionObject
       };
 
       // Query sorting

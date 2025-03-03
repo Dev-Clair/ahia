@@ -8,9 +8,9 @@ const PROJECTION: string[] = [
   "verification",
   // "-location",
   // "-address",
-  // "-createdAt",
-  // "-updatedAt",
-  // "-__v",
+  "-createdAt",
+  "-updatedAt",
+  "-__v",
 ];
 
 const SORT: string[] = ["-createdAt"];

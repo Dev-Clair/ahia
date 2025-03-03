@@ -101,38 +101,54 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query projection
-   * @param selectFields An array fields to select
+   * @param projection An array fields to select or exclude
    */
-  public Select(selectFields: string[]): this {
+  public Select(projection: string[]): this {
     if (this.queryString.fields !== undefined) {
-      const fields = [this.queryString.fields, ...selectFields];
+      let fields = [this.queryString.fields, ...projection];
 
-      const parsedFields = fields.filter((element, index) => fields.indexOf(element) === index);
+      const selectObject: { [key: string]: 1 | 0 } = {};
 
-      this.query = this.query.select(parsedFields.join(' '));
+      fields.forEach(field => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        selectObject[fieldName] = include ? 1 : 0;
+      });
+
+      this.query = this.query.select(selectObject);
     } else {
-      this.query = this.query.select(selectFields.join(' '));
+      const selectObject: { [key: string]: 1 | 0 } = {};
+
+      projection.forEach(field => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        selectObject[fieldName] = include ? 1 : 0;
+      });
+
+      this.query = this.query.select(selectObject);
     }
 
     return this;
   }
 
   /**
-   * Handles query sorting
-   * @param sortFields An array fields to sort
-   */
+     * Handles query sorting
+     * @param sortFields An array fields to sort
+     */
   public Sort(sortFields: string[]): this {
     if (this.queryString.sort !== undefined) {
-      const sort = [this.queryString.sort, ...sortFields];
-
-      const parsedFields = sort.filter((element, index) => sort.indexOf(element) === index);
+      let sort = [this.queryString.sort, ...sortFields];
 
       const sortObject: { [key: string]: 1 | -1 } = {};
 
-      parsedFields.forEach(field => {
+      sort.forEach(field => {
         const order = field.startsWith('-') ? -1 : 1;
 
-        const fieldName = field.startsWith('-') ? field.substring(1) : field;
+        const fieldName = field.replace('-', '');
 
         sortObject[fieldName] = order;
       });
@@ -144,7 +160,7 @@ export class QueryBuilder<T> {
       sortFields.forEach(field => {
         const order = field.startsWith('-') ? -1 : 1;
 
-        const fieldName = field.startsWith('-') ? field.substring(1) : field;
+        const fieldName = field.replace('-', '');
 
         sortObject[fieldName] = order;
       });
