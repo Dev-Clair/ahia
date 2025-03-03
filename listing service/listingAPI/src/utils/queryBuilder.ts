@@ -20,29 +20,26 @@ export class QueryBuilder<T> {
   }
 
   /**
-   * Handles query filtering
+   * Handles default and geospatial query filtering
    */
   public Filter(): this {
-    const { page, sort, limit, fields, ...filters } = this.queryString;
+    // Apply default filters
+    let queryFilter: string
 
-    let queryString = JSON.stringify(filters);
+    const { page, limit, sort, fields, lat, lng, distance, radius, ...filters } = this.queryString;
 
-    queryString = queryString.replace(
+    queryFilter = JSON.stringify(filters);
+
+    queryFilter = queryFilter.replace(
       /\b(eq|ne|gte|gt|lte|lt|in|nin)\b/g,
       (match) => `$${match}`
     );
 
-    const parsedQuery = JSON.parse(queryString);
+    const defaultFilter: Record<string, any> = JSON.parse(queryFilter);
 
-    this.query = this.query.find(parsedQuery);
+    // Apply geospatial filters
+    let locationFilter: Record<string, any> = {};
 
-    return this;
-  }
-
-  /**
-   * Handles geospatial queries: Near | Within
-   */
-  public GeoSpatial(): this {
     if (this.queryString.lng && this.queryString.lat) {
       const parsedLng = parseFloat(this.queryString.lng as string);
 
@@ -59,10 +56,8 @@ export class QueryBuilder<T> {
         ? parseFloat(this.queryString.radius as string)
         : undefined;
 
-      let locationFilter: Record<string, any> = {};
-
       if (parsedDistance !== undefined) {
-        locationFilter["location.coordinates"] = {
+        locationFilter["location"] = {
           $nearSphere: {
             $geometry: {
               type: "Point",
@@ -74,15 +69,17 @@ export class QueryBuilder<T> {
       }
 
       if (parsedRadius !== undefined) {
-        locationFilter["location.coordinates"] = {
+        locationFilter["location"] = {
           $geoWithin: {
             $centerSphere: [[parsedLng, parsedLat], parsedRadius / 6378.1],
           },
         };
       }
-
-      this.query = this.query.find(locationFilter);
     }
+
+    const requestflter = { ...defaultFilter, ...locationFilter };
+
+    this.query = this.query.find(requestflter);
 
     return this;
   }
@@ -93,7 +90,7 @@ export class QueryBuilder<T> {
   public async Paginate(): Promise<this> {
     const page = parseInt((this.queryString.page as string) || "1", 10);
 
-    const limit = parseInt((this.queryString.limit as string) || "50", 10);
+    const limit = parseInt((this.queryString.limit as string) || "20", 10);
 
     const skip = (page - 1) * limit;
 
@@ -104,28 +101,72 @@ export class QueryBuilder<T> {
 
   /**
    * Handles query projection
-   * @param selectFields A key-value pair of fields to select
+   * @param projection An array fields to select or exclude
    */
-  public Select(selectFields: string[]): this {
-    const fields = Array.from(
-      new Set([this.queryString.fields, selectFields])
-    ).join();
+  public Select(projection: string[]): this {
+    if (this.queryString.fields !== undefined) {
+      let fields = [this.queryString.fields, ...projection];
 
-    this.query = this.query.select(fields);
+      const selectObject: { [key: string]: 1 | 0 } = {};
+
+      fields.forEach(field => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        selectObject[fieldName] = include ? 1 : 0;
+      });
+
+      this.query = this.query.select(selectObject);
+    } else {
+      const selectObject: { [key: string]: 1 | 0 } = {};
+
+      projection.forEach(field => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        selectObject[fieldName] = include ? 1 : 0;
+      });
+
+      this.query = this.query.select(selectObject);
+    }
 
     return this;
   }
 
   /**
-   * Handles query sorting
-   * @param sortFields A key-value pair of fields to sort
-   */
+     * Handles query sorting
+     * @param sortFields An array fields to sort
+     */
   public Sort(sortFields: string[]): this {
-    const sortBy = Array.from(
-      new Set([this.queryString.sort, sortFields])
-    ).join();
+    if (this.queryString.sort !== undefined) {
+      let sort = [this.queryString.sort, ...sortFields];
 
-    this.query = this.query.sort(sortBy);
+      const sortObject: { [key: string]: 1 | -1 } = {};
+
+      sort.forEach(field => {
+        const order = field.startsWith('-') ? -1 : 1;
+
+        const fieldName = field.replace('-', '');
+
+        sortObject[fieldName] = order;
+      });
+
+      this.query = this.query.sort(sortObject);
+    } else {
+      const sortObject: { [key: string]: 1 | -1 } = {};
+
+      sortFields.forEach(field => {
+        const order = field.startsWith('-') ? -1 : 1;
+
+        const fieldName = field.replace('-', '');
+
+        sortObject[fieldName] = order;
+      });
+
+      this.query = this.query.sort(sortObject);
+    }
 
     return this;
   }

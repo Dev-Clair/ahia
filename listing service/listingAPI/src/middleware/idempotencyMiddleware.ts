@@ -19,10 +19,10 @@ const isIdempotent = async (
   const isProduction =
     Config.NODE_ENV !== "production" ? randomUUID() : undefined;
 
-  const key = (req.headers["idempotency-key"] as string) ?? isProduction;
+  const key = (req.get("idempotency-key") as string) ?? isProduction;
 
   if (!key) {
-    return res.status(HttpCode.BAD_REQUEST).json({
+    return res.sendResponse(HttpCode.BAD_REQUEST, {
       error: {
         name: HttpStatus.BAD_REQUEST,
         message: "Idempotency key is required",
@@ -31,14 +31,14 @@ const isIdempotent = async (
   }
 
   if ((await IdempotencyRepository.find(key, null)) as boolean)
-    return res.status(HttpCode.CONFLICT).json({
+    return res.sendResponse(HttpCode.CONFLICT, {
       error: {
         name: HttpStatus.CONFLICT,
         message: "Duplicate request detected",
       },
     });
 
-  (req as Request).idempotent = { key: key };
+  req.idempotent = { key: key } // Attach idempotency key to request object;
 
   next();
 };

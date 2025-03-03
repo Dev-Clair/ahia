@@ -9,12 +9,12 @@ export default interface IListing extends IDocument {
   location: {
     type?: string;
     coordinates?: [number, number];
-    address: {
-      street: string;
-      city: string;
-      state: string;
-      zip?: string;
-    };
+  };
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zip?: string;
   };
   provider: string;
   media: {
@@ -26,7 +26,7 @@ export default interface IListing extends IDocument {
     document: {
       id?: string;
       type?: string;
+      authority: string;
     };
-    issuedBy?: string;
   };
 }

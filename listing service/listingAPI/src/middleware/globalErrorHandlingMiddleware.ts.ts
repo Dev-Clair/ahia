@@ -1,55 +1,45 @@
 import * as Sentry from "@sentry/node";
 import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
-import Logger from "../utils/logger";
+import Log from "../utils/logger";
 
 class GlobalErrorHandlingMiddleware {
   /**
    * Handles non-operational errors gracefully
-   * @param err error object
+   * @param error error object
    */
-  public static async handleError(err: Error): Promise<void> {
-    Logger.error(
-      `name: ${err.name}\nmessage: ${err.message}\nstack: ${err.stack}`
+  public static async handleError(error: Error): Promise<void> {
+    Log.App.error(
+      `name: ${error.name}\nmessage: ${error.message}\nstack: ${error.stack}`
     );
 
-    Sentry.withScope((scope) => {
-      scope.setTag("Error", "Listing API");
-
-      scope.setContext("API", {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
-      });
-
-      Sentry.captureException(err);
-    });
+    Sentry.captureException(error);
 
     process.exitCode = 1;
   }
 
   /**
    * Verifies if error is a trusted operational error
-   * @param err error object
+   * @param error error object
    */
-  public static isTrustedError(err: APIError | Error): boolean {
-    return err instanceof APIError && err.isOperational;
+  public static isTrustedError(error: APIError | Error): boolean {
+    return error instanceof APIError && error.isOperational;
   }
 
   /**
    * Verifies if error is a safe operational error
-   * @param err error object
+   * @param error error object
    */
-  public static isSafeError(err: Error): boolean {
-    return err instanceof MongooseError;
+  public static isSafeError(error: Error): boolean {
+    return error instanceof MongooseError;
   }
 
   /**
-   * VErifies if error is a syntax operational error
-   * @param err error object
+   * Verifies if error is a syntax operational error
+   * @param error error object
    */
-  public static isSyntaxError(err: Error): boolean {
-    return err instanceof SyntaxError && err.message.includes("JSON");
+  public static isSyntaxError(error: Error): boolean {
+    return error instanceof SyntaxError && error.message.includes("JSON");
   }
 }
 

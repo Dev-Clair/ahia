@@ -1,139 +1,71 @@
-import { createLogger, format, LogEntry, transports } from "winston";
-import TransportStream, { TransportStreamOptions } from "winston-transport";
-import {
-  CloudWatchLogsClient,
-  CloudWatchLogsClientConfig,
-  DescribeLogStreamsCommand,
-  PutLogEventsCommand,
-} from "@aws-sdk/client-cloudwatch-logs";
 import Config from "../../config";
-
-/** ***************************************Create Transport**************/
-interface CloudWatchLogsConfigOptions {
-  logGroupName: string;
-  logStreamName: string;
-}
-
-class CloudWatchLogsTransport extends TransportStream {
-  private cloudWatchLogsClient: CloudWatchLogsClient;
-
-  private logGroupName: string;
-
-  private logStreamName: string;
-
-  private sequenceToken: string | undefined;
-
-  constructor(
-    clientConfig: CloudWatchLogsClientConfig,
-    logConfig: CloudWatchLogsConfigOptions,
-    options?: TransportStreamOptions
-  ) {
-    super(options);
-
-    this.logGroupName = logConfig.logGroupName;
-
-    this.logStreamName = logConfig.logStreamName;
-
-    this.cloudWatchLogsClient = new CloudWatchLogsClient(clientConfig);
-
-    this.initializeSequenceToken();
-  }
-
-  /**
-   * Retrieves and initializes the sequence to ensure log orderings
-   * @private
-   */
-  private async initializeSequenceToken() {
-    try {
-      const describeLogStreamsCommand = new DescribeLogStreamsCommand({
-        logGroupName: this.logGroupName,
-        logStreamNamePrefix: this.logStreamName,
-      });
-
-      const response = await this.cloudWatchLogsClient.send(
-        describeLogStreamsCommand
-      );
-
-      const logStream = response.logStreams?.find(
-        (stream) => stream.logStreamName === this.logStreamName
-      );
-
-      this.sequenceToken = logStream?.uploadSequenceToken;
-    } catch (error) {
-      throw new Error(`Failed to retrieve sequence token: ${error}`);
-    }
-  }
-
-  /**
-   * Sends logs to cloudwatch
-   * @param info log entry
-   * @param callback log callback
-   */
-  async log(info: LogEntry, callback: () => void): Promise<void> {
-    setImmediate(() => this.emit("logged", info));
-
-    const logMessage = {
-      timestamp: new Date().getTime(),
-      message: `${info.timestamp} ${info.level}: ${info.message}`,
-    };
-
-    try {
-      const input = {
-        logGroupName: this.logGroupName,
-        logStreamName: this.logStreamName,
-        logEvents: [logMessage],
-        sequenceToken: this.sequenceToken,
-      };
-
-      const command = new PutLogEventsCommand(input);
-
-      const response = await this.cloudWatchLogsClient.send(command);
-
-      this.sequenceToken = response.nextSequenceToken;
-    } catch (error) {
-      throw new Error(`Error sending logs to CloudWatch: ${error}`);
-    }
-
-    callback();
-  }
-
-  /**
-   * Creates and returns a new instance of the CloudWatchLogsTransport class
-   */
-  public static Create(): CloudWatchLogsTransport {
-    const clientConfiguration: CloudWatchLogsClientConfig = {
-      region: Config.AWS.REGION,
-      credentials: {
-        accessKeyId: Config.AWS.IAM.ACCESS_KEY_ID,
-        secretAccessKey: Config.AWS.IAM.SECRET_ACCESS_KEY,
-      },
-    };
-
-    const logConfiguration: CloudWatchLogsConfigOptions = {
-      logGroupName: Config.AWS.CLOUDWATCH.LOGS.GROUP_NAME,
-      logStreamName: Config.AWS.CLOUDWATCH.LOGS.STREAM_NAME,
-    };
-
-    return new CloudWatchLogsTransport(clientConfiguration, logConfiguration);
-  }
-}
-
-/** ***************************************Create Logger**************/
+import { createLogger, format, transports } from "winston";
+import DailyRotateFile from "winston-daily-rotate-file";
+import CloudWatchLogsTransport from "./cloudwatchTransport";
 
 const { combine, timestamp, printf } = format;
 
-const logFormat = printf(({ level, message, timestamp }) => {
-  return `${timestamp} ${level}: ${message}`;
-});
+const logFormat = printf(
+  ({ level, message, timestamp }) => `${timestamp} | ${level}: ${message}`
+);
 
-const Logger = createLogger({
+const APP_LOG_DIR = Config.LOG.APP;
+
+const CRON_LOG_DIR = Config.LOG.CRON;
+
+const App = createLogger({
   level: "info",
   format: combine(timestamp(), logFormat),
   transports: [
-    new transports.Console(),
-    // CloudWatchLogsTransport.Make()
+    ...(Config.NODE_ENV !== "production"
+      ? [new transports.Console()]
+      : [
+          // CloudWatchLogsTransport.Create(),
+          new DailyRotateFile({
+            filename: "application-%DATE%.log",
+            datePattern: "YYYY-MM-DD",
+            dirname: APP_LOG_DIR,
+            maxFiles: "14d",
+            level: "info",
+          }),
+          new DailyRotateFile({
+            filename: "errors-%DATE%.log",
+            datePattern: "YYYY-MM-DD",
+            dirname: `${APP_LOG_DIR}/errors`,
+            maxFiles: "30d",
+            level: "error",
+          }),
+        ]),
   ],
-  defaultMeta: Config.LISTING.SERVICE.NAME,
+  defaultMeta: { domain: "Application" },
 });
 
-export default Logger;
+const Cron = createLogger({
+  level: "info",
+  format: combine(timestamp(), logFormat),
+  transports: [
+    ...(Config.NODE_ENV !== "production"
+      ? [new transports.Console()]
+      : [
+          new DailyRotateFile({
+            filename: "cron-%DATE%.log",
+            datePattern: "YYYY-MM-DD",
+            dirname: CRON_LOG_DIR,
+            maxFiles: "7d",
+            level: "info",
+          }),
+          new DailyRotateFile({
+            filename: "cron-errors-%DATE%.log",
+            datePattern: "YYYY-MM-DD",
+            dirname: `${CRON_LOG_DIR}/errors`,
+            maxFiles: "14d",
+            level: "error",
+          }),
+        ]),
+  ],
+  defaultMeta: { domain: "Cron" },
+});
+
+const Log = { App, Cron };
+
+export default Log;

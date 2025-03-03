@@ -1,3 +1,5 @@
+import { QueryBuilder } from "../utils/queryBuilder";
+
 export default interface IRepository<T> {
   /**
    * Retrieves a collection of documents
@@ -7,7 +9,7 @@ export default interface IRepository<T> {
   findAll(
     queryString: Record<string, any>,
     options?: { [key: string]: unknown }
-  ): Promise<T[]>;
+  ): QueryBuilder<T>;
 
   /**
    * Retrieves a document by id
@@ -22,7 +24,7 @@ export default interface IRepository<T> {
    * @param options configuration options
    */
   save(
-    payload: Partial<T> | Partial<T>[],
+    payload: Partial<T>[],
     options?: { [key: string]: unknown }
   ): Promise<T[]>;
 

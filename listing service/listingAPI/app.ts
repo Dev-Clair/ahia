@@ -5,6 +5,7 @@ import helmet from "helmet";
 import hpp from "hpp";
 import APIError from "./src/error/apiError";
 import GlobalErrorHandler from "./src/middleware/globalErrorHandlingMiddleware.ts";
+import ResponseMiddleware from "./src/middleware/responseMiddleware.ts";
 import HttpCode from "./src/enum/httpCode";
 import HttpStatus from "./src/enum/httpStatus";
 import Routes from "./src/route";
@@ -23,27 +24,39 @@ App.use(hpp());
 
 App.use(express_mongo_sanitize());
 
+App.use(ResponseMiddleware.ParseResponseMiddleware);
+
 App.use("/api/v1", Routes);
 
 App.use(
   (err: APIError | Error, req: Request, res: Response, next: NextFunction) => {
     if (GlobalErrorHandler.isSyntaxError(err)) {
       return res
-        .status(HttpCode.BAD_REQUEST)
-        .json({ error: { name: err.name, message: "Bad or Malformed JSON" } });
+        .sendResponse(HttpCode.BAD_REQUEST, {
+          error: {
+            name: err.name,
+            message: "Bad or Malformed JSON"
+          }
+        });
     }
 
     if (GlobalErrorHandler.isSafeError(err)) {
       if (err.name === "ValidationError") {
-        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
-          error: { name: err.name, message: err.message },
+        return res.sendResponse(HttpCode.BAD_REQUEST, {
+          error: {
+            name: err.name,
+            message: err.message
+          }
         });
       } else if (err.name === "CastError") {
-        return res.status(HttpCode.UNPROCESSABLE_ENTITY).json({
-          error: { name: err.name, message: "Invalid ID" },
+        return res.sendResponse(HttpCode.UNPROCESSABLE_ENTITY, {
+          error: {
+            name: err.name,
+            message: "Invalid ID"
+          },
         });
       } else {
-        return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
+        return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, {
           error: {
             name: err.name,
             message:
@@ -54,15 +67,18 @@ App.use(
     }
 
     if (GlobalErrorHandler.isTrustedError(err as APIError)) {
-      return res
-        .status((err as APIError).code)
-        .json({ error: { name: err.name, message: err.message } });
+      return res.sendResponse((err as APIError).code, {
+        error: {
+          name: err.name,
+          message: err.message
+        }
+      });
     }
 
     GlobalErrorHandler.handleError(err);
 
     if (!res.headersSent) {
-      return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
+      return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, {
         error: {
           name: HttpStatus.INTERNAL_SERVER_ERROR,
           message:
@@ -74,7 +90,7 @@ App.use(
 );
 
 App.all("*", (req: Request, res: Response, next: NextFunction) => {
-  return res.status(HttpCode.NOT_FOUND).json({
+  return res.sendResponse(HttpCode.NOT_FOUND, {
     error: {
       name: HttpStatus.NOT_FOUND,
       message: `No resource or route defined for ${req.originalUrl}`,

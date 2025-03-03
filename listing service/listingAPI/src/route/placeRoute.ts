@@ -1,7 +1,6 @@
 import { Router } from "express";
 import AppMiddleware from "../middleware/appMiddleware";
 import AuthMiddleware from "../middleware/authMiddleware";
-import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import PlaceController from "../controller/placeController";
 

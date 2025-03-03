@@ -1,95 +1,87 @@
 import { Router } from "express";
 import AppMiddleware from "../middleware/appMiddleware";
 import AuthMiddleware from "../middleware/authMiddleware";
-import DocumentMiddleware from "../middleware/documentMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
 import ListingController from "../controller/listingController";
 
 const ListingRouter = Router();
 
 ListingRouter.route("/").post(
-  AuthMiddleware.isGranted(["Provider"]),
+  // AuthMiddleware.isGranted(["Provider"]),
+  // AuthMiddleware.isPermitted(["create:listings"]),
   AppMiddleware.isContentType(["application/json"]),
-  AppMiddleware.filterInsertion(["media", "product", "provider"]),
+  AppMiddleware.filterInsertion(["media", "products", "provider"]),
   IdempotencyMiddleware.isIdempotent,
   ListingController.createListing
 );
 
 ListingRouter.get(
-  "/provider/:id",
-  AuthMiddleware.isGranted(["Provider"]),
+  "/provider",
+  // AuthMiddleware.isGranted(["Provider"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
   ListingController.retrieveListingsByProvider
 );
 
 ListingRouter.get(
-  ["/tours", "/bookings"],
-  AuthMiddleware.isGranted(["Customer"]),
+  ["/bookings", "/tours"],
+  // AuthMiddleware.isGranted(["Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
   ListingController.retrieveListingsByProducts
 );
 
 ListingRouter.get(
-  "/type/:type",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
-  ListingController.retrieveListingsByType
+  "/search",
+  // AuthMiddleware.isGranted(["Admin"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
+  ListingController.retrieveListingsSearch
 );
 
 ListingRouter.get(
-  "/search",
-  AuthMiddleware.isGranted(["Admin"]),
-  ListingController.retrieveListingsSearch
+  "/type/:type",
+  // AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isPermitted(["retrieve:listings"]),
+  ListingController.retrieveListingsByType
 );
 
 ListingRouter.route("/:id")
   .get(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
-    DocumentMiddleware("listing", "id"),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["retrieve:listing"]),
     ListingController.retrieveListingById
   )
   .patch(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
-    AppMiddleware.filterUpdate([
-      "address",
-      "location",
-      "media",
-      "product",
-      "provider",
-      "type",
-    ]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["update:listing"]),
+    AppMiddleware.filterUpdate(["media", "products", "provider", "type"]),
     IdempotencyMiddleware.isIdempotent,
     ListingController.updateListingById
   )
   .delete(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["delete:listing"]),
     ListingController.deleteListingById
   );
 
 ListingRouter.get(
   "/:id/product",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isPermitted(["retrieve:listing"]),
   ListingController.retrieveListingByIdAndPopulate
 );
 
 ListingRouter.route("/:id/products")
   .get(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
-    DocumentMiddleware("listing", "id"),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["retrieve:listing:products"]),
     ListingController.retrieveListingProducts
   )
   .post(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["create:listing:products"]),
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterInsertion(["media", "verification"]),
     IdempotencyMiddleware.isIdempotent,
-    DocumentMiddleware("listing", "id"),
     ListingController.createListingProduct
   );
-
-ListingRouter.patch(
-  "/:id/products/:product",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
-  IdempotencyMiddleware.isIdempotent,
-  DocumentMiddleware("listing", "id"),
-  ListingController.deleteListingProductById
-);
 
 export default ListingRouter;

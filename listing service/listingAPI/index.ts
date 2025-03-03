@@ -6,15 +6,21 @@ import {
 } from "./bootstrap";
 import Database from "./database";
 import Server from "./server";
+import { Cron } from "./cron";
 
-// Initialize Sentry
-InitializeSentry();
+(async () => {
+  // Initialize Sentry
+  InitializeSentry();
 
-// Global Process Events Listener
-GlobalProcessEventsListener();
+  // Global Process Events Listener
+  GlobalProcessEventsListener();
 
-// Database Connection Events Listener
-DatabaseEventsListener();
+  // Database Connection Events Listener
+  DatabaseEventsListener();
 
-// Start Application
-Boot(Server, Database);
+  // Start Application
+  await Boot(Server, Database);
+
+  // Run Jobs
+  await Cron();
+})();

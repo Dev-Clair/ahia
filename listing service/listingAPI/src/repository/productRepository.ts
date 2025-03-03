@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import ILeaseProduct from "../interface/ILeaseproduct";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
@@ -17,54 +17,22 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method findByIdAndPopulate
  * @method findProductsByListing
  * @method save
- * @method update
- * @method delete
+ * @method updateById
+ * @method deleteById
+ * @method deleteCollection
  */
 export default class ProductRepository implements IProductRepository {
-  static PRODUCT_PROJECTION = [
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-    "-verification",
-  ];
-
-  static SORT_PRODUCTS = ["-createdAt"];
-
-  static LISTING_PROJECTION_BASIC = [
-    "-location",
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-  ];
-
-  static LISTING_PROJECTION_PLUS = ["-createdAt", "-updatedAt", "-__v"];
-
-  static SORT_LISTINGS = ["-createdAt"];
-
   /** Retrieves a collection of products
    * @public
    * @param queryString query object
    */
-  async findAll(queryString: Record<string, any>): Promise<IProduct[]> {
+  findAll(queryString: Record<string, any>): QueryBuilder<IProduct> {
     try {
       const query = Product.find();
 
-      const filter = {
-        ...queryString,
-        // verification: { status: true },
-      };
+      const queryBuilder = QueryBuilder.Create<IProduct>(query, queryString);
 
-      const queryBuilder = QueryBuilder.Create<IProduct>(query, filter);
-
-      const products = (
-        await queryBuilder
-          .Filter()
-          .Sort(ProductRepository.SORT_PRODUCTS)
-          .Select(ProductRepository.PRODUCT_PROJECTION)
-          .Paginate()
-      ).Exec();
-
-      return products;
+      return queryBuilder;
     } catch (error: any) {
       throw error;
     }
@@ -73,13 +41,14 @@ export default class ProductRepository implements IProductRepository {
   /** Retrieves a product by id
    * @public
    * @param id product id
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IProduct | null> {
+  async findById(id: string, options: Record<string, any>): Promise<IProduct | null> {
     try {
-      const product = await Product.findById(
-        { _id: id },
-        ProductRepository.PRODUCT_PROJECTION
-      ).exec();
+      const { projection } = options;
+
+      // Query
+      const product = await Product.findById(id).select(projection).exec();
 
       return product;
     } catch (error: any) {
@@ -90,18 +59,19 @@ export default class ProductRepository implements IProductRepository {
   /** Retrieves a product by id and populates its subdocument(s)
    * @public
    * @param id product id
+   * @param options configuration options
    */
-  async findByIdAndPopulate(id: string): Promise<IProduct | null> {
+  async findByIdAndPopulate(id: string, options: Record<string, any>): Promise<IProduct | null> {
     try {
-      const product = await Product.findById(
-        { _id: id },
-        ProductRepository.PRODUCT_PROJECTION
-      )
+      const { projection } = options;
+
+      // Query
+      const product = await Product.findById(id)
+        .select(projection.product)
         .populate({
           path: "listing",
           model: "Listing",
-          select: ProductRepository.LISTING_PROJECTION_PLUS,
-          options: { sort: ProductRepository.SORT_LISTINGS },
+          select: projection.listing,
         })
         .exec();
 
@@ -196,7 +166,7 @@ export default class ProductRepository implements IProductRepository {
   }
 
   /**
-   * Updates a product by id
+   * Updates a product by id (findOneAndUpdate Query)
    * @public
    * @param id product id
    * @param payload the data object
@@ -210,7 +180,7 @@ export default class ProductRepository implements IProductRepository {
     try {
       const { session } = options;
 
-      const product = await Product.findByIdAndUpdate({ _id: id }, payload, {
+      const product = await Product.findByIdAndUpdate(id, payload, {
         new: true,
         session,
       });
@@ -222,7 +192,7 @@ export default class ProductRepository implements IProductRepository {
   }
 
   /**
-   * Deletes a product by id
+   * Deletes a product by id (findOneAndDelete Query)
    * @public
    * @param id product id
    * @param options configuration options
@@ -234,9 +204,26 @@ export default class ProductRepository implements IProductRepository {
     try {
       const { session } = options;
 
-      const product = await Product.findByIdAndDelete({ _id: id }, session);
+      const product = await Product.findByIdAndDelete(id, session);
 
       return product;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Deletes product references to a listing (deleteMany Query)
+   * @public
+   * @param filter listing id
+   * @param session database session
+   */
+  async deleteCollection(
+    filter: string | ObjectId,
+    session: ClientSession
+  ): Promise<void> {
+    try {
+      await Product.deleteMany({ listing: filter }, { session });
     } catch (error: any) {
       throw error;
     }

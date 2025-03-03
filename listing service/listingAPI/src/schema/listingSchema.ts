@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import IListing from "../interface/IListing";
-import ProductSchema from "./productSchema";
 
 const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
 
@@ -50,27 +49,27 @@ const ListingSchema: Schema<IListing> = new Schema(
         },
         required: false,
       },
-      address: {
-        street: {
-          type: String,
-          maxlength: 125,
-          required: true,
-        },
-        city: {
-          type: String,
-          maxlength: 50,
-          required: true,
-        },
-        state: {
-          type: String,
-          maxlength: 50,
-          required: true,
-        },
-        zip: {
-          type: String,
-          maxlength: 20,
-          required: false,
-        },
+    },
+    address: {
+      street: {
+        type: String,
+        maxlength: 125,
+        required: true,
+      },
+      city: {
+        type: String,
+        maxlength: 50,
+        required: true,
+      },
+      state: {
+        type: String,
+        maxlength: 50,
+        required: true,
+      },
+      zip: {
+        type: String,
+        maxlength: 20,
+        required: false,
       },
     },
     provider: {
@@ -128,55 +127,21 @@ const ListingSchema: Schema<IListing> = new Schema(
           maxlength: 100,
           required: false,
         },
-      },
-      issuedBy: {
-        type: String,
-        maxlength: 255,
-        required: false,
+        authority: {
+          type: String,
+          maxlength: 255,
+          required: false,
+        },
       },
     },
   },
   { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
 
-// Listing Schema Location and Text Search Index
-ListingSchema.index({ "location.coordinates": "2dsphere" }, { sparse: true });
+// Listing Schema Location Index
+ListingSchema.index({ location: "2dsphere" }, { sparse: true });
 
 // Listing Schema Text Search Index
-ListingSchema.index({ "location.address.city": "text" });
-ListingSchema.index({ "location.address.state": "text" });
-ListingSchema.index({ provider: "text" });
-ListingSchema.index({ type: "text" });
-
-// Listing Schema Middleware
-ListingSchema.pre("findOneAndDelete", async function (next) {
-  const session = await mongoose.startSession();
-
-  try {
-    const listing = (await this.model
-      .findOne(this.getFilter())
-      .session(session)) as IListing;
-
-    if (!listing) next(new Error("Listing not found"));
-
-    await session.withTransaction(async () => {
-      // Delete all product document records referenced to listing
-      await mongoose.model("Product", ProductSchema).bulkWrite(
-        [
-          {
-            deleteMany: { filter: { listing: listing._id } },
-          },
-        ],
-        { session }
-      );
-    });
-
-    next();
-  } catch (err: any) {
-    next(err);
-  } finally {
-    await session.endSession();
-  }
-});
+ListingSchema.index({ "address.city": "text", "address.state": "text" });
 
 export default ListingSchema;

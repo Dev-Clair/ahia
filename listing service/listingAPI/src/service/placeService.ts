@@ -15,6 +15,10 @@ import PlaceRepository from "../repository/placeRepository";
  * @method deleteById
  */
 export default class PlaceService {
+  static LOCATION_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
+
+  static SORT_LOCATIONS = ["-createdAt"];
+
   /** Retrieves a collection of places
    * @public
    * @param queryString query object
@@ -24,7 +28,17 @@ export default class PlaceService {
       const operation = async () => {
         const filter = { ...queryString };
 
-        return await PlaceRepository.Create().findAll(filter);
+        const queryBuilder = PlaceRepository.Create().findAll(filter);
+
+        const places = (
+          await queryBuilder
+            .Filter()
+            .Sort(PlaceService.SORT_LOCATIONS)
+            .Select(PlaceService.LOCATION_PROJECTION)
+            .Paginate()
+        ).Exec();
+
+        return places;
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());

@@ -6,7 +6,7 @@ import Connection from "./src/utils/connection";
 import ConnectionError from "./src/error/connectionError";
 import HttpServer from "./src/utils/httpServer";
 import HttpServerError from "./src/error/httpserverError";
-import Logger from "./src/utils/logger";
+import Log from "./src/utils/logger";
 
 /**
  * Bootstraps the entire application
@@ -18,7 +18,7 @@ export async function Boot(
   try {
     // Initialize server on http(s) port
     await Server.Init(Config.PORT)
-      .then(() => Logger.info(`Listening on http port ${Config.PORT}`))
+      .then(() => Log.App.info(`Listening on http port ${Config.PORT}`))
       .catch((reason: any) => {
         throw new HttpServerError("HTTP Server Initialization Error", reason);
       });
@@ -48,10 +48,10 @@ export function GlobalProcessEventsListener(): void {
  */
 export function DatabaseEventsListener(): void {
   mongoose.connection
-    .on("connecting", () => Logger.info(`Attempting connection to database`))
-    .on("connected", () => Logger.info(`Database connection successful`))
-    .on("disconnected", () => Logger.info(`Database connection failure`))
-    .on("reconnected", () => Logger.info(`Database reconnection successful`));
+    .on("connecting", () => Log.App.info(`Attempting connection to database`))
+    .on("connected", () => Log.App.info(`Database connection successful`))
+    .on("disconnected", () => Log.App.info(`Database connection failure`))
+    .on("reconnected", () => Log.App.info(`Database reconnection successful`));
 }
 
 /**
@@ -71,16 +71,14 @@ export function ServerErrorHandler(
 
   if (err instanceof HttpServerError)
     Sentry.withScope((scope) => {
-      scope.setTag("Server Initialization Error", "Fatal");
+      scope.setTag("Http Server", "Fatal");
 
-      scope.setContext("Error", error);
+      scope.setContext("Initialization Error", error);
 
       Sentry.captureException(err);
     });
 
-  Logger.error(error);
-
-  Sentry.captureException(err);
+  Log.App.error(error);
 
   ShutdownHandler(Server);
 }
@@ -102,16 +100,14 @@ export function DatabaseErrorHandler(
 
   if (err instanceof ConnectionError)
     Sentry.withScope((scope) => {
-      scope.setTag("Database Connection Error", "Critical");
+      scope.setTag("Database", "Critical");
 
-      scope.setContext("Error", error);
+      scope.setContext("Connection Error", error);
 
       Sentry.captureException(err);
     });
 
-  Logger.error(error);
-
-  Sentry.captureException(err);
+  Log.App.error(error);
 
   ShutdownHandler(Server);
 }
@@ -127,7 +123,7 @@ export function UnhandledRejectionsHandler(
 ): void {
   Sentry.captureException(reason);
 
-  Logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
+  Log.App.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
 
   process.exitCode = 1;
 }
@@ -139,7 +135,7 @@ export function UnhandledRejectionsHandler(
 export function UnCaughtExceptionsHandler(error: any): void {
   Sentry.captureException(error);
 
-  Logger.error(`Uncaught Exception thrown: ${error}`);
+  Log.App.error(`Uncaught Exception thrown: ${error}`);
 
   process.exitCode = 1;
 }
@@ -156,7 +152,7 @@ export function UnCaughtExceptionsHandler(error: any): void {
 export async function ShutdownHandler(
   Server: HttpServer | null = null
 ): Promise<void> {
-  Logger.info("Shutting down gracefully...");
+  Log.App.info("Shutting down gracefully...");
 
   await mongoose.connection.close(true);
 

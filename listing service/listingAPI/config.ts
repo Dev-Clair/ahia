@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 dotenv.config({ encoding: "utf8" });
 
 const Config = {
-  APP_SECRET: process.env.APP_SECRET || "",
   AWS: {
     CLOUDWATCH: {
       LOGS: {
@@ -24,15 +23,19 @@ const Config = {
     PLACE_URL: process.env.GOOGLE_MAP_API_PLACE_URL,
     KEY: process.env.GOOGLE_MAP_API_KEY,
   },
+  JWT_SECRET: process.env.JWT_SECRET || "",
   LISTING: {
     SERVICE: {
       NAME: process.env.LISTING_SERVICE_NAME || "",
-      SECRET: process.env.LISTING_SERVICE_SECRET || "",
       SENTRY_DSN: process.env.SENTRY_DSN || "",
     },
   },
+  LOG: {
+    APP: process.env.LOG_DIR_APP || "",
+    CRON: process.env.LOG_DIR_CRON || "",
+  },
   MONGO_URI: process.env.MONGO_URI || "",
-  NODE_ENV: process.env.NODE_ENV || "test",
+  NODE_ENV: process.env.NODE_ENV || "development",
   PAYMENT_SERVICE_URL: process.env.PAYMENT_SERVICE_URL || "",
   PORT: process.env.PORT || 4999,
   SSL: {

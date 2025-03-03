@@ -14,7 +14,7 @@ export default interface IProduct extends IDocument {
   };
   verification: {
     status: boolean;
-    expiry?: Date;
+    expiry: Date;
   };
   status?:
     | "now-letting"

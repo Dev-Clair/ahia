@@ -2,10 +2,8 @@ import { Router } from "express";
 import AppController from "../controller/appController";
 import AppMiddleware from "../middleware/appMiddleware";
 import AuthMiddleware from "../middleware/authMiddleware";
-import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
-import PaymentverificationMiddleware from "../middleware/paymentverificationMiddleware";
 import ProductController from "../controller/productController";
 
 const ProductRouter = Router();
@@ -17,36 +15,27 @@ ProductRouter.get(
 );
 
 ProductRouter.get(
-  "/status/:status/location/:city/:state",
+  "/status/:status/location/:city?/:state?",
+  // AuthMiddleware.isGranted(["Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:products"]),
   ProductController.retrieveProductsByLocation
 );
 
 ProductRouter.get(
   "/status/:status/nearby",
+  // AuthMiddleware.isGranted(["Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:products"]),
   GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsNearBy
 );
 
 ProductRouter.get(
-  "/status/:status/offering",
-  GeocodeMiddleware.parseUserGeoCoordinates,
-  ProductController.retrieveProductsByOffering
-);
-
-ProductRouter.get(
-  "/status/:status/place/:place",
-  GeocodeMiddleware.getLocationGeoCoordinates,
-  ProductController.retrieveProductsByPlace
-);
-
-ProductRouter.get(
-  "/status/:status/provider/:id",
+  "/status/:status/provider/:provider",
   ProductController.retrieveProductsByListingProvider
 );
 
 ProductRouter.get(
   "/status/:status/search",
-  GeocodeMiddleware.parseUserGeoCoordinates,
   ProductController.retrieveProductsSearch
 );
 
@@ -57,22 +46,26 @@ ProductRouter.get(
 
 ProductRouter.route("/:id")
   .get(
-    DocumentMiddleware("product", "id"),
     ProductController.retrieveProductById
   )
   .patch(
-    AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["update:listing:products"]),
     AppMiddleware.isContentType(["application/json"]),
     AppMiddleware.filterUpdate(["media", "type", "verification"]),
     IdempotencyMiddleware.isIdempotent,
-    DocumentMiddleware("product", "id"),
-    PaymentverificationMiddleware.isVerified,
     ProductController.updateProductById
+  ).delete(
+    // AuthMiddleware.isGranted(["Admin", "Provider"]),
+    // AuthMiddleware.isPermitted(["delete:listing:products"]),
+    IdempotencyMiddleware.isIdempotent,
+    ProductController.deleteProductById
   );
 
 ProductRouter.get(
   "/:id/listing",
-  AuthMiddleware.isGranted(["Admin", "Provider"]),
+  // AuthMiddleware.isGranted(["Admin", "Provider", "Customer"]),
+  // AuthMiddleware.isPermitted(["retrieve:products"]),
   ProductController.retrieveProductByIdAndPopulate
 );
 

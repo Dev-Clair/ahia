@@ -1,4 +1,4 @@
-import { AnyBulkWriteOperation, ClientSession, ObjectId } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import IListing from "../interface/IListing";
 import IListingRepository from "../interface/IListingrepository";
 import Listing from "../model/listingModel";
@@ -16,46 +16,17 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method updateCollection
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTING_PROJECTION_BASIC = [
-    "-location",
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-  ];
-
-  static LISTING_PROJECTION_PLUS = ["-createdAt", "-updatedAt", "-__v"];
-
-  static SORT_LISTINGS = ["-createdAt"];
-
-  static PRODUCT_PROJECTION = [
-    "-createdAt",
-    "-updatedAt",
-    "-__v",
-    "-verification",
-  ];
-
-  static SORT_PRODUCTS = ["-createdAt"];
-
   /** Retrieves a collection of listings
    * @public
    * @param queryString query object
    */
-  async findAll(queryString: Record<string, any>): Promise<IListing[]> {
+  findAll(queryString: Record<string, any>): QueryBuilder<IListing> {
     try {
       const query = Listing.find();
 
       const queryBuilder = QueryBuilder.Create<IListing>(query, queryString);
 
-      const listings = (
-        await queryBuilder
-          .GeoSpatial()
-          .Filter()
-          .Sort(ListingRepository.SORT_LISTINGS)
-          .Select(ListingRepository.LISTING_PROJECTION_BASIC)
-          .Paginate()
-      ).Exec();
-
-      return listings;
+      return queryBuilder
     } catch (error: any) {
       throw error;
     }
@@ -64,13 +35,13 @@ export default class ListingRepository implements IListingRepository {
   /** Retrieves a listing by id
    * @public
    * @param id listing id
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IListing | null> {
+  async findById(id: string, options: Record<string, any>): Promise<IListing | null> {
     try {
-      const listing = await Listing.findById(
-        { _id: id },
-        ListingRepository.LISTING_PROJECTION_BASIC
-      ).exec();
+      const { projection } = options;
+
+      const listing = await Listing.findById(id).select(projection).exec();
 
       return listing;
     } catch (error: any) {
@@ -85,26 +56,21 @@ export default class ListingRepository implements IListingRepository {
    */
   async findByIdAndPopulate(
     id: string,
-    options: {
-      page?: number;
-      limit?: number;
-    }
+    options: Record<string, any>
   ): Promise<IListing | null> {
     try {
-      const { page = 1, limit = 10 } = options;
+      const { page, limit, projection, sort } = options;
 
-      const listing = await Listing.findById(
-        { _id: id },
-        ListingRepository.LISTING_PROJECTION_PLUS
-      )
+      const listing = await Listing.findById(id)
+        .select(projection.listing)
         .populate({
           path: "products",
           model: "Product",
-          select: ListingRepository.PRODUCT_PROJECTION,
+          select: projection.product,
           options: {
             skip: (page - 1) * limit,
             limit: limit,
-            sort: ListingRepository.SORT_PRODUCTS,
+            ...sort.product
           },
         })
         .exec();
@@ -137,7 +103,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing by id (findOneAndUpdateOne Query)
+   * Updates a listing by id (findOneAndUpdate Query)
    * @public
    * @param id listing id
    * @param payload data object
@@ -153,10 +119,8 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { session } = options;
 
-      const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
-        new: true,
-        session,
-      }).exec();
+      const listing = await Listing.findByIdAndUpdate(id, payload,
+        { new: true, session }).exec();
 
       return listing;
     } catch (error: any) {
@@ -165,7 +129,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Deletes a listing by id
+   * Deletes a listing by id (findOneAndDelete Query)
    * @public
    * @param id listing id
    * @param options configuration options
@@ -177,10 +141,7 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { session } = options;
 
-      const listing = await Listing.findByIdAndDelete(
-        { _id: id },
-        session
-      ).exec();
+      const listing = await Listing.findByIdAndDelete(id, session).exec();
 
       return listing;
     } catch (error: any) {
@@ -189,7 +150,7 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing item by id (updateOne Query)
+   * Updates a listing product reference (updateOne Query)
    * @public
    * @param filter listing id
    * @param update product id
@@ -212,17 +173,23 @@ export default class ListingRepository implements IListingRepository {
   }
 
   /**
-   * Updates a listing collection (bulkwrite)
+   * Updates a listing's product references (updateMany Query)
    * @public
-   * @param payload any bulkwrite operation
+   * @param filter listing id
+   * @param updates product ids
    * @param session database session
    */
   async updateCollection(
-    payload: AnyBulkWriteOperation<any>[],
+    filter: string | ObjectId,
+    updates: string[] | ObjectId[],
     session: ClientSession
   ): Promise<void> {
     try {
-      await Listing.bulkWrite(payload, { session });
+      await Listing.updateMany(
+        { _id: filter },
+        { $addToSet: { products: { $each: updates } } },
+        { session }
+      );
     } catch (error: any) {
       throw error;
     }

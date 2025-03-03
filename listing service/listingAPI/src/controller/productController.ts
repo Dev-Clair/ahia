@@ -1,9 +1,10 @@
 import HttpCode from "../enum/httpCode";
 import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
-import IGeoCoordinates from "../interface/IGeocoordinates";
 import IProduct from "../interface/IProduct";
 import ProductService from "../service/productService";
+import RequestParser from "../utils/requestParser";
+import ResponseParser from "../utils/responseParser";
 
 /**
  * Retrieves products by search query
@@ -17,19 +18,26 @@ const retrieveProductsSearch = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
+    const { status } = req.params;
+
     // Product filter
-    const status = req.params.status as string;
+    const { q } = req.query;
 
-    const search = req.query.q as string;
+    if (!q) throw new BadRequestError(`Kindly enter a text to search`);
 
-    if (!search) throw new BadRequestError(`Kindly enter a text to search`);
+    const productFilter: Record<string, any> = {
+      $text: { $search: q },
+      status: status,
+    };
 
-    const searchQuery = { $text: { $search: search }, status: status };
+    // Find query
+    const products = await ProductService.Create().findAll(productFilter,
+      { retry: true });
 
-    // Query
-    const products = await ProductService.Create().findAll(searchQuery);
+    // Add pagination metadata to response
+    ResponseParser(req, res, products);
 
-    return res.status(HttpCode.OK).json({ data: products });
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -47,34 +55,60 @@ const retrieveProductsByLocation = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
-    const city = req.params.city as string;
+    const { status, city, state } = req.params;
 
-    const state = req.params.state as string;
+    const { name, category, type, minArea, maxArea } = req.query;
 
-    const locationFilter = {
-      location: { address: { city: city, state: state } },
+    const address = {
+      ...(city && { city }),
+      ...(state && { state }),
+    }
+
+    const area =
+      minArea || maxArea
+        ? {
+          size: {
+            ...(minArea && { gte: parseInt(minArea as string, 10) }),
+            ...(maxArea && { lte: parseInt(maxArea as string, 10) }),
+          },
+        }
+        : {};
+
+    // Listing filter
+    const listingFilter: Record<string, any> = {
+      ...(address && { address }),
+      ...RequestParser(req),
     };
 
     // Product filter
-    const status = req.params.status as string;
+    const productFilter: Record<string, any> = {
+      status: status,
+      offering: {
+        ...(name && { name }),
+        ...(category && { category }),
+        ...(type && { type }),
+        ...area,
+      },
+      ...RequestParser(req),
+    };
 
-    const productFilter: Record<string, any> = { status: status };
-
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
+      listingFilter,
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination metadata to response
+    ResponseParser(req, res, products);
+
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
 };
 
 /**
- * Retrieve products near user's location
+ * Retrieve products near user
  * @param req Express Request Object
  * @param res Express Response Object
  * @param next Express NextFunction Object
@@ -85,72 +119,27 @@ const retrieveProductsNearBy = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Location filter
-    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
+    const { status } = req.params;
 
-    const locationFilter = {
-      lat: lat,
-      lng: lng,
-      distance: distance,
-    };
-
-    // Product filter
-    const status = req.params.status as string;
-
-    const productFilter: Record<string, any> = { status: status };
-
-    // Query
-    const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
-      productFilter
-    );
-
-    return res.status(HttpCode.OK).json({ data: products });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Retrieve products by status and offering (filter: name, category, area, type)
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveProductsByOffering = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    // Location filter
-    const { lat, lng, distance } = req.geoCoordinates as IGeoCoordinates;
-
-    const locationFilter = {
-      lat: lat,
-      lng: lng,
-      distance: distance,
-    };
-
-    // Product filter
-    const status = req.params.status as string;
-
-    const { name, category, type } = req.query as Record<string, any>;
-
-    const minArea = parseInt(req.query?.minArea as string, 10);
-
-    const maxArea = parseInt(req.query?.maxArea as string, 10);
+    const { name, category, type, minArea, maxArea } = req.query;
 
     const area =
       minArea || maxArea
         ? {
-            size: {
-              ...(minArea && { gte: minArea }),
-              ...(maxArea && { lte: maxArea }),
-            },
-          }
+          size: {
+            ...(minArea && { gte: parseInt(minArea as string, 10) }),
+            ...(maxArea && { lte: parseInt(maxArea as string, 10) }),
+          },
+        }
         : {};
 
+    // Listing filter
+    const listingFilter: Record<string, any> = {
+      ...req.geoCoordinates,
+      ...RequestParser(req),
+    };
+
+    // Product filter
     const productFilter: Record<string, any> = {
       status: status,
       offering: {
@@ -159,53 +148,19 @@ const retrieveProductsByOffering = async (
         ...(type && { type }),
         ...area,
       },
+      ...RequestParser(req),
     };
 
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
+      listingFilter,
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
-  } catch (err: any) {
-    return next(err);
-  }
-};
+    // Add pagination metadata to response
+    ResponseParser(req, res, products);
 
-/**
- * Retrieve products by place (geo-coordinates)
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const retrieveProductsByPlace = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    // Location filter
-    const { lat, lng, radius } = req.geoCoordinates as IGeoCoordinates;
-
-    const locationFilter = {
-      lat: lat,
-      lng: lng,
-      radius: radius,
-    };
-
-    // Product filter
-    const status = req.params.status as string;
-
-    const productFilter: Record<string, any> = { status: status };
-
-    // Query
-    const products = await ProductService.Create().findProductsByListing(
-      locationFilter,
-      productFilter
-    );
-
-    return res.status(HttpCode.OK).json({ data: products });
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -223,23 +178,24 @@ const retrieveProductsByListingProvider = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
+    const { status, provider } = req.params;
+
     // Listing filter
-    const id = req.params.id as string;
+    const listingFilter: Record<string, any> = { provider: provider, ...RequestParser(req) };
 
-    const listingFilter = { provider: id };
+    // Product filter
+    const productFilter: Record<string, any> = { status: status, ...RequestParser(req) };
 
-    // Product Filter
-    const status = req.params.status as string;
-
-    const productFilter: Record<string, any> = { status: status };
-
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination metadata to response
+    ResponseParser(req, res, products);
+
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -257,23 +213,24 @@ const retrieveProductsByListingType = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Listing filter
-    const type = req.params.type as string;
+    const { status, type } = req.params;
 
-    const listingFilter = { type: type };
+    // Listing filter
+    const listingFilter: Record<string, any> = { type: type, ...RequestParser(req) };
 
     // Product filter
-    const status = req.params.status as string;
+    const productFilter: Record<string, any> = { status: status, ...RequestParser(req) };
 
-    const productFilter: Record<string, any> = { status: status };
-
-    // Query
+    // Find query
     const products = await ProductService.Create().findProductsByListing(
       listingFilter,
       productFilter
     );
 
-    return res.status(HttpCode.OK).json({ data: products });
+    // Add pagination metadata to response
+    ResponseParser(req, res, products);
+
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -291,37 +248,14 @@ const retrieveProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const product = req.product as IProduct;
+    const { id } = req.params;
 
-    return res.status(HttpCode.OK).json({ data: product });
-  } catch (err: any) {
-    return next(err);
-  }
-};
-
-/**
- * Updates a product by id
- * @param req Express Request Object
- * @param res Express Response Object
- * @param next Express NextFunction Object
- */
-const updateProductById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | void> => {
-  try {
-    const id = req.params.id as string;
-
-    const idempotent = req.idempotent as Record<string, any>;
-
-    const payload = req.body as Partial<IProduct>;
-
-    const product = await ProductService.Create().updateById(id, payload, {
-      idempotent,
+    // Find query
+    const product = await ProductService.Create().findById(id, {
+      ...RequestParser(req), retry: true
     });
 
-    return res.status(HttpCode.MODIFIED).json({ data: product });
+    return res.sendResponse(HttpCode.OK, { data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -339,11 +273,74 @@ const retrieveProductByIdAndPopulate = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const id = req.params.id as string;
+    const { id } = req.params;
 
-    const product = await ProductService.Create().findByIdAndPopulate(id);
+    // Find query
+    const product = await ProductService.Create().findByIdAndPopulate(id, {
+      ...RequestParser(req),
+      retry: true,
+    });
 
-    return res.status(HttpCode.OK).json({ data: { product } });
+    return res.sendResponse(HttpCode.OK, { data: product });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Updates a product by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const updateProductById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    // Update filter
+    const { id } = req.params;
+
+    const payload: Partial<IProduct> = req.body;
+
+    const idempotent = req.idempotent as Record<string, any>;
+
+    // Update query
+    const product = await ProductService.Create().updateById(id, payload, {
+      idempotent,
+    });
+
+    return res.sendResponse(HttpCode.OK, { data: product });
+  } catch (err: any) {
+    return next(err);
+  }
+};
+
+/**
+ * Deletes a product by id
+ * @param req Express Request Object
+ * @param res Express Response Object
+ * @param next Express NextFunction Object
+ */
+const deleteProductById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
+  try {
+    // Delete filter
+    const { id } = req.params;
+
+    const idempotent = req.idempotent as Record<string, any>;
+
+    // Delete query
+    const product = await ProductService.Create().deleteById(id, {
+      idempotent,
+      retry: true,
+    });
+
+    return res.sendResponse(HttpCode.OK, { data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -353,11 +350,10 @@ export default {
   retrieveProductsSearch,
   retrieveProductsByLocation,
   retrieveProductsNearBy,
-  retrieveProductsByOffering,
-  retrieveProductsByPlace,
   retrieveProductsByListingProvider,
   retrieveProductsByListingType,
   retrieveProductById,
-  updateProductById,
   retrieveProductByIdAndPopulate,
+  updateProductById,
+  deleteProductById,
 };

@@ -14,32 +14,18 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteById
  */
 export default class PlaceRepository implements IPlaceRepository {
-  static LOCATION_PROJECTION = ["-createdAt", "-updatedAt", "-__v"];
-
-  static SORT_LOCATIONS = ["-createdAt"];
-
   /** Retrieves a collection of places
    * @public
    * @param queryString query object
    * @param options configuration options
    */
-  async findAll(queryString: Record<string, any>): Promise<IPlace[]> {
+  findAll(queryString: Record<string, any>): QueryBuilder<IPlace> {
     try {
       const query = Place.find();
 
-      const filter = { ...queryString };
+      const queryBuilder = QueryBuilder.Create<IPlace>(query, queryString);
 
-      const queryBuilder = QueryBuilder.Create<IPlace>(query, filter);
-
-      const places = (
-        await queryBuilder
-          .GeoSpatial()
-          .Sort(PlaceRepository.SORT_LOCATIONS)
-          .Select(PlaceRepository.LOCATION_PROJECTION)
-          .Paginate()
-      ).Exec();
-
-      return places;
+      return queryBuilder;
     } catch (error: any) {
       throw error;
     }
@@ -52,10 +38,7 @@ export default class PlaceRepository implements IPlaceRepository {
    */
   async findById(id: string): Promise<IPlace | null> {
     try {
-      const place = await Place.findById(
-        { _id: id },
-        PlaceRepository.LOCATION_PROJECTION
-      ).exec();
+      const place = await Place.findById(id).exec();
 
       return place;
     } catch (error: any) {
@@ -70,10 +53,7 @@ export default class PlaceRepository implements IPlaceRepository {
    */
   async findByField(field: string): Promise<IPlace | null> {
     try {
-      const place = await Place.findOne(
-        { field: new RegExp(field, "i") },
-        PlaceRepository.LOCATION_PROJECTION
-      ).exec();
+      const place = await Place.findOne({ field: field }).exec();
 
       return place;
     } catch (error: any) {
@@ -117,7 +97,7 @@ export default class PlaceRepository implements IPlaceRepository {
     const { session } = options;
 
     try {
-      const place = await Place.findByIdAndUpdate({ _id: id }, payload, {
+      const place = await Place.findByIdAndUpdate(id, payload, {
         new: true,
         session,
       });
@@ -141,7 +121,7 @@ export default class PlaceRepository implements IPlaceRepository {
     const { session } = options;
 
     try {
-      const place = await Place.findByIdAndDelete({ _id: id }, session);
+      const place = await Place.findByIdAndDelete(id, session);
 
       return place;
     } catch (error: any) {

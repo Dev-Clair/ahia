@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import ILeaseProduct from "../interface/ILeaseproduct";
 import IListing from "../interface/IListing";
@@ -8,8 +8,11 @@ import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import IdempotencyRepository from "../repository/idempotencyRepository";
 import NotFoundError from "../error/notfoundError";
+import LISTING from "../constant/listings";
 import ListingRepository from "../repository/listingRepository";
+import PRODUCT from "../constant/products";
 import ProductRepository from "../repository/productRepository";
+import ProductService from "./productService";
 
 /**
  * Listing Service
@@ -27,24 +30,52 @@ import ProductRepository from "../repository/productRepository";
  * @method deleteListingProduct
  */
 export default class ListingService implements IListingService {
+  static LISTING_PROJECTION = LISTING.PROJECTION;
+
+  static LISTING_SORT = LISTING.SORT;
+
+  static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
+
+  static PRODUCT_SORT = PRODUCT.SORT;
+
   /** Retrieves a collection of listings
    * @public
    * @param queryString query object
+   * @param options configuration options
    */
-  async findAll(queryString: Record<string, any>): Promise<IListing[]> {
+  async findAll(
+    queryString: Record<string, any>,
+    options: Record<string, any>
+  ): Promise<IListing[]> {
     try {
+      const { retry = true } = options;
+
       const operation = async (): Promise<IListing[]> => {
         const filter = {
           ...queryString,
-          // verification: { status: "approved" },
+          // "verification.status": { eq: ["pending", "approved"] } ,
         };
 
-        const listings = await ListingRepository.Create().findAll(filter);
+        const queryBuilder = ListingRepository.Create().findAll(filter);
+
+        const listings =
+          (await queryBuilder
+            .Filter()
+            .Sort(ListingService.LISTING_SORT)
+            .Select(ListingService.LISTING_PROJECTION)
+            .Paginate()
+          ).Exec();
 
         return listings;
       };
 
-      return await FailureRetry.LinearJitterBackoff(() => operation());
+      const listings = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      console.log(listings);
+
+      return listings;
     } catch (error: any) {
       throw error;
     }
@@ -53,11 +84,28 @@ export default class ListingService implements IListingService {
   /** Retrieves a listing by id
    * @public
    * @param id listing id
+   * @param options configuration options
    */
-  async findById(id: string): Promise<IListing> {
+  async findById(id: string, options: Record<string, any>): Promise<IListing> {
     try {
+      const { fields, retry = true } = options;
+
+      // Query projection
+      let listingProjection = ListingService.LISTING_PROJECTION;
+
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
+
+      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
+
+      // Retrieve listing
       const operation = async () => {
-        const listing = await ListingRepository.Create().findById(id);
+        const listing = await ListingRepository.Create().findById(id, { projection: listingProjectionObject });
 
         // Validate listing
         if (!listing)
@@ -66,7 +114,11 @@ export default class ListingService implements IListingService {
         return listing;
       };
 
-      return await FailureRetry.LinearJitterBackoff(() => operation());
+      const listing = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      return listing;
     } catch (error: any) {
       throw error;
     }
@@ -79,18 +131,51 @@ export default class ListingService implements IListingService {
    */
   async findByIdAndPopulate(
     id: string,
-    options: {
-      page: number;
-      limit: number;
-    }
+    options: Record<string, any>
   ): Promise<IListing> {
     try {
-      const operation = async () => {
-        const { page, limit } = options;
+      const { page, limit, fields, retry = true } = options;
 
+      // Query projection
+      let listingProjection = ListingService.LISTING_PROJECTION;
+
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
+
+      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
+
+      let productProjection = ListingService.PRODUCT_PROJECTION;
+
+      const productProjectionObject = Object.fromEntries(productProjection.map((field) => {
+        const include = !field.startsWith('-');
+
+        const fieldName = field.replace('-', '');
+
+        return [fieldName, include ? 1 : 0]
+      }));
+
+      const projection = {
+        listing: listingProjectionObject,
+        product: productProjectionObject
+      };
+
+      // Query sorting
+      const listingSort = { sort: ListingService.LISTING_SORT.join(" ") }
+
+      const productSort = { sort: ListingService.PRODUCT_SORT.join(" ") }
+
+      const sort = { listing: listingSort, product: productSort };
+
+      // Retrieve listing
+      const operation = async () => {
         const listing = await ListingRepository.Create().findByIdAndPopulate(
           id,
-          { page: page, limit: limit }
+          { page: page, limit: limit, projection, sort }
         );
 
         // Validate listing
@@ -100,7 +185,11 @@ export default class ListingService implements IListingService {
         return listing;
       };
 
-      return await FailureRetry.LinearJitterBackoff(() => operation());
+      const listing = retry
+        ? await FailureRetry.LinearJitterBackoff(() => operation())
+        : await operation();
+
+      return listing;
     } catch (error: any) {
       throw error;
     }
@@ -114,16 +203,16 @@ export default class ListingService implements IListingService {
    */
   async save(
     payload: Partial<IListing> | Partial<IListing>[],
-    options: { idempotent: Record<string, any> }
+    options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
+      const { idempotent, retry = true } = options;
 
+      return await session.withTransaction(async () => {
         // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create listing
@@ -141,7 +230,11 @@ export default class ListingService implements IListingService {
           return result;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const listings = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return listings;
       });
     } catch (error: any) {
       throw error;
@@ -160,16 +253,16 @@ export default class ListingService implements IListingService {
   async updateById(
     id: string,
     payload: Partial<IListing> | any,
-    options: { idempotent: Record<string, any> }
+    options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
+      const { idempotent, retry = true } = options;
 
+      return await session.withTransaction(async () => {
         // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Update listing
@@ -191,7 +284,11 @@ export default class ListingService implements IListingService {
           return listingId;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const listing = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return listing;
       });
     } catch (error: any) {
       throw error;
@@ -204,13 +301,18 @@ export default class ListingService implements IListingService {
    * Deletes a listing by id
    * @public
    * @param id listing id
-   * @param options configuration options (optional)
+   * @param options configuration options
    */
-  async deleteById(id: string): Promise<string> {
+  async deleteById(id: string, options: { idempotent: Record<string, any> | null; retry?: boolean }): Promise<string> {
     const session = await mongoose.startSession();
 
     try {
+      const { idempotent, retry = true } = options;
+
       return await session.withTransaction(async () => {
+        // Ensure operation idempotency
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
+
         const operation = async () => {
           // Delete listing
           const listing = await ListingRepository.Create().deleteById(id, {
@@ -224,10 +326,17 @@ export default class ListingService implements IListingService {
           // Transform result
           const listingId = listing._id.toString();
 
+          // Delete products referenced to listing
+          await ProductRepository.Create().deleteCollection(listingId, session);
+
           return listingId;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const listing = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return listing;
       });
     } catch (error: any) {
       throw error;
@@ -239,16 +348,18 @@ export default class ListingService implements IListingService {
   /** Retrieves a collection of listings based on products
    * @public
    * @param products array of product ids
+   * @param options configuration options
    */
-  async findListingsByProducts(products: string[]): Promise<IListing[]> {
+  async findListingsByProducts(products: string[],
+    options: Record<string, any>) {
     try {
       const operation = async () => {
         if (!Array.isArray(products) || products.length === 0)
           throw new Error(`Invalid Argument Type Error`);
 
-        return await ListingRepository.Create().findAll({
-          products: { in: products },
-        });
+        return await this.findAll(
+          { products: { in: products }, ...options },
+          { retry: true });
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
@@ -266,7 +377,7 @@ export default class ListingService implements IListingService {
   ): Promise<IProduct[]> {
     try {
       const operation = async () =>
-        await ProductRepository.Create().findAll(queryString);
+        await ProductService.Create().findAll(queryString, { retry: true });
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {
@@ -277,21 +388,23 @@ export default class ListingService implements IListingService {
   /**
    * Creates a new product (type: lease) on a listing
    * @public
+   * @param listing listing id
    * @param payload data object
    * @param options configuration options
    */
   public async saveListingLeaseProduct(
+    listing: string | ObjectId,
     payload: Partial<ILeaseProduct> | Partial<ILeaseProduct>[],
-    options: { idempotent: Record<string, any> }
+    options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
+      const { idempotent, retry = true } = options;
 
+      return await session.withTransaction(async () => {
         // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create product
@@ -301,23 +414,19 @@ export default class ListingService implements IListingService {
           );
 
           // Transform result
-          const updateOperations = products.map(({ id, listing }) => ({
-            updateOne: {
-              filter: { _id: listing },
-              update: { $addToSet: { products: id } },
-            },
-          }));
+          const productIds = products.map(({ id }) => id);
 
           // Update listing
-          await ListingRepository.Create().updateCollection(
-            updateOperations,
-            session
-          );
+          await ListingRepository.Create().updateCollection(listing, productIds, session);
 
-          return products.map(({ id, listing }) => ({ id, listing }));
+          return productIds;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const products = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return products;
       });
     } catch (error: any) {
       throw error;
@@ -329,21 +438,23 @@ export default class ListingService implements IListingService {
   /**
    * Creates a new product (type: reservation) on a listing
    * @public
+   * @param listing listing id
    * @param payload data object
    * @param options configuration options
    */
   public async saveListingReservationProduct(
+    listing: string | ObjectId,
     payload: Partial<IReservationProduct> | Partial<IReservationProduct>[],
-    options: { idempotent: Record<string, any> }
+    options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
+      const { idempotent, retry = true } = options;
 
+      return await session.withTransaction(async () => {
         // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create product
@@ -353,23 +464,19 @@ export default class ListingService implements IListingService {
           );
 
           // Transform result
-          const updateOperations = products.map(({ id, listing }) => ({
-            updateOne: {
-              filter: { _id: listing },
-              update: { $addToSet: { products: id } },
-            },
-          }));
+          const productIds = products.map(({ id }) => id);
 
           // Update listing
-          await ListingRepository.Create().updateCollection(
-            updateOperations,
-            session
-          );
+          await ListingRepository.Create().updateCollection(listing, productIds, session);
 
-          return products.map(({ id, listing }) => ({ id, listing }));
+          return productIds;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        const products = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
+
+        return products;
       });
     } catch (error: any) {
       throw error;
@@ -381,21 +488,23 @@ export default class ListingService implements IListingService {
   /**
    * Creates a new product (type: sell) on a listing
    * @public
+   * @param listing listing id
    * @param payload data object
    * @param options configuration options
    */
   public async saveListingSellProduct(
+    listing: string | ObjectId,
     payload: Partial<ISellProduct> | Partial<ISellProduct>[],
-    options: { idempotent: Record<string, any> }
+    options: { idempotent: Record<string, any> | null; retry?: boolean }
   ): Promise<string[]> {
     const session = await mongoose.startSession();
 
     try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
+      const { idempotent, retry = true } = options;
 
+      return await session.withTransaction(async () => {
         // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
+        if (idempotent) await IdempotencyRepository.save(idempotent, session);
 
         const operation = async () => {
           // Create product
@@ -405,70 +514,19 @@ export default class ListingService implements IListingService {
           );
 
           // Transform result
-          const updateOperations = products.map(({ id, listing }) => ({
-            updateOne: {
-              filter: { _id: listing },
-              update: { $addToSet: { products: id } },
-            },
-          }));
+          const productIds = products.map(({ id }) => id);
 
           // Update listing
-          await ListingRepository.Create().updateCollection(
-            updateOperations,
-            session
-          );
+          await ListingRepository.Create().updateCollection(listing, productIds, session);
 
-          return products.map(({ id, listing }) => ({ id, listing }));
+          return productIds;
         };
 
-        return await FailureRetry.ExponentialBackoff(() => operation());
-      });
-    } catch (error: any) {
-      throw error;
-    } finally {
-      await session.endSession();
-    }
-  }
+        const products = retry
+          ? await FailureRetry.ExponentialBackoff(() => operation())
+          : await operation();
 
-  /**
-   * Deletes a listing's product by id
-   * @public
-   * @param id product id
-   * @param options configuration options
-   */
-  async deleteListingProduct(
-    id: string,
-    options: { idempotent: Record<string, any> }
-  ): Promise<string> {
-    const session = await mongoose.startSession();
-
-    try {
-      return await session.withTransaction(async () => {
-        const { idempotent } = options;
-
-        // Ensure operation idempotency
-        await IdempotencyRepository.save(idempotent, session);
-
-        const operation = async () => {
-          // Delete product
-          const product = await ProductRepository.Create().deleteById(id, {
-            session: session,
-          });
-
-          // Validate product
-          if (!product)
-            throw new NotFoundError(`No document found for product: ${id}`);
-
-          // Transform result
-          const productId = product._id.toString();
-
-          // Update listing
-          await ListingRepository.Create().updateItem(id, productId, session);
-
-          return productId;
-        };
-
-        return await FailureRetry.ExponentialBackoff(() => operation());
+        return products;
       });
     } catch (error: any) {
       throw error;
