@@ -9,6 +9,7 @@ import IdempotencyRepository from "../repository/idempotencyRepository";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
 import PRODUCT from "../constant/products";
+import ListingService from "./listingService";
 
 /**
  * Product Service
@@ -324,17 +325,17 @@ export default class ProductService implements IProductService {
     try {
       const operation = async () => {
         // Find listings by filter
-        const listings = await this.findAll(listingFilter, { retry: true });
+        const listings = await ListingService.Create().findAll(listingFilter, { retry: false });
 
         const listingIds = listings.map((listing) => listing._id);
 
         if (!Array.isArray(listingIds) || listingIds.length === 0) return []; // Defaults to an empty array if no matching listings are found
 
         // Find products that match the listing IDs and product filter
-        const products = await ProductRepository.Create().findAll({
+        const products = await this.findAll({
           listing: { in: listingIds },
           ...productFilter,
-        });
+        }, { retry: false });
 
         return products;
       };
