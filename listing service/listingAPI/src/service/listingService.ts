@@ -12,6 +12,7 @@ import LISTING from "../constant/listings";
 import ListingRepository from "../repository/listingRepository";
 import PRODUCT from "../constant/products";
 import ProductRepository from "../repository/productRepository";
+import ProductService from "./productService";
 
 /**
  * Listing Service
@@ -52,7 +53,7 @@ export default class ListingService implements IListingService {
       const operation = async (): Promise<IListing[]> => {
         const filter = {
           ...queryString,
-          verification: { status: { in: ["pending", "approved"] } },
+          // "verification.status": { eq: ["pending", "approved"] } ,
         };
 
         const queryBuilder = ListingRepository.Create().findAll(filter);
@@ -71,6 +72,8 @@ export default class ListingService implements IListingService {
       const listings = retry
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
+
+      console.log(listings);
 
       return listings;
     } catch (error: any) {
@@ -352,7 +355,7 @@ export default class ListingService implements IListingService {
   ): Promise<IProduct[]> {
     try {
       const operation = async () =>
-        await ProductRepository.Create().findAll(queryString);
+        await ProductService.Create().findAll(queryString, { retry: true });
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {

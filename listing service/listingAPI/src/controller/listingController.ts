@@ -5,6 +5,7 @@ import IListing from "../interface/IListing";
 import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import ListingService from "../service/listingService";
+import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
 import RequestParser from "../utils/requestParser";
 import ResponseParser from "../utils/responseParser";
@@ -307,7 +308,7 @@ const createListingProduct = async (
     const idempotent = req.idempotent as Record<string, any>;
 
     // Retrieve listing
-    const listing = await ListingService.Create().findById(id, { fields: "id" });
+    const listing = await ListingService.Create().findById(id, { retry: true });
 
     let payload, products: string[];
 
@@ -385,9 +386,9 @@ const retrieveListingProducts = async (
     // Retrieve listing
     const listing = await ListingService.Create().findById(id, { fields: "id" });
 
-    // Find query
-    const products = await ListingService.Create().findListingProducts(
-      { listing: listing._id.toString(), ...RequestParser(req) }
+    // Retrieve products
+    const products = await ProductService.Create().findAll(
+      { listing: listing._id.toString(), ...RequestParser(req) }, { retry: true }
     );
 
     return res.sendResponse(HttpCode.OK, { data: products });

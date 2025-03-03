@@ -139,7 +139,7 @@ const ListingSchema: Schema<IListing> = new Schema(
 );
 
 // Listing Schema Location Index
-ListingSchema.index({ "location.coordinates": "2dsphere" }, { sparse: true });
+ListingSchema.index({ location: "2dsphere" }, { sparse: true });
 
 // Listing Schema Text Search Index
 ListingSchema.index({ "address.city": "text", "address.state": "text" });
