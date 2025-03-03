@@ -49,27 +49,27 @@ const ListingSchema: Schema<IListing> = new Schema(
         },
         required: false,
       },
-      address: {
-        street: {
-          type: String,
-          maxlength: 125,
-          required: true,
-        },
-        city: {
-          type: String,
-          maxlength: 50,
-          required: true,
-        },
-        state: {
-          type: String,
-          maxlength: 50,
-          required: true,
-        },
-        zip: {
-          type: String,
-          maxlength: 20,
-          required: false,
-        },
+    },
+    address: {
+      street: {
+        type: String,
+        maxlength: 125,
+        required: true,
+      },
+      city: {
+        type: String,
+        maxlength: 50,
+        required: true,
+      },
+      state: {
+        type: String,
+        maxlength: 50,
+        required: true,
+      },
+      zip: {
+        type: String,
+        maxlength: 20,
+        required: false,
       },
     },
     provider: {
@@ -127,11 +127,11 @@ const ListingSchema: Schema<IListing> = new Schema(
           maxlength: 100,
           required: false,
         },
-      },
-      issuedBy: {
-        type: String,
-        maxlength: 255,
-        required: false,
+        authority: {
+          type: String,
+          maxlength: 255,
+          required: false,
+        },
       },
     },
   },
@@ -142,9 +142,6 @@ const ListingSchema: Schema<IListing> = new Schema(
 ListingSchema.index({ "location.coordinates": "2dsphere" }, { sparse: true });
 
 // Listing Schema Text Search Index
-ListingSchema.index({
-  "location.address.city": "text",
-  "location.address.state": "text",
-});
+ListingSchema.index({ "address.city": "text", "address.state": "text" });
 
 export default ListingSchema;

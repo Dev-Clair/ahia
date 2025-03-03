@@ -33,7 +33,4 @@ const PlaceSchema: Schema<IPlace> = new Schema(
   }
 );
 
-// Place Schema Search Query Index
-PlaceSchema.index({ city: "text", state: "text" });
-
 export default PlaceSchema;
