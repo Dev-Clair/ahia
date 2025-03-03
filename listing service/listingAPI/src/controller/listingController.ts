@@ -6,7 +6,8 @@ import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import ListingService from "../service/listingService";
 import { NextFunction, Request, Response } from "express";
-import Paginator from "../utils/paginator";
+import RequestParser from "../utils/requestParser";
+import ResponseParser from "../utils/responseParser";
 import UnauthorizedError from "../error/unauthorizedError";
 
 /**
@@ -44,7 +45,7 @@ const createListing = async (
       retry: true,
     });
 
-    return res.sendResponse(HttpCode.CREATED, listings);
+    return res.sendResponse(HttpCode.CREATED, { data: listings });
   } catch (err: any) {
     return next(err);
   }
@@ -70,14 +71,14 @@ const retrieveListingsSearch = async (
     const listings = await ListingService.Create().findAll(
       {
         $text: { $search: q },
-        ...req.queryString
+        ...RequestParser(req)
       },
       { retry: true });
 
     // Add pagination metadata to response
-    Paginator(req, res, listings);
+    ResponseParser(req, res, listings);
 
-    return res.sendResponse(HttpCode.OK, listings);
+    return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
     return next(err);
   }
@@ -102,15 +103,15 @@ const retrieveListingsByProvider = async (
     // Find query
     const listings = await ListingService.Create().findAll({
       provider: provider,
-      ...req.queryString
+      ...RequestParser(req)
     }, {
       retry: true,
     });
 
     // Add pagination metadata to response
-    Paginator(req, res, listings);
+    ResponseParser(req, res, listings);
 
-    return res.sendResponse(HttpCode.OK, listings);
+    return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
     return next(err);
   }
@@ -135,15 +136,15 @@ const retrieveListingsByType = async (
     // Find query
     const listings = await ListingService.Create().findAll({
       type: type,
-      ...req.queryString
+      ...RequestParser(req)
     }, {
       retry: true,
     });
 
     // Add pagination metadata to response
-    Paginator(req, res, listings);
+    ResponseParser(req, res, listings);
 
-    return res.sendResponse(HttpCode.OK, listings);
+    return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
     return next(err);
   }
@@ -165,13 +166,13 @@ const retrieveListingsByProducts = async (
 
     // Find query
     const listings = await ListingService.Create().findListingsByProducts(
-      queryString, { ...req.queryString }
+      queryString, { ...RequestParser(req) }
     );
 
     // Add pagination metadata to response
-    Paginator(req, res, listings);
+    ResponseParser(req, res, listings);
 
-    return res.sendResponse(HttpCode.OK, listings);
+    return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
     return next(err);
   }
@@ -189,10 +190,15 @@ const retrieveListingById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Retrieve listing from request object
-    const listing = req.listing as IListing;
+    const { id } = req.params;
 
-    return res.sendResponse(HttpCode.OK, listing);
+    // Find query
+    const listing = await ListingService.Create().findById(id, {
+      ...RequestParser(req),
+      retry: true
+    });
+
+    return res.sendResponse(HttpCode.OK, { data: listing });
   } catch (err: any) {
     return next(err);
   }
@@ -213,9 +219,10 @@ const retrieveListingByIdAndPopulate = async (
     const { id } = req.params;
 
     // Find query
-    const listing = await ListingService.Create().findByIdAndPopulate(id, { ...req.queryString });
+    const listing = await ListingService.Create().findByIdAndPopulate(id,
+      { ...RequestParser(req), retry: true });
 
-    return res.sendResponse(HttpCode.OK, listing);
+    return res.sendResponse(HttpCode.OK, { data: listing });
   } catch (err: any) {
     return next(err);
   }
@@ -245,7 +252,7 @@ const updateListingById = async (
       retry: true,
     });
 
-    return res.sendResponse(HttpCode.OK, listing);
+    return res.sendResponse(HttpCode.OK, { data: listing });
   } catch (err: any) {
     return next(err);
   }
@@ -273,7 +280,7 @@ const deleteListingById = async (
       retry: true,
     });
 
-    return res.sendResponse(HttpCode.OK, listing);
+    return res.sendResponse(HttpCode.OK, { data: listing });
   } catch (err: any) {
     return next(err);
   }
@@ -291,17 +298,16 @@ const createListingProduct = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
+    const { id } = req.params;
+
     const { type } = req.query;
+
+    if (!type) throw new Error("Product type is required");
 
     const idempotent = req.idempotent as Record<string, any>;
 
-    // Retrieve listing from request object
-    const listing = req.listing as IListing;
-
-    if (!type)
-      throw new Error(
-        "Kindly specify a product type: lease, reservation, sell"
-      );
+    // Retrieve listing
+    const listing = await ListingService.Create().findById(id, { fields: "id" });
 
     let payload, products: string[];
 
@@ -317,6 +323,7 @@ const createListingProduct = async (
       };
     }
 
+    // Create query
     switch (type) {
       case "lease":
         payload as Partial<ILeaseProduct> | Partial<ILeaseProduct>[];
@@ -327,7 +334,7 @@ const createListingProduct = async (
           { idempotent, retry: true }
         );
 
-        return res.sendResponse(HttpCode.CREATED, products);
+        return res.sendResponse(HttpCode.CREATED, { data: products });
 
       case "reservation":
         payload as
@@ -340,7 +347,7 @@ const createListingProduct = async (
           { idempotent, retry: true }
         );
 
-        return res.sendResponse(HttpCode.CREATED, products);
+        return res.sendResponse(HttpCode.CREATED, { data: products });
 
       case "sell":
         payload as Partial<ISellProduct> | Partial<ISellProduct>[];
@@ -351,7 +358,7 @@ const createListingProduct = async (
           { idempotent, retry: true }
         );
 
-        return res.sendResponse(HttpCode.CREATED, products);
+        return res.sendResponse(HttpCode.CREATED, { data: products });
 
       default:
         throw new Error("Invalid product type");
@@ -373,15 +380,17 @@ const retrieveListingProducts = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Retrieve listing from request object
-    const listing = req.listing as IListing;
+    const { id } = req.params;
+
+    // Retrieve listing
+    const listing = await ListingService.Create().findById(id, { fields: "id" });
 
     // Find query
     const products = await ListingService.Create().findListingProducts(
-      { listing: listing._id.toString(), ...req.queryString }
+      { listing: listing._id.toString(), ...RequestParser(req) }
     );
 
-    return res.sendResponse(HttpCode.OK, products);
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }

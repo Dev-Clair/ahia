@@ -2,10 +2,8 @@ import { Router } from "express";
 import AppController from "../controller/appController";
 import AppMiddleware from "../middleware/appMiddleware";
 import AuthMiddleware from "../middleware/authMiddleware";
-import DocumentMiddleware from "../middleware/documentMiddleware";
 import GeocodeMiddleware from "../middleware/geocodeMiddleware";
 import IdempotencyMiddleware from "../middleware/idempotencyMiddleware";
-import QueryStringMiddleware from "../middleware/queryStringMiddleware";
 import ProductController from "../controller/productController";
 
 const ProductRouter = Router();
@@ -20,7 +18,6 @@ ProductRouter.get(
   "/status/:status/location/:city?/:state?",
   // AuthMiddleware.isGranted(["Customer"]),
   // AuthMiddleware.isPermitted(["retrieve:products"]),
-  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByLocation
 );
 
@@ -29,32 +26,26 @@ ProductRouter.get(
   // AuthMiddleware.isGranted(["Customer"]),
   // AuthMiddleware.isPermitted(["retrieve:products"]),
   GeocodeMiddleware.parseUserGeoCoordinates,
-  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsNearBy
 );
 
 ProductRouter.get(
   "/status/:status/provider/:provider",
-  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByListingProvider
 );
 
 ProductRouter.get(
   "/status/:status/search",
-  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsSearch
 );
 
 ProductRouter.get(
   "/status/:status/type/:type",
-  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductsByListingType
 );
 
 ProductRouter.route("/:id")
   .get(
-    QueryStringMiddleware.parseQueryString,
-    DocumentMiddleware("product", "id"),
     ProductController.retrieveProductById
   )
   .patch(
@@ -75,7 +66,6 @@ ProductRouter.get(
   "/:id/listing",
   // AuthMiddleware.isGranted(["Admin", "Provider", "Customer"]),
   // AuthMiddleware.isPermitted(["retrieve:products"]),
-  QueryStringMiddleware.parseQueryString,
   ProductController.retrieveProductByIdAndPopulate
 );
 

@@ -2,8 +2,9 @@ import HttpCode from "../enum/httpCode";
 import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import IProduct from "../interface/IProduct";
-import Paginator from "../utils/paginator";
 import ProductService from "../service/productService";
+import RequestParser from "../utils/requestParser";
+import ResponseParser from "../utils/responseParser";
 
 /**
  * Retrieves products by search query
@@ -27,18 +28,16 @@ const retrieveProductsSearch = async (
     const productFilter: Record<string, any> = {
       $text: { $search: q },
       status: status,
-      ...req.queryString,
     };
 
     // Find query
-    const products = await ProductService.Create().findAll(productFilter, {
-      retry: true,
-    });
+    const products = await ProductService.Create().findAll(productFilter,
+      { retry: true });
 
     // Add pagination metadata to response
-    Paginator(req, res, products);
+    ResponseParser(req, res, products);
 
-    return res.sendResponse(HttpCode.OK, products);
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -78,7 +77,7 @@ const retrieveProductsByLocation = async (
     // Listing filter
     const listingFilter: Record<string, any> = {
       location: { ...(address && { address }) },
-      ...req.queryString,
+      ...RequestParser(req),
     };
 
     // Product filter
@@ -90,7 +89,6 @@ const retrieveProductsByLocation = async (
         ...(type && { type }),
         ...area,
       },
-      ...req.queryString,
     };
 
     // Find query
@@ -100,9 +98,9 @@ const retrieveProductsByLocation = async (
     );
 
     // Add pagination metadata to response
-    Paginator(req, res, products);
+    ResponseParser(req, res, products);
 
-    return res.sendResponse(HttpCode.OK, products);
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -137,7 +135,7 @@ const retrieveProductsNearBy = async (
     // Listing filter
     const listingFilter: Record<string, any> = {
       ...req.geoCoordinates,
-      ...req.queryString,
+      ...RequestParser(req),
     };
 
     // Product filter
@@ -149,7 +147,6 @@ const retrieveProductsNearBy = async (
         ...(type && { type }),
         ...area,
       },
-      ...req.queryString,
     };
 
     // Find query
@@ -159,9 +156,9 @@ const retrieveProductsNearBy = async (
     );
 
     // Add pagination metadata to response
-    Paginator(req, res, products);
+    ResponseParser(req, res, products);
 
-    return res.sendResponse(HttpCode.OK, products);
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -182,10 +179,10 @@ const retrieveProductsByListingProvider = async (
     const { status, provider } = req.params;
 
     // Listing filter
-    const listingFilter: Record<string, any> = { provider: provider, ...req.queryString };
+    const listingFilter: Record<string, any> = { provider: provider, ...RequestParser(req) };
 
     // Product filter
-    const productFilter: Record<string, any> = { status: status, ...req.queryString };
+    const productFilter: Record<string, any> = { status: status, ...RequestParser(req) };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -194,9 +191,9 @@ const retrieveProductsByListingProvider = async (
     );
 
     // Add pagination metadata to response
-    Paginator(req, res, products);
+    ResponseParser(req, res, products);
 
-    return res.sendResponse(HttpCode.OK, products);
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -217,10 +214,10 @@ const retrieveProductsByListingType = async (
     const { status, type } = req.params;
 
     // Listing filter
-    const listingFilter: Record<string, any> = { type: type, ...req.queryString };
+    const listingFilter: Record<string, any> = { type: type, ...RequestParser(req) };
 
     // Product filter
-    const productFilter: Record<string, any> = { status: status, ...req.queryString };
+    const productFilter: Record<string, any> = { status: status };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -229,9 +226,9 @@ const retrieveProductsByListingType = async (
     );
 
     // Add pagination metadata to response
-    Paginator(req, res, products);
+    ResponseParser(req, res, products);
 
-    return res.sendResponse(HttpCode.OK, products);
+    return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
     return next(err);
   }
@@ -249,10 +246,14 @@ const retrieveProductById = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    // Retrieve product from request object
-    const product = req.product as IProduct;
+    const { id } = req.params;
 
-    return res.sendResponse(HttpCode.OK, product);
+    // Find query
+    const product = await ProductService.Create().findById(id, {
+      ...RequestParser(req), retry: true
+    });
+
+    return res.sendResponse(HttpCode.OK, { data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -274,11 +275,11 @@ const retrieveProductByIdAndPopulate = async (
 
     // Find query
     const product = await ProductService.Create().findByIdAndPopulate(id, {
-      ...req.queryString,
+      ...RequestParser(req),
       retry: true,
     });
 
-    return res.sendResponse(HttpCode.OK, product);
+    return res.sendResponse(HttpCode.OK, { data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -308,7 +309,7 @@ const updateProductById = async (
       idempotent,
     });
 
-    return res.sendResponse(HttpCode.OK, product);
+    return res.sendResponse(HttpCode.OK, { data: product });
   } catch (err: any) {
     return next(err);
   }
@@ -337,7 +338,7 @@ const deleteProductById = async (
       retry: true,
     });
 
-    return res.sendResponse(HttpCode.OK, product);
+    return res.sendResponse(HttpCode.OK, { data: product });
   } catch (err: any) {
     return next(err);
   }
