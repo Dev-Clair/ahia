@@ -57,7 +57,7 @@ export class QueryBuilder<T> {
         : undefined;
 
       if (parsedDistance !== undefined) {
-        locationFilter["location.coordinates"] = {
+        locationFilter["location"] = {
           $nearSphere: {
             $geometry: {
               type: "Point",
@@ -69,7 +69,7 @@ export class QueryBuilder<T> {
       }
 
       if (parsedRadius !== undefined) {
-        locationFilter["location.coordinates"] = {
+        locationFilter["location"] = {
           $geoWithin: {
             $centerSphere: [[parsedLng, parsedLat], parsedRadius / 6378.1],
           },
@@ -79,57 +79,7 @@ export class QueryBuilder<T> {
 
     const requestflter = { ...defaultFilter, ...locationFilter };
 
-    console.log("requestFilter", requestflter)
-
     this.query = this.query.find(requestflter);
-
-    return this;
-  }
-
-  /**
-   * Handles geospatial queries: Near | Within
-   */
-  public GeoSpatial(): this {
-    //   if (this.queryString.lng && this.queryString.lat) {
-    //     const parsedLng = parseFloat(this.queryString.lng as string);
-
-    //     const parsedLat = parseFloat(this.queryString.lat as string);
-
-    //     if (isNaN(parsedLng) || isNaN(parsedLat))
-    //       throw new Error("Invalid coordinates provided for geospatial query.");
-
-    //     const parsedDistance = this.queryString?.distance
-    //       ? parseFloat(this.queryString.distance as string)
-    //       : undefined;
-
-    //     const parsedRadius = this.queryString?.radius
-    //       ? parseFloat(this.queryString.radius as string)
-    //       : undefined;
-
-    //     let locationFilter: Record<string, any> = {};
-
-    //     if (parsedDistance !== undefined) {
-    //       locationFilter["location.coordinates"] = {
-    //         $nearSphere: {
-    //           $geometry: {
-    //             type: "Point",
-    //             coordinates: [parsedLng, parsedLat],
-    //           },
-    //           $maxDistance: parsedDistance,
-    //         },
-    //       };
-    //     }
-
-    //     if (parsedRadius !== undefined) {
-    //       locationFilter["location.coordinates"] = {
-    //         $geoWithin: {
-    //           $centerSphere: [[parsedLng, parsedLat], parsedRadius / 6378.1],
-    //         },
-    //       };
-    //     }
-
-    //     this.query = this.query.find({ ...locationFilter });
-    //   }
 
     return this;
   }
@@ -140,7 +90,7 @@ export class QueryBuilder<T> {
   public async Paginate(): Promise<this> {
     const page = parseInt((this.queryString.page as string) || "1", 10);
 
-    const limit = parseInt((this.queryString.limit as string) || "50", 10);
+    const limit = parseInt((this.queryString.limit as string) || "20", 10);
 
     const skip = (page - 1) * limit;
 

@@ -5,11 +5,13 @@ const ResponseParser = (req: Request, res: Response, resource: IDocument[]) =>
     res.meta!.pagination = {
         total: resource.length,
 
-        limit: parseInt(req.queryString?.limit?.toString() ?? "10", 10),
+        page: parseInt(req.query?.page as string ?? "1", 10),
 
-        page: parseInt(req.queryString?.page as string, 10) ?? 1,
+        limit: parseInt(req.query?.limit?.toString() ?? "20", 10),
 
-        pages: Math.ceil(resource.length / (req.queryString?.limit ? parseInt(req.queryString.limit.toString(), 10) : 10))
+        pages: Math.ceil(resource.length /
+            (req.query?.limit ? parseInt(req.query?.limit.toString() ?? "20", 10) : 20)
+        )
     }
 
 export default ResponseParser;
