@@ -2,8 +2,6 @@ import { ClientSession, ObjectId } from "mongoose";
 import IListing from "../interface/IListing";
 import IListingRepository from "../interface/IListingrepository";
 import Listing from "../model/listingModel";
-import LISTING from "../constant/listings";
-import PRODUCT from "../constant/products";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
@@ -18,34 +16,17 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method updateCollection
  */
 export default class ListingRepository implements IListingRepository {
-  static LISTING_PROJECTION = LISTING.PROJECTION;
-
-  static LISTING_SORT = LISTING.SORT;
-
-  static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
-
-  static PRODUCT_SORT = PRODUCT.SORT;
-
   /** Retrieves a collection of listings
    * @public
    * @param queryString query object
    */
-  async findAll(queryString: Record<string, any>): Promise<IListing[]> {
+  findAll(queryString: Record<string, any>): QueryBuilder<IListing> {
     try {
       const query = Listing.find();
 
       const queryBuilder = QueryBuilder.Create<IListing>(query, queryString);
 
-      const listings =
-        (await queryBuilder
-          // .GeoSpatial()
-          .Filter()
-          .Sort(ListingRepository.LISTING_SORT)
-          .Select(ListingRepository.LISTING_PROJECTION)
-          .Paginate()
-        ).Exec();
-
-      return listings;
+      return queryBuilder
     } catch (error: any) {
       throw error;
     }
@@ -58,17 +39,9 @@ export default class ListingRepository implements IListingRepository {
    */
   async findById(id: string, options: Record<string, any>): Promise<IListing | null> {
     try {
-      const { fields } = options;
+      const { projection } = options;
 
-      console.log(fields);
-
-      let listingProjection = ListingRepository.LISTING_PROJECTION;
-
-      if (fields !== undefined) listingProjection = [...listingProjection, fields];
-
-      console.log(listingProjection, listingProjection.join(" "));
-
-      const listing = await Listing.findById(id).select(listingProjection.join(" ")).exec();
+      const listing = await Listing.findById(id).select(projection).exec();
 
       return listing;
     } catch (error: any) {
@@ -86,30 +59,18 @@ export default class ListingRepository implements IListingRepository {
     options: Record<string, any>
   ): Promise<IListing | null> {
     try {
-      const { page, limit, fields } = options;
-
-      console.log(fields);
-
-      let listingProjection = ListingRepository.LISTING_PROJECTION;
-
-      let productProjection = ListingRepository.PRODUCT_PROJECTION;
-
-      if (fields !== undefined) listingProjection = [...listingProjection, fields];
-
-      const productSort = { sort: ListingRepository.PRODUCT_SORT.join(" ") }
-
-      console.log(`listing: ${listingProjection}\n, ${listingProjection.join(" ")}`, `product: ${productProjection}\n, ${productProjection.join(" ")}`);
+      const { page, limit, projection, sort } = options;
 
       const listing = await Listing.findById(id)
-        .select(listingProjection.join(" "))
+        .select(projection.listing)
         .populate({
           path: "products",
           model: "Product",
-          select: productProjection.join(" "),
+          select: projection.product,
           options: {
             skip: (page - 1) * limit,
             limit: limit,
-            ...productSort,
+            ...sort.product
           },
         })
         .exec();
@@ -158,10 +119,8 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { session } = options;
 
-      const listing = await Listing.findByIdAndUpdate({ _id: id }, payload, {
-        new: true,
-        session,
-      }).exec();
+      const listing = await Listing.findByIdAndUpdate(id, payload,
+        { new: true, session }).exec();
 
       return listing;
     } catch (error: any) {
@@ -182,10 +141,7 @@ export default class ListingRepository implements IListingRepository {
     try {
       const { session } = options;
 
-      const listing = await Listing.findByIdAndDelete(
-        { _id: id },
-        session
-      ).exec();
+      const listing = await Listing.findByIdAndDelete(id, session).exec();
 
       return listing;
     } catch (error: any) {

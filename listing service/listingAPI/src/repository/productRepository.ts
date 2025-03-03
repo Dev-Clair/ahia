@@ -8,8 +8,6 @@ import Lease from "../model/leaseModel";
 import Product from "../model/productModel";
 import Reservation from "../model/reservationModel";
 import Sell from "../model/sellModel";
-import LISTING from "../constant/listings";
-import PRODUCT from "../constant/products";
 import { QueryBuilder } from "../utils/queryBuilder";
 
 /**
@@ -24,38 +22,17 @@ import { QueryBuilder } from "../utils/queryBuilder";
  * @method deleteCollection
  */
 export default class ProductRepository implements IProductRepository {
-  static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
-
-  static PRODUCT_SORT = PRODUCT.SORT;
-
-  static LISTING_PROJECTION = LISTING.PROJECTION;
-
-  static LISTING_SORT = LISTING.SORT;
-
   /** Retrieves a collection of products
    * @public
    * @param queryString query object
    */
-  async findAll(queryString: Record<string, any>): Promise<IProduct[]> {
+  findAll(queryString: Record<string, any>): QueryBuilder<IProduct> {
     try {
       const query = Product.find();
 
-      const filter = {
-        ...queryString,
-        // verification: { status: true },
-      };
+      const queryBuilder = QueryBuilder.Create<IProduct>(query, queryString);
 
-      const queryBuilder = QueryBuilder.Create<IProduct>(query, filter);
-
-      const products = (
-        await queryBuilder
-          .Filter()
-          .Sort(ProductRepository.PRODUCT_SORT)
-          .Select(ProductRepository.PRODUCT_PROJECTION)
-          .Paginate()
-      ).Exec();
-
-      return products;
+      return queryBuilder;
     } catch (error: any) {
       throw error;
     }
@@ -68,15 +45,10 @@ export default class ProductRepository implements IProductRepository {
    */
   async findById(id: string, options: Record<string, any>): Promise<IProduct | null> {
     try {
-      const { fields } = options;
-
-      // Projection
-      let productProjection = ProductRepository.PRODUCT_PROJECTION;
-
-      if (fields !== undefined) productProjection = [...productProjection, fields];
+      const { projection } = options;
 
       // Query
-      const product = await Product.findById(id).select(productProjection.join(" ")).exec();
+      const product = await Product.findById(id).select(projection).exec();
 
       return product;
     } catch (error: any) {
@@ -91,22 +63,15 @@ export default class ProductRepository implements IProductRepository {
    */
   async findByIdAndPopulate(id: string, options: Record<string, any>): Promise<IProduct | null> {
     try {
-      const { fields } = options;
-
-      // Projection
-      let productProjection = ProductRepository.PRODUCT_PROJECTION;
-
-      let listingProjection = ProductRepository.LISTING_PROJECTION;
-
-      if (fields !== undefined) productProjection = [...productProjection, fields];
+      const { projection } = options;
 
       // Query
       const product = await Product.findById(id)
-        .select(productProjection.join(" "))
+        .select(projection.product)
         .populate({
           path: "listing",
           model: "Listing",
-          select: listingProjection.join(" "),
+          select: projection.listing,
         })
         .exec();
 
@@ -215,7 +180,7 @@ export default class ProductRepository implements IProductRepository {
     try {
       const { session } = options;
 
-      const product = await Product.findByIdAndUpdate({ _id: id }, payload, {
+      const product = await Product.findByIdAndUpdate(id, payload, {
         new: true,
         session,
       });
@@ -239,7 +204,7 @@ export default class ProductRepository implements IProductRepository {
     try {
       const { session } = options;
 
-      const product = await Product.findByIdAndDelete({ _id: id }, session);
+      const product = await Product.findByIdAndDelete(id, session);
 
       return product;
     } catch (error: any) {

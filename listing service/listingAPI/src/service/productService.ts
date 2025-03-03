@@ -2,11 +2,13 @@ import mongoose from "mongoose";
 import FailureRetry from "../utils/failureRetry";
 import IProduct from "../interface/IProduct";
 import IProductService from "../interface/IProductservice";
+import LISTING from "../constant/listings";
 import ListingRepository from "../repository/listingRepository";
 import ProductRepository from "../repository/productRepository";
 import IdempotencyRepository from "../repository/idempotencyRepository";
 import NotFoundError from "../error/notfoundError";
 import PaymentRequiredError from "../error/paymentrequiredError";
+import PRODUCT from "../constant/products";
 
 /**
  * Product Service
@@ -19,6 +21,14 @@ import PaymentRequiredError from "../error/paymentrequiredError";
  * @method findByListing
  */
 export default class ProductService implements IProductService {
+  static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
+
+  static PRODUCT_SORT = PRODUCT.SORT;
+
+  static LISTING_PROJECTION = LISTING.PROJECTION;
+
+  static LISTING_SORT = LISTING.SORT;
+
   /** Retrieves a collection of products
    * @public
    * @param queryString query object
@@ -35,7 +45,15 @@ export default class ProductService implements IProductService {
           // verification: { status: true },
         };
 
-        const products = await ProductRepository.Create().findAll(filter);
+        const queryBuilder = ProductRepository.Create().findAll(filter);
+
+        const products =
+          (await queryBuilder
+            .Filter()
+            .Sort(ProductService.PRODUCT_SORT)
+            .Select(ProductService.PRODUCT_PROJECTION)
+            .Paginate()
+          ).Exec();
 
         return products;
       };
@@ -59,8 +77,16 @@ export default class ProductService implements IProductService {
     try {
       const { fields, retry = true } = options;
 
+      // Query projection
+      let productProjection = ProductService.PRODUCT_PROJECTION;
+
+      if (fields !== undefined) productProjection = [...productProjection, fields];
+
+      const projection = productProjection.join(" ");
+
+      // Retrieve product
       const operation = async () => {
-        const product = await ProductRepository.Create().findById(id, { fields: fields });
+        const product = await ProductRepository.Create().findById(id, { projection: projection });
 
         // Validate product
         if (!product)
@@ -88,10 +114,30 @@ export default class ProductService implements IProductService {
     try {
       const { fields, retry = true } = options;
 
+      // Query projection
+      let listingProjection = ProductService.LISTING_PROJECTION;
+
+      let productProjection = ProductService.PRODUCT_PROJECTION;
+
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
+
+      const projection = {
+        listing: listingProjection.join(" "),
+        product: productProjection.join(" ")
+      };
+
+      // Query sorting
+      const listingSort = { sort: ProductService.LISTING_SORT.join(" ") }
+
+      const productSort = { sort: ProductService.PRODUCT_SORT.join(" ") }
+
+      const sort = { lisiting: listingSort, product: productSort };
+
+      // Retrieve product
       const operation = async () => {
         const product = await ProductRepository.Create().findByIdAndPopulate(
           id,
-          { fields: fields }
+          { projection: projection }
         );
 
         // Validate product
@@ -278,7 +324,7 @@ export default class ProductService implements IProductService {
     try {
       const operation = async () => {
         // Find listings by filter
-        const listings = await ListingRepository.Create().findAll(listingFilter);
+        const listings = await this.findAll(listingFilter, { retry: true });
 
         const listingIds = listings.map((listing) => listing._id);
 

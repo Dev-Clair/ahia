@@ -8,7 +8,9 @@ import IReservationProduct from "../interface/IReservationproduct";
 import ISellProduct from "../interface/ISellproduct";
 import IdempotencyRepository from "../repository/idempotencyRepository";
 import NotFoundError from "../error/notfoundError";
+import LISTING from "../constant/listings";
 import ListingRepository from "../repository/listingRepository";
+import PRODUCT from "../constant/products";
 import ProductRepository from "../repository/productRepository";
 
 /**
@@ -27,6 +29,14 @@ import ProductRepository from "../repository/productRepository";
  * @method deleteListingProduct
  */
 export default class ListingService implements IListingService {
+  static LISTING_PROJECTION = LISTING.PROJECTION;
+
+  static LISTING_SORT = LISTING.SORT;
+
+  static PRODUCT_PROJECTION = PRODUCT.PROJECTION;
+
+  static PRODUCT_SORT = PRODUCT.SORT;
+
   /** Retrieves a collection of listings
    * @public
    * @param queryString query object
@@ -45,7 +55,15 @@ export default class ListingService implements IListingService {
           verification: { status: { in: ["pending", "approved"] } },
         };
 
-        const listings = await ListingRepository.Create().findAll(filter);
+        const queryBuilder = ListingRepository.Create().findAll(filter);
+
+        const listings =
+          (await queryBuilder
+            .Filter()
+            .Sort(ListingService.LISTING_SORT)
+            .Select(ListingService.LISTING_PROJECTION)
+            .Paginate()
+          ).Exec();
 
         return listings;
       };
@@ -69,8 +87,16 @@ export default class ListingService implements IListingService {
     try {
       const { fields, retry = true } = options;
 
+      // Query projection
+      let listingProjection = ListingService.LISTING_PROJECTION;
+
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
+
+      const projection = listingProjection.join(" ");
+
+      // Retrieve listing
       const operation = async () => {
-        const listing = await ListingRepository.Create().findById(id, { fields: fields });
+        const listing = await ListingRepository.Create().findById(id, { projection: projection });
 
         // Validate listing
         if (!listing)
@@ -101,10 +127,30 @@ export default class ListingService implements IListingService {
     try {
       const { page, limit, fields, retry = true } = options;
 
+      // Query projection
+      let listingProjection = ListingService.LISTING_PROJECTION;
+
+      let productProjection = ListingService.PRODUCT_PROJECTION;
+
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
+
+      const projection = {
+        listing: listingProjection.join(" "),
+        product: productProjection.join(" ")
+      };
+
+      // Query sorting
+      const listingSort = { sort: ListingService.LISTING_SORT.join(" ") }
+
+      const productSort = { sort: ListingService.PRODUCT_SORT.join(" ") }
+
+      const sort = { listing: listingSort, product: productSort };
+
+      // Retrieve listing
       const operation = async () => {
         const listing = await ListingRepository.Create().findByIdAndPopulate(
           id,
-          { page: page, limit: limit, fields: fields }
+          { page: page, limit: limit, projection, sort }
         );
 
         // Validate listing
@@ -286,9 +332,9 @@ export default class ListingService implements IListingService {
         if (!Array.isArray(products) || products.length === 0)
           throw new Error(`Invalid Argument Type Error`);
 
-        return await ListingRepository.Create().findAll({
-          products: { in: products }, ...options
-        });
+        return await ListingService.Create().findAll(
+          { products: { in: products }, ...options },
+          { retry: true });
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
