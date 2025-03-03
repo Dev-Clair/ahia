@@ -8,8 +8,8 @@ declare module "express-serve-static-core" {
             };
             pagination?: {
                 total: number;
-                limit: number;
                 page: number;
+                limit: number;
                 pages: number;
             }
         };
