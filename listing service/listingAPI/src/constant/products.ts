@@ -10,7 +10,7 @@ const PROJECTION: string[] = [
   "reservation",
   "sell",
   // "-verification",
-  // "createdAt",
+  // "-createdAt",
   // "-updatedAt",
   // "-__v",
 ];
