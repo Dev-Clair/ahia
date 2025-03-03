@@ -76,7 +76,7 @@ const retrieveProductsByLocation = async (
 
     // Listing filter
     const listingFilter: Record<string, any> = {
-      location: { ...(address && { address }) },
+      ...(address && { address }),
       ...RequestParser(req),
     };
 
@@ -89,6 +89,7 @@ const retrieveProductsByLocation = async (
         ...(type && { type }),
         ...area,
       },
+      ...RequestParser(req),
     };
 
     // Find query
@@ -147,6 +148,7 @@ const retrieveProductsNearBy = async (
         ...(type && { type }),
         ...area,
       },
+      ...RequestParser(req),
     };
 
     // Find query
@@ -217,7 +219,7 @@ const retrieveProductsByListingType = async (
     const listingFilter: Record<string, any> = { type: type, ...RequestParser(req) };
 
     // Product filter
-    const productFilter: Record<string, any> = { status: status };
+    const productFilter: Record<string, any> = { status: status, ...RequestParser(req) };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
