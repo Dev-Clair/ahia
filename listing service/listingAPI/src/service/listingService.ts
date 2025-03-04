@@ -91,23 +91,11 @@ export default class ListingService implements IListingService {
       // Query projection
       let listingProjection = ListingService.LISTING_PROJECTION;
 
-      let listingProjectionObject: { [key: string]: 1 | 0 } = {};
-
-      if (fields !== undefined) {
-        listingProjection = [...listingProjection, fields];
-
-        listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
-          const include = !field.startsWith('-');
-
-          const fieldName = field.replace('-', '');
-
-          return [fieldName, include ? 1 : 0]
-        }));
-      }
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
       // Retrieve listing
       const operation = async () => {
-        const listing = await ListingRepository.Create().findById(id, { projection: listingProjectionObject });
+        const listing = await ListingRepository.Create().findById(id, { projection: listingProjection.join(" ") });
 
         // Validate listing
         if (!listing)
@@ -141,39 +129,15 @@ export default class ListingService implements IListingService {
       // Query projection
       let listingProjection = ListingService.LISTING_PROJECTION;
 
-      let listingProjectionObject: { [key: string]: 1 | 0 } = {};
-
-      if (fields !== undefined) {
-        listingProjection = [...listingProjection, fields];
-
-        listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
-          const include = !field.startsWith('-');
-
-          const fieldName = field.replace('-', '');
-
-          return [fieldName, include ? 1 : 0]
-        }));
-      }
+      if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
       let productProjection = ListingService.PRODUCT_PROJECTION;
 
-      let productProjectionObject: { [key: string]: 1 | 0 } = {};
-
-      if (fields !== undefined) {
-        productProjection = [...productProjection, fields];
-
-        productProjectionObject = Object.fromEntries(productProjection.map((field) => {
-          const include = !field.startsWith('-');
-
-          const fieldName = field.replace('-', '');
-
-          return [fieldName, include ? 1 : 0]
-        }));
-      }
+      if (fields !== undefined) productProjection = [...productProjection, fields];
 
       const projection = {
-        listing: listingProjectionObject,
-        product: productProjectionObject
+        listing: listingProjection.join(" "),
+        product: productProjection.join(" ")
       };
 
       // Query sorting
