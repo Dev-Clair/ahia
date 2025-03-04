@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import IDocument from "../interface/IDocument";
 
-const ResponseParser = (req: Request, res: Response, resource: IDocument[]) =>
+const Paginator = (req: Request, res: Response, resource: IDocument[]) =>
     res.meta!.pagination = {
         total: resource.length,
 
@@ -14,4 +14,4 @@ const ResponseParser = (req: Request, res: Response, resource: IDocument[]) =>
         )
     }
 
-export default ResponseParser;
+export default Paginator;
