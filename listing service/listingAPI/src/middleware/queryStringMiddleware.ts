@@ -12,7 +12,7 @@ const ParseQueryString = (
     res: Response,
     next: NextFunction): Response | void => {
     const fields = (): string | undefined => {
-        if (req.user?.permissions.includes("user:basic")) return "";
+        if (req.user?.permissions.includes("user:basic")) return undefined;
 
         if (req.user?.permissions.includes("user:plus")) return "address";
 
@@ -21,10 +21,12 @@ const ParseQueryString = (
         return undefined;
     }
 
+    const parsedFields = fields();
+
     req.queryString = {
         page: parseInt((req.query?.page as string) ?? "1", 10),
         limit: parseInt((req.query?.limit as string) ?? "20", 10),
-        fields: fields,
+        fields: parsedFields ?? undefined,
         sort: req.query?.sort as string,
     } as IQueryString;
 
