@@ -1,7 +1,8 @@
+import { ObjectId } from "mongoose";
 import { Request, Response } from "express";
 import IDocument from "../interface/IDocument";
 
-const Paginator = (req: Request, res: Response, resource: IDocument[]) =>
+const Paginator = (req: Request, res: Response, resource: IDocument[] | ObjectId[]) =>
     res.meta!.pagination = {
         total: resource.length,
 
