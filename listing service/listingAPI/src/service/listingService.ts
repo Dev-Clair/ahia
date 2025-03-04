@@ -73,8 +73,6 @@ export default class ListingService implements IListingService {
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      console.log(listings);
-
       return listings;
     } catch (error: any) {
       throw error;
@@ -93,15 +91,19 @@ export default class ListingService implements IListingService {
       // Query projection
       let listingProjection = ListingService.LISTING_PROJECTION;
 
-      if (fields !== undefined) listingProjection = [...listingProjection, fields];
+      let listingProjectionObject: { [key: string]: 1 | 0 } = {};
 
-      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
-        const include = !field.startsWith('-');
+      if (fields !== undefined) {
+        listingProjection = [...listingProjection, fields];
 
-        const fieldName = field.replace('-', '');
+        listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
+          const include = !field.startsWith('-');
 
-        return [fieldName, include ? 1 : 0]
-      }));
+          const fieldName = field.replace('-', '');
+
+          return [fieldName, include ? 1 : 0]
+        }));
+      }
 
       // Retrieve listing
       const operation = async () => {
@@ -139,25 +141,35 @@ export default class ListingService implements IListingService {
       // Query projection
       let listingProjection = ListingService.LISTING_PROJECTION;
 
-      if (fields !== undefined) listingProjection = [...listingProjection, fields];
+      let listingProjectionObject: { [key: string]: 1 | 0 } = {};
 
-      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
-        const include = !field.startsWith('-');
+      if (fields !== undefined) {
+        listingProjection = [...listingProjection, fields];
 
-        const fieldName = field.replace('-', '');
+        listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
+          const include = !field.startsWith('-');
 
-        return [fieldName, include ? 1 : 0]
-      }));
+          const fieldName = field.replace('-', '');
+
+          return [fieldName, include ? 1 : 0]
+        }));
+      }
 
       let productProjection = ListingService.PRODUCT_PROJECTION;
 
-      const productProjectionObject = Object.fromEntries(productProjection.map((field) => {
-        const include = !field.startsWith('-');
+      let productProjectionObject: { [key: string]: 1 | 0 } = {};
 
-        const fieldName = field.replace('-', '');
+      if (fields !== undefined) {
+        productProjection = [...productProjection, fields];
 
-        return [fieldName, include ? 1 : 0]
-      }));
+        productProjectionObject = Object.fromEntries(productProjection.map((field) => {
+          const include = !field.startsWith('-');
+
+          const fieldName = field.replace('-', '');
+
+          return [fieldName, include ? 1 : 0]
+        }));
+      }
 
       const projection = {
         listing: listingProjectionObject,
