@@ -73,8 +73,6 @@ export default class ListingService implements IListingService {
         ? await FailureRetry.LinearJitterBackoff(() => operation())
         : await operation();
 
-      console.log(listings);
-
       return listings;
     } catch (error: any) {
       throw error;
@@ -95,17 +93,9 @@ export default class ListingService implements IListingService {
 
       if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
-      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
-        const include = !field.startsWith('-');
-
-        const fieldName = field.replace('-', '');
-
-        return [fieldName, include ? 1 : 0]
-      }));
-
       // Retrieve listing
       const operation = async () => {
-        const listing = await ListingRepository.Create().findById(id, { projection: listingProjectionObject });
+        const listing = await ListingRepository.Create().findById(id, { projection: listingProjection.join(" ") });
 
         // Validate listing
         if (!listing)
@@ -141,27 +131,13 @@ export default class ListingService implements IListingService {
 
       if (fields !== undefined) listingProjection = [...listingProjection, fields];
 
-      const listingProjectionObject = Object.fromEntries(listingProjection.map((field) => {
-        const include = !field.startsWith('-');
-
-        const fieldName = field.replace('-', '');
-
-        return [fieldName, include ? 1 : 0]
-      }));
-
       let productProjection = ListingService.PRODUCT_PROJECTION;
 
-      const productProjectionObject = Object.fromEntries(productProjection.map((field) => {
-        const include = !field.startsWith('-');
-
-        const fieldName = field.replace('-', '');
-
-        return [fieldName, include ? 1 : 0]
-      }));
+      if (fields !== undefined) productProjection = [...productProjection, fields];
 
       const projection = {
-        listing: listingProjectionObject,
-        product: productProjectionObject
+        listing: listingProjection.join(" "),
+        product: productProjection.join(" ")
       };
 
       // Query sorting
@@ -359,7 +335,7 @@ export default class ListingService implements IListingService {
 
         return await this.findAll(
           { products: { in: products }, ...options },
-          { retry: true });
+          { retry: false });
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
@@ -377,7 +353,7 @@ export default class ListingService implements IListingService {
   ): Promise<IProduct[]> {
     try {
       const operation = async () =>
-        await ProductService.Create().findAll(queryString, { retry: true });
+        await ProductService.Create().findAll(queryString, { retry: false });
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {

@@ -113,12 +113,6 @@ Authorization and authentication is enabled by an identity server which manages 
     POST /api/v1/listings/:id/products
     ```
 
-    2.4 Delete a Listing's Product by ID
-
-    ```
-    DELETE /api/v1/listings/:id/products/:product
-    ```
-
 3.  Product Endpoints (Geospatial queries: requires geo-coordinates (lat, lng) as query parameters)
 
     3.1 Retrieve All Products Types
@@ -139,25 +133,13 @@ Authorization and authentication is enabled by an identity server which manages 
     GET /api/v1/listings/products/status/:status/nearby
     ```
 
-    3.4 Retrieve Products by Offerings
-
-    ```
-    GET /api/v1/listings/products/status/:status/offerings
-    ```
-
-    3.5 Retrieves Products by Search
+    3.4 Retrieves Products by Search
 
     ```
     GET /api/v1/listings/products/status/:status/search
     ```
 
-    3.6 Retrieves Products by Place
-
-    ```
-    GET /api/v1/listings/products/status/:status/place/:place
-    ```
-
-    3.7 Retrieves Products by Listing Provider
+    3.5 Retrieves Products by Listing Provider
 
     ```
     GET /api/v1/listings/products/status/:status/provider/:provider

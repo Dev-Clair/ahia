@@ -3,7 +3,7 @@ import { MongooseError } from "mongoose";
 import APIError from "../error/apiError";
 import Log from "../utils/logger";
 
-class GlobalErrorHandlingMiddleware {
+export default class ErrorHandlingMiddleware {
   /**
    * Handles non-operational errors gracefully
    * @param error error object
@@ -42,7 +42,3 @@ class GlobalErrorHandlingMiddleware {
     return error instanceof SyntaxError && error.message.includes("JSON");
   }
 }
-
-const GlobalErrorHandler = GlobalErrorHandlingMiddleware;
-
-export default GlobalErrorHandler;

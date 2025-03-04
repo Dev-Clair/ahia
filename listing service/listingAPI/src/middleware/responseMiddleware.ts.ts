@@ -12,7 +12,7 @@ const ParseResponseMiddleware = (req: Request, res: Response, next: NextFunction
         request: {
             id: randomUUID(),
             timestamp: new Date().toISOString(),
-            idempotent: req.get("idempotency-key") ? true : false
+            idempotent: req.get("idempotency-key") || req.get("idempotencyKey") ? true : false
         },
     }
 

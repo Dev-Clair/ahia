@@ -9,10 +9,10 @@ const PROJECTION: string[] = [
   "lease",
   "reservation",
   "sell",
-  "-verification",
-  "-createdAt",
-  "-updatedAt",
-  "-__v",
+  // "-verification",
+  // "-createdAt",
+  // "-updatedAt",
+  // "-__v",
 ];
 
 const SORT: string[] = ["-createdAt"];

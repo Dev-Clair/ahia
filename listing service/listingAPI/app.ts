@@ -4,7 +4,7 @@ import express_mongo_sanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import hpp from "hpp";
 import APIError from "./src/error/apiError";
-import GlobalErrorHandler from "./src/middleware/globalErrorHandlingMiddleware.ts";
+import ErrorHandlingMiddleware from "./src/middleware/errorHandlingMiddleware.ts";
 import ResponseMiddleware from "./src/middleware/responseMiddleware.ts";
 import HttpCode from "./src/enum/httpCode";
 import HttpStatus from "./src/enum/httpStatus";
@@ -30,7 +30,7 @@ App.use("/api/v1", Routes);
 
 App.use(
   (err: APIError | Error, req: Request, res: Response, next: NextFunction) => {
-    if (GlobalErrorHandler.isSyntaxError(err)) {
+    if (ErrorHandlingMiddleware.isSyntaxError(err)) {
       return res
         .sendResponse(HttpCode.BAD_REQUEST, {
           error: {
@@ -40,7 +40,7 @@ App.use(
         });
     }
 
-    if (GlobalErrorHandler.isSafeError(err)) {
+    if (ErrorHandlingMiddleware.isSafeError(err)) {
       if (err.name === "ValidationError") {
         return res.sendResponse(HttpCode.BAD_REQUEST, {
           error: {
@@ -66,7 +66,7 @@ App.use(
       }
     }
 
-    if (GlobalErrorHandler.isTrustedError(err as APIError)) {
+    if (ErrorHandlingMiddleware.isTrustedError(err as APIError)) {
       return res.sendResponse((err as APIError).code, {
         error: {
           name: err.name,
@@ -75,7 +75,7 @@ App.use(
       });
     }
 
-    GlobalErrorHandler.handleError(err);
+    ErrorHandlingMiddleware.handleError(err);
 
     if (!res.headersSent) {
       return res.sendResponse(HttpCode.INTERNAL_SERVER_ERROR, {
