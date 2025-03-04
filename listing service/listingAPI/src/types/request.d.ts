@@ -5,8 +5,9 @@ import IUser from "../interface/IUser";
 
 declare module "express-serve-static-core" {
   export interface Request {
-    idempotent?: Record<string, any>;
     geoCoordinates?: IGeoCoordinates;
+    idempotent?: Record<string, any>;
+    queryString?: Record<string, any>;
     user?: IUser;
   }
 }
