@@ -3,8 +3,7 @@ import BadRequestError from "../error/badrequestError";
 import { NextFunction, Request, Response } from "express";
 import IProduct from "../interface/IProduct";
 import ProductService from "../service/productService";
-import RequestParser from "../utils/requestParser";
-import ResponseParser from "../utils/responseParser";
+import Paginator from "../utils/paginator";
 
 /**
  * Retrieves products by search query
@@ -28,6 +27,7 @@ const retrieveProductsSearch = async (
     const productFilter: Record<string, any> = {
       $text: { $search: q },
       status: status,
+      ...req.queryString,
     };
 
     // Find query
@@ -35,7 +35,7 @@ const retrieveProductsSearch = async (
       { retry: true });
 
     // Add pagination metadata to response
-    ResponseParser(req, res, products);
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
@@ -77,7 +77,7 @@ const retrieveProductsByLocation = async (
     // Listing filter
     const listingFilter: Record<string, any> = {
       ...(address && { address }),
-      ...RequestParser(req),
+      ...req.queryString,
     };
 
     // Product filter
@@ -89,7 +89,7 @@ const retrieveProductsByLocation = async (
         ...(type && { type }),
         ...area,
       },
-      ...RequestParser(req),
+      ...req.queryString,
     };
 
     // Find query
@@ -99,7 +99,7 @@ const retrieveProductsByLocation = async (
     );
 
     // Add pagination metadata to response
-    ResponseParser(req, res, products);
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
@@ -136,7 +136,7 @@ const retrieveProductsNearBy = async (
     // Listing filter
     const listingFilter: Record<string, any> = {
       ...req.geoCoordinates,
-      ...RequestParser(req),
+      ...req.queryString,
     };
 
     // Product filter
@@ -148,7 +148,7 @@ const retrieveProductsNearBy = async (
         ...(type && { type }),
         ...area,
       },
-      ...RequestParser(req),
+      ...req.queryString,
     };
 
     // Find query
@@ -158,7 +158,7 @@ const retrieveProductsNearBy = async (
     );
 
     // Add pagination metadata to response
-    ResponseParser(req, res, products);
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
@@ -181,10 +181,10 @@ const retrieveProductsByListingProvider = async (
     const { status, provider } = req.params;
 
     // Listing filter
-    const listingFilter: Record<string, any> = { provider: provider, ...RequestParser(req) };
+    const listingFilter: Record<string, any> = { provider: provider, ...req.queryString };
 
     // Product filter
-    const productFilter: Record<string, any> = { status: status, ...RequestParser(req) };
+    const productFilter: Record<string, any> = { status: status, ...req.queryString };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -193,7 +193,7 @@ const retrieveProductsByListingProvider = async (
     );
 
     // Add pagination metadata to response
-    ResponseParser(req, res, products);
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
@@ -216,10 +216,10 @@ const retrieveProductsByListingType = async (
     const { status, type } = req.params;
 
     // Listing filter
-    const listingFilter: Record<string, any> = { type: type, ...RequestParser(req) };
+    const listingFilter: Record<string, any> = { type: type, ...req.queryString };
 
     // Product filter
-    const productFilter: Record<string, any> = { status: status, ...RequestParser(req) };
+    const productFilter: Record<string, any> = { status: status, ...req.queryString };
 
     // Find query
     const products = await ProductService.Create().findProductsByListing(
@@ -228,7 +228,7 @@ const retrieveProductsByListingType = async (
     );
 
     // Add pagination metadata to response
-    ResponseParser(req, res, products);
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {
@@ -251,9 +251,7 @@ const retrieveProductById = async (
     const { id } = req.params;
 
     // Find query
-    const product = await ProductService.Create().findById(id, {
-      ...RequestParser(req), retry: true
-    });
+    const product = await ProductService.Create().findById(id, { retry: true });
 
     return res.sendResponse(HttpCode.OK, { data: product });
   } catch (err: any) {
@@ -277,7 +275,7 @@ const retrieveProductByIdAndPopulate = async (
 
     // Find query
     const product = await ProductService.Create().findByIdAndPopulate(id, {
-      ...RequestParser(req),
+      ...req.queryString,
       retry: true,
     });
 

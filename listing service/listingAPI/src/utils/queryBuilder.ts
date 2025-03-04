@@ -105,7 +105,7 @@ export class QueryBuilder<T> {
    */
   public Select(projection: string[]): this {
     if (this.queryString.fields !== undefined) {
-      let fields = [this.queryString.fields, ...projection];
+      let fields = [this.queryString.fields as string, ...projection];
 
       const selectObject: { [key: string]: 1 | 0 } = {};
 

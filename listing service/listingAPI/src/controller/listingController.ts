@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import BadRequestError from "../error/badrequestError";
 import HttpCode from "../enum/httpCode";
 import ILeaseProduct from "../interface/ILeaseproduct";
@@ -7,8 +8,7 @@ import ISellProduct from "../interface/ISellproduct";
 import ListingService from "../service/listingService";
 import ProductService from "../service/productService";
 import { NextFunction, Request, Response } from "express";
-import RequestParser from "../utils/requestParser";
-import ResponseParser from "../utils/responseParser";
+import Paginator from "../utils/paginator";
 import UnauthorizedError from "../error/unauthorizedError";
 
 /**
@@ -72,12 +72,12 @@ const retrieveListingsSearch = async (
     const listings = await ListingService.Create().findAll(
       {
         $text: { $search: q },
-        ...RequestParser(req)
+        ...req.queryString
       },
       { retry: true });
 
     // Add pagination metadata to response
-    ResponseParser(req, res, listings);
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
@@ -104,13 +104,13 @@ const retrieveListingsByProvider = async (
     // Find query
     const listings = await ListingService.Create().findAll({
       provider: provider,
-      ...RequestParser(req)
+      ...req.queryString
     }, {
       retry: true,
     });
 
     // Add pagination metadata to response
-    ResponseParser(req, res, listings);
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
@@ -137,13 +137,13 @@ const retrieveListingsByType = async (
     // Find query
     const listings = await ListingService.Create().findAll({
       type: type,
-      ...RequestParser(req)
+      ...req.queryString
     }, {
       retry: true,
     });
 
     // Add pagination metadata to response
-    ResponseParser(req, res, listings);
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
@@ -163,15 +163,15 @@ const retrieveListingsByProducts = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const queryString = req.query.products as string[];
+    const products = req.query.products as string[];
 
     // Find query
     const listings = await ListingService.Create().findListingsByProducts(
-      queryString, { ...RequestParser(req) }
+      products, { ...req.queryString }
     );
 
     // Add pagination metadata to response
-    ResponseParser(req, res, listings);
+    Paginator(req, res, listings);
 
     return res.sendResponse(HttpCode.OK, { data: listings });
   } catch (err: any) {
@@ -195,7 +195,7 @@ const retrieveListingById = async (
 
     // Find query
     const listing = await ListingService.Create().findById(id, {
-      ...RequestParser(req),
+      ...req.queryString,
       retry: true
     });
 
@@ -221,7 +221,12 @@ const retrieveListingByIdAndPopulate = async (
 
     // Find query
     const listing = await ListingService.Create().findByIdAndPopulate(id,
-      { ...RequestParser(req), retry: true });
+      { ...req.queryString, retry: true });
+
+    const products = listing.products as ObjectId[];
+
+    // Add pagination metadata to response
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, { data: listing });
   } catch (err: any) {
@@ -299,16 +304,16 @@ const createListingProduct = async (
   next: NextFunction
 ): Promise<Response | void> => {
   try {
-    const { id } = req.params;
-
     const { type } = req.query;
 
     if (!type) throw new Error("Product type is required");
 
-    const idempotent = req.idempotent as Record<string, any>;
+    const { id } = req.params;
 
     // Retrieve listing
     const listing = await ListingService.Create().findById(id, { retry: true });
+
+    const idempotent = req.idempotent as Record<string, any>;
 
     let payload, products: string[];
 
@@ -384,12 +389,15 @@ const retrieveListingProducts = async (
     const { id } = req.params;
 
     // Retrieve listing
-    const listing = await ListingService.Create().findById(id, { fields: "id" });
+    const listing = await ListingService.Create().findById(id, { retry: true });
 
     // Retrieve products
     const products = await ProductService.Create().findAll(
-      { listing: listing._id.toString(), ...RequestParser(req) }, { retry: true }
+      { listing: listing._id.toString(), ...req.queryString }, { retry: true }
     );
+
+    // Add pagination metadata to response
+    Paginator(req, res, products);
 
     return res.sendResponse(HttpCode.OK, { data: products });
   } catch (err: any) {

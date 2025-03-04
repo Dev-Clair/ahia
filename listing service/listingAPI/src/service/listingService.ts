@@ -359,7 +359,7 @@ export default class ListingService implements IListingService {
 
         return await this.findAll(
           { products: { in: products }, ...options },
-          { retry: true });
+          { retry: false });
       };
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
@@ -377,7 +377,7 @@ export default class ListingService implements IListingService {
   ): Promise<IProduct[]> {
     try {
       const operation = async () =>
-        await ProductService.Create().findAll(queryString, { retry: true });
+        await ProductService.Create().findAll(queryString, { retry: false });
 
       return await FailureRetry.LinearJitterBackoff(() => operation());
     } catch (error: any) {

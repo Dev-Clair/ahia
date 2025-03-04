@@ -31,4 +31,4 @@ const ParseQueryString = (
     next()
 };
 
-export default ParseQueryString;
+export default { ParseQueryString };
