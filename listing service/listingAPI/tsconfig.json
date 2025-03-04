@@ -33,5 +33,6 @@
     "skipLibCheck": true // Skip type checking of declaration files
   },
   "include": ["./**/*.ts", "src/types/request.d.ts"], // Include all TypeScript files in the src directory
-  "exclude": ["node_modules", "dist"] // Exclude node_modules and dist directories
+  "exclude": ["node_modules", "dist"], // Exclude node_modules and dist directories
+  "types": ["node", "jest"] // Include type definitions for Node.js and Jest
 }
