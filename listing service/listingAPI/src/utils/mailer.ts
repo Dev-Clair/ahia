@@ -5,7 +5,6 @@ import {
   SendEmailCommandInput,
   SendEmailCommandOutput,
 } from "@aws-sdk/client-ses";
-import Config from "../../config";
 
 class Mailer {
   private client: SESClient;
@@ -52,9 +51,9 @@ class Mailer {
           },
           Html: html
             ? {
-                Data: html,
-                Charset: "UTF-8",
-              }
+              Data: html,
+              Charset: "UTF-8",
+            }
             : undefined,
         },
       },
@@ -67,15 +66,7 @@ class Mailer {
   /**
    * Creates and returns a new instance of the Mailer class
    */
-  public static Create(): Mailer {
-    const configuration: SESClientConfig = {
-      region: Config.AWS.REGION,
-      credentials: {
-        accessKeyId: Config.AWS.IAM.ACCESS_KEY_ID,
-        secretAccessKey: Config.AWS.IAM.SECRET_ACCESS_KEY,
-      },
-    };
-
+  public static Create(configuration: SESClientConfig): Mailer {
     return new Mailer(configuration);
   }
 }
