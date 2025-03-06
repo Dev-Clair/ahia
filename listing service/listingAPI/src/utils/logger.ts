@@ -13,7 +13,7 @@ const logFormat = printf(
 );
 
 // S3 instance
-const Bucket = Config.AWS.S3_BUCKET_NAME;
+const Bucket = Config.AWS.S3_BUCKET;
 
 const Configuration: Record<string, any> = {
   region: Config.AWS.REGION,
@@ -23,9 +23,12 @@ const Configuration: Record<string, any> = {
   },
 };
 
-const SERVICE_NAME = Config.LISTING.SERVICE.NAME;
-
 const S3 = Storage.Create(Configuration, Bucket);
+
+// Bucket path
+const SERVICE_NAME = Config.SERVICE_NAME;
+
+const LOG_PATH = `${Config.AWS.REGION}/${SERVICE_NAME}/logs`;
 
 // Log directory
 const APP_LOG_DIR = Config.LOG.APP;
@@ -83,32 +86,40 @@ const CRON_LOG_TRANSPORT =
   ];
 
 // Transport events
-APP_LOG_TRANSPORT.map((log) => log.on("rotate", async function (file) {
-  try {
-    const key = `logs/${SERVICE_NAME}/${path.basename(file)}.log`;
+APP_LOG_TRANSPORT.forEach((log) => log.on("rotate", function (file) {
+  (async () => {
+    try {
+      if (!file) throw new Error("No file provided for rotation event");
 
-    const fileBuffer = await readFile(file);
+      const key = `${LOG_PATH}/${path.basename(file)}`;
 
-    await S3.Upload(key, fileBuffer);
+      const fileBuffer = await readFile(file);
 
-    await unlink(file);
-  } catch (error: any) {
-    throw new Error(`Log file upload failed with error: ${error.message}`);
-  }
+      await S3.Upload(key, fileBuffer);
+
+      await unlink(file);
+    } catch (error: any) {
+      console.error(`Log file upload failed with error: ${error.message}`);
+    }
+  })();
 }));
 
-CRON_LOG_TRANSPORT.map((log) => log.on("rotate", async function (file) {
-  try {
-    const key = `logs/${SERVICE_NAME}/${path.basename(file)}.log`;
+CRON_LOG_TRANSPORT.forEach((log) => log.on("rotate", function (file) {
+  (async () => {
+    try {
+      if (!file) throw new Error("No file provided for rotation event");
 
-    const fileBuffer = await readFile(file);
+      const key = `${LOG_PATH}/${path.basename(file)}`;
 
-    await S3.Upload(key, fileBuffer);
+      const fileBuffer = await readFile(file);
 
-    await unlink(file);
-  } catch (error: any) {
-    throw new Error(`Log file upload failed with error: ${error.message}`);
-  }
+      await S3.Upload(key, fileBuffer);
+
+      await unlink(file);
+    } catch (error: any) {
+      console.error(`Log file upload failed with error: ${error.message}`);
+    }
+  })();
 }));
 
 // Logger
