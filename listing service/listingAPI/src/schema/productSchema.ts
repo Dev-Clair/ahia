@@ -1,8 +1,9 @@
 import mongoose, { Schema } from "mongoose";
+import Config from "../../config";
 import IProduct from "../interface/IProduct";
 import OfferingSchema from "./offeringSchema";
 
-const baseStoragePath = `https://s3.amazonaws.com/ahia/listing/products`;
+const baseStoragePath = `https://s3.amazonaws.com/${Config.AWS.S3_BUCKET}/af-south-1/listing-service/products`;
 
 const ProductSchema: Schema<IProduct> = new Schema(
   {
@@ -36,30 +37,28 @@ const ProductSchema: Schema<IProduct> = new Schema(
     },
     media: {
       images: {
-        images: {
-          type: [String],
-          get: (values: string[] = []) =>
-            values.map((value) =>
-              value.startsWith("http") ? value : `${baseStoragePath}${value}`
-            ),
-          validate: {
-            validator: (values: string[]) => values.length <= 5,
-            message: "You can only upload up to 5 images per request.",
-          },
-          required: false,
+        type: [String],
+        get: (values: string[] = []) =>
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}/products/images/${value}`
+          ),
+        validate: {
+          validator: (values: string[]) => values.length <= 5,
+          message: "You can only upload up to 5 images per request.",
         },
-        videos: {
-          type: [String],
-          get: (values: string[] = []) =>
-            values.map((value) =>
-              value.startsWith("http") ? value : `${baseStoragePath}${value}`
-            ),
-          validate: {
-            validator: (values: string[]) => values.length <= 3,
-            message: "You can only upload up to 3 videos per request.",
-          },
-          required: false,
+        required: false,
+      },
+      videos: {
+        type: [String],
+        get: (values: string[] = []) =>
+          values.map((value) =>
+            value.startsWith("http") ? value : `${baseStoragePath}/products/videos/${value}`
+          ),
+        validate: {
+          validator: (values: string[]) => values.length <= 3,
+          message: "You can only upload up to 3 videos per request.",
         },
+        required: false,
       },
     },
     status: {

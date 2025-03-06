@@ -1,7 +1,8 @@
 import mongoose, { Schema } from "mongoose";
+import Config from "../../config";
 import IListing from "../interface/IListing";
 
-const baseStoragePath = `https://s3.amazonaws.com/ahia/listing`;
+const baseStoragePath = `https://s3.amazonaws.com/${Config.AWS.S3_BUCKET}/af-south-1/listing-service`;
 
 const ListingSchema: Schema<IListing> = new Schema(
   {
@@ -88,7 +89,7 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: [String],
         get: (values: string[] = []) =>
           values.map((value) =>
-            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+            value.startsWith("http") ? value : `${baseStoragePath}/listing/images/${value}`
           ),
         validate: {
           validator: (values: string[]) => values.length <= 5,
@@ -100,7 +101,7 @@ const ListingSchema: Schema<IListing> = new Schema(
         type: [String],
         get: (values: string[] = []) =>
           values.map((value) =>
-            value.startsWith("http") ? value : `${baseStoragePath}${value}`
+            value.startsWith("http") ? value : `${baseStoragePath}/listing/videos/${value}`
           ),
         validate: {
           validator: (values: string[]) => values.length <= 3,
